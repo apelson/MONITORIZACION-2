@@ -1411,6 +1411,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState("devices");
+  const [filterCountry, setFilterCountry] = useState(null);
   const [filterOrgId, setFilterOrgId] = useState(null);
   const [filterGroupId, setFilterGroupId] = useState(null);
   const [filterTypeId, setFilterTypeId] = useState(null);
