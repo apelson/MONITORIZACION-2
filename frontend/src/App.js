@@ -885,6 +885,9 @@ const Dashboard = () => {
   const [typeDialogOpen, setTypeDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [mobotixDialogOpen, setMobotixDialogOpen] = useState(false);
+  const [mobotixInfo, setMobotixInfo] = useState(null);
+  const [mobotixLoading, setMobotixLoading] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [selectedOrg, setSelectedOrg] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
