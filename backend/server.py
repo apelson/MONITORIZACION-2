@@ -95,12 +95,16 @@ class OrganizationCreate(BaseModel):
     description: Optional[str] = ""
     color: Optional[str] = "#3b82f6"
     logo_url: Optional[str] = ""
+    country: Optional[str] = ""  # País/Región
+    city: Optional[str] = ""     # Ciudad
 
 class OrganizationUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     color: Optional[str] = None
     logo_url: Optional[str] = None
+    country: Optional[str] = None
+    city: Optional[str] = None
 
 # Group (belongs to Organization)
 class GroupCreate(BaseModel):
