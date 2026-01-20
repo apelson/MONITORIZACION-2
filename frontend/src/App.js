@@ -997,10 +997,13 @@ const Dashboard = () => {
       <main className="container mx-auto max-w-7xl px-6 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6 flex-wrap h-auto gap-1">
-            <TabsTrigger data-testid="tab-devices" value="devices" className="gap-2"><Server className="w-4 h-4" />Dispositivos</TabsTrigger>
-            <TabsTrigger data-testid="tab-structure" value="structure" className="gap-2"><Building2 className="w-4 h-4" />Estructura</TabsTrigger>
-            <TabsTrigger data-testid="tab-types" value="types" className="gap-2"><Tag className="w-4 h-4" />Tipos</TabsTrigger>
-            <TabsTrigger data-testid="tab-alerts" value="alerts" className="gap-2"><Bell className="w-4 h-4" />Alertas{alerts.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-1.5">{alerts.length}</Badge>}</TabsTrigger>
+            <TabsTrigger data-testid="tab-devices" value="devices" className="gap-2">
+              {isOperator ? <Camera className="w-4 h-4" /> : <Server className="w-4 h-4" />}
+              {isOperator ? "Cámaras Online" : "Dispositivos"}
+            </TabsTrigger>
+            {!isOperator && <TabsTrigger data-testid="tab-structure" value="structure" className="gap-2"><Building2 className="w-4 h-4" />Estructura</TabsTrigger>}
+            {!isOperator && <TabsTrigger data-testid="tab-types" value="types" className="gap-2"><Tag className="w-4 h-4" />Tipos</TabsTrigger>}
+            {!isOperator && <TabsTrigger data-testid="tab-alerts" value="alerts" className="gap-2"><Bell className="w-4 h-4" />Alertas{alerts.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-1.5">{alerts.length}</Badge>}</TabsTrigger>}
             {isAdmin && <TabsTrigger data-testid="tab-users" value="users" className="gap-2"><Users className="w-4 h-4" />Usuarios</TabsTrigger>}
             {isAdmin && <TabsTrigger data-testid="tab-settings" value="settings" className="gap-2"><Settings className="w-4 h-4" />Config</TabsTrigger>}
           </TabsList>
