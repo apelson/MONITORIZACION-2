@@ -495,15 +495,17 @@ const DeleteConfirmDialog = ({ open, onOpenChange, title, message, onConfirm }) 
 };
 
 // ============ PANELS ============
-const OrganizationsPanel = ({ organizations, groups, devices, onCreateOrg, onEditOrg, onDeleteOrg, onCreateGroup, onEditGroup, onDeleteGroup, canEdit }) => {
+const OrganizationsPanel = ({ organizations, groups, devices, onCreateOrg, onEditOrg, onDeleteOrg, onCreateGroup, onEditGroup, onDeleteGroup, canEdit, onExport }) => {
   const [openOrgs, setOpenOrgs] = useState({});
   const toggleOrg = (id) => setOpenOrgs(prev => ({ ...prev, [id]: !prev[id] }));
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div><h2 className="text-lg font-semibold">Organizaciones y Grupos</h2><p className="text-sm text-muted-foreground">Estructura jerárquica de tus dispositivos</p></div>
-        {canEdit && <Button data-testid="add-org-btn" size="sm" onClick={() => onCreateOrg()}><Plus className="w-4 h-4 mr-2" />Nueva Organización</Button>}
+        <div className="flex items-center gap-2">
+          {canEdit && <Button data-testid="add-org-btn" size="sm" onClick={() => onCreateOrg()}><Plus className="w-4 h-4 mr-2" />Nueva Organización</Button>}
+        </div>
       </div>
 
       {organizations.length === 0 ? (
@@ -521,7 +523,11 @@ const OrganizationsPanel = ({ organizations, groups, devices, onCreateOrg, onEdi
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <ChevronRight className={`w-5 h-5 transition-transform ${openOrgs[org.id] ? 'rotate-90' : ''}`} />
-                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: org.color }} />
+                          {org.logo_url ? (
+                            <img src={org.logo_url} alt={org.name} className="h-8 w-8 object-contain rounded" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: org.color }}><Building2 className="w-4 h-4 text-white" /></div>
+                          )}
                           <div>
                             <CardTitle className="text-base">{org.name}</CardTitle>
                             {org.description && <CardDescription className="text-xs">{org.description}</CardDescription>}
@@ -529,13 +535,24 @@ const OrganizationsPanel = ({ organizations, groups, devices, onCreateOrg, onEdi
                         </div>
                         <div className="flex items-center gap-3">
                           <Badge variant="secondary">{orgGroups.length} grupos • {orgDeviceCount} dispositivos</Badge>
-                          {canEdit && (
-                            <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-                              <Button variant="ghost" size="sm" onClick={() => onCreateGroup(org.id)}><Plus className="w-4 h-4" /></Button>
-                              <Button variant="ghost" size="sm" onClick={() => onEditOrg(org)}><Edit className="w-4 h-4" /></Button>
-                              <Button variant="ghost" size="sm" onClick={() => onDeleteOrg(org)} className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
-                            </div>
-                          )}
+                          <div className="flex gap-1" onClick={e => e.stopPropagation()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm"><Download className="w-4 h-4" /></Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                <DropdownMenuItem onClick={() => onExport('excel', org.id)}><FileSpreadsheet className="w-4 h-4 mr-2" />Exportar Excel</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onExport('pdf', org.id)}><FileIcon className="w-4 h-4 mr-2" />Exportar PDF</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            {canEdit && (
+                              <>
+                                <Button variant="ghost" size="sm" onClick={() => onCreateGroup(org.id)}><Plus className="w-4 h-4" /></Button>
+                                <Button variant="ghost" size="sm" onClick={() => onEditOrg(org)}><Edit className="w-4 h-4" /></Button>
+                                <Button variant="ghost" size="sm" onClick={() => onDeleteOrg(org)} className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </CardHeader>
