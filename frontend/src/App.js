@@ -28,6 +28,124 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_equip-tracker-39/artifacts/796492pi_version%20autorizada%202.png";
+const MOBOTIX_LOGO_URL = "https://www.mobotix.com/sites/default/files/2019-10/MOBOTIX-Logo.svg";
+
+// ============ LOADING SCREEN ============
+const LoadingScreen = () => {
+  const [progress, setProgress] = useState(0);
+  const [statusText, setStatusText] = useState("Iniciando sistema...");
+  
+  useEffect(() => {
+    const messages = [
+      "Iniciando sistema...",
+      "Conectando con servidores...",
+      "Cargando dispositivos...",
+      "Verificando cámaras...",
+      "Preparando dashboard..."
+    ];
+    
+    let currentProgress = 0;
+    const interval = setInterval(() => {
+      currentProgress += Math.random() * 15 + 5;
+      if (currentProgress >= 100) {
+        currentProgress = 100;
+        clearInterval(interval);
+      }
+      setProgress(Math.min(currentProgress, 100));
+      
+      const msgIndex = Math.min(Math.floor(currentProgress / 25), messages.length - 1);
+      setStatusText(messages[msgIndex]);
+    }, 300);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+      {/* Logo container with animation */}
+      <div className="relative flex items-center justify-center mb-8">
+        {/* Siempria Logo */}
+        <div className="relative z-10 animate-fade-in">
+          <img 
+            src={LOGO_URL} 
+            alt="Siempria" 
+            className="h-20 md:h-24 object-contain drop-shadow-2xl"
+            style={{ filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.3))' }}
+          />
+        </div>
+        
+        {/* Connection line animation */}
+        <div className="mx-4 md:mx-8 flex items-center">
+          <div className="flex space-x-1">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div 
+                key={i}
+                className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"
+                style={{ 
+                  animationDelay: `${i * 0.15}s`,
+                  opacity: 0.4 + (i * 0.15)
+                }}
+              />
+            ))}
+          </div>
+        </div>
+        
+        {/* Mobotix Logo */}
+        <div className="relative z-10 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <div className="bg-white rounded-lg px-4 py-2 shadow-xl">
+            <img 
+              src={MOBOTIX_LOGO_URL} 
+              alt="Mobotix" 
+              className="h-10 md:h-12 object-contain"
+              onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.innerHTML = '<span class="text-xl font-bold text-slate-800">MOBOTIX</span>'; }}
+            />
+          </div>
+        </div>
+      </div>
+      
+      {/* Title */}
+      <h1 className="text-white text-2xl md:text-3xl font-light mb-2 tracking-wide animate-fade-in" style={{ animationDelay: '0.5s' }}>
+        Network Monitor
+      </h1>
+      <p className="text-slate-400 text-sm mb-8 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+        Distribuidor Autorizado
+      </p>
+      
+      {/* Progress bar */}
+      <div className="w-64 md:w-80 mb-4">
+        <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 rounded-full transition-all duration-300 ease-out"
+            style={{ 
+              width: `${progress}%`,
+              backgroundSize: '200% 100%',
+              animation: 'shimmer 2s infinite linear'
+            }}
+          />
+        </div>
+      </div>
+      
+      {/* Status text */}
+      <p className="text-slate-500 text-sm animate-pulse">{statusText}</p>
+      
+      {/* Floating particles effect */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-blue-400 rounded-full opacity-20"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animation: `float ${3 + Math.random() * 4}s ease-in-out infinite`,
+              animationDelay: `${Math.random() * 2}s`
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
 const OFFLINE_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'%3E%3Crect fill='%23374151' width='400' height='200'/%3E%3Ctext x='50%25' y='40%25' dominant-baseline='middle' text-anchor='middle' fill='%239CA3AF' font-family='Arial' font-size='14'%3ECÁMARA OFFLINE%3C/text%3E%3Ctext x='50%25' y='60%25' dominant-baseline='middle' text-anchor='middle' fill='%236B7280' font-family='Arial' font-size='11'%3ESiempria Network Monitor%3C/text%3E%3C/svg%3E";
 
 // Icon mapping
