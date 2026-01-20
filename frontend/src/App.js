@@ -376,6 +376,16 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
                   Configuración de Cámara
                 </div>
                 <div className="space-y-2">
+                  <Label>Protocolo</Label>
+                  <Select value={formData.camera_protocol} onValueChange={(v) => setFormData({ ...formData, camera_protocol: v })}>
+                    <SelectTrigger data-testid="camera-protocol-select"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="http">HTTP</SelectItem>
+                      <SelectItem value="https">HTTPS</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label>Usuario cámara</Label>
                   <Input placeholder="admin" value={formData.camera_user} onChange={(e) => setFormData({ ...formData, camera_user: e.target.value })} />
                 </div>
@@ -386,7 +396,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
                 <div className="col-span-2 space-y-2">
                   <Label>Ruta de imagen</Label>
                   <Input placeholder="/cgi-bin/image.jpg" className="font-mono" value={formData.camera_path} onChange={(e) => setFormData({ ...formData, camera_path: e.target.value })} />
-                  <p className="text-xs text-muted-foreground">Ruta del snapshot de la cámara (ej: /cgi-bin/image.jpg, /snap.jpg)</p>
+                  <p className="text-xs text-muted-foreground">Ruta del snapshot de la cámara (ej: /cgi-bin/image.jpg, /snap.jpg, /record/current.jpg para Mobotix)</p>
                 </div>
                 {previewUrl && (
                   <div className="col-span-2 p-3 bg-muted rounded-lg">
