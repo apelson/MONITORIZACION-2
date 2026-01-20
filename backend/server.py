@@ -166,6 +166,17 @@ class EmailSettings(BaseModel):
     gmail_user: str
     gmail_app_password: str
 
+class ScheduledReportConfig(BaseModel):
+    enabled: bool = False
+    frequency: str = "weekly"  # daily, weekly, monthly
+    day_of_week: int = 0  # 0=Monday, 6=Sunday (for weekly)
+    day_of_month: int = 1  # 1-28 (for monthly)
+    hour: int = 8  # Hour to send (0-23)
+    recipient_emails: List[str] = []
+    include_offline_list: bool = True
+    include_uptime_stats: bool = True
+    organization_ids: List[str] = []  # Empty = all organizations
+
 # ============ AUTH FUNCTIONS ============
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
