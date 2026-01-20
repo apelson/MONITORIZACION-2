@@ -462,8 +462,8 @@ async def create_user(user_data: UserCreate, current_user: dict = Depends(requir
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await users_collection.insert_one(user)
-    del user["password_hash"]
-    del user["_id"] if "_id" in user else None
+    user.pop("password_hash", None)
+    user.pop("_id", None)
     return {"message": "Usuario creado", "user": user}
 
 @api_router.put("/users/{user_id}")
