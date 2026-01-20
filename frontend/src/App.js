@@ -1115,6 +1115,74 @@ const Dashboard = () => {
       <DeviceTypeFormDialog open={typeDialogOpen} onOpenChange={setTypeDialogOpen} deviceType={selectedType} onSave={handleSaveType} />
       <HistoryDialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen} device={selectedDevice} history={deviceHistory} />
       <DeleteConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} title="Confirmar Eliminación" message={`¿Eliminar "${deleteTarget.item?.name || deleteTarget.item?.username}"?`} onConfirm={handleDelete} />
+      
+      {/* Mobotix Info Dialog */}
+      <Dialog open={mobotixDialogOpen} onOpenChange={setMobotixDialogOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Info className="w-5 h-5 text-purple-600" />
+              Información de Cámara
+            </DialogTitle>
+            <DialogDescription>
+              {selectedDevice?.name} ({selectedDevice?.ip_address}:{selectedDevice?.port})
+            </DialogDescription>
+          </DialogHeader>
+          
+          {mobotixLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
+              <span className="ml-2 text-muted-foreground">Consultando cámara...</span>
+            </div>
+          ) : mobotixInfo?.error ? (
+            <div className="p-4 bg-red-50 rounded-lg text-red-700 text-sm">
+              <AlertCircle className="w-4 h-4 inline mr-2" />
+              {mobotixInfo.error}
+            </div>
+          ) : mobotixInfo ? (
+            <div className="space-y-4">
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm font-medium mb-1">Estado de API Mobotix</p>
+                <p className="text-xs text-muted-foreground">{mobotixInfo.device_status || "Sin respuesta"}</p>
+              </div>
+              
+              {mobotixInfo.configuration && Object.keys(mobotixInfo.configuration).length > 0 && (
+                <div>
+                  <p className="text-sm font-medium mb-2">Configuración Detectada</p>
+                  <div className="max-h-60 overflow-y-auto">
+                    <table className="w-full text-xs">
+                      <tbody>
+                        {Object.entries(mobotixInfo.configuration).slice(0, 30).map(([key, value]) => (
+                          <tr key={key} className="border-b">
+                            <td className="py-1 pr-2 font-mono text-muted-foreground">{key}</td>
+                            <td className="py-1 font-mono break-all">{value}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+              
+              {mobotixInfo.errors && mobotixInfo.errors.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium mb-2 text-amber-600">Endpoints no disponibles</p>
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    {mobotixInfo.errors.map((err, i) => (
+                      <p key={i} className="font-mono">{err}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div className="p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
+                <p className="font-medium mb-1">Nota:</p>
+                <p>Esta función utiliza la API HTTP de Mobotix. Si la cámara no es Mobotix o no tiene la API habilitada, algunos datos podrían no estar disponibles.</p>
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
       {/* Footer */}
       <footer className="border-t bg-muted/30 mt-auto">
