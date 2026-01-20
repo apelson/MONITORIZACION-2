@@ -1403,5 +1403,5 @@ const Dashboard = () => {
 
 // ============ APP ============
 function App() { return <AuthProvider><AppContent /></AuthProvider>; }
-const AppContent = () => { const { user, loading } = useAuth(); if (loading) return <div className="min-h-screen flex items-center justify-center"><img src={LOGO_URL} alt="Siempria" className="h-16 animate-pulse" /></div>; return user ? <Dashboard /> : <LoginPage />; };
+const AppContent = () => { const { user, loading } = useAuth(); if (loading) return <LoadingScreen />; return user ? <Dashboard /> : <LoginPage />; };
 export default App;
