@@ -7,7 +7,7 @@ import {
   Activity, Clock, AlertCircle, Wifi, WifiOff, Mail, Send, Users,
   FolderOpen, LogOut, User, Shield, Eye, Lock, ChevronDown, Building2,
   Camera, HardDrive, Network, Router, Monitor, Printer, Box, ChevronRight,
-  MapPin, FileText, Image, Tag, Layers
+  MapPin, FileText, Image, Tag, Layers, Download, FileSpreadsheet, FileIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
