@@ -134,14 +134,39 @@ const LoginPage = () => {
 // ============ SERVER CARD ============
 const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onViewHistory, canEdit }) => {
   const [isChecking, setIsChecking] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const { token } = useAuth();
   const handleCheck = async () => { setIsChecking(true); await onCheck(device.id); setIsChecking(false); };
   const TypeIcon = deviceType ? getIcon(deviceType.icon) : Server;
 
+  // Use proxy for images with authentication
+  const getImageUrl = () => {
+    if (!device.image_url) return null;
+    // If URL contains credentials (user:pass@), use proxy
+    if (device.image_url.includes('@') && device.image_url.match(/https?:\/\/[^:]+:[^@]+@/)) {
+      return `${API}/image-proxy/${device.id}?t=${Date.now()}`;
+    }
+    return device.image_url;
+  };
+
+  const imageUrl = getImageUrl();
+
   return (
     <Card data-testid={`device-card-${device.id}`} className="server-card fade-in hover:-translate-y-0.5 transition-transform duration-200 overflow-hidden">
-      {device.image_url && (
-        <div className="h-32 bg-muted overflow-hidden">
-          <img src={device.image_url} alt={device.name} className="w-full h-full object-cover" />
+      {imageUrl && !imageError && (
+        <div className="h-32 bg-muted overflow-hidden relative">
+          <img 
+            src={imageUrl} 
+            alt={device.name} 
+            className="w-full h-full object-cover"
+            onError={() => setImageError(true)}
+            crossOrigin={device.image_url.includes('@') ? undefined : "anonymous"}
+          />
+          {device.image_url.includes('@') && (
+            <div className="absolute bottom-1 right-1">
+              <Badge variant="secondary" className="text-xs opacity-75"><Camera className="w-3 h-3 mr-1" />Live</Badge>
+            </div>
+          )}
         </div>
       )}
       <CardContent className={`p-5 ${device.image_url ? 'pt-4' : ''}`}>
