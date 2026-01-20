@@ -1620,9 +1620,15 @@ const Dashboard = () => {
             {/* Filters - not for operators */}
             {!isOperator && (
               <div className="flex gap-2 mb-6 flex-wrap items-center">
+                {uniqueCountries.length > 0 && (
+                  <Select value={filterCountry || "all"} onValueChange={(v) => { setFilterCountry(v === "all" ? null : v); setFilterOrgId(null); setFilterGroupId(null); }}>
+                    <SelectTrigger className="w-[150px]"><SelectValue placeholder="País" /></SelectTrigger>
+                    <SelectContent><SelectItem value="all">🌍 Todos</SelectItem>{uniqueCountries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                  </Select>
+                )}
                 <Select value={filterOrgId || "all"} onValueChange={(v) => { setFilterOrgId(v === "all" ? null : v); setFilterGroupId(null); }}>
                   <SelectTrigger className="w-[180px]"><SelectValue placeholder="Organización" /></SelectTrigger>
-                  <SelectContent><SelectItem value="all">Todas las org.</SelectItem>{organizations.map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
+                  <SelectContent><SelectItem value="all">Todas las org.</SelectItem>{(filterCountry ? organizations.filter(o => o.country === filterCountry) : organizations).map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
                 </Select>
                 <Select value={filterGroupId || "all"} onValueChange={(v) => setFilterGroupId(v === "all" ? null : v)}>
                   <SelectTrigger className="w-[180px]"><SelectValue placeholder="Grupo" /></SelectTrigger>
@@ -1632,7 +1638,7 @@ const Dashboard = () => {
                   <SelectTrigger className="w-[180px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
                   <SelectContent><SelectItem value="all">Todos los tipos</SelectItem>{deviceTypes.map(t => { const Icon = getIcon(t.icon); return <SelectItem key={t.id} value={t.id}><div className="flex items-center gap-2"><Icon className="w-4 h-4" style={{ color: t.color }} />{t.name}</div></SelectItem>; })}</SelectContent>
                 </Select>
-                {(filterOrgId || filterGroupId || filterTypeId) && <Button variant="ghost" size="sm" onClick={() => { setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); }}>Limpiar filtros</Button>}
+                {(filterCountry || filterOrgId || filterGroupId || filterTypeId) && <Button variant="ghost" size="sm" onClick={() => { setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); }}>Limpiar filtros</Button>}
                 <span className="text-sm text-muted-foreground ml-auto">{filteredDevices.length} dispositivo(s)</span>
               </div>
             )}
