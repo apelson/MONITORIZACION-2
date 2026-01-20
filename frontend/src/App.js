@@ -286,11 +286,20 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
 
   useEffect(() => {
     if (device) {
-      setFormData({ name: device.name || "", ip_address: device.ip_address || "", port: device.port || 80, description: device.description || "", group_id: device.group_id || "", device_type_id: device.device_type_id || "", brand: device.brand || "", model: device.model || "", location: device.location || "", notes: device.notes || "", image_url: device.image_url || "" });
+      setFormData({ 
+        name: device.name || "", ip_address: device.ip_address || "", port: device.port || 80, 
+        description: device.description || "", group_id: device.group_id || "", 
+        device_type_id: device.device_type_id || "", brand: device.brand || "", 
+        model: device.model || "", location: device.location || "", notes: device.notes || "", 
+        image_url: device.image_url || "",
+        camera_user: device.camera_user || "",
+        camera_password: device.camera_password || "",
+        camera_path: device.camera_path || ""
+      });
       const grp = groups.find(g => g.id === device.group_id);
       if (grp) setSelectedOrgId(grp.organization_id);
     } else {
-      setFormData({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "" });
+      setFormData({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_user: "", camera_password: "", camera_path: "" });
       setSelectedOrgId("");
     }
   }, [device, open, groups]);
