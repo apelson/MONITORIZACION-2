@@ -350,7 +350,7 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
             className="w-full h-full object-cover"
             onError={() => { setImageError(true); setImageData(OFFLINE_PLACEHOLDER); }}
           />
-          {hasCredentials && device.status === "online" && (
+          {hasCameraConfig && device.status === "online" && (
             <div className="absolute bottom-1 right-1">
               <Badge variant="secondary" className="text-xs opacity-75"><Camera className="w-3 h-3 mr-1" />Live</Badge>
             </div>
@@ -365,7 +365,7 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
           )}
         </div>
       )}
-      <CardContent className={`p-5 ${device.image_url ? 'pt-4' : ''}`}>
+      <CardContent className={`p-5 ${showImage ? 'pt-4' : ''}`}>
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="relative">
