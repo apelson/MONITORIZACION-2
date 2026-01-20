@@ -114,9 +114,9 @@ const LoginPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center pb-2">
-          <img src={LOGO_URL} alt="Siempria" className="h-20 mx-auto mb-4 object-contain" />
-          <CardTitle className="text-xl font-semibold">Network Monitor</CardTitle>
-          <CardDescription>Inicia sesión para continuar</CardDescription>
+          <img src={LOGO_URL} alt="Siempria" className="h-28 mx-auto mb-6 object-contain" />
+          <CardTitle className="text-2xl font-bold">Network Monitor</CardTitle>
+          <CardDescription className="text-base">Inicia sesión para continuar</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -127,6 +127,9 @@ const LoginPage = () => {
           <p className="text-xs text-muted-foreground text-center mt-4">Usuario: admin / admin123</p>
         </CardContent>
       </Card>
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">
+        © {new Date().getFullYear()} Siempria - Todos los derechos reservados
+      </div>
     </div>
   );
 };
