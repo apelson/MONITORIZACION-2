@@ -822,6 +822,15 @@ const Dashboard = () => {
                 <div className="flex items-center gap-2"><div className="status-dot status-dot-online" /><span className="text-sm font-medium">{onlineCount}</span></div>
                 <div className="flex items-center gap-2"><div className="status-dot status-dot-offline" /><span className="text-sm font-medium">{offlineCount}</span></div>
               </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button data-testid="export-btn" variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Exportar</Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => handleExport('excel')}><FileSpreadsheet className="w-4 h-4 mr-2" />Exportar todo a Excel</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExport('pdf')}><FileIcon className="w-4 h-4 mr-2" />Exportar todo a PDF</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button data-testid="refresh-all-btn" variant="outline" size="sm" onClick={handleRefreshAll} disabled={refreshing}><RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin-slow' : ''}`} />Verificar</Button>
               {canEdit && <Button data-testid="add-device-btn" size="sm" onClick={() => { setSelectedDevice(null); setDeviceDialogOpen(true); }}><Plus className="w-4 h-4 mr-2" />Agregar</Button>}
               <DropdownMenu>
