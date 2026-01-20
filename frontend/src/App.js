@@ -402,11 +402,13 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
             <div className="space-y-2"><Label>Marca</Label><Input placeholder="Ej: Hikvision, Synology" value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} /></div>
             <div className="space-y-2"><Label>Modelo</Label><Input placeholder="Ej: DS-2CD2143G2" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} /></div>
             <div className="col-span-2 space-y-2"><Label>Ubicación</Label><Input placeholder="Ej: Oficina Madrid - Planta 2" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} /></div>
-            <div className="col-span-2 space-y-2"><Label>Imagen (URL)</Label><Input placeholder="http://user:pass@ip:puerto/imagen.jpg" value={formData.image_url} onChange={(e) => setFormData({ ...formData, image_url: e.target.value })} />
-              <p className="text-xs text-muted-foreground">Soporta URLs con autenticación: http://usuario:contraseña@ip:puerto/ruta</p>
-              {formData.image_url && !formData.image_url.includes('@') && <img src={formData.image_url} alt="Preview" className="h-20 object-contain rounded border mt-2" />}
-              {formData.image_url && formData.image_url.includes('@') && <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground"><Camera className="w-4 h-4" />URL con autenticación detectada - la imagen se cargará via proxy</div>}
-            </div>
+            
+            {!isCamera && (
+              <div className="col-span-2 space-y-2"><Label>Imagen (URL)</Label><Input placeholder="http://user:pass@ip:puerto/imagen.jpg" value={formData.image_url} onChange={(e) => setFormData({ ...formData, image_url: e.target.value })} />
+                <p className="text-xs text-muted-foreground">Para cámaras, selecciona tipo "Cámara" y usa los campos específicos</p>
+              </div>
+            )}
+            
             <div className="col-span-2 space-y-2"><Label>Descripción</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
             <div className="col-span-2 space-y-2"><Label>Notas</Label><Textarea placeholder="Notas internas, contraseñas, configuración..." value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} rows={3} /></div>
           </div>
