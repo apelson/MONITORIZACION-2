@@ -780,6 +780,22 @@ const Dashboard = () => {
   const handleResetPassword = async (userId) => { try { await authAxios.post(`/users/${userId}/reset-password`); toast.success("Contraseña: password123"); } catch (e) { toast.error("Error"); } };
   const handleViewHistory = async (device) => { setSelectedDevice(device); try { const res = await authAxios.get(`/devices/${device.id}/history`); setDeviceHistory(res.data.history || []); setHistoryDialogOpen(true); } catch (e) { toast.error("Error"); } };
 
+  const handleExport = async (format, organizationId = null) => {
+    try {
+      const params = organizationId ? `?organization_id=${organizationId}` : '';
+      const response = await authAxios.get(`/export/${format}${params}`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      const ext = format === 'excel' ? 'xlsx' : 'pdf';
+      link.setAttribute('download', `dispositivos_${new Date().toISOString().slice(0,10)}.${ext}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success(`Archivo ${format.toUpperCase()} descargado`);
+    } catch (e) { toast.error("Error al exportar"); }
+  };
+
   // Filter devices
   let filteredDevices = devices;
   if (filterGroupId) filteredDevices = filteredDevices.filter(d => d.group_id === filterGroupId);
