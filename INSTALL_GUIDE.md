@@ -262,18 +262,17 @@ sudo chown -R www-data:www-data /opt/siempria-monitor
 # Recargar systemd
 sudo systemctl daemon-reload
 
-# Habilitar servicios para inicio automático
+# Habilitar servicio para inicio automático
 sudo systemctl enable siempria-backend
-sudo systemctl enable siempria-frontend
 
-# Iniciar servicios
+# Iniciar servicio
 sudo systemctl start siempria-backend
-sudo systemctl start siempria-frontend
 
 # Verificar estado
 sudo systemctl status siempria-backend
-sudo systemctl status siempria-frontend
 ```
+
+**Nota:** El frontend se sirve como archivos estáticos a través de Nginx, por lo que no necesita un servicio separado.
 
 ## Paso 10: Crear Usuario Administrador
 
@@ -323,12 +322,10 @@ sudo ufw status
 # Verificar que todos los servicios están corriendo
 sudo systemctl status mongod
 sudo systemctl status siempria-backend
-sudo systemctl status siempria-frontend
 sudo systemctl status nginx
 
 # Ver logs en caso de errores
 sudo journalctl -u siempria-backend -f
-sudo journalctl -u siempria-frontend -f
 
 # Probar API
 curl http://localhost:8001/api/
@@ -347,13 +344,14 @@ curl https://TU_DOMINIO.com/api/
 ## Comandos Útiles
 
 ```bash
-# Reiniciar servicios
+# Reiniciar backend
 sudo systemctl restart siempria-backend
-sudo systemctl restart siempria-frontend
+
+# Reiniciar Nginx (frontend)
+sudo systemctl restart nginx
 
 # Ver logs en tiempo real
 sudo journalctl -u siempria-backend -f
-sudo journalctl -u siempria-frontend -f
 
 # Backup de MongoDB
 mongodump --db siempria_monitor --out /backup/$(date +%Y%m%d)
@@ -364,8 +362,8 @@ mongorestore --db siempria_monitor /backup/20240115/siempria_monitor
 # Actualizar aplicación
 cd /opt/siempria-monitor
 git pull
+cd frontend && yarn install && yarn build
 sudo systemctl restart siempria-backend
-sudo systemctl restart siempria-frontend
 ```
 
 ## Solución de Problemas
@@ -382,14 +380,20 @@ mongosh --eval "db.serverStatus()"
 cat /opt/siempria-monitor/backend/.env
 ```
 
-### Frontend no arranca
+### Frontend no carga correctamente
 ```bash
-# Verificar logs
-sudo journalctl -u siempria-frontend -n 50
+# Verificar que el build existe
+ls -la /opt/siempria-monitor/frontend/build
 
 # Reconstruir frontend
 cd /opt/siempria-monitor/frontend
 yarn build
+
+# Verificar permisos
+sudo chown -R www-data:www-data /opt/siempria-monitor/frontend/build
+
+# Reiniciar Nginx
+sudo systemctl restart nginx
 ```
 
 ### Nginx no funciona
