@@ -354,7 +354,23 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
             
             <div className="space-y-2">
               <Label>Tipo de Dispositivo</Label>
-              <Select value={formData.device_type_id || "none"} onValueChange={(v) => setFormData({ ...formData, device_type_id: v === "none" ? "" : v })}>
+              <Select value={formData.device_type_id || "none"} onValueChange={(v) => {
+                const newTypeId = v === "none" ? "" : v;
+                const selectedType = deviceTypes.find(t => t.id === newTypeId);
+                const isNewCamera = selectedType?.icon === "camera" || newTypeId === "type-camera";
+                
+                // Auto-fill camera defaults when selecting camera type
+                if (isNewCamera && !formData.camera_path) {
+                  setFormData({ 
+                    ...formData, 
+                    device_type_id: newTypeId,
+                    camera_path: "/record/current.jpg",
+                    camera_protocol: formData.camera_protocol || "http"
+                  });
+                } else {
+                  setFormData({ ...formData, device_type_id: newTypeId });
+                }
+              }}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar tipo" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Sin tipo</SelectItem>
