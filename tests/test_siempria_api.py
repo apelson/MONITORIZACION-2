@@ -86,9 +86,11 @@ class TestDevices:
     
     def test_create_device_with_http_protocol(self, auth_headers):
         """Test creating a device with HTTP protocol"""
+        import uuid
+        unique_ip = f"10.{uuid.uuid4().int % 256}.{uuid.uuid4().int % 256}.{uuid.uuid4().int % 256}"
         device_data = {
             "name": "TEST_Camera_HTTP",
-            "ip_address": "192.168.1.100",
+            "ip_address": unique_ip,
             "port": 80,
             "device_type_id": "type-camera",
             "camera_protocol": "http",
@@ -107,9 +109,11 @@ class TestDevices:
     
     def test_create_device_with_https_protocol(self, auth_headers):
         """Test creating a device with HTTPS protocol"""
+        import uuid
+        unique_ip = f"10.{uuid.uuid4().int % 256}.{uuid.uuid4().int % 256}.{uuid.uuid4().int % 256}"
         device_data = {
             "name": "TEST_Camera_HTTPS",
-            "ip_address": "192.168.1.101",
+            "ip_address": unique_ip,
             "port": 443,
             "device_type_id": "type-camera",
             "camera_protocol": "https",
@@ -131,10 +135,12 @@ class TestDevices:
     
     def test_update_device_protocol(self, auth_headers):
         """Test updating device protocol from http to https"""
+        import uuid
+        unique_ip = f"10.{uuid.uuid4().int % 256}.{uuid.uuid4().int % 256}.{uuid.uuid4().int % 256}"
         # Create device with http
         device_data = {
             "name": "TEST_Protocol_Update",
-            "ip_address": "192.168.1.102",
+            "ip_address": unique_ip,
             "port": 8080,
             "device_type_id": "type-camera",
             "camera_protocol": "http",
