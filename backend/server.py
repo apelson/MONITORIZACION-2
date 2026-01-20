@@ -851,22 +851,34 @@ async def export_pdf(organization_id: Optional[str] = None, current_user: dict =
     
     # Create PDF
     buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), leftMargin=1*cm, rightMargin=1*cm, topMargin=1*cm, bottomMargin=1*cm)
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), leftMargin=1*cm, rightMargin=1*cm, topMargin=1*cm, bottomMargin=2*cm)
     
     elements = []
     styles = getSampleStyleSheet()
     
     # Title style
-    title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=18, alignment=TA_CENTER, spaceAfter=20)
-    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'], fontSize=10, alignment=TA_CENTER, textColor=colors.grey, spaceAfter=30)
+    title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=18, alignment=TA_CENTER, spaceAfter=10)
+    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'], fontSize=10, alignment=TA_CENTER, textColor=colors.grey, spaceAfter=20)
+    footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, alignment=TA_CENTER, textColor=colors.grey)
     
-    # Header
+    # Siempria Logo (always included)
+    SIEMPRIA_LOGO_URL = "https://customer-assets.emergentagent.com/job_equip-tracker-39/artifacts/796492pi_version%20autorizada%202.png"
+    try:
+        logo_buffer = io.BytesIO(urllib.request.urlopen(SIEMPRIA_LOGO_URL, timeout=5).read())
+        siempria_logo = Image(logo_buffer, width=2.5*inch, height=1*inch)
+        siempria_logo.hAlign = 'CENTER'
+        elements.append(siempria_logo)
+        elements.append(Spacer(1, 15))
+    except Exception as e:
+        logger.warning(f"Could not load Siempria logo: {e}")
+    
+    # Organization logo if available
     if selected_org and selected_org.get("logo_url"):
         try:
-            logo_buffer = io.BytesIO(urllib.request.urlopen(selected_org["logo_url"]).read())
-            logo = Image(logo_buffer, width=2*inch, height=0.8*inch)
-            logo.hAlign = 'CENTER'
-            elements.append(logo)
+            org_logo_buffer = io.BytesIO(urllib.request.urlopen(selected_org["logo_url"], timeout=5).read())
+            org_logo = Image(org_logo_buffer, width=1.5*inch, height=0.6*inch)
+            org_logo.hAlign = 'CENTER'
+            elements.append(org_logo)
             elements.append(Spacer(1, 10))
         except:
             pass
@@ -932,6 +944,10 @@ async def export_pdf(organization_id: Optional[str] = None, current_user: dict =
     
     table.setStyle(table_style)
     elements.append(table)
+    
+    # Footer
+    elements.append(Spacer(1, 30))
+    elements.append(Paragraph(f"© {datetime.now().year} Siempria Network Monitor - Documento generado automáticamente", footer_style))
     
     # Build PDF
     doc.build(elements)
