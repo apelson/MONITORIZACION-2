@@ -260,7 +260,6 @@ const LoginPage = () => {
             <div className="space-y-2"><Label>Contraseña</Label><Input data-testid="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
             <Button data-testid="login-submit" type="submit" className="w-full" disabled={loading}>{loading ? "Iniciando..." : "Iniciar Sesión"}</Button>
           </form>
-          <p className="text-xs text-muted-foreground text-center mt-4">Usuario: admin / admin123</p>
         </CardContent>
       </Card>
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">
