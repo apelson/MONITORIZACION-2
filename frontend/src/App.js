@@ -366,6 +366,36 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
               </Select>
             </div>
 
+            {/* Camera fields - only show when type is camera */}
+            {isCamera && (
+              <>
+                <Separator className="col-span-2" />
+                <div className="col-span-2 flex items-center gap-2 text-sm font-medium text-purple-600">
+                  <Camera className="w-4 h-4" />
+                  Configuración de Cámara
+                </div>
+                <div className="space-y-2">
+                  <Label>Usuario cámara</Label>
+                  <Input placeholder="admin" value={formData.camera_user} onChange={(e) => setFormData({ ...formData, camera_user: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Contraseña cámara</Label>
+                  <Input type="password" placeholder="••••••••" value={formData.camera_password} onChange={(e) => setFormData({ ...formData, camera_password: e.target.value })} />
+                </div>
+                <div className="col-span-2 space-y-2">
+                  <Label>Ruta de imagen</Label>
+                  <Input placeholder="/cgi-bin/image.jpg" className="font-mono" value={formData.camera_path} onChange={(e) => setFormData({ ...formData, camera_path: e.target.value })} />
+                  <p className="text-xs text-muted-foreground">Ruta del snapshot de la cámara (ej: /cgi-bin/image.jpg, /snap.jpg)</p>
+                </div>
+                {previewUrl && (
+                  <div className="col-span-2 p-3 bg-muted rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">URL generada:</p>
+                    <code className="text-xs font-mono break-all">{previewUrl}</code>
+                  </div>
+                )}
+              </>
+            )}
+
             <Separator className="col-span-2" />
             <p className="col-span-2 text-sm font-medium text-muted-foreground">Información adicional</p>
 
