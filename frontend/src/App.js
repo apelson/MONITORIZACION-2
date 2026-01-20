@@ -334,10 +334,20 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
   const showImage = !imageLoading && (imageData || (isCamera && device.status === "offline"));
   const displayImage = imageData || OFFLINE_PLACEHOLDER;
 
+  // Build camera web URL for direct access
+  const cameraWebUrl = hasCameraConfig ? 
+    `${device.camera_protocol || 'http'}://${device.ip_address}:${device.port}` : null;
+
+  const openCameraInBrowser = () => {
+    if (cameraWebUrl) {
+      window.open(cameraWebUrl, '_blank');
+    }
+  };
+
   return (
     <Card data-testid={`device-card-${device.id}`} className="server-card fade-in hover:-translate-y-0.5 transition-transform duration-200 overflow-hidden">
       {showImage && (
-        <div className="h-32 bg-muted overflow-hidden relative">
+        <div className="h-32 bg-muted overflow-hidden relative group">
           <img 
             src={displayImage} 
             alt={device.name} 
@@ -345,9 +355,18 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
             onError={() => { setImageError(true); setImageData(OFFLINE_PLACEHOLDER); }}
           />
           {hasCameraConfig && device.status === "online" && (
-            <div className="absolute bottom-1 right-1">
-              <Badge variant="secondary" className="text-xs opacity-75"><Camera className="w-3 h-3 mr-1" />Live</Badge>
-            </div>
+            <>
+              <div className="absolute bottom-1 right-1">
+                <Badge variant="secondary" className="text-xs opacity-75"><Cctv className="w-3 h-3 mr-1" />Live</Badge>
+              </div>
+              <button 
+                onClick={openCameraInBrowser}
+                className="absolute top-2 right-2 p-2 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                title="Abrir cámara en navegador"
+              >
+                <Globe className="w-4 h-4 text-white" />
+              </button>
+            </>
           )}
           {device.status === "offline" && isCamera && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
