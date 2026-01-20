@@ -405,7 +405,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
             
             {!isCamera && (
               <div className="col-span-2 space-y-2"><Label>Imagen (URL)</Label><Input placeholder="http://user:pass@ip:puerto/imagen.jpg" value={formData.image_url} onChange={(e) => setFormData({ ...formData, image_url: e.target.value })} />
-                <p className="text-xs text-muted-foreground">Para cámaras, selecciona tipo "Cámara" y usa los campos específicos</p>
+                <p className="text-xs text-muted-foreground">Para cámaras, selecciona tipo &quot;Cámara&quot; y usa los campos específicos</p>
               </div>
             )}
             
