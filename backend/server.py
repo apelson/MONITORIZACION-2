@@ -732,33 +732,47 @@ async def image_proxy(device_id: str, current_user: dict = Depends(get_current_u
     if not device:
         raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
     
-    image_url = device.get("image_url", "")
-    if not image_url:
-        raise HTTPException(status_code=404, detail="No hay imagen configurada")
+    # Build URL from individual fields to avoid @ parsing issues in passwords
+    protocol = device.get("camera_protocol", "http")
+    ip = device.get("ip_address", "")
+    port = device.get("port", 80)
+    camera_user = device.get("camera_user", "")
+    camera_password = device.get("camera_password", "")
+    camera_path = device.get("camera_path", "")
+    
+    # If no camera path, try to use image_url directly
+    if not camera_path:
+        image_url = device.get("image_url", "")
+        if not image_url:
+            raise HTTPException(status_code=404, detail="No hay imagen configurada")
+        # For URLs without separate fields, try direct fetch
+        try:
+            request = urllib.request.Request(image_url)
+            request.add_header("User-Agent", "Mozilla/5.0 SiempriaMonitor/1.0")
+            with urllib.request.urlopen(request, timeout=10) as response:
+                image_data = response.read()
+                content_type = response.headers.get('Content-Type', 'image/jpeg')
+            return StreamingResponse(
+                io.BytesIO(image_data),
+                media_type=content_type,
+                headers={"Cache-Control": "max-age=30"}
+            )
+        except Exception as e:
+            logger.error(f"Error fetching image from URL for device {device_id}: {str(e)}")
+            raise HTTPException(status_code=502, detail="No se pudo cargar la imagen")
+    
+    # Build clean URL without credentials
+    clean_url = f"{protocol}://{ip}:{port}{camera_path}"
     
     try:
-        # Parse URL with potential credentials
-        # Format: http://user:pass@host:port/path or http://host:port/path
-        auth_match = re.match(r'(https?://)([^:]+):([^@]+)@(.+)', image_url)
+        request = urllib.request.Request(clean_url)
         
-        if auth_match:
-            # URL has credentials
-            protocol = auth_match.group(1)
-            username = auth_match.group(2)
-            password = auth_match.group(3)
-            rest_url = auth_match.group(4)
-            clean_url = f"{protocol}{rest_url}"
-            
-            # Create request with basic auth
-            request = urllib.request.Request(clean_url)
-            credentials = base64.b64encode(f"{username}:{password}".encode()).decode()
+        # Add basic auth if credentials exist
+        if camera_user and camera_password:
+            credentials = base64.b64encode(f"{camera_user}:{camera_password}".encode()).decode()
             request.add_header("Authorization", f"Basic {credentials}")
-        else:
-            # URL without credentials
-            request = urllib.request.Request(image_url)
         
-        # Add common headers
-        request.add_header("User-Agent", "Mozilla/5.0")
+        request.add_header("User-Agent", "Mozilla/5.0 SiempriaMonitor/1.0")
         
         # Fetch image with timeout
         with urllib.request.urlopen(request, timeout=10) as response:
@@ -768,7 +782,7 @@ async def image_proxy(device_id: str, current_user: dict = Depends(get_current_u
         return StreamingResponse(
             io.BytesIO(image_data),
             media_type=content_type,
-            headers={"Cache-Control": "max-age=30"}  # Cache for 30 seconds
+            headers={"Cache-Control": "max-age=30"}
         )
         
     except urllib.error.HTTPError as e:
