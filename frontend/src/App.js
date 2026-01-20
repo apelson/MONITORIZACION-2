@@ -1536,10 +1536,19 @@ const Dashboard = () => {
   // Filter devices
   let filteredDevices = devices;
   
+  // Get unique countries for filter
+  const uniqueCountries = [...new Set(organizations.map(o => o.country).filter(Boolean))].sort();
+  
   // Operators only see cameras that are online
   if (isOperator) {
     filteredDevices = filteredDevices.filter(d => d.device_type_id === "type-camera" && d.status === "online");
   } else {
+    // Filter by country first
+    if (filterCountry) {
+      const countryOrgIds = organizations.filter(o => o.country === filterCountry).map(o => o.id);
+      const countryGroupIds = groups.filter(g => countryOrgIds.includes(g.organization_id)).map(g => g.id);
+      filteredDevices = filteredDevices.filter(d => countryGroupIds.includes(d.group_id));
+    }
     if (filterGroupId) filteredDevices = filteredDevices.filter(d => d.group_id === filterGroupId);
     else if (filterOrgId) {
       const orgGroupIds = groups.filter(g => g.organization_id === filterOrgId).map(g => g.id);
