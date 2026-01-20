@@ -305,6 +305,12 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
   }, [device, open, groups]);
 
   const filteredGroups = selectedOrgId ? groups.filter(g => g.organization_id === selectedOrgId) : groups;
+  const isCamera = formData.device_type_id === "type-camera" || deviceTypes.find(t => t.id === formData.device_type_id)?.icon === "camera";
+
+  // Build preview URL
+  const previewUrl = formData.camera_user && formData.camera_password && formData.camera_path && formData.ip_address
+    ? `http://${formData.camera_user}:****@${formData.ip_address}:${formData.port}${formData.camera_path}`
+    : null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
