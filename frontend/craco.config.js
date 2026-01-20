@@ -78,6 +78,16 @@ if (config.enableVisualEdits && babelMetadataPlugin) {
 }
 
 webpackConfig.devServer = (devServerConfig) => {
+  // Disable error overlay for "Script error" from cross-origin scripts
+  devServerConfig.client = {
+    ...devServerConfig.client,
+    overlay: {
+      errors: false,
+      warnings: false,
+      runtimeErrors: false,
+    },
+  };
+
   // Apply visual edits dev server setup only if enabled
   if (config.enableVisualEdits && setupDevServer) {
     devServerConfig = setupDevServer(devServerConfig);
