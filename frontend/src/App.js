@@ -142,7 +142,7 @@ const LoginPage = () => {
 };
 
 // ============ SERVER CARD ============
-const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onViewHistory, canEdit }) => {
+const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onViewHistory, onMobotixInfo, canEdit }) => {
   const [isChecking, setIsChecking] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageData, setImageData] = useState(null);
@@ -152,6 +152,7 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onVi
 
   // Check if it's a camera type
   const isCamera = device.device_type_id === "type-camera" || deviceType?.icon === "camera";
+  const isMobotix = device.brand?.toLowerCase().includes("mobotix") || device.model?.toLowerCase().includes("mobotix");
   
   // Check if URL has credentials
   const hasCredentials = device.image_url && device.image_url.includes('@') && device.image_url.match(/https?:\/\/[^:]+:[^@]+@/);
@@ -270,6 +271,9 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onVi
           <Button data-testid={`check-device-${device.id}`} variant="outline" size="sm" onClick={handleCheck} disabled={isChecking} className="flex-1">
             <RefreshCw className={`w-3 h-3 mr-1.5 ${isChecking ? 'animate-spin-slow' : ''}`} />Verificar
           </Button>
+          {isCamera && (
+            <Button variant="ghost" size="sm" onClick={() => onMobotixInfo(device)} title="Info Mobotix"><Info className="w-4 h-4" /></Button>
+          )}
           <Button variant="ghost" size="sm" onClick={() => onViewHistory(device)}><History className="w-4 h-4" /></Button>
           {canEdit && (<><Button variant="ghost" size="sm" onClick={() => onEdit(device)}><Edit className="w-4 h-4" /></Button>
           <Button variant="ghost" size="sm" onClick={() => onDelete(device)} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button></>)}
