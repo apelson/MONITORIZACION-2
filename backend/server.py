@@ -55,6 +55,8 @@ users_collection = db["users"]
 organizations_collection = db["organizations"]
 groups_collection = db["groups"]
 device_types_collection = db["device_types"]
+scheduled_reports_collection = db["scheduled_reports"]
+public_dashboards_collection = db["public_dashboards"]
 
 scheduler = AsyncIOScheduler()
 
