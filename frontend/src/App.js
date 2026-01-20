@@ -296,10 +296,10 @@ const DeviceFormDialog = ({ open, onOpenChange, device, groups, onSave }) => {
             </div>
             <div className="space-y-2">
               <Label>Grupo</Label>
-              <Select value={formData.group_id} onValueChange={(v) => setFormData({ ...formData, group_id: v })}>
+              <Select value={formData.group_id || "none"} onValueChange={(v) => setFormData({ ...formData, group_id: v === "none" ? "" : v })}>
                 <SelectTrigger data-testid="device-group-select"><SelectValue placeholder="Sin grupo" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin grupo</SelectItem>
+                  <SelectItem value="none">Sin grupo</SelectItem>
                   {groups.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}
                 </SelectContent>
               </Select>
