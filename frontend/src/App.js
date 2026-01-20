@@ -274,23 +274,24 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
   const [isChecking, setIsChecking] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageData, setImageData] = useState(null);
+  const [imageLoading, setImageLoading] = useState(true);
   const { authAxios } = useAuth();
   const handleCheck = async () => { setIsChecking(true); await onCheck(device.id); setIsChecking(false); };
   const TypeIcon = deviceType ? getIcon(deviceType.icon) : Server;
 
   // Check if it's a camera type
   const isCamera = device.device_type_id === "type-camera" || deviceType?.icon === "camera";
-  const isMobotix = device.brand?.toLowerCase().includes("mobotix") || device.model?.toLowerCase().includes("mobotix");
   
-  // Check if device has camera credentials configured (use individual fields)
-  const hasCameraConfig = device.camera_user && device.camera_password && device.camera_path;
-  const hasImageUrl = device.image_url && device.image_url.length > 0;
+  // Check if device has camera credentials configured
+  const hasCameraConfig = !!(device.camera_user && device.camera_password && device.camera_path);
 
-  // Load image via proxy if it has camera config
+  // Load image via proxy
   useEffect(() => {
     let mounted = true;
+    setImageLoading(true);
+    
     const loadImage = async () => {
-      // If it's a camera with credentials, always use proxy
+      // If camera with config and online, use proxy
       if (hasCameraConfig && device.status === "online") {
         try {
           const response = await authAxios.get(`/image-proxy/${device.id}`, { responseType: 'blob' });
@@ -300,44 +301,37 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
             setImageError(false);
           }
         } catch (e) {
+          console.error(`Error loading image for ${device.name}:`, e);
           if (mounted) {
             setImageData(OFFLINE_PLACEHOLDER);
             setImageError(true);
           }
         }
-        return;
-      }
-      
-      // If device is offline and it's a camera, show placeholder
-      if (device.status === "offline" && isCamera) {
+      } else if (device.status === "offline" && isCamera) {
+        // Offline camera - show placeholder
         if (mounted) setImageData(OFFLINE_PLACEHOLDER);
-        return;
-      }
-      
-      // If has image_url but no camera config, use direct URL
-      if (hasImageUrl && !hasCameraConfig) {
+      } else if (device.image_url) {
+        // Direct image URL
         if (mounted) setImageData(device.image_url);
       }
-      
-      // If camera without image, show placeholder
-      if (isCamera && !hasImageUrl && !hasCameraConfig) {
-        if (mounted && device.status === "offline") {
-          setImageData(OFFLINE_PLACEHOLDER);
-        }
-      }
+      if (mounted) setImageLoading(false);
     };
     
     loadImage();
-    const interval = hasCameraConfig && device.status === "online" ? setInterval(loadImage, 30000) : null;
+    
+    // Refresh image every 30 seconds if online camera with config
+    const interval = (hasCameraConfig && device.status === "online") 
+      ? setInterval(loadImage, 30000) 
+      : null;
     
     return () => { 
       mounted = false;
       if (interval) clearInterval(interval); 
     };
-  }, [device.id, device.status, hasCameraConfig, hasImageUrl, isCamera, authAxios]);
+  }, [device.id, device.name, device.status, device.image_url, device.camera_user, device.camera_password, device.camera_path, hasCameraConfig, isCamera, authAxios]);
 
-  // Show image for cameras or if image_url exists
-  const showImage = imageData || (isCamera && device.status === "offline");
+  // Show image section for cameras or devices with images
+  const showImage = !imageLoading && (imageData || (isCamera && device.status === "offline"));
   const displayImage = imageData || OFFLINE_PLACEHOLDER;
 
   return (
