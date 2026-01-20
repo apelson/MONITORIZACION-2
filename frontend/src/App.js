@@ -8,7 +8,7 @@ import {
   FolderOpen, LogOut, User, Shield, Eye, Lock, ChevronDown, Building2,
   Camera, HardDrive, Network, Router, Monitor, Printer, Box, ChevronRight,
   MapPin, FileText, Image, Tag, Layers, Download, FileSpreadsheet, FileIcon,
-  Info, Globe, Calendar, Copy
+  Info, Globe, Calendar, Copy, Cctv, ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
