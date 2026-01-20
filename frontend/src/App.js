@@ -902,8 +902,7 @@ const Dashboard = () => {
   const onlineCount = devices.filter(d => d.status === 'online').length;
   const offlineCount = devices.filter(d => d.status === 'offline').length;
 
-  const fetchAll = useCallback(async (isInitial = false) => {
-    if (isInitial) setLoading(true);
+  const fetchAll = useCallback(async () => {
     try {
       const [devRes, orgRes, grpRes, typeRes, alertRes] = await Promise.all([
         authAxios.get("/devices"), authAxios.get("/organizations"), authAxios.get("/groups"),
@@ -914,18 +913,22 @@ const Dashboard = () => {
       setGroups(grpRes.data.groups || []);
       setDeviceTypes(typeRes.data.device_types || []);
       setAlerts(alertRes.data.alerts || []);
-      if (isAdmin) {
+      // Only fetch admin data if user is admin
+      if (user?.role === "admin") {
         const [usrRes, setRes] = await Promise.all([authAxios.get("/users"), authAxios.get("/settings")]);
         setUsers(usrRes.data.users || []);
         setSettings(setRes.data.settings);
       }
-    } catch (e) { console.error(e); }
-    if (isInitial) setLoading(false);
-  }, [authAxios, isAdmin]);
+      setLoading(false);
+    } catch (e) { 
+      console.error(e); 
+      setLoading(false);
+    }
+  }, [authAxios, user?.role]);
 
   useEffect(() => { 
-    fetchAll(true); 
-    const interval = setInterval(() => fetchAll(false), 30000); 
+    fetchAll(); 
+    const interval = setInterval(fetchAll, 30000); 
     return () => clearInterval(interval); 
   }, [fetchAll]);
 
