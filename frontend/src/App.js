@@ -178,18 +178,19 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
       if (hasCredentials) {
         try {
           const response = await authAxios.get(`/image-proxy/${device.id}`, { responseType: 'blob' });
-          if (mounted) {
+          if (mounted && response.data) {
             const url = URL.createObjectURL(response.data);
             setImageData(url);
             setImageError(false);
           }
         } catch (e) {
+          // Silently handle error - show placeholder
           if (mounted) {
             setImageData(OFFLINE_PLACEHOLDER);
             setImageError(true);
           }
         }
-      } else {
+      } else if (device.image_url) {
         if (mounted) setImageData(device.image_url);
       }
     };
