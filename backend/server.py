@@ -665,7 +665,65 @@ async def test_email(current_user: dict = Depends(require_role(["admin"]))):
 
 @api_router.get("/")
 async def root():
-    return {"message": "Siempria Network Monitor API v2.1"}
+    return {"message": "Siempria Network Monitor API v2.2"}
+
+# ============ IMAGE PROXY ============
+
+@api_router.get("/image-proxy/{device_id}")
+async def image_proxy(device_id: str, current_user: dict = Depends(get_current_user)):
+    """Proxy to load device images with authentication"""
+    device = await devices_collection.find_one({"id": device_id}, {"_id": 0})
+    if not device:
+        raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
+    
+    image_url = device.get("image_url", "")
+    if not image_url:
+        raise HTTPException(status_code=404, detail="No hay imagen configurada")
+    
+    try:
+        # Parse URL with potential credentials
+        # Format: http://user:pass@host:port/path or http://host:port/path
+        auth_match = re.match(r'(https?://)([^:]+):([^@]+)@(.+)', image_url)
+        
+        if auth_match:
+            # URL has credentials
+            protocol = auth_match.group(1)
+            username = auth_match.group(2)
+            password = auth_match.group(3)
+            rest_url = auth_match.group(4)
+            clean_url = f"{protocol}{rest_url}"
+            
+            # Create request with basic auth
+            request = urllib.request.Request(clean_url)
+            credentials = base64.b64encode(f"{username}:{password}".encode()).decode()
+            request.add_header("Authorization", f"Basic {credentials}")
+        else:
+            # URL without credentials
+            request = urllib.request.Request(image_url)
+        
+        # Add common headers
+        request.add_header("User-Agent", "Mozilla/5.0")
+        
+        # Fetch image with timeout
+        with urllib.request.urlopen(request, timeout=10) as response:
+            image_data = response.read()
+            content_type = response.headers.get('Content-Type', 'image/jpeg')
+        
+        return StreamingResponse(
+            io.BytesIO(image_data),
+            media_type=content_type,
+            headers={"Cache-Control": "max-age=30"}  # Cache for 30 seconds
+        )
+        
+    except urllib.error.HTTPError as e:
+        logger.error(f"HTTP error fetching image for device {device_id}: {e.code}")
+        raise HTTPException(status_code=502, detail=f"Error al cargar imagen: HTTP {e.code}")
+    except urllib.error.URLError as e:
+        logger.error(f"URL error fetching image for device {device_id}: {e.reason}")
+        raise HTTPException(status_code=502, detail="No se pudo conectar al dispositivo")
+    except Exception as e:
+        logger.error(f"Error fetching image for device {device_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error al cargar imagen")
 
 # ============ EXPORT ROUTES ============
 
