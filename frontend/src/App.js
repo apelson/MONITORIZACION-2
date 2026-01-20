@@ -280,7 +280,7 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onVi
 
 // ============ DIALOGS ============
 const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, deviceTypes, onSave }) => {
-  const [formData, setFormData] = useState({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "" });
+  const [formData, setFormData] = useState({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_user: "", camera_password: "", camera_path: "" });
   const [saving, setSaving] = useState(false);
   const [selectedOrgId, setSelectedOrgId] = useState("");
 
