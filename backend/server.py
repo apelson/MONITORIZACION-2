@@ -732,6 +732,283 @@ async def test_email(current_user: dict = Depends(require_role(["admin"]))):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
+# ============ SCHEDULED REPORTS ============
+
+@api_router.get("/scheduled-reports")
+async def get_scheduled_reports(current_user: dict = Depends(require_role(["admin"]))):
+    """Get scheduled report configuration"""
+    config = await scheduled_reports_collection.find_one({}, {"_id": 0})
+    return {"config": config or {
+        "enabled": False,
+        "frequency": "weekly",
+        "day_of_week": 0,
+        "day_of_month": 1,
+        "hour": 8,
+        "recipient_emails": [],
+        "include_offline_list": True,
+        "include_uptime_stats": True,
+        "organization_ids": []
+    }}
+
+@api_router.post("/scheduled-reports")
+async def save_scheduled_reports(config: ScheduledReportConfig, current_user: dict = Depends(require_role(["admin"]))):
+    """Save scheduled report configuration"""
+    await scheduled_reports_collection.update_one({}, {"$set": config.model_dump()}, upsert=True)
+    
+    # Update scheduler if needed
+    await update_report_scheduler()
+    
+    return {"message": "Configuración de reportes guardada"}
+
+@api_router.post("/scheduled-reports/send-now")
+async def send_report_now(current_user: dict = Depends(require_role(["admin"]))):
+    """Manually trigger a report"""
+    try:
+        await generate_and_send_report()
+        return {"message": "Reporte enviado correctamente"}
+    except Exception as e:
+        logger.error(f"Error sending manual report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error al enviar reporte: {str(e)}")
+
+async def generate_and_send_report():
+    """Generate and send scheduled report"""
+    config = await scheduled_reports_collection.find_one({}, {"_id": 0})
+    if not config or not config.get("enabled"):
+        logger.info("Scheduled reports disabled, skipping")
+        return
+    
+    settings = await settings_collection.find_one({}, {"_id": 0})
+    if not settings:
+        logger.error("No email settings configured for reports")
+        return
+    
+    recipient_emails = config.get("recipient_emails", [])
+    if not recipient_emails:
+        recipient_emails = [settings.get("alert_email")]
+    
+    # Get organizations to include
+    org_filter = {}
+    if config.get("organization_ids"):
+        org_filter = {"id": {"$in": config["organization_ids"]}}
+    
+    organizations = await organizations_collection.find(org_filter, {"_id": 0}).to_list(length=100)
+    
+    # Calculate date range based on frequency
+    now = datetime.now(timezone.utc)
+    if config.get("frequency") == "daily":
+        start_date = now - timedelta(days=1)
+        period_name = "Último día"
+    elif config.get("frequency") == "weekly":
+        start_date = now - timedelta(days=7)
+        period_name = "Última semana"
+    else:  # monthly
+        start_date = now - timedelta(days=30)
+        period_name = "Último mes"
+    
+    # Build report HTML
+    html_content = f"""
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }}
+            .container {{ max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
+            .header {{ text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #3b82f6; }}
+            .header img {{ height: 60px; margin-bottom: 10px; }}
+            .header h1 {{ color: #1e293b; margin: 0; font-size: 24px; }}
+            .header p {{ color: #64748b; margin: 5px 0 0 0; }}
+            .stats {{ display: flex; justify-content: space-around; margin: 30px 0; }}
+            .stat {{ text-align: center; padding: 20px; background: #f8fafc; border-radius: 8px; min-width: 150px; }}
+            .stat-value {{ font-size: 36px; font-weight: bold; color: #3b82f6; }}
+            .stat-label {{ color: #64748b; font-size: 14px; margin-top: 5px; }}
+            .stat-online .stat-value {{ color: #22c55e; }}
+            .stat-offline .stat-value {{ color: #ef4444; }}
+            .section {{ margin: 30px 0; }}
+            .section h2 {{ color: #1e293b; font-size: 18px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }}
+            table {{ width: 100%; border-collapse: collapse; margin-top: 15px; }}
+            th {{ background: #f1f5f9; padding: 12px; text-align: left; font-size: 12px; text-transform: uppercase; color: #64748b; }}
+            td {{ padding: 12px; border-bottom: 1px solid #e2e8f0; }}
+            .status-online {{ color: #22c55e; font-weight: bold; }}
+            .status-offline {{ color: #ef4444; font-weight: bold; }}
+            .footer {{ text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 12px; }}
+            .org-section {{ margin: 20px 0; padding: 20px; background: #f8fafc; border-radius: 8px; }}
+            .org-name {{ font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 15px; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <img src="https://customer-assets.emergentagent.com/job_equip-tracker-39/artifacts/796492pi_version%20autorizada%202.png" alt="Siempria">
+                <h1>Reporte de Monitoreo</h1>
+                <p>{period_name} - {now.strftime('%d/%m/%Y %H:%M')} UTC</p>
+            </div>
+    """
+    
+    # Get all devices
+    all_devices = await devices_collection.find({}, {"_id": 0}).to_list(length=1000)
+    total_devices = len(all_devices)
+    online_devices = len([d for d in all_devices if d.get("status") == "online"])
+    offline_devices = len([d for d in all_devices if d.get("status") == "offline"])
+    
+    # Overall stats
+    uptime_percent = (online_devices / total_devices * 100) if total_devices > 0 else 0
+    
+    html_content += f"""
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value">{total_devices}</div>
+                    <div class="stat-label">Total Dispositivos</div>
+                </div>
+                <div class="stat stat-online">
+                    <div class="stat-value">{online_devices}</div>
+                    <div class="stat-label">Online</div>
+                </div>
+                <div class="stat stat-offline">
+                    <div class="stat-value">{offline_devices}</div>
+                    <div class="stat-label">Offline</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">{uptime_percent:.1f}%</div>
+                    <div class="stat-label">Uptime Actual</div>
+                </div>
+            </div>
+    """
+    
+    # Per-organization stats
+    if config.get("include_uptime_stats"):
+        html_content += '<div class="section"><h2>📊 Estado por Organización</h2>'
+        
+        groups = await groups_collection.find({}, {"_id": 0}).to_list(length=100)
+        
+        for org in organizations:
+            org_groups = [g["id"] for g in groups if g.get("organization_id") == org["id"]]
+            org_devices = [d for d in all_devices if d.get("group_id") in org_groups]
+            org_online = len([d for d in org_devices if d.get("status") == "online"])
+            org_total = len(org_devices)
+            org_uptime = (org_online / org_total * 100) if org_total > 0 else 0
+            
+            html_content += f"""
+                <div class="org-section">
+                    <div class="org-name">{org.get('name', 'Sin nombre')}</div>
+                    <table>
+                        <tr>
+                            <td>Total dispositivos</td>
+                            <td><strong>{org_total}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Online</td>
+                            <td class="status-online">{org_online}</td>
+                        </tr>
+                        <tr>
+                            <td>Offline</td>
+                            <td class="status-offline">{org_total - org_online}</td>
+                        </tr>
+                        <tr>
+                            <td>Uptime</td>
+                            <td><strong>{org_uptime:.1f}%</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            """
+        
+        html_content += '</div>'
+    
+    # Offline devices list
+    if config.get("include_offline_list"):
+        offline_list = [d for d in all_devices if d.get("status") == "offline"]
+        if offline_list:
+            html_content += """
+                <div class="section">
+                    <h2>⚠️ Dispositivos Offline</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Dispositivo</th>
+                                <th>IP</th>
+                                <th>Última conexión</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            """
+            for device in offline_list:
+                last_online = device.get("last_online", "")
+                if last_online:
+                    last_online = last_online[:19].replace("T", " ")
+                html_content += f"""
+                    <tr>
+                        <td><strong>{device.get('name', 'N/A')}</strong></td>
+                        <td>{device.get('ip_address', '')}:{device.get('port', '')}</td>
+                        <td>{last_online or 'Nunca'}</td>
+                    </tr>
+                """
+            html_content += """
+                        </tbody>
+                    </table>
+                </div>
+            """
+    
+    html_content += """
+            <div class="footer">
+                <p>Este reporte fue generado automáticamente por Siempria Network Monitor</p>
+                <p>© 2026 Siempria - Distribuidor Autorizado Mobotix</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    # Send email
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f"📊 Reporte de Monitoreo - {period_name}"
+        msg['From'] = settings["gmail_user"]
+        msg['To'] = ", ".join(recipient_emails)
+        msg.attach(MIMEText(html_content, 'html'))
+        
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(settings["gmail_user"], settings["gmail_app_password"])
+            server.sendmail(settings["gmail_user"], recipient_emails, msg.as_string())
+        
+        logger.info(f"Scheduled report sent to {recipient_emails}")
+    except Exception as e:
+        logger.error(f"Error sending scheduled report: {str(e)}")
+        raise
+
+async def update_report_scheduler():
+    """Update the scheduler based on current configuration"""
+    # Remove existing report job if any
+    try:
+        scheduler.remove_job("scheduled_report")
+    except:
+        pass
+    
+    config = await scheduled_reports_collection.find_one({}, {"_id": 0})
+    if not config or not config.get("enabled"):
+        logger.info("Scheduled reports disabled")
+        return
+    
+    frequency = config.get("frequency", "weekly")
+    hour = config.get("hour", 8)
+    
+    if frequency == "daily":
+        trigger = IntervalTrigger(days=1)
+    elif frequency == "weekly":
+        from apscheduler.triggers.cron import CronTrigger
+        day_of_week = config.get("day_of_week", 0)
+        trigger = CronTrigger(day_of_week=day_of_week, hour=hour, minute=0)
+    else:  # monthly
+        from apscheduler.triggers.cron import CronTrigger
+        day_of_month = config.get("day_of_month", 1)
+        trigger = CronTrigger(day=day_of_month, hour=hour, minute=0)
+    
+    scheduler.add_job(
+        generate_and_send_report,
+        trigger=trigger,
+        id="scheduled_report",
+        replace_existing=True
+    )
+    logger.info(f"Scheduled report configured: {frequency} at {hour}:00")
+
 @api_router.get("/")
 async def root():
     return {"message": "Siempria Network Monitor API v2.2"}
