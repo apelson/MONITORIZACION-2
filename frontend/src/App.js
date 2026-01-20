@@ -140,32 +140,39 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onVi
   const handleCheck = async () => { setIsChecking(true); await onCheck(device.id); setIsChecking(false); };
   const TypeIcon = deviceType ? getIcon(deviceType.icon) : Server;
 
+  // Check if URL has credentials
+  const hasCredentials = device.image_url && device.image_url.includes('@') && device.image_url.match(/https?:\/\/[^:]+:[^@]+@/);
+
   // Load image via proxy if it has credentials
   useEffect(() => {
+    let mounted = true;
     const loadImage = async () => {
       if (!device.image_url) return;
       
-      // If URL contains credentials, use proxy
-      if (device.image_url.includes('@') && device.image_url.match(/https?:\/\/[^:]+:[^@]+@/)) {
+      if (hasCredentials) {
         try {
           const response = await authAxios.get(`/image-proxy/${device.id}`, { responseType: 'blob' });
-          const url = URL.createObjectURL(response.data);
-          setImageData(url);
-          setImageError(false);
+          if (mounted) {
+            const url = URL.createObjectURL(response.data);
+            setImageData(url);
+            setImageError(false);
+          }
         } catch (e) {
-          console.error('Error loading image:', e);
-          setImageError(true);
+          if (mounted) setImageError(true);
         }
       } else {
-        setImageData(device.image_url);
+        if (mounted) setImageData(device.image_url);
       }
     };
     
     loadImage();
-    // Refresh image every 30 seconds for live cameras
-    const interval = device.image_url?.includes('@') ? setInterval(loadImage, 30000) : null;
-    return () => { if (interval) clearInterval(interval); if (imageData?.startsWith('blob:')) URL.revokeObjectURL(imageData); };
-  }, [device.id, device.image_url, authAxios]);
+    const interval = hasCredentials ? setInterval(loadImage, 30000) : null;
+    
+    return () => { 
+      mounted = false;
+      if (interval) clearInterval(interval); 
+    };
+  }, [device.id, device.image_url, hasCredentials, authAxios]);
 
   return (
     <Card data-testid={`device-card-${device.id}`} className="server-card fade-in hover:-translate-y-0.5 transition-transform duration-200 overflow-hidden">
@@ -177,7 +184,7 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onVi
             className="w-full h-full object-cover"
             onError={() => setImageError(true)}
           />
-          {device.image_url?.includes('@') && (
+          {hasCredentials && (
             <div className="absolute bottom-1 right-1">
               <Badge variant="secondary" className="text-xs opacity-75"><Camera className="w-3 h-3 mr-1" />Live</Badge>
             </div>
