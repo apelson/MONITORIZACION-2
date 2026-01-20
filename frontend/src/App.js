@@ -280,7 +280,7 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onVi
 
 // ============ DIALOGS ============
 const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, deviceTypes, onSave }) => {
-  const [formData, setFormData] = useState({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_user: "", camera_password: "", camera_path: "" });
+  const [formData, setFormData] = useState({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_protocol: "http", camera_user: "", camera_password: "", camera_path: "" });
   const [saving, setSaving] = useState(false);
   const [selectedOrgId, setSelectedOrgId] = useState("");
 
@@ -292,6 +292,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
         device_type_id: device.device_type_id || "", brand: device.brand || "", 
         model: device.model || "", location: device.location || "", notes: device.notes || "", 
         image_url: device.image_url || "",
+        camera_protocol: device.camera_protocol || "http",
         camera_user: device.camera_user || "",
         camera_password: device.camera_password || "",
         camera_path: device.camera_path || ""
@@ -299,7 +300,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
       const grp = groups.find(g => g.id === device.group_id);
       if (grp) setSelectedOrgId(grp.organization_id);
     } else {
-      setFormData({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_user: "", camera_password: "", camera_path: "" });
+      setFormData({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_protocol: "http", camera_user: "", camera_password: "", camera_path: "" });
       setSelectedOrgId("");
     }
   }, [device, open, groups]);
@@ -309,7 +310,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
 
   // Build preview URL
   const previewUrl = formData.camera_user && formData.camera_password && formData.camera_path && formData.ip_address
-    ? `http://${formData.camera_user}:****@${formData.ip_address}:${formData.port}${formData.camera_path}`
+    ? `${formData.camera_protocol}://${formData.camera_user}:****@${formData.ip_address}:${formData.port}${formData.camera_path}`
     : null;
 
   const handleSubmit = async (e) => {
