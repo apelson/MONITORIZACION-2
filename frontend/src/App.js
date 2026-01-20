@@ -966,6 +966,23 @@ const Dashboard = () => {
     setMobotixLoading(false);
   };
 
+  const handleCloneDevice = (device) => {
+    // Create a clone of the device with modified name and cleared sensitive data
+    const clonedDevice = {
+      ...device,
+      id: null, // Clear ID so it creates a new device
+      name: `${device.name} (copia)`,
+      ip_address: "", // Clear IP so user must enter new one
+      camera_password: "", // Clear password for security
+      status: "unknown",
+      last_check: null,
+      last_online: null
+    };
+    setSelectedDevice(clonedDevice);
+    setDeviceDialogOpen(true);
+    toast.info("Modifica la IP, puerto y credenciales para el nuevo dispositivo");
+  };
+
   const handleExport = async (format, organizationId = null) => {
     try {
       const params = organizationId ? `?organization_id=${organizationId}` : '';
