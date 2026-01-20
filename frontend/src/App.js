@@ -973,6 +973,19 @@ const Dashboard = () => {
       <DeviceTypeFormDialog open={typeDialogOpen} onOpenChange={setTypeDialogOpen} deviceType={selectedType} onSave={handleSaveType} />
       <HistoryDialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen} device={selectedDevice} history={deviceHistory} />
       <DeleteConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} title="Confirmar Eliminación" message={`¿Eliminar "${deleteTarget.item?.name || deleteTarget.item?.username}"?`} onConfirm={handleDelete} />
+
+      {/* Footer */}
+      <footer className="border-t bg-muted/30 mt-auto">
+        <div className="container mx-auto max-w-7xl px-6 py-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <img src={LOGO_URL} alt="Siempria" className="h-8 object-contain opacity-70" />
+              <span className="text-sm text-muted-foreground">Siempria Network Monitor</span>
+            </div>
+            <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Siempria - Todos los derechos reservados</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
