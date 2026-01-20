@@ -1003,6 +1003,124 @@ const AlertsPanel = ({ alerts }) => (
   </Card>
 );
 
+const PublicDashboardConfig = ({ organization }) => {
+  const [config, setConfig] = useState({
+    enabled: false,
+    password: "",
+    show_images: true,
+    show_details: false
+  });
+  const [publicUrl, setPublicUrl] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const { authAxios } = useAuth();
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await authAxios.get(`/organizations/${organization.id}/public-dashboard`);
+        if (res.data.config) {
+          setConfig({
+            enabled: res.data.config.enabled || false,
+            password: res.data.config.password || "",
+            show_images: res.data.config.show_images !== false,
+            show_details: res.data.config.show_details || false
+          });
+        }
+        setPublicUrl(res.data.public_url || "");
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    };
+    if (organization?.id) fetchConfig();
+  }, [organization?.id, authAxios]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await authAxios.post(`/organizations/${organization.id}/public-dashboard`, config);
+      setPublicUrl(res.data.public_url);
+      toast.success("Configuración guardada");
+    } catch (e) {
+      toast.error("Error al guardar");
+    }
+    setSaving(false);
+  };
+
+  const handleRegenerateToken = async () => {
+    try {
+      const res = await authAxios.post(`/organizations/${organization.id}/public-dashboard/regenerate-token`);
+      setPublicUrl(res.data.public_url);
+      toast.success("Token regenerado");
+    } catch (e) {
+      toast.error("Error al regenerar token");
+    }
+  };
+
+  const copyUrl = () => {
+    const fullUrl = `${window.location.origin}${publicUrl}`;
+    navigator.clipboard.writeText(fullUrl);
+    toast.success("URL copiada");
+  };
+
+  if (loading) return <Skeleton className="h-8 w-full" />;
+
+  return (
+    <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Globe className="w-4 h-4 text-blue-600" />
+          <span className="font-medium">Dashboard Público</span>
+        </div>
+        <Switch checked={config.enabled} onCheckedChange={(v) => setConfig({ ...config, enabled: v })} />
+      </div>
+
+      {config.enabled && (
+        <>
+          <div className="p-3 bg-white rounded border">
+            <Label className="text-xs text-muted-foreground">URL Pública</Label>
+            <div className="flex items-center gap-2 mt-1">
+              <code className="flex-1 text-xs font-mono bg-muted p-2 rounded truncate">
+                {window.location.origin}{publicUrl}
+              </code>
+              <Button size="sm" variant="outline" onClick={copyUrl}><Copy className="w-3 h-3" /></Button>
+              <Button size="sm" variant="ghost" onClick={handleRegenerateToken} title="Regenerar token">
+                <RefreshCw className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Contraseña (opcional)</Label>
+              <Input 
+                type="password" 
+                placeholder="Dejar vacío para acceso libre" 
+                value={config.password} 
+                onChange={(e) => setConfig({ ...config, password: e.target.value })}
+                className="text-sm"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Switch checked={config.show_images} onCheckedChange={(v) => setConfig({ ...config, show_images: v })} />
+              <span className="text-sm">Mostrar imágenes de cámaras</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Switch checked={config.show_details} onCheckedChange={(v) => setConfig({ ...config, show_details: v })} />
+              <span className="text-sm">Mostrar detalles (IP/puerto)</span>
+            </div>
+          </div>
+        </>
+      )}
+
+      <Button size="sm" onClick={handleSave} disabled={saving}>
+        {saving ? "Guardando..." : "Guardar"}
+      </Button>
+    </div>
+  );
+};
+
 const SettingsPanel = ({ settings, onSave }) => {
   const [formData, setFormData] = useState({ alert_email: "", gmail_user: "", gmail_app_password: "" });
   const [saving, setSaving] = useState(false);
