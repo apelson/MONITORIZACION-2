@@ -921,7 +921,17 @@ const Dashboard = () => {
     } catch (e) { console.error(e); }
   }, [authAxios, isAdmin]);
 
-  useEffect(() => { const init = async () => { setLoading(true); await fetchAll(); setLoading(false); }; init(); const interval = setInterval(fetchAll, 30000); return () => clearInterval(interval); }, [fetchAll]);
+  useEffect(() => { 
+    let isMounted = true;
+    const init = async () => { 
+      setLoading(true); 
+      await fetchAll(); 
+      if (isMounted) setLoading(false); 
+    }; 
+    init(); 
+    const interval = setInterval(fetchAll, 30000); 
+    return () => { isMounted = false; clearInterval(interval); }; 
+  }, [fetchAll]);
 
   const handleRefreshAll = async () => { setRefreshing(true); try { await authAxios.post("/devices/check-all"); toast.success("Verificando..."); setTimeout(fetchAll, 3000); } catch (e) { toast.error("Error"); } setRefreshing(false); };
   const handleCheckDevice = async (deviceId) => { try { await authAxios.post(`/devices/${deviceId}/check`); toast.success("Verificado"); fetchAll(); } catch (e) { toast.error("Error"); } };
