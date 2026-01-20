@@ -139,6 +139,7 @@ class DeviceCreate(BaseModel):
     notes: Optional[str] = ""
     image_url: Optional[str] = ""
     # Camera fields
+    camera_protocol: Optional[str] = "http"  # http or https
     camera_user: Optional[str] = ""
     camera_password: Optional[str] = ""
     camera_path: Optional[str] = ""
@@ -155,6 +156,7 @@ class DeviceUpdate(BaseModel):
     location: Optional[str] = None
     notes: Optional[str] = None
     image_url: Optional[str] = None
+    camera_protocol: Optional[str] = None  # http or https
     camera_user: Optional[str] = None
     camera_password: Optional[str] = None
     camera_path: Optional[str] = None
