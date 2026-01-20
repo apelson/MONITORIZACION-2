@@ -936,6 +936,21 @@ const Dashboard = () => {
   const handleDelete = async () => { try { const { type, item } = deleteTarget; if (type === "device") await authAxios.delete(`/devices/${item.id}`); else if (type === "org") await authAxios.delete(`/organizations/${item.id}`); else if (type === "group") await authAxios.delete(`/groups/${item.id}`); else if (type === "user") await authAxios.delete(`/users/${item.id}`); else if (type === "type") await authAxios.delete(`/device-types/${item.id}`); toast.success("Eliminado"); fetchAll(); } catch (e) { toast.error(e.response?.data?.detail || "Error"); } };
   const handleResetPassword = async (userId) => { try { await authAxios.post(`/users/${userId}/reset-password`); toast.success("Contraseña: password123"); } catch (e) { toast.error("Error"); } };
   const handleViewHistory = async (device) => { setSelectedDevice(device); try { const res = await authAxios.get(`/devices/${device.id}/history`); setDeviceHistory(res.data.history || []); setHistoryDialogOpen(true); } catch (e) { toast.error("Error"); } };
+  
+  const handleMobotixInfo = async (device) => {
+    setSelectedDevice(device);
+    setMobotixLoading(true);
+    setMobotixInfo(null);
+    setMobotixDialogOpen(true);
+    try {
+      const res = await authAxios.get(`/devices/${device.id}/mobotix-info`);
+      setMobotixInfo(res.data);
+    } catch (e) {
+      toast.error("Error al obtener información de la cámara");
+      setMobotixInfo({ error: e.response?.data?.detail || "Error de conexión" });
+    }
+    setMobotixLoading(false);
+  };
 
   const handleExport = async (format, organizationId = null) => {
     try {
