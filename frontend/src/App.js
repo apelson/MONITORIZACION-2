@@ -936,12 +936,18 @@ const Dashboard = () => {
 
   // Filter devices
   let filteredDevices = devices;
-  if (filterGroupId) filteredDevices = filteredDevices.filter(d => d.group_id === filterGroupId);
-  else if (filterOrgId) {
-    const orgGroupIds = groups.filter(g => g.organization_id === filterOrgId).map(g => g.id);
-    filteredDevices = filteredDevices.filter(d => orgGroupIds.includes(d.group_id));
+  
+  // Operators only see cameras that are online
+  if (isOperator) {
+    filteredDevices = filteredDevices.filter(d => d.device_type_id === "type-camera" && d.status === "online");
+  } else {
+    if (filterGroupId) filteredDevices = filteredDevices.filter(d => d.group_id === filterGroupId);
+    else if (filterOrgId) {
+      const orgGroupIds = groups.filter(g => g.organization_id === filterOrgId).map(g => g.id);
+      filteredDevices = filteredDevices.filter(d => orgGroupIds.includes(d.group_id));
+    }
+    if (filterTypeId) filteredDevices = filteredDevices.filter(d => d.device_type_id === filterTypeId);
   }
-  if (filterTypeId) filteredDevices = filteredDevices.filter(d => d.device_type_id === filterTypeId);
 
   return (
     <div className="app-container">
