@@ -110,43 +110,46 @@ if [ -d "$APP_DIR/frontend" ]; then
     cat > .env << EOF
 REACT_APP_BACKEND_URL=https://$DOMAIN
 EOF
+
+    # Construir para producción
+    echo -e "${YELLOW}Construyendo frontend para producción...${NC}"
+    yarn build
 fi
 
 # Paso 7: Instalar Nginx
 echo -e "${BLUE}[7/10] Configurando Nginx...${NC}"
 apt install -y nginx
 
-cat > /etc/nginx/sites-available/siempria-monitor << EOF
+cat > /etc/nginx/sites-available/siempria-monitor << 'NGINXEOF'
 server {
     listen 80;
-    server_name $DOMAIN;
+    server_name DOMAIN_PLACEHOLDER;
+
+    # Frontend - archivos estáticos
+    root /opt/siempria-monitor/frontend/build;
+    index index.html;
 
     location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_cache_bypass \$http_upgrade;
+        try_files $uri $uri/ /index.html;
     }
 
     location /api {
         proxy_pass http://127.0.0.1:8001/api;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 300s;
         proxy_connect_timeout 300s;
     }
 }
-EOF
+NGINXEOF
+
+# Reemplazar placeholder con dominio real
+sed -i "s/DOMAIN_PLACEHOLDER/$DOMAIN/g" /etc/nginx/sites-available/siempria-monitor
 
 ln -sf /etc/nginx/sites-available/siempria-monitor /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
@@ -154,8 +157,8 @@ nginx -t
 systemctl restart nginx
 systemctl enable nginx
 
-# Paso 8: Configurar servicios systemd
-echo -e "${BLUE}[8/10] Configurando servicios systemd...${NC}"
+# Paso 8: Configurar servicio systemd para Backend
+echo -e "${BLUE}[8/10] Configurando servicio systemd...${NC}"
 
 cat > /etc/systemd/system/siempria-backend.service << EOF
 [Unit]
@@ -177,28 +180,9 @@ RestartSec=10
 WantedBy=multi-user.target
 EOF
 
-cat > /etc/systemd/system/siempria-frontend.service << EOF
-[Unit]
-Description=Siempria Network Monitor Frontend
-After=network.target
-
-[Service]
-Type=simple
-User=www-data
-Group=www-data
-WorkingDirectory=$APP_DIR/frontend
-Environment="NODE_ENV=production"
-ExecStart=/usr/bin/yarn start
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
 chown -R www-data:www-data $APP_DIR
 systemctl daemon-reload
-systemctl enable siempria-backend siempria-frontend
+systemctl enable siempria-backend
 
 # Paso 9: Crear usuario admin en MongoDB
 echo -e "${BLUE}[9/10] Creando usuario administrador...${NC}"
@@ -219,7 +203,6 @@ db.users.insertOne({
 # Paso 10: Iniciar servicios
 echo -e "${BLUE}[10/10] Iniciando servicios...${NC}"
 systemctl start siempria-backend
-systemctl start siempria-frontend
 
 # Instalar SSL (opcional)
 echo ""
