@@ -781,6 +781,102 @@ async def image_proxy(device_id: str, current_user: dict = Depends(get_current_u
         logger.error(f"Error fetching image for device {device_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error al cargar imagen")
 
+# ============ MOBOTIX CAMERA INFO ============
+
+@api_router.get("/devices/{device_id}/mobotix-info")
+async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_current_user)):
+    """Get Mobotix camera information using HTTP API"""
+    device = await devices_collection.find_one({"id": device_id}, {"_id": 0})
+    if not device:
+        raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
+    
+    # Build base URL with authentication
+    protocol = device.get("camera_protocol", "http")
+    ip = device.get("ip_address", "")
+    port = device.get("port", 80)
+    camera_user = device.get("camera_user", "")
+    camera_password = device.get("camera_password", "")
+    
+    if not ip:
+        raise HTTPException(status_code=400, detail="IP del dispositivo no configurada")
+    
+    base_url = f"{protocol}://{ip}:{port}"
+    info = {
+        "device_id": device_id,
+        "device_name": device.get("name", ""),
+        "ip_address": f"{ip}:{port}",
+        "protocol": protocol,
+        "mobotix_info": None,
+        "device_status": None,
+        "configuration": None,
+        "errors": []
+    }
+    
+    # Helper to make authenticated requests
+    def make_request(url_path: str, timeout: int = 5):
+        try:
+            full_url = f"{base_url}{url_path}"
+            request = urllib.request.Request(full_url)
+            if camera_user and camera_password:
+                credentials = base64.b64encode(f"{camera_user}:{camera_password}".encode()).decode()
+                request.add_header("Authorization", f"Basic {credentials}")
+            request.add_header("User-Agent", "Mozilla/5.0 SiempriaMonitor/1.0")
+            
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return response.read().decode('utf-8', errors='ignore')
+        except urllib.error.HTTPError as e:
+            return f"HTTP_ERROR:{e.code}"
+        except urllib.error.URLError as e:
+            return f"URL_ERROR:{str(e.reason)}"
+        except Exception as e:
+            return f"ERROR:{str(e)}"
+    
+    # Try to get device info from Mobotix HTTP API
+    # Method 1: Try /control/control with deviceinfo
+    loop = asyncio.get_event_loop()
+    
+    # Try different Mobotix endpoints
+    endpoints_to_try = [
+        ("/control/control?listsection=deviceinfo", "device_info"),
+        ("/control/control?listsection=network", "network_info"),
+        ("/control/control?listsection=recording", "recording_info"),
+        ("/admin/remoteconfig?action=view&section=DEVICEINFO", "remoteconfig_deviceinfo"),
+        ("/cgi-bin/admin/param.cgi?action=list&group=DeviceInformation", "cgi_deviceinfo"),
+    ]
+    
+    mobotix_data = {}
+    for endpoint, key in endpoints_to_try:
+        result = await loop.run_in_executor(None, make_request, endpoint)
+        if not result.startswith(("HTTP_ERROR", "URL_ERROR", "ERROR")):
+            mobotix_data[key] = result
+        else:
+            info["errors"].append(f"{key}: {result}")
+    
+    if mobotix_data:
+        info["mobotix_info"] = mobotix_data
+        info["device_status"] = "Mobotix API accessible"
+    else:
+        # Try generic status check
+        info["device_status"] = "No Mobotix API response - may not be a Mobotix camera"
+    
+    # Parse common Mobotix info patterns
+    parsed_info = {}
+    for key, data in mobotix_data.items():
+        if "=" in data:
+            for line in data.split("\n"):
+                if "=" in line and not line.startswith("#"):
+                    parts = line.split("=", 1)
+                    if len(parts) == 2:
+                        param_name = parts[0].strip()
+                        param_value = parts[1].strip().strip('"')
+                        if param_value:
+                            parsed_info[param_name] = param_value
+    
+    if parsed_info:
+        info["configuration"] = parsed_info
+    
+    return info
+
 # ============ EXPORT ROUTES ============
 
 @api_router.get("/export/excel")
