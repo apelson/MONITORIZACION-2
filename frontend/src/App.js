@@ -975,20 +975,19 @@ const Dashboard = () => {
   };
 
   const handleCloneDevice = (device) => {
-    // Create a clone of the device with modified name and cleared sensitive data
+    // Create a clone of the device - keep IP, user, password, only increment port
     const clonedDevice = {
       ...device,
       id: null, // Clear ID so it creates a new device
       name: `${device.name} (copia)`,
-      ip_address: "", // Clear IP so user must enter new one
-      camera_password: "", // Clear password for security
+      port: device.port + 1, // Increment port by 1
       status: "unknown",
       last_check: null,
       last_online: null
     };
     setSelectedDevice(clonedDevice);
     setDeviceDialogOpen(true);
-    toast.info("Modifica la IP, puerto y credenciales para el nuevo dispositivo");
+    toast.info("Modifica el puerto y nombre para el nuevo dispositivo");
   };
 
   const handleExport = async (format, organizationId = null) => {
