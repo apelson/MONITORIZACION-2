@@ -343,7 +343,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
             {isCloning ? "Clonar Dispositivo" : device?.id ? "Editar Dispositivo" : "Agregar Dispositivo"}
           </DialogTitle>
           {isCloning && (
-            <p className="text-sm text-muted-foreground">Modifica la IP, puerto y credenciales para crear el nuevo dispositivo</p>
+            <p className="text-sm text-muted-foreground">Modifica el puerto y nombre para crear el nuevo dispositivo</p>
           )}
         </DialogHeader>
         <form onSubmit={handleSubmit}>
