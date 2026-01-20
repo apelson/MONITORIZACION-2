@@ -452,8 +452,8 @@ async def get_organizations(current_user: dict = Depends(get_current_user)):
 @api_router.post("/organizations")
 async def create_organization(data: OrganizationCreate, current_user: dict = Depends(require_role(["admin", "manager"]))):
     org = {"id": str(uuid.uuid4()), "name": data.name, "description": data.description or "",
-           "color": data.color or "#3b82f6", "created_by": current_user["id"],
-           "created_at": datetime.now(timezone.utc).isoformat()}
+           "color": data.color or "#3b82f6", "logo_url": data.logo_url or "",
+           "created_by": current_user["id"], "created_at": datetime.now(timezone.utc).isoformat()}
     await organizations_collection.insert_one(org)
     return {"message": "Organización creada", "organization": org}
 
