@@ -1009,23 +1009,36 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="devices">
-            {/* Filters */}
-            <div className="flex gap-2 mb-6 flex-wrap items-center">
-              <Select value={filterOrgId || "all"} onValueChange={(v) => { setFilterOrgId(v === "all" ? null : v); setFilterGroupId(null); }}>
-                <SelectTrigger className="w-[180px]"><SelectValue placeholder="Organización" /></SelectTrigger>
-                <SelectContent><SelectItem value="all">Todas las org.</SelectItem>{organizations.map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
-              </Select>
-              <Select value={filterGroupId || "all"} onValueChange={(v) => setFilterGroupId(v === "all" ? null : v)}>
-                <SelectTrigger className="w-[180px]"><SelectValue placeholder="Grupo" /></SelectTrigger>
-                <SelectContent><SelectItem value="all">Todos los grupos</SelectItem>{(filterOrgId ? groups.filter(g => g.organization_id === filterOrgId) : groups).map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
-              </Select>
-              <Select value={filterTypeId || "all"} onValueChange={(v) => setFilterTypeId(v === "all" ? null : v)}>
-                <SelectTrigger className="w-[180px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
-                <SelectContent><SelectItem value="all">Todos los tipos</SelectItem>{deviceTypes.map(t => { const Icon = getIcon(t.icon); return <SelectItem key={t.id} value={t.id}><div className="flex items-center gap-2"><Icon className="w-4 h-4" style={{ color: t.color }} />{t.name}</div></SelectItem>; })}</SelectContent>
-              </Select>
-              {(filterOrgId || filterGroupId || filterTypeId) && <Button variant="ghost" size="sm" onClick={() => { setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); }}>Limpiar filtros</Button>}
-              <span className="text-sm text-muted-foreground ml-auto">{filteredDevices.length} dispositivo(s)</span>
-            </div>
+            {/* Filters - not for operators */}
+            {!isOperator && (
+              <div className="flex gap-2 mb-6 flex-wrap items-center">
+                <Select value={filterOrgId || "all"} onValueChange={(v) => { setFilterOrgId(v === "all" ? null : v); setFilterGroupId(null); }}>
+                  <SelectTrigger className="w-[180px]"><SelectValue placeholder="Organización" /></SelectTrigger>
+                  <SelectContent><SelectItem value="all">Todas las org.</SelectItem>{organizations.map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
+                </Select>
+                <Select value={filterGroupId || "all"} onValueChange={(v) => setFilterGroupId(v === "all" ? null : v)}>
+                  <SelectTrigger className="w-[180px]"><SelectValue placeholder="Grupo" /></SelectTrigger>
+                  <SelectContent><SelectItem value="all">Todos los grupos</SelectItem>{(filterOrgId ? groups.filter(g => g.organization_id === filterOrgId) : groups).map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
+                </Select>
+                <Select value={filterTypeId || "all"} onValueChange={(v) => setFilterTypeId(v === "all" ? null : v)}>
+                  <SelectTrigger className="w-[180px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
+                  <SelectContent><SelectItem value="all">Todos los tipos</SelectItem>{deviceTypes.map(t => { const Icon = getIcon(t.icon); return <SelectItem key={t.id} value={t.id}><div className="flex items-center gap-2"><Icon className="w-4 h-4" style={{ color: t.color }} />{t.name}</div></SelectItem>; })}</SelectContent>
+                </Select>
+                {(filterOrgId || filterGroupId || filterTypeId) && <Button variant="ghost" size="sm" onClick={() => { setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); }}>Limpiar filtros</Button>}
+                <span className="text-sm text-muted-foreground ml-auto">{filteredDevices.length} dispositivo(s)</span>
+              </div>
+            )}
+            
+            {/* Operator header */}
+            {isOperator && (
+              <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                <div className="flex items-center gap-2 text-purple-700">
+                  <Camera className="w-5 h-5" />
+                  <span className="font-medium">Vista de Operador - {filteredDevices.length} cámara(s) online</span>
+                </div>
+                <p className="text-sm text-purple-600 mt-1">Solo se muestran cámaras con conexión activa</p>
+              </div>
+            )}
 
             {loading ? <LoadingSkeleton /> : filteredDevices.length === 0 ? (
               <div className="empty-state py-16"><Server className="w-16 h-16 mb-4 opacity-20" /><h3 className="text-lg font-medium mb-2">No hay dispositivos</h3>{canEdit && <Button onClick={() => setDeviceDialogOpen(true)}><Plus className="w-4 h-4 mr-2" />Agregar</Button>}</div>
