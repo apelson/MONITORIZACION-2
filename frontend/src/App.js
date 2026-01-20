@@ -288,13 +288,13 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
 };
 
 const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) => {
-  const [formData, setFormData] = useState({ name: "", description: "", color: "#3b82f6" });
+  const [formData, setFormData] = useState({ name: "", description: "", color: "#3b82f6", logo_url: "" });
   const [saving, setSaving] = useState(false);
   const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
 
   useEffect(() => {
-    if (organization) setFormData({ name: organization.name || "", description: organization.description || "", color: organization.color || "#3b82f6" });
-    else setFormData({ name: "", description: "", color: "#3b82f6" });
+    if (organization) setFormData({ name: organization.name || "", description: organization.description || "", color: organization.color || "#3b82f6", logo_url: organization.logo_url || "" });
+    else setFormData({ name: "", description: "", color: "#3b82f6", logo_url: "" });
   }, [organization, open]);
 
   const handleSubmit = async (e) => {
@@ -311,6 +311,11 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
           <div className="space-y-4 py-4">
             <div className="space-y-2"><Label>Nombre *</Label><Input data-testid="org-name-input" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
             <div className="space-y-2"><Label>Descripción</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
+            <div className="space-y-2">
+              <Label>Logo (URL)</Label>
+              <Input placeholder="https://ejemplo.com/logo.png" value={formData.logo_url} onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })} />
+              {formData.logo_url && <img src={formData.logo_url} alt="Logo preview" className="h-16 object-contain rounded border mt-2" />}
+            </div>
             <div className="space-y-2"><Label>Color</Label>
               <div className="flex gap-2 flex-wrap">{colors.map((c) => <button key={c} type="button" onClick={() => setFormData({ ...formData, color: c })} className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${formData.color === c ? 'border-foreground scale-110' : 'border-transparent'}`} style={{ backgroundColor: c }} />)}</div>
             </div>
