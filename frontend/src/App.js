@@ -317,6 +317,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
 
   const filteredGroups = selectedOrgId ? groups.filter(g => g.organization_id === selectedOrgId) : groups;
   const isCamera = formData.device_type_id === "type-camera" || deviceTypes.find(t => t.id === formData.device_type_id)?.icon === "camera";
+  const isCloning = device && !device.id;
 
   // Build preview URL
   const previewUrl = formData.camera_user && formData.camera_password && formData.camera_path && formData.ip_address
@@ -327,7 +328,8 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
     e.preventDefault();
     if (!formData.name || !formData.ip_address || !formData.port) { toast.error("Completa los campos requeridos"); return; }
     setSaving(true);
-    await onSave({ ...formData, group_id: formData.group_id || null, device_type_id: formData.device_type_id || null }, device?.id);
+    // When cloning, pass null as deviceId to create new device
+    await onSave({ ...formData, group_id: formData.group_id || null, device_type_id: formData.device_type_id || null }, isCloning ? null : device?.id);
     setSaving(false);
     onOpenChange(false);
   };
@@ -336,7 +338,13 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent data-testid="device-form-dialog" className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{device ? "Editar Dispositivo" : "Agregar Dispositivo"}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            {isCloning && <Copy className="w-5 h-5 text-blue-600" />}
+            {isCloning ? "Clonar Dispositivo" : device?.id ? "Editar Dispositivo" : "Agregar Dispositivo"}
+          </DialogTitle>
+          {isCloning && (
+            <p className="text-sm text-muted-foreground">Modifica la IP, puerto y credenciales para crear el nuevo dispositivo</p>
+          )}
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4 py-4">
