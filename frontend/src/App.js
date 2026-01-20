@@ -429,8 +429,26 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
                 </div>
                 <div className="col-span-2 space-y-2">
                   <Label>Ruta de imagen</Label>
-                  <Input placeholder="/cgi-bin/image.jpg" className="font-mono" value={formData.camera_path} onChange={(e) => setFormData({ ...formData, camera_path: e.target.value })} />
-                  <p className="text-xs text-muted-foreground">Ruta del snapshot de la cámara (ej: /cgi-bin/image.jpg, /snap.jpg, /record/current.jpg para Mobotix)</p>
+                  <div className="flex gap-2">
+                    <Select value={formData.camera_path || "custom"} onValueChange={(v) => setFormData({ ...formData, camera_path: v === "custom" ? "" : v })}>
+                      <SelectTrigger className="w-[200px]"><SelectValue placeholder="Seleccionar ruta" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="/record/current.jpg">Mobotix (record)</SelectItem>
+                        <SelectItem value="/cgi-bin/image.jpg">Mobotix (cgi-bin)</SelectItem>
+                        <SelectItem value="/snap.jpg">Genérico (/snap.jpg)</SelectItem>
+                        <SelectItem value="/jpg/image.jpg">Axis (/jpg/image.jpg)</SelectItem>
+                        <SelectItem value="/Streaming/channels/1/picture">Hikvision</SelectItem>
+                        <SelectItem value="custom">Personalizada...</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input 
+                      placeholder="/ruta/imagen.jpg" 
+                      className="font-mono flex-1" 
+                      value={formData.camera_path} 
+                      onChange={(e) => setFormData({ ...formData, camera_path: e.target.value })} 
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Selecciona una ruta predefinida o escribe una personalizada</p>
                 </div>
                 {previewUrl && (
                   <div className="col-span-2 p-3 bg-muted rounded-lg">
