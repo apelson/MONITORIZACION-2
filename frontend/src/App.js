@@ -149,6 +149,9 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onVi
   const handleCheck = async () => { setIsChecking(true); await onCheck(device.id); setIsChecking(false); };
   const TypeIcon = deviceType ? getIcon(deviceType.icon) : Server;
 
+  // Check if it's a camera type
+  const isCamera = device.device_type_id === "type-camera" || deviceType?.icon === "camera";
+  
   // Check if URL has credentials
   const hasCredentials = device.image_url && device.image_url.includes('@') && device.image_url.match(/https?:\/\/[^:]+:[^@]+@/);
 
@@ -156,7 +159,19 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onVi
   useEffect(() => {
     let mounted = true;
     const loadImage = async () => {
-      if (!device.image_url) return;
+      if (!device.image_url) {
+        // If camera is offline and has no image, show placeholder
+        if (isCamera && device.status === "offline") {
+          setImageData(OFFLINE_PLACEHOLDER);
+        }
+        return;
+      }
+      
+      // If device is offline and it's a camera, show placeholder
+      if (device.status === "offline" && isCamera) {
+        if (mounted) setImageData(OFFLINE_PLACEHOLDER);
+        return;
+      }
       
       if (hasCredentials) {
         try {
@@ -167,7 +182,10 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onVi
             setImageError(false);
           }
         } catch (e) {
-          if (mounted) setImageError(true);
+          if (mounted) {
+            setImageData(OFFLINE_PLACEHOLDER);
+            setImageError(true);
+          }
         }
       } else {
         if (mounted) setImageData(device.image_url);
@@ -175,27 +193,39 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onVi
     };
     
     loadImage();
-    const interval = hasCredentials ? setInterval(loadImage, 30000) : null;
+    const interval = hasCredentials && device.status === "online" ? setInterval(loadImage, 30000) : null;
     
     return () => { 
       mounted = false;
       if (interval) clearInterval(interval); 
     };
-  }, [device.id, device.image_url, hasCredentials, authAxios]);
+  }, [device.id, device.image_url, device.status, hasCredentials, isCamera, authAxios]);
+
+  // Show image for cameras or if image_url exists
+  const showImage = imageData || (isCamera && device.status === "offline");
+  const displayImage = imageData || OFFLINE_PLACEHOLDER;
 
   return (
     <Card data-testid={`device-card-${device.id}`} className="server-card fade-in hover:-translate-y-0.5 transition-transform duration-200 overflow-hidden">
-      {imageData && !imageError && (
+      {showImage && (
         <div className="h-32 bg-muted overflow-hidden relative">
           <img 
-            src={imageData} 
+            src={displayImage} 
             alt={device.name} 
             className="w-full h-full object-cover"
-            onError={() => setImageError(true)}
+            onError={() => { setImageError(true); setImageData(OFFLINE_PLACEHOLDER); }}
           />
-          {hasCredentials && (
+          {hasCredentials && device.status === "online" && (
             <div className="absolute bottom-1 right-1">
               <Badge variant="secondary" className="text-xs opacity-75"><Camera className="w-3 h-3 mr-1" />Live</Badge>
+            </div>
+          )}
+          {device.status === "offline" && isCamera && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+              <div className="text-center text-white">
+                <WifiOff className="w-8 h-8 mx-auto mb-1 opacity-75" />
+                <span className="text-xs">Sin conexión</span>
+              </div>
             </div>
           )}
         </div>
