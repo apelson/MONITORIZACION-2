@@ -902,7 +902,8 @@ const Dashboard = () => {
   const onlineCount = devices.filter(d => d.status === 'online').length;
   const offlineCount = devices.filter(d => d.status === 'offline').length;
 
-  const fetchAll = useCallback(async () => {
+  const fetchAll = useCallback(async (isInitial = false) => {
+    if (isInitial) setLoading(true);
     try {
       const [devRes, orgRes, grpRes, typeRes, alertRes] = await Promise.all([
         authAxios.get("/devices"), authAxios.get("/organizations"), authAxios.get("/groups"),
@@ -919,18 +920,13 @@ const Dashboard = () => {
         setSettings(setRes.data.settings);
       }
     } catch (e) { console.error(e); }
+    if (isInitial) setLoading(false);
   }, [authAxios, isAdmin]);
 
   useEffect(() => { 
-    let isMounted = true;
-    const init = async () => { 
-      setLoading(true); 
-      await fetchAll(); 
-      if (isMounted) setLoading(false); 
-    }; 
-    init(); 
-    const interval = setInterval(fetchAll, 30000); 
-    return () => { isMounted = false; clearInterval(interval); }; 
+    fetchAll(true); 
+    const interval = setInterval(() => fetchAll(false), 30000); 
+    return () => clearInterval(interval); 
   }, [fetchAll]);
 
   const handleRefreshAll = async () => { setRefreshing(true); try { await authAxios.post("/devices/check-all"); toast.success("Verificando..."); setTimeout(fetchAll, 3000); } catch (e) { toast.error("Error"); } setRefreshing(false); };
