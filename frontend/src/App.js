@@ -893,7 +893,8 @@ const Dashboard = () => {
               onDeleteOrg={(o) => { setDeleteTarget({ type: "org", item: o }); setDeleteDialogOpen(true); }}
               onCreateGroup={(orgId) => { setSelectedGroup(null); setGroupDialogOrgId(orgId); setGroupDialogOpen(true); }}
               onEditGroup={(g) => { setSelectedGroup(g); setGroupDialogOpen(true); }}
-              onDeleteGroup={(g) => { setDeleteTarget({ type: "group", item: g }); setDeleteDialogOpen(true); }} />
+              onDeleteGroup={(g) => { setDeleteTarget({ type: "group", item: g }); setDeleteDialogOpen(true); }}
+              onExport={handleExport} />
           </TabsContent>
 
           <TabsContent value="types">
