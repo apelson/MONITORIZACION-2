@@ -1015,9 +1015,198 @@ async def update_report_scheduler():
     )
     logger.info(f"Scheduled report configured: {frequency} at {hour}:00")
 
+# ============ PUBLIC DASHBOARDS ============
+
+@api_router.get("/organizations/{org_id}/public-dashboard")
+async def get_public_dashboard_config(org_id: str, current_user: dict = Depends(require_role(["admin", "manager"]))):
+    """Get public dashboard configuration for an organization"""
+    org = await organizations_collection.find_one({"id": org_id}, {"_id": 0})
+    if not org:
+        raise HTTPException(status_code=404, detail="Organización no encontrada")
+    
+    config = await public_dashboards_collection.find_one({"organization_id": org_id}, {"_id": 0})
+    
+    # Generate public URL token if not exists
+    if not config:
+        config = {
+            "organization_id": org_id,
+            "public_token": str(uuid.uuid4()),
+            "enabled": False,
+            "password": None,
+            "show_images": True,
+            "show_details": False
+        }
+        await public_dashboards_collection.insert_one(config)
+    
+    return {"config": config, "public_url": f"/public/{config.get('public_token', '')}"}
+
+@api_router.post("/organizations/{org_id}/public-dashboard")
+async def save_public_dashboard_config(org_id: str, config: PublicDashboardConfig, current_user: dict = Depends(require_role(["admin", "manager"]))):
+    """Save public dashboard configuration for an organization"""
+    org = await organizations_collection.find_one({"id": org_id}, {"_id": 0})
+    if not org:
+        raise HTTPException(status_code=404, detail="Organización no encontrada")
+    
+    existing = await public_dashboards_collection.find_one({"organization_id": org_id})
+    public_token = existing.get("public_token") if existing else str(uuid.uuid4())
+    
+    update_data = {
+        "organization_id": org_id,
+        "public_token": public_token,
+        **config.model_dump()
+    }
+    
+    await public_dashboards_collection.update_one(
+        {"organization_id": org_id},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    return {"message": "Configuración guardada", "public_url": f"/public/{public_token}"}
+
+@api_router.post("/organizations/{org_id}/public-dashboard/regenerate-token")
+async def regenerate_public_token(org_id: str, current_user: dict = Depends(require_role(["admin"]))):
+    """Regenerate public dashboard token"""
+    new_token = str(uuid.uuid4())
+    await public_dashboards_collection.update_one(
+        {"organization_id": org_id},
+        {"$set": {"public_token": new_token}},
+        upsert=True
+    )
+    return {"message": "Token regenerado", "public_url": f"/public/{new_token}"}
+
+# Public endpoint - no authentication required
+@api_router.get("/public/{token}")
+async def get_public_dashboard(token: str, password: Optional[str] = None):
+    """Get public dashboard data (no auth required)"""
+    config = await public_dashboards_collection.find_one({"public_token": token}, {"_id": 0})
+    if not config:
+        raise HTTPException(status_code=404, detail="Dashboard no encontrado")
+    
+    if not config.get("enabled"):
+        raise HTTPException(status_code=403, detail="Dashboard público deshabilitado")
+    
+    # Check password if set
+    if config.get("password") and config.get("password") != password:
+        raise HTTPException(status_code=401, detail="Contraseña incorrecta")
+    
+    org_id = config.get("organization_id")
+    org = await organizations_collection.find_one({"id": org_id}, {"_id": 0})
+    if not org:
+        raise HTTPException(status_code=404, detail="Organización no encontrada")
+    
+    # Get groups for this organization
+    groups = await groups_collection.find({"organization_id": org_id}, {"_id": 0}).to_list(length=100)
+    group_ids = [g["id"] for g in groups]
+    
+    # Get devices for these groups
+    devices = await devices_collection.find({"group_id": {"$in": group_ids}}, {"_id": 0}).to_list(length=500)
+    
+    # Filter data based on config
+    show_details = config.get("show_details", False)
+    show_images = config.get("show_images", True)
+    
+    filtered_devices = []
+    for device in devices:
+        d = {
+            "id": device.get("id"),
+            "name": device.get("name"),
+            "status": device.get("status"),
+            "last_check": device.get("last_check"),
+            "device_type_id": device.get("device_type_id"),
+            "group_id": device.get("group_id"),
+            "brand": device.get("brand"),
+            "model": device.get("model"),
+            "location": device.get("location")
+        }
+        if show_details:
+            d["ip_address"] = device.get("ip_address")
+            d["port"] = device.get("port")
+        if show_images and device.get("camera_path"):
+            d["has_image"] = True
+        filtered_devices.append(d)
+    
+    # Get device types
+    device_types = await device_types_collection.find({}, {"_id": 0}).to_list(length=50)
+    
+    # Calculate stats
+    total = len(filtered_devices)
+    online = len([d for d in filtered_devices if d.get("status") == "online"])
+    offline = len([d for d in filtered_devices if d.get("status") == "offline"])
+    
+    return {
+        "organization": {"name": org.get("name"), "logo_url": org.get("logo_url")},
+        "groups": groups,
+        "devices": filtered_devices,
+        "device_types": device_types,
+        "stats": {
+            "total": total,
+            "online": online,
+            "offline": offline,
+            "uptime_percent": round((online / total * 100) if total > 0 else 0, 1)
+        },
+        "config": {
+            "show_images": show_images,
+            "show_details": show_details,
+            "requires_password": bool(config.get("password"))
+        }
+    }
+
+# Public image proxy (for public dashboards)
+@api_router.get("/public/{token}/image/{device_id}")
+async def public_image_proxy(token: str, device_id: str, password: Optional[str] = None):
+    """Proxy device images for public dashboards"""
+    config = await public_dashboards_collection.find_one({"public_token": token}, {"_id": 0})
+    if not config or not config.get("enabled"):
+        raise HTTPException(status_code=403, detail="No autorizado")
+    
+    if config.get("password") and config.get("password") != password:
+        raise HTTPException(status_code=401, detail="Contraseña incorrecta")
+    
+    if not config.get("show_images"):
+        raise HTTPException(status_code=403, detail="Imágenes deshabilitadas")
+    
+    # Verify device belongs to this organization's groups
+    org_id = config.get("organization_id")
+    groups = await groups_collection.find({"organization_id": org_id}, {"_id": 0}).to_list(length=100)
+    group_ids = [g["id"] for g in groups]
+    
+    device = await devices_collection.find_one({"id": device_id, "group_id": {"$in": group_ids}}, {"_id": 0})
+    if not device:
+        raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
+    
+    # Use same image proxy logic
+    protocol = device.get("camera_protocol", "http")
+    ip = device.get("ip_address", "")
+    port = device.get("port", 80)
+    camera_user = device.get("camera_user", "")
+    camera_password = device.get("camera_password", "")
+    camera_path = device.get("camera_path", "")
+    
+    if not camera_path:
+        raise HTTPException(status_code=404, detail="No hay imagen configurada")
+    
+    clean_url = f"{protocol}://{ip}:{port}{camera_path}"
+    
+    try:
+        request = urllib.request.Request(clean_url)
+        if camera_user and camera_password:
+            credentials = base64.b64encode(f"{camera_user}:{camera_password}".encode()).decode()
+            request.add_header("Authorization", f"Basic {credentials}")
+        request.add_header("User-Agent", "Mozilla/5.0 SiempriaMonitor/1.0")
+        
+        with urllib.request.urlopen(request, timeout=10) as response:
+            image_data = response.read()
+            content_type = response.headers.get('Content-Type', 'image/jpeg')
+        
+        return StreamingResponse(io.BytesIO(image_data), media_type=content_type, headers={"Cache-Control": "max-age=60"})
+    except Exception as e:
+        logger.error(f"Error in public image proxy: {str(e)}")
+        raise HTTPException(status_code=502, detail="Error al cargar imagen")
+
 @api_router.get("/")
 async def root():
-    return {"message": "Siempria Network Monitor API v2.2"}
+    return {"message": "Siempria Network Monitor API v2.3"}
 
 # ============ IMAGE PROXY ============
 
