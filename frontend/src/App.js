@@ -80,9 +80,9 @@ const AuthProvider = ({ children }) => {
   authAxios.interceptors.response.use(
     (response) => response,
     (error) => {
-      // Handle blob response errors silently for image requests
+      // For blob requests, don't try to parse error response
       if (error.config?.responseType === 'blob') {
-        return Promise.reject(error);
+        error.response = { data: null, status: error.response?.status || 0 };
       }
       return Promise.reject(error);
     }
