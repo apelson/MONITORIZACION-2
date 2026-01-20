@@ -889,7 +889,15 @@ const OrganizationsPanel = ({ organizations, groups, devices, onCreateOrg, onEdi
                           )}
                           <div>
                             <CardTitle className="text-base">{org.name}</CardTitle>
-                            {org.description && <CardDescription className="text-xs">{org.description}</CardDescription>}
+                            <div className="flex items-center gap-2">
+                              {org.description && <CardDescription className="text-xs">{org.description}</CardDescription>}
+                              {(org.country || org.city) && (
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <MapPin className="w-3 h-3" />
+                                  {[org.city, org.country].filter(Boolean).join(", ")}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
