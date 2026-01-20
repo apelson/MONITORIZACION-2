@@ -665,5 +665,225 @@ async def test_email(current_user: dict = Depends(require_role(["admin"]))):
 async def root():
     return {"message": "Siempria Network Monitor API v2.1"}
 
+# ============ EXPORT ROUTES ============
+
+@api_router.get("/export/excel")
+async def export_excel(organization_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    """Export devices to Excel file"""
+    # Get all data
+    devices = await devices_collection.find({}, {"_id": 0}).to_list(length=None)
+    organizations = await organizations_collection.find({}, {"_id": 0}).to_list(length=None)
+    groups = await groups_collection.find({}, {"_id": 0}).to_list(length=None)
+    device_types = await device_types_collection.find({}, {"_id": 0}).to_list(length=None)
+    
+    # Filter by organization if specified
+    if organization_id:
+        org_group_ids = [g["id"] for g in groups if g.get("organization_id") == organization_id]
+        devices = [d for d in devices if d.get("group_id") in org_group_ids]
+    
+    # Create lookup dicts
+    org_dict = {o["id"]: o for o in organizations}
+    group_dict = {g["id"]: g for g in groups}
+    type_dict = {t["id"]: t for t in device_types}
+    
+    # Create workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Dispositivos"
+    
+    # Styles
+    header_font = Font(bold=True, color="FFFFFF", size=11)
+    header_fill = PatternFill(start_color="1F4E79", end_color="1F4E79", fill_type="solid")
+    header_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    cell_alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+    thin_border = Border(
+        left=Side(style='thin'), right=Side(style='thin'),
+        top=Side(style='thin'), bottom=Side(style='thin')
+    )
+    
+    # Headers
+    headers = ["Nombre", "IP:Puerto", "Estado", "Tipo", "Organización", "Grupo", 
+               "Marca", "Modelo", "Ubicación", "Descripción", "Notas", "Último Check", "Última Online"]
+    
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+        cell.border = thin_border
+    
+    # Data rows
+    for row_num, device in enumerate(devices, 2):
+        group = group_dict.get(device.get("group_id"))
+        org = org_dict.get(group.get("organization_id")) if group else None
+        device_type = type_dict.get(device.get("device_type_id"))
+        
+        row_data = [
+            device.get("name", ""),
+            f"{device.get('ip_address', '')}:{device.get('port', '')}",
+            "Online" if device.get("status") == "online" else "Offline" if device.get("status") == "offline" else "Desconocido",
+            device_type.get("name", "") if device_type else "",
+            org.get("name", "") if org else "",
+            group.get("name", "") if group else "",
+            device.get("brand", ""),
+            device.get("model", ""),
+            device.get("location", ""),
+            device.get("description", ""),
+            device.get("notes", ""),
+            device.get("last_check", "")[:19].replace("T", " ") if device.get("last_check") else "",
+            device.get("last_online", "")[:19].replace("T", " ") if device.get("last_online") else ""
+        ]
+        
+        for col, value in enumerate(row_data, 1):
+            cell = ws.cell(row=row_num, column=col, value=value)
+            cell.alignment = cell_alignment
+            cell.border = thin_border
+            
+            # Color status
+            if col == 3:
+                if value == "Online":
+                    cell.fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+                    cell.font = Font(color="006100")
+                elif value == "Offline":
+                    cell.fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+                    cell.font = Font(color="9C0006")
+    
+    # Adjust column widths
+    column_widths = [25, 20, 12, 15, 20, 20, 15, 20, 25, 30, 30, 20, 20]
+    for col, width in enumerate(column_widths, 1):
+        ws.column_dimensions[get_column_letter(col)].width = width
+    
+    # Freeze header row
+    ws.freeze_panes = "A2"
+    
+    # Save to buffer
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    
+    filename = f"dispositivos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@api_router.get("/export/pdf")
+async def export_pdf(organization_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    """Export devices to PDF file"""
+    # Get all data
+    devices = await devices_collection.find({}, {"_id": 0}).to_list(length=None)
+    organizations = await organizations_collection.find({}, {"_id": 0}).to_list(length=None)
+    groups = await groups_collection.find({}, {"_id": 0}).to_list(length=None)
+    device_types = await device_types_collection.find({}, {"_id": 0}).to_list(length=None)
+    
+    selected_org = None
+    if organization_id:
+        selected_org = next((o for o in organizations if o["id"] == organization_id), None)
+        org_group_ids = [g["id"] for g in groups if g.get("organization_id") == organization_id]
+        devices = [d for d in devices if d.get("group_id") in org_group_ids]
+    
+    # Create lookup dicts
+    org_dict = {o["id"]: o for o in organizations}
+    group_dict = {g["id"]: g for g in groups}
+    type_dict = {t["id"]: t for t in device_types}
+    
+    # Create PDF
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), leftMargin=1*cm, rightMargin=1*cm, topMargin=1*cm, bottomMargin=1*cm)
+    
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Title style
+    title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=18, alignment=TA_CENTER, spaceAfter=20)
+    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'], fontSize=10, alignment=TA_CENTER, textColor=colors.grey, spaceAfter=30)
+    
+    # Header
+    if selected_org and selected_org.get("logo_url"):
+        try:
+            logo_buffer = io.BytesIO(urllib.request.urlopen(selected_org["logo_url"]).read())
+            logo = Image(logo_buffer, width=2*inch, height=0.8*inch)
+            logo.hAlign = 'CENTER'
+            elements.append(logo)
+            elements.append(Spacer(1, 10))
+        except:
+            pass
+    
+    title = f"Inventario de Dispositivos"
+    if selected_org:
+        title = f"Inventario - {selected_org['name']}"
+    elements.append(Paragraph(title, title_style))
+    elements.append(Paragraph(f"Generado: {datetime.now().strftime('%d/%m/%Y %H:%M')} | Total: {len(devices)} dispositivos", subtitle_style))
+    
+    # Table data
+    table_data = [["Nombre", "IP:Puerto", "Estado", "Tipo", "Grupo", "Marca", "Modelo", "Ubicación"]]
+    
+    for device in devices:
+        group = group_dict.get(device.get("group_id"))
+        device_type = type_dict.get(device.get("device_type_id"))
+        
+        status = "Online" if device.get("status") == "online" else "Offline" if device.get("status") == "offline" else "?"
+        
+        table_data.append([
+            device.get("name", "")[:25],
+            f"{device.get('ip_address', '')}:{device.get('port', '')}",
+            status,
+            (device_type.get("name", "") if device_type else "")[:15],
+            (group.get("name", "") if group else "")[:20],
+            device.get("brand", "")[:15],
+            device.get("model", "")[:20],
+            device.get("location", "")[:25]
+        ])
+    
+    # Create table
+    col_widths = [3*cm, 3.5*cm, 1.8*cm, 2.5*cm, 3*cm, 2.5*cm, 3*cm, 4*cm]
+    table = Table(table_data, colWidths=col_widths, repeatRows=1)
+    
+    # Table style
+    table_style = TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1F4E79')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('TOPPADDING', (0, 0), (-1, 0), 8),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 5),
+        ('TOPPADDING', (0, 1), (-1, -1), 5),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ])
+    
+    # Color status cells
+    for i, row in enumerate(table_data[1:], 1):
+        if row[2] == "Online":
+            table_style.add('BACKGROUND', (2, i), (2, i), colors.HexColor('#C6EFCE'))
+            table_style.add('TEXTCOLOR', (2, i), (2, i), colors.HexColor('#006100'))
+        elif row[2] == "Offline":
+            table_style.add('BACKGROUND', (2, i), (2, i), colors.HexColor('#FFC7CE'))
+            table_style.add('TEXTCOLOR', (2, i), (2, i), colors.HexColor('#9C0006'))
+        
+        # Alternate row colors
+        if i % 2 == 0:
+            table_style.add('BACKGROUND', (0, i), (-1, i), colors.HexColor('#F5F5F5'))
+    
+    table.setStyle(table_style)
+    elements.append(table)
+    
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+    
+    filename = f"dispositivos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+    
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
 app.include_router(api_router)
 app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','), allow_methods=["*"], allow_headers=["*"])
