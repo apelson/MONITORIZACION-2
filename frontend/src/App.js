@@ -410,7 +410,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
             )}
             
             <div className="col-span-2 space-y-2"><Label>Descripción</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
-            <div className="col-span-2 space-y-2"><Label>Notas</Label><Textarea placeholder="Notas internas, contraseñas, configuración..." value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} rows={3} /></div>
+            <div className="col-span-2 space-y-2"><Label>Notas</Label><Textarea placeholder="Notas internas, configuración..." value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} rows={3} /></div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
