@@ -164,35 +164,44 @@ async def send_alert_email(device_name: str, device_ip: str, port: int, alert_ty
 
 # ============ MONITORING SERVICE ============
 
-def check_tcp_port(ip: str, port: int, timeout: float = 3.0) -> tuple[bool, float]:
+def check_tcp_port(ip: str, port: int, timeout: float = 5.0) -> tuple[bool, float]:
     """Check if TCP port is open and measure response time"""
     try:
-        start_time = asyncio.get_event_loop().time()
+        import time
+        start_time = time.time()
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(timeout)
         result = sock.connect_ex((ip, port))
-        end_time = asyncio.get_event_loop().time()
+        end_time = time.time()
         sock.close()
         response_time = (end_time - start_time) * 1000  # Convert to ms
-        return result == 0, response_time
+        success = result == 0
+        logger.info(f"TCP check {ip}:{port} - result={result}, success={success}, time={response_time:.0f}ms")
+        return success, response_time
     except Exception as e:
         logger.error(f"TCP check error for {ip}:{port}: {str(e)}")
         return False, 0
 
-def check_ping(ip: str, timeout: float = 3.0) -> tuple[bool, float]:
+def check_ping(ip: str, timeout: float = 5.0) -> tuple[bool, float]:
     """Simulate ping using TCP connection to common ports"""
     try:
-        start_time = asyncio.get_event_loop().time()
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(timeout)
-        # Try to connect to port 80 or 443 for ping simulation
-        for port in [80, 443, 22]:
-            result = sock.connect_ex((ip, port))
-            if result == 0:
-                end_time = asyncio.get_event_loop().time()
+        import time
+        start_time = time.time()
+        # Try to connect to common ports for ping simulation
+        for test_port in [80, 443, 22, 8080]:
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(timeout)
+                result = sock.connect_ex((ip, test_port))
                 sock.close()
-                return True, (end_time - start_time) * 1000
-        sock.close()
+                if result == 0:
+                    end_time = time.time()
+                    response_time = (end_time - start_time) * 1000
+                    logger.info(f"Ping check {ip} - success on port {test_port}, time={response_time:.0f}ms")
+                    return True, response_time
+            except:
+                continue
+        logger.info(f"Ping check {ip} - failed on all common ports")
         return False, 0
     except Exception as e:
         logger.error(f"Ping check error for {ip}: {str(e)}")
