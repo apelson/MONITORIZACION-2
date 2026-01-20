@@ -272,11 +272,16 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
             <RefreshCw className={`w-3 h-3 mr-1.5 ${isChecking ? 'animate-spin-slow' : ''}`} />Verificar
           </Button>
           {isCamera && (
-            <Button variant="ghost" size="sm" onClick={() => onMobotixInfo(device)} title="Info Mobotix"><Info className="w-4 h-4" /></Button>
+            <Button variant="ghost" size="sm" onClick={() => onMobotixInfo(device)} title="Info Cámara"><Info className="w-4 h-4" /></Button>
           )}
-          <Button variant="ghost" size="sm" onClick={() => onViewHistory(device)}><History className="w-4 h-4" /></Button>
-          {canEdit && (<><Button variant="ghost" size="sm" onClick={() => onEdit(device)}><Edit className="w-4 h-4" /></Button>
-          <Button variant="ghost" size="sm" onClick={() => onDelete(device)} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button></>)}
+          <Button variant="ghost" size="sm" onClick={() => onViewHistory(device)} title="Historial"><History className="w-4 h-4" /></Button>
+          {canEdit && (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => onClone(device)} title="Clonar dispositivo" className="text-blue-600 hover:text-blue-700"><Copy className="w-4 h-4" /></Button>
+              <Button variant="ghost" size="sm" onClick={() => onEdit(device)} title="Editar"><Edit className="w-4 h-4" /></Button>
+              <Button variant="ghost" size="sm" onClick={() => onDelete(device)} title="Eliminar" className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>
