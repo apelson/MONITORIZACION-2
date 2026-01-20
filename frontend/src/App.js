@@ -866,8 +866,11 @@ const Dashboard = () => {
         <div className="container mx-auto max-w-7xl px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <img src={LOGO_URL} alt="Siempria" className="h-10 object-contain" />
-              <h1 className="text-lg font-semibold tracking-tight hidden md:block">Network Monitor</h1>
+              <img src={LOGO_URL} alt="Siempria" className="h-12 object-contain" />
+              <div className="hidden md:block">
+                <h1 className="text-xl font-bold tracking-tight">Network Monitor</h1>
+                <p className="text-xs text-muted-foreground">Sistema de monitorización</p>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <div className="hidden md:flex items-center gap-4 mr-4">
