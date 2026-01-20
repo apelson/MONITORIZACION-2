@@ -151,7 +151,7 @@ const OFFLINE_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 // Icon mapping
 const ICON_MAP = {
-  camera: Camera, "hard-drive": HardDrive, network: Network, router: Router,
+  camera: Cctv, "hard-drive": HardDrive, network: Network, router: Router,
   server: Server, monitor: Monitor, printer: Printer, wifi: Wifi,
   shield: Shield, box: Box, layers: Layers
 };
