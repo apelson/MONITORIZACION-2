@@ -602,14 +602,16 @@ async def create_device(data: DeviceCreate, current_user: dict = Depends(require
     
     # Build image_url from camera fields if provided
     image_url = data.image_url or ""
+    protocol = data.camera_protocol or "http"
     if data.camera_user and data.camera_password and data.camera_path:
-        image_url = f"http://{data.camera_user}:{data.camera_password}@{data.ip_address}:{data.port}{data.camera_path}"
+        image_url = f"{protocol}://{data.camera_user}:{data.camera_password}@{data.ip_address}:{data.port}{data.camera_path}"
     
     device = {
         "id": str(uuid.uuid4()), "name": data.name, "ip_address": data.ip_address, "port": data.port,
         "description": data.description or "", "group_id": data.group_id, "device_type_id": data.device_type_id,
         "brand": data.brand or "", "model": data.model or "", "location": data.location or "",
         "notes": data.notes or "", "image_url": image_url,
+        "camera_protocol": protocol,
         "camera_user": data.camera_user or "", "camera_password": data.camera_password or "",
         "camera_path": data.camera_path or "",
         "status": "unknown", "last_check": None, "last_online": None,
@@ -634,6 +636,7 @@ async def update_device(device_id: str, data: DeviceUpdate, current_user: dict =
     update = {k: v for k, v in data.model_dump().items() if v is not None}
     
     # Rebuild image_url if camera fields are updated
+    camera_protocol = update.get("camera_protocol", device.get("camera_protocol", "http"))
     camera_user = update.get("camera_user", device.get("camera_user", ""))
     camera_password = update.get("camera_password", device.get("camera_password", ""))
     camera_path = update.get("camera_path", device.get("camera_path", ""))
@@ -641,7 +644,7 @@ async def update_device(device_id: str, data: DeviceUpdate, current_user: dict =
     port = update.get("port", device.get("port", ""))
     
     if camera_user and camera_password and camera_path:
-        update["image_url"] = f"http://{camera_user}:{camera_password}@{ip_address}:{port}{camera_path}"
+        update["image_url"] = f"{camera_protocol}://{camera_user}:{camera_password}@{ip_address}:{port}{camera_path}"
     
     if update:
         await devices_collection.update_one({"id": device_id}, {"$set": update})
