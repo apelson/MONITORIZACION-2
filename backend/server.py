@@ -568,7 +568,21 @@ async def get_devices(group_id: Optional[str] = None, organization_id: Optional[
         group_ids = [g["id"] for g in await groups_collection.find({"organization_id": organization_id}, {"id": 1}).to_list(length=None)]
         if group_ids:
             query["group_id"] = {"$in": group_ids}
+    
+    # Operators only see cameras (type-camera) that are online
+    if current_user.get("role") == "operator":
+        query["device_type_id"] = "type-camera"
+        query["status"] = "online"
+    
     return {"devices": await devices_collection.find(query, {"_id": 0}).to_list(length=None)}
+
+# Operator cameras view - only online cameras with images
+@api_router.get("/cameras")
+async def get_cameras(current_user: dict = Depends(get_current_user)):
+    """Get all cameras (for operators view)"""
+    query = {"device_type_id": "type-camera"}
+    cameras = await devices_collection.find(query, {"_id": 0}).to_list(length=None)
+    return {"cameras": cameras}
 
 @api_router.post("/devices")
 async def create_device(data: DeviceCreate, current_user: dict = Depends(require_role(["admin", "manager"]))):
