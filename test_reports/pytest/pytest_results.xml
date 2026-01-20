@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="17" time="330.181" timestamp="2026-01-20T17:09:21.934682+00:00" hostname="agent-env-f8b5b3d5-3c05-47b6-866c-282de9a574d8"><testcase classname="tests.test_siempria_api.TestAuthentication" name="test_admin_login_success" time="0.316" /><testcase classname="tests.test_siempria_api.TestAuthentication" name="test_operator_login_success" time="5.148" /><testcase classname="tests.test_siempria_api.TestAuthentication" name="test_login_invalid_credentials" time="0.071" /><testcase classname="tests.test_siempria_api.TestDevices" name="test_get_devices" time="0.328" /><testcase classname="tests.test_siempria_api.TestDevices" name="test_device_has_camera_protocol_field" time="6.532" /><testcase classname="tests.test_siempria_api.TestDevices" name="test_create_device_with_http_protocol" time="0.374"><failure message="AssertionError: Failed to create device: Internal Server Error&#10;assert 520 == 200&#10; +  where 520 = &lt;Response [520]&gt;.status_code">tests/test_siempria_api.py:100: in test_create_device_with_http_protocol
+    assert response.status_code == 200, f"Failed to create device: {response.text}"
+E   AssertionError: Failed to create device: Internal Server Error
+E   assert 520 == 200
+E    +  where 520 = &lt;Response [520]&gt;.status_code</failure></testcase><testcase classname="tests.test_siempria_api.TestDevices" name="test_create_device_with_https_protocol" time="4.816"><failure message="AssertionError: Failed to create device: Internal Server Error&#10;assert 520 == 200&#10; +  where 520 = &lt;Response [520]&gt;.status_code">tests/test_siempria_api.py:121: in test_create_device_with_https_protocol
+    assert response.status_code == 200, f"Failed to create device: {response.text}"
+E   AssertionError: Failed to create device: Internal Server Error
+E   assert 520 == 200
+E    +  where 520 = &lt;Response [520]&gt;.status_code</failure></testcase><testcase classname="tests.test_siempria_api.TestDevices" name="test_update_device_protocol" time="0.376"><failure message="requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)">/root/.venv/lib/python3.11/site-packages/requests/models.py:976: in json
+    return complexjson.loads(self.text, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/json/__init__.py:346: in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/json/decoder.py:337: in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/json/decoder.py:355: in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+E   json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+tests/test_siempria_api.py:146: in test_update_device_protocol
+    device_id = create_response.json()["device"]["id"]
+                ^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/models.py:980: in json
+    raise RequestsJSONDecodeError(e.msg, e.doc, e.pos)
+E   requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)</failure></testcase><testcase classname="tests.test_siempria_api.TestMobotixInfo" name="test_mobotix_info_endpoint_exists" time="95.608" /><testcase classname="tests.test_siempria_api.TestMobotixInfo" name="test_mobotix_info_returns_camera_details" time="208.924" /><testcase classname="tests.test_siempria_api.TestMobotixInfo" name="test_mobotix_info_invalid_device" time="0.297" /><testcase classname="tests.test_siempria_api.TestDeviceTypes" name="test_get_device_types" time="0.338" /><testcase classname="tests.test_siempria_api.TestOrganizationsAndGroups" name="test_get_organizations" time="0.301" /><testcase classname="tests.test_siempria_api.TestOrganizationsAndGroups" name="test_get_groups" time="0.296" /><testcase classname="tests.test_siempria_api.TestExportEndpoints" name="test_export_excel" time="0.312" /><testcase classname="tests.test_siempria_api.TestExportEndpoints" name="test_export_pdf" time="0.460" /><testcase classname="tests.test_siempria_api.TestImageProxy" name="test_image_proxy_for_camera" time="5.480" /></testsuite></testsuites>
