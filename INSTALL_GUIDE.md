@@ -206,28 +206,52 @@ WantedBy=multi-user.target
 EOF
 ```
 
-### Servicio Frontend
+### Construir Frontend para Producción
 
 ```bash
-sudo tee /etc/systemd/system/siempria-frontend.service << 'EOF'
-[Unit]
-Description=Siempria Network Monitor Frontend
-After=network.target
-
-[Service]
-Type=simple
-User=www-data
-Group=www-data
-WorkingDirectory=/opt/siempria-monitor/frontend
-Environment="NODE_ENV=production"
-ExecStart=/usr/bin/yarn start
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOF
+cd /opt/siempria-monitor/frontend
+yarn build
 ```
+
+### Configurar Nginx para Servir Frontend Estático
+
+Actualiza la configuración de Nginx para servir los archivos estáticos del build:
+
+```bash
+sudo tee /etc/nginx/sites-available/siempria-monitor << 'EOF'
+server {
+    listen 80;
+    server_name TU_DOMINIO.com;
+
+    # Frontend - archivos estáticos
+    root /opt/siempria-monitor/frontend/build;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Backend API
+    location /api {
+        proxy_pass http://127.0.0.1:8001/api;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 300s;
+    }
+}
+EOF
+
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+**Nota:** Con esta configuración, el frontend se sirve como archivos estáticos y no necesita un servicio systemd separado. Solo el backend requiere un servicio.
 
 ### Activar y Arrancar Servicios
 
@@ -255,12 +279,13 @@ sudo systemctl status siempria-frontend
 
 ```bash
 # Conectar a MongoDB y crear usuario admin
+# La contraseña por defecto es: admin123
 mongosh siempria_monitor << 'EOF'
 db.users.insertOne({
     id: "admin-001",
     username: "admin",
     email: "admin@siempria.com",
-    hashed_password: "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.VTtYr8kK8hK8hK",
+    hashed_password: "$2b$12$j4/aAKr9sGSijQ1/yD5eCeSWuLxzgB3ozBkK3qOdxdq1x2KI/Y1xS",
     role: "admin",
     full_name: "Administrador",
     created_at: new Date().toISOString()

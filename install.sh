@@ -202,17 +202,19 @@ systemctl enable siempria-backend siempria-frontend
 
 # Paso 9: Crear usuario admin en MongoDB
 echo -e "${BLUE}[9/10] Creando usuario administrador...${NC}"
-mongosh $DB_NAME --eval '
+# El hash corresponde a la contraseña: admin123
+ADMIN_HASH='$2b$12$j4/aAKr9sGSijQ1/yD5eCeSWuLxzgB3ozBkK3qOdxdq1x2KI/Y1xS'
+mongosh $DB_NAME --eval "
 db.users.insertOne({
-    id: "admin-001",
-    username: "admin",
-    email: "'"$ADMIN_EMAIL"'",
-    hashed_password: "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.VTtYr8kK8hK8hK",
-    role: "admin",
-    full_name: "Administrador",
+    id: 'admin-001',
+    username: 'admin',
+    email: '$ADMIN_EMAIL',
+    hashed_password: '$ADMIN_HASH',
+    role: 'admin',
+    full_name: 'Administrador',
     created_at: new Date().toISOString()
 });
-'
+"
 
 # Paso 10: Iniciar servicios
 echo -e "${BLUE}[10/10] Iniciando servicios...${NC}"
