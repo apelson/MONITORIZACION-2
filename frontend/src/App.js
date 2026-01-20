@@ -1518,7 +1518,12 @@ const Dashboard = () => {
 
           <TabsContent value="alerts"><AlertsPanel alerts={alerts} /></TabsContent>
           {isAdmin && <TabsContent value="users"><UsersPanel users={users} onCreateUser={() => { setSelectedUser(null); setUserDialogOpen(true); }} onEditUser={(u) => { setSelectedUser(u); setUserDialogOpen(true); }} onDeleteUser={(u) => { setDeleteTarget({ type: "user", item: u }); setDeleteDialogOpen(true); }} onResetPassword={handleResetPassword} /></TabsContent>}
-          {isAdmin && <TabsContent value="settings"><SettingsPanel settings={settings} onSave={handleSaveSettings} /></TabsContent>}
+          {isAdmin && <TabsContent value="settings">
+            <div className="space-y-6">
+              <SettingsPanel settings={settings} onSave={handleSaveSettings} />
+              <ScheduledReportsPanel organizations={organizations} />
+            </div>
+          </TabsContent>}
         </Tabs>
       </main>
 
