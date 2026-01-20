@@ -92,7 +92,12 @@ const StatusBadge = ({ status }) => {
 };
 
 const RoleBadge = ({ role }) => {
-  const cfg = { admin: { label: "Admin", cls: "bg-red-100 text-red-700 border-red-200" }, manager: { label: "Gestor", cls: "bg-blue-100 text-blue-700 border-blue-200" }, viewer: { label: "Visor", cls: "bg-gray-100 text-gray-700 border-gray-200" } }[role] || { label: role, cls: "bg-gray-100" };
+  const cfg = { 
+    admin: { label: "Admin", cls: "bg-red-100 text-red-700 border-red-200" }, 
+    manager: { label: "Gestor", cls: "bg-blue-100 text-blue-700 border-blue-200" }, 
+    viewer: { label: "Visor", cls: "bg-gray-100 text-gray-700 border-gray-200" },
+    operator: { label: "Operador", cls: "bg-purple-100 text-purple-700 border-purple-200" }
+  }[role] || { label: role, cls: "bg-gray-100" };
   return <Badge variant="outline" className={`${cfg.cls} text-xs`}>{cfg.label}</Badge>;
 };
 
