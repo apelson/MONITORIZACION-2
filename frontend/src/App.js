@@ -77,6 +77,16 @@ const AuthProvider = ({ children }) => {
 
   const authAxios = axios.create({ baseURL: API });
   authAxios.interceptors.request.use((config) => { if (token) config.headers.Authorization = `Bearer ${token}`; return config; });
+  authAxios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      // Handle blob response errors silently for image requests
+      if (error.config?.responseType === 'blob') {
+        return Promise.reject(error);
+      }
+      return Promise.reject(error);
+    }
+  );
 
   return <AuthContext.Provider value={{ user, token, login, logout, loading, authAxios }}>{children}</AuthContext.Provider>;
 };
