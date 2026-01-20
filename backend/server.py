@@ -602,9 +602,22 @@ async def get_device(device_id: str, current_user: dict = Depends(get_current_us
 
 @api_router.put("/devices/{device_id}")
 async def update_device(device_id: str, data: DeviceUpdate, current_user: dict = Depends(require_role(["admin", "manager"]))):
-    if not await devices_collection.find_one({"id": device_id}):
+    device = await devices_collection.find_one({"id": device_id})
+    if not device:
         raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
+    
     update = {k: v for k, v in data.model_dump().items() if v is not None}
+    
+    # Rebuild image_url if camera fields are updated
+    camera_user = update.get("camera_user", device.get("camera_user", ""))
+    camera_password = update.get("camera_password", device.get("camera_password", ""))
+    camera_path = update.get("camera_path", device.get("camera_path", ""))
+    ip_address = update.get("ip_address", device.get("ip_address", ""))
+    port = update.get("port", device.get("port", ""))
+    
+    if camera_user and camera_password and camera_path:
+        update["image_url"] = f"http://{camera_user}:{camera_password}@{ip_address}:{port}{camera_path}"
+    
     if update:
         await devices_collection.update_one({"id": device_id}, {"$set": update})
     return {"message": "Dispositivo actualizado", "device": await devices_collection.find_one({"id": device_id}, {"_id": 0})}
