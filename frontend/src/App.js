@@ -1403,5 +1403,17 @@ const Dashboard = () => {
 
 // ============ APP ============
 function App() { return <AuthProvider><AppContent /></AuthProvider>; }
-const AppContent = () => { const { user, loading } = useAuth(); if (loading) return <LoadingScreen />; return user ? <Dashboard /> : <LoginPage />; };
+const AppContent = () => { 
+  const { user, loading } = useAuth(); 
+  const [showLoading, setShowLoading] = useState(true);
+  
+  useEffect(() => {
+    // Show loading screen for at least 2.5 seconds on initial load
+    const timer = setTimeout(() => setShowLoading(false), 2500);
+    return () => clearTimeout(timer);
+  }, []);
+  
+  if (showLoading || loading) return <LoadingScreen />; 
+  return user ? <Dashboard /> : <LoginPage />; 
+};
 export default App;
