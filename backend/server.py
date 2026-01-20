@@ -574,11 +574,19 @@ async def get_devices(group_id: Optional[str] = None, organization_id: Optional[
 async def create_device(data: DeviceCreate, current_user: dict = Depends(require_role(["admin", "manager"]))):
     if await devices_collection.find_one({"ip_address": data.ip_address, "port": data.port}):
         raise HTTPException(status_code=400, detail="Ya existe un dispositivo con esa IP y puerto")
+    
+    # Build image_url from camera fields if provided
+    image_url = data.image_url or ""
+    if data.camera_user and data.camera_password and data.camera_path:
+        image_url = f"http://{data.camera_user}:{data.camera_password}@{data.ip_address}:{data.port}{data.camera_path}"
+    
     device = {
         "id": str(uuid.uuid4()), "name": data.name, "ip_address": data.ip_address, "port": data.port,
         "description": data.description or "", "group_id": data.group_id, "device_type_id": data.device_type_id,
         "brand": data.brand or "", "model": data.model or "", "location": data.location or "",
-        "notes": data.notes or "", "image_url": data.image_url or "",
+        "notes": data.notes or "", "image_url": image_url,
+        "camera_user": data.camera_user or "", "camera_password": data.camera_password or "",
+        "camera_path": data.camera_path or "",
         "status": "unknown", "last_check": None, "last_online": None,
         "created_by": current_user["id"], "created_at": datetime.now(timezone.utc).isoformat()
     }
