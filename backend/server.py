@@ -179,6 +179,12 @@ class ScheduledReportConfig(BaseModel):
     include_uptime_stats: bool = True
     organization_ids: List[str] = []  # Empty = all organizations
 
+class PublicDashboardConfig(BaseModel):
+    enabled: bool = False
+    password: Optional[str] = None  # Optional password protection
+    show_images: bool = True
+    show_details: bool = False  # Show IP/port details
+
 # ============ AUTH FUNCTIONS ============
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
