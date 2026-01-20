@@ -614,13 +614,26 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
 };
 
 const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) => {
-  const [formData, setFormData] = useState({ name: "", description: "", color: "#3b82f6", logo_url: "" });
+  const [formData, setFormData] = useState({ name: "", description: "", color: "#3b82f6", logo_url: "", country: "", city: "" });
   const [saving, setSaving] = useState(false);
   const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
+  
+  const countries = [
+    "España", "Portugal", "Francia", "Alemania", "Italia", "Reino Unido", "Países Bajos", "Bélgica",
+    "Estados Unidos", "México", "Argentina", "Chile", "Colombia", "Perú", "Brasil",
+    "Marruecos", "Emiratos Árabes", "Arabia Saudí", "China", "Japón", "Australia", "Otro"
+  ];
 
   useEffect(() => {
-    if (organization) setFormData({ name: organization.name || "", description: organization.description || "", color: organization.color || "#3b82f6", logo_url: organization.logo_url || "" });
-    else setFormData({ name: "", description: "", color: "#3b82f6", logo_url: "" });
+    if (organization) setFormData({ 
+      name: organization.name || "", 
+      description: organization.description || "", 
+      color: organization.color || "#3b82f6", 
+      logo_url: organization.logo_url || "",
+      country: organization.country || "",
+      city: organization.city || ""
+    });
+    else setFormData({ name: "", description: "", color: "#3b82f6", logo_url: "", country: "", city: "" });
   }, [organization, open]);
 
   const handleSubmit = async (e) => {
@@ -637,6 +650,24 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
           <div className="space-y-4 py-4">
             <div className="space-y-2"><Label>Nombre *</Label><Input data-testid="org-name-input" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
             <div className="space-y-2"><Label>Descripción</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>País/Región</Label>
+                <Select value={formData.country || "none"} onValueChange={(v) => setFormData({ ...formData, country: v === "none" ? "" : v })}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar país" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sin especificar</SelectItem>
+                    {countries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Ciudad</Label>
+                <Input placeholder="Ciudad" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
+              </div>
+            </div>
+            
             <div className="space-y-2">
               <Label>Logo (URL)</Label>
               <Input placeholder="https://ejemplo.com/logo.png" value={formData.logo_url} onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })} />
