@@ -415,21 +415,23 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
 
         <Separator className="my-3" />
 
-        <div className="flex items-center gap-1">
-          <Button data-testid={`check-device-${device.id}`} variant="outline" size="sm" onClick={handleCheck} disabled={isChecking} className="flex-1">
+        <div className="flex flex-col gap-2">
+          <Button data-testid={`check-device-${device.id}`} variant="outline" size="sm" onClick={handleCheck} disabled={isChecking} className="w-full">
             <RefreshCw className={`w-3 h-3 mr-1.5 ${isChecking ? 'animate-spin-slow' : ''}`} />Verificar
           </Button>
-          {isCamera && (
-            <Button variant="ghost" size="sm" onClick={() => onMobotixInfo(device)} title="Info Cámara"><Info className="w-4 h-4" /></Button>
-          )}
-          <Button variant="ghost" size="sm" onClick={() => onViewHistory(device)} title="Historial"><History className="w-4 h-4" /></Button>
-          {canEdit && (
-            <>
-              <Button variant="ghost" size="sm" onClick={() => onClone(device)} title="Clonar dispositivo" className="text-blue-600 hover:text-blue-700"><Copy className="w-4 h-4" /></Button>
-              <Button variant="ghost" size="sm" onClick={() => onEdit(device)} title="Editar"><Edit className="w-4 h-4" /></Button>
-              <Button variant="ghost" size="sm" onClick={() => onDelete(device)} title="Eliminar" className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
-            </>
-          )}
+          <div className="flex items-center justify-center gap-1">
+            {isCamera && (
+              <Button variant="ghost" size="sm" onClick={() => onMobotixInfo(device)} title="Info Cámara"><Info className="w-4 h-4" /></Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={() => onViewHistory(device)} title="Historial"><History className="w-4 h-4" /></Button>
+            {canEdit && (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => onClone(device)} title="Clonar dispositivo" className="text-blue-600 hover:text-blue-700"><Copy className="w-4 h-4" /></Button>
+                <Button variant="ghost" size="sm" onClick={() => onEdit(device)} title="Editar"><Edit className="w-4 h-4" /></Button>
+                <Button variant="ghost" size="sm" onClick={() => onDelete(device)} title="Eliminar" className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+              </>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
