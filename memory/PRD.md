@@ -1,74 +1,108 @@
-# Siempria Network Monitor - PRD
+# Siempria Network Monitor - Product Requirements Document
 
-## Problema Original
-Aplicación para monitorear equipos usando IP pública y puerto. Evolucionó a sistema completo de monitoreo de red con énfasis en cámaras Mobotix.
+## Descripción del Producto
+Aplicación de monitoreo de red para equipos con IPs públicas, desarrollada para Siempria (distribuidor autorizado de Mobotix).
 
-## Usuario Target
-- Instaladores y técnicos de CCTV
-- Empresas con múltiples ubicaciones internacionales
-- Distribuidores Mobotix
+## Stack Tecnológico
+- **Backend:** FastAPI + Python + Motor (MongoDB async)
+- **Frontend:** React + TailwindCSS + shadcn/ui
+- **Base de Datos:** MongoDB
+- **Servidor:** Nginx (proxy reverso)
 
-## Requisitos Core
+---
 
-### Monitoreo
-- ✅ Verificación de puertos TCP cada 5 minutos
-- ✅ Historial de estado por dispositivo
-- ✅ Alertas por email (Gmail SMTP)
+## Características Implementadas ✅
 
-### Estructura Jerárquica
-- ✅ Organizaciones (con logo, país, ciudad)
-- ✅ Grupos dentro de organizaciones
-- ✅ Dispositivos con tipos personalizados
+### Sistema de Usuarios y Autenticación
+- [x] Login/Logout con JWT
+- [x] Roles: Admin, Manager, Viewer, Operator
+- [x] Vista restringida para Operadores (solo cámaras en vivo)
 
-### Gestión de Usuarios
-- ✅ Roles: Admin, Manager, Viewer, Operator
-- ✅ Vista Operador: solo cámaras online
+### Estructura Organizacional
+- [x] Organizaciones con logos, país y ciudad
+- [x] Grupos dentro de organizaciones
+- [x] Filtro de dispositivos por país
 
-### Cámaras
-- ✅ Preview en vivo via proxy backend
-- ✅ Soporte HTTP/HTTPS
-- ✅ Campos separados: IP, puerto, usuario, contraseña, ruta
-- ✅ Rutas predefinidas: Mobotix, Axis, Hikvision
-- ✅ Consulta API Mobotix
-- ✅ Placeholder para cámaras offline
+### Gestión de Dispositivos
+- [x] Tipos: Camera, NAS, Switch, Router, Server, Other
+- [x] Campos: IP, Puerto, Protocolo (HTTP/HTTPS), Credenciales
+- [x] Campos personalizados: Marca, Modelo, Ubicación, Notas
+- [x] Clonación de dispositivos
+- [x] Auto-llenado de rutas para cámaras (Mobotix, Hikvision, etc.)
 
-### Funcionalidades Adicionales
-- ✅ Clonar dispositivo (mantiene config, incrementa puerto)
-- ✅ Filtro por país/ubicación
-- ✅ Exportación Excel/PDF
-- ✅ Pantalla de carga animada (Siempria + Mobotix)
-- ✅ Reportes programados por email
+### Monitoreo TCP
+- [x] Verificación de puertos TCP
+- [x] Historial de estados
+- [x] Intervalos configurables
 
-## Arquitectura Técnica
+### Preview de Cámaras
+- [x] Proxy backend para autenticación HTTP básica
+- [x] Soporte para contraseñas con caracteres especiales (@, #, etc.)
+- [x] Botón para abrir interfaz web de la cámara
+- [x] Información adicional de cámaras Mobotix
 
-### Backend (FastAPI)
-- `/app/backend/server.py` - Monolito con todos los endpoints
-- MongoDB para persistencia
-- APScheduler para tareas programadas
-- Proxy de imágenes con auth básica
+### Alertas por Email
+- [x] Configuración SMTP Gmail
+- [x] Alertas por cambio de estado (online/offline)
 
-### Frontend (React)
-- `/app/frontend/src/App.js` - Componentes principales
-- Shadcn/UI + TailwindCSS
-- Hot reload habilitado
+### UI/UX
+- [x] Pantalla de carga animada (logos Siempria + Mobotix)
+- [x] Iconos personalizados por tipo de dispositivo
+- [x] Dashboard responsivo
 
-### Endpoints Principales
-- `/api/auth/login` - Autenticación
-- `/api/devices` - CRUD dispositivos
-- `/api/organizations` - CRUD organizaciones
-- `/api/image-proxy/{device_id}` - Proxy imágenes
-- `/api/devices/{id}/mobotix-info` - Info API Mobotix
-- `/api/scheduled-reports` - Configuración reportes
-- `/api/public/{token}` - Dashboard público
+### Exportación
+- [x] Exportar a Excel
+- [x] Exportar a PDF
 
-## Credenciales Test
-- Admin: admin / admin123
-- Operador: operador / operador
+### Despliegue
+- [x] Guía de instalación para Ubuntu 24.04
+- [x] Script automatizado de instalación
 
-## Backlog P1
-- [ ] UI completa para dashboards públicos
-- [ ] Página pública standalone
+---
 
-## Backlog P2
-- [ ] Refactorizar App.js en componentes
-- [ ] Tests automatizados
+## En Progreso 🔄
+
+### Reportes Programados por Email (P1)
+- [x] Backend: Modelo y endpoints de configuración
+- [x] Frontend: UI de configuración
+- [ ] Backend: Implementar envío real con APScheduler
+- [ ] Testing del contenido del reporte
+
+### Dashboards Públicos (P2)
+- [x] Backend: Modelo PublicDashboard
+- [x] Backend: Endpoints básicos
+- [ ] Frontend: UI de configuración
+- [ ] Frontend: Vista pública compartible
+
+---
+
+## Backlog / Futuro 📋
+
+### P0 - Crítico
+- [ ] Refactorizar App.js (1500+ líneas) en componentes separados
+- [ ] Refactorizar server.py en routers/modelos/servicios
+
+### P1 - Importante
+- [ ] Cambio de contraseña de usuario
+- [ ] Recuperación de contraseña
+
+### P2 - Mejoras
+- [ ] Gráficos de uptime histórico
+- [ ] Notificaciones push en navegador
+- [ ] Modo oscuro
+
+---
+
+## Limitaciones Conocidas
+- Badge "Made with Emergent" no puede eliminarse (restricción de plataforma)
+
+---
+
+## Credenciales de Prueba
+- **Admin:** admin / admin
+- **Operador:** operador / operador
+
+---
+
+## Última Actualización
+Diciembre 2025 - Guía de instalación revisada y corregida
