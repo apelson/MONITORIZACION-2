@@ -1255,6 +1255,11 @@ async def image_proxy(device_id: str, current_user: dict = Depends(get_current_u
     # Build clean URL without credentials
     clean_url = f"{protocol}://{ip}:{port}{camera_path}"
     
+    # Create SSL context that ignores certificate errors (for self-signed certs on cameras)
+    ssl_context = ssl.create_default_context()
+    ssl_context.check_hostname = False
+    ssl_context.verify_mode = ssl.CERT_NONE
+    
     try:
         request = urllib.request.Request(clean_url)
         
@@ -1265,8 +1270,8 @@ async def image_proxy(device_id: str, current_user: dict = Depends(get_current_u
         
         request.add_header("User-Agent", "Mozilla/5.0 SiempriaMonitor/1.0")
         
-        # Fetch image with timeout
-        with urllib.request.urlopen(request, timeout=10) as response:
+        # Fetch image with timeout and SSL context
+        with urllib.request.urlopen(request, timeout=10, context=ssl_context) as response:
             image_data = response.read()
             content_type = response.headers.get('Content-Type', 'image/jpeg')
         
