@@ -388,11 +388,13 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
               <StatusDot status={device.status} />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground leading-tight">{device.name}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-foreground leading-tight">{device.name}</h3>
+                <StatusBadge status={device.status} />
+              </div>
               <p className="ip-text mt-0.5">{device.ip_address}:{device.port}</p>
             </div>
           </div>
-          <StatusBadge status={device.status} />
         </div>
 
         {(device.brand || device.model) && (
