@@ -33,6 +33,7 @@ from reportlab.lib.units import inch, cm
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 import urllib.request
+import ssl
 import base64
 import re
 
