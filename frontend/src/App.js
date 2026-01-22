@@ -168,58 +168,7 @@ const LoadingScreen = () => {
   );
 };
 
-// ============ LOGIN PAGE ============ 
-              alt="Mobotix" 
-              className="h-10 md:h-12 object-contain"
-              onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.innerHTML = '<span class="text-xl font-bold text-slate-800">MOBOTIX</span>'; }}
-            />
-          </div>
-        </div>
-      </div>
-      
-      {/* Title */}
-      <h1 className="text-white text-2xl md:text-3xl font-light mb-2 tracking-wide animate-fade-in" style={{ animationDelay: '0.5s' }}>
-        Network Monitor
-      </h1>
-      <p className="text-slate-400 text-sm mb-8 animate-fade-in" style={{ animationDelay: '0.6s' }}>
-        Distribuidor Autorizado
-      </p>
-      
-      {/* Progress bar */}
-      <div className="w-64 md:w-80 mb-4">
-        <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 rounded-full transition-all duration-300 ease-out"
-            style={{ 
-              width: `${progress}%`,
-              backgroundSize: '200% 100%',
-              animation: 'shimmer 2s infinite linear'
-            }}
-          />
-        </div>
-      </div>
-      
-      {/* Status text */}
-      <p className="text-slate-500 text-sm animate-pulse">{statusText}</p>
-      
-      {/* Floating particles effect */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 bg-blue-400 rounded-full opacity-20"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animation: `float ${3 + Math.random() * 4}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 2}s`
-            }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
+// ============ LOGIN PAGE ============
 const OFFLINE_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'%3E%3Crect fill='%23374151' width='400' height='200'/%3E%3Ctext x='50%25' y='40%25' dominant-baseline='middle' text-anchor='middle' fill='%239CA3AF' font-family='Arial' font-size='14'%3ECÁMARA OFFLINE%3C/text%3E%3Ctext x='50%25' y='60%25' dominant-baseline='middle' text-anchor='middle' fill='%236B7280' font-family='Arial' font-size='11'%3ESiempria Network Monitor%3C/text%3E%3C/svg%3E";
 
 // Icon mapping
