@@ -275,6 +275,7 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
   const [imageError, setImageError] = useState(false);
   const [imageData, setImageData] = useState(null);
   const [imageLoading, setImageLoading] = useState(true);
+  const [captureTime, setCaptureTime] = useState(null);
   const { authAxios } = useAuth();
   const handleCheck = async () => { setIsChecking(true); await onCheck(device.id); setIsChecking(false); };
   const TypeIcon = deviceType ? getIcon(deviceType.icon) : Server;
@@ -299,17 +300,22 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
             const url = URL.createObjectURL(response.data);
             setImageData(url);
             setImageError(false);
+            setCaptureTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
           }
         } catch (e) {
           console.error(`Error loading image for ${device.name}:`, e);
           if (mounted) {
             setImageData(OFFLINE_PLACEHOLDER);
             setImageError(true);
+            setCaptureTime(null);
           }
         }
       } else if (device.status === "offline" && isCamera) {
         // Offline camera - show placeholder
-        if (mounted) setImageData(OFFLINE_PLACEHOLDER);
+        if (mounted) {
+          setImageData(OFFLINE_PLACEHOLDER);
+          setCaptureTime(null);
+        }
       } else if (device.image_url) {
         // Direct image URL
         if (mounted) setImageData(device.image_url);
@@ -330,14 +336,13 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
   const showImage = isCamera && !imageLoading && (imageData || device.status === "offline");
   const displayImage = imageData || OFFLINE_PLACEHOLDER;
 
-  // Build camera web URL for direct access
+  // Build device web URL for direct access (works for all devices)
+  const deviceWebUrl = `http://${device.ip_address}:${device.port}`;
   const cameraWebUrl = hasCameraConfig ? 
-    `${device.camera_protocol || 'http'}://${device.ip_address}:${device.port}` : null;
+    `${device.camera_protocol || 'http'}://${device.ip_address}:${device.port}` : deviceWebUrl;
 
-  const openCameraInBrowser = () => {
-    if (cameraWebUrl) {
-      window.open(cameraWebUrl, '_blank');
-    }
+  const openDeviceInBrowser = () => {
+    window.open(cameraWebUrl, '_blank');
   };
 
   return (
@@ -352,11 +357,14 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
           />
           {hasCameraConfig && device.status === "online" && (
             <>
+              <div className="absolute bottom-1 left-1">
+                {captureTime && <Badge variant="secondary" className="text-xs opacity-75 font-mono">{captureTime}</Badge>}
+              </div>
               <div className="absolute bottom-1 right-1">
                 <Badge variant="secondary" className="text-xs opacity-75"><Cctv className="w-3 h-3 mr-1" />Live</Badge>
               </div>
               <button 
-                onClick={openCameraInBrowser}
+                onClick={openDeviceInBrowser}
                 className="absolute top-2 right-2 p-2 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
                 title="Abrir cámara en navegador"
               >
@@ -416,6 +424,7 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
             <RefreshCw className={`w-3 h-3 mr-1.5 ${isChecking ? 'animate-spin-slow' : ''}`} />Verificar
           </Button>
           <div className="flex items-center justify-center gap-1">
+            <Button variant="ghost" size="sm" onClick={openDeviceInBrowser} title="Abrir en navegador"><Globe className="w-4 h-4" /></Button>
             {isCamera && (
               <Button variant="ghost" size="sm" onClick={() => onMobotixInfo(device)} title="Info Cámara"><Info className="w-4 h-4" /></Button>
             )}
@@ -638,7 +647,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
 const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) => {
   const [formData, setFormData] = useState({ name: "", description: "", color: "#3b82f6", logo_url: "", country: "", city: "" });
   const [saving, setSaving] = useState(false);
-  const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
+  const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#f97316", "#14b8a6", "#6366f1", "#a855f7", "#e11d48", "#0ea5e9", "#65a30d", "#dc2626", "#7c3aed", "#db2777", "#059669", "#ca8a04"];
   
   const countries = [
     "España", "Portugal", "Francia", "Alemania", "Italia", "Reino Unido", "Países Bajos", "Bélgica",
@@ -709,7 +718,7 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
 const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) => {
   const [formData, setFormData] = useState({ name: "", organization_id: "", description: "", color: "#22c55e" });
   const [saving, setSaving] = useState(false);
-  const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
+  const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#f97316", "#14b8a6", "#6366f1", "#a855f7", "#e11d48", "#0ea5e9", "#65a30d", "#dc2626", "#7c3aed", "#db2777", "#059669", "#ca8a04"];
 
   useEffect(() => {
     if (group) setFormData({ name: group.name || "", organization_id: group.organization_id || "", description: group.description || "", color: group.color || "#22c55e" });
@@ -747,14 +756,23 @@ const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) =
   );
 };
 
-const UserFormDialog = ({ open, onOpenChange, user, onSave }) => {
-  const [formData, setFormData] = useState({ username: "", email: "", password: "", role: "viewer", full_name: "" });
+const UserFormDialog = ({ open, onOpenChange, user, organizations, onSave }) => {
+  const [formData, setFormData] = useState({ username: "", email: "", password: "", role: "viewer", full_name: "", organization_ids: [] });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (user) setFormData({ username: user.username || "", email: user.email || "", password: "", role: user.role || "viewer", full_name: user.full_name || "" });
-    else setFormData({ username: "", email: "", password: "", role: "viewer", full_name: "" });
+    if (user) setFormData({ username: user.username || "", email: user.email || "", password: "", role: user.role || "viewer", full_name: user.full_name || "", organization_ids: user.organization_ids || [] });
+    else setFormData({ username: "", email: "", password: "", role: "viewer", full_name: "", organization_ids: [] });
   }, [user, open]);
+
+  const toggleOrg = (orgId) => {
+    setFormData(prev => ({
+      ...prev,
+      organization_ids: prev.organization_ids.includes(orgId) 
+        ? prev.organization_ids.filter(id => id !== orgId)
+        : [...prev.organization_ids, orgId]
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -764,26 +782,52 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader><DialogTitle>{user ? "Editar Usuario" : "Nuevo Usuario"}</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
-            <div className="space-y-2"><Label>Usuario *</Label><Input data-testid="user-username-input" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} disabled={!!user} /></div>
-            <div className="space-y-2"><Label>Email *</Label><Input data-testid="user-email-input" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} /></div>
-            {!user && <div className="space-y-2"><Label>Contraseña *</Label><Input data-testid="user-password-input" type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} /></div>}
-            <div className="space-y-2"><Label>Nombre completo</Label><Input value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Rol</Label>
-              <Select value={formData.role} onValueChange={(v) => setFormData({ ...formData, role: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin"><div className="flex items-center gap-2"><Shield className="w-4 h-4" />Admin</div></SelectItem>
-                  <SelectItem value="manager"><div className="flex items-center gap-2"><Edit className="w-4 h-4" />Gestor</div></SelectItem>
-                  <SelectItem value="operator"><div className="flex items-center gap-2"><Camera className="w-4 h-4" />Operador</div></SelectItem>
-                  <SelectItem value="viewer"><div className="flex items-center gap-2"><Eye className="w-4 h-4" />Visor</div></SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">Operador: solo ve cámaras online con preview</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label>Usuario *</Label><Input data-testid="user-username-input" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} disabled={!!user} /></div>
+              <div className="space-y-2"><Label>Email *</Label><Input data-testid="user-email-input" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} /></div>
             </div>
+            {!user && <div className="space-y-2"><Label>Contraseña *</Label><Input data-testid="user-password-input" type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} /></div>}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label>Nombre completo</Label><Input value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Rol</Label>
+                <Select value={formData.role} onValueChange={(v) => setFormData({ ...formData, role: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin"><div className="flex items-center gap-2"><Shield className="w-4 h-4" />Admin</div></SelectItem>
+                    <SelectItem value="manager"><div className="flex items-center gap-2"><Edit className="w-4 h-4" />Gestor</div></SelectItem>
+                    <SelectItem value="operator"><div className="flex items-center gap-2"><Camera className="w-4 h-4" />Operador</div></SelectItem>
+                    <SelectItem value="viewer"><div className="flex items-center gap-2"><Eye className="w-4 h-4" />Visor</div></SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {formData.role !== "admin" && (
+              <div className="space-y-2">
+                <Label>Organizaciones permitidas</Label>
+                <p className="text-xs text-muted-foreground mb-2">Sin selección = acceso a todas. Selecciona para restringir.</p>
+                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border rounded-lg">
+                  {organizations.map(org => (
+                    <button
+                      key={org.id}
+                      type="button"
+                      onClick={() => toggleOrg(org.id)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                        formData.organization_ids.includes(org.id)
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted hover:bg-muted/80'
+                      }`}
+                    >
+                      {org.name}
+                    </button>
+                  ))}
+                  {organizations.length === 0 && <span className="text-xs text-muted-foreground">No hay organizaciones</span>}
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button><Button data-testid="save-user-btn" type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button></DialogFooter>
         </form>
@@ -796,7 +840,7 @@ const DeviceTypeFormDialog = ({ open, onOpenChange, deviceType, onSave }) => {
   const [formData, setFormData] = useState({ name: "", icon: "server", color: "#6b7280" });
   const [saving, setSaving] = useState(false);
   const icons = ["camera", "hard-drive", "network", "router", "server", "monitor", "printer", "wifi", "shield", "box", "layers"];
-  const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#6b7280"];
+  const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#f97316", "#14b8a6", "#6366f1", "#a855f7", "#e11d48", "#0ea5e9", "#65a30d", "#dc2626", "#7c3aed", "#db2777", "#059669", "#ca8a04", "#6b7280"];
 
   useEffect(() => {
     if (deviceType) setFormData({ name: deviceType.name || "", icon: deviceType.icon || "server", color: deviceType.color || "#6b7280" });
@@ -870,6 +914,43 @@ const DeleteConfirmDialog = ({ open, onOpenChange, title, message, onConfirm }) 
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="flex items-center gap-2 text-destructive"><AlertCircle className="w-5 h-5" />{title}</DialogTitle><DialogDescription>{message}</DialogDescription></DialogHeader>
         <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button><Button data-testid="confirm-delete-btn" variant="destructive" onClick={handleDelete} disabled={deleting}>{deleting ? "Eliminando..." : "Eliminar"}</Button></DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// Failures summary dialog
+const FailuresDialog = ({ open, onOpenChange, failures, onClear }) => {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-red-600">
+            <AlertCircle className="w-5 h-5" />
+            Resumen de Fallos ({failures.length})
+          </DialogTitle>
+          <DialogDescription>Dispositivos que han perdido conexión recientemente</DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 overflow-y-auto space-y-2 py-4">
+          {failures.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">No hay fallos recientes</p>
+          ) : (
+            failures.map((f, i) => (
+              <div key={`${f.id}-${i}`} className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <WifiOff className="w-5 h-5 text-red-500 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{f.name}</p>
+                  <p className="text-xs text-muted-foreground font-mono">{f.ip}:{f.port}</p>
+                </div>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{f.time}</span>
+              </div>
+            ))
+          )}
+        </div>
+        <DialogFooter className="flex-shrink-0">
+          <Button variant="outline" onClick={onClear}>Limpiar historial</Button>
+          <Button onClick={() => onOpenChange(false)}>Cerrar</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -1465,6 +1546,9 @@ const Dashboard = () => {
   const [selectedType, setSelectedType] = useState(null);
   const [deviceHistory, setDeviceHistory] = useState([]);
   const [deleteTarget, setDeleteTarget] = useState({ type: "", item: null });
+  const [failuresDialogOpen, setFailuresDialogOpen] = useState(false);
+  const [recentFailures, setRecentFailures] = useState([]);
+  const [previousDeviceStates, setPreviousDeviceStates] = useState({});
 
   const canEdit = user?.role === "admin" || user?.role === "manager";
   const isAdmin = user?.role === "admin";
@@ -1478,7 +1562,47 @@ const Dashboard = () => {
         authAxios.get("/devices"), authAxios.get("/organizations"), authAxios.get("/groups"),
         authAxios.get("/device-types"), authAxios.get("/alerts")
       ]);
-      setDevices(devRes.data.devices || []);
+      
+      const newDevices = devRes.data.devices || [];
+      
+      // Detect devices that went offline
+      const newFailures = [];
+      newDevices.forEach(newDev => {
+        const prevState = previousDeviceStates[newDev.id];
+        if (prevState === "online" && newDev.status === "offline") {
+          newFailures.push({
+            id: newDev.id,
+            name: newDev.name,
+            ip: newDev.ip_address,
+            port: newDev.port,
+            time: new Date().toLocaleString()
+          });
+          // Show toast notification
+          toast.error(`🔴 ${newDev.name} está OFFLINE`, { duration: 8000 });
+          // Browser notification if permitted
+          if (Notification.permission === "granted") {
+            new Notification("⚠️ Dispositivo Caído", {
+              body: `${newDev.name} (${newDev.ip_address}) está OFFLINE`,
+              icon: "/favicon.ico",
+              requireInteraction: true
+            });
+          }
+        }
+      });
+      
+      // Update previous states for next comparison
+      const newStates = {};
+      newDevices.forEach(d => { newStates[d.id] = d.status; });
+      setPreviousDeviceStates(newStates);
+      
+      // Add new failures to the list (keep last 50)
+      if (newFailures.length > 0) {
+        setRecentFailures(prev => [...newFailures, ...prev].slice(0, 50));
+        // Auto-show popup if there are new failures
+        setFailuresDialogOpen(true);
+      }
+      
+      setDevices(newDevices);
       setOrganizations(orgRes.data.organizations || []);
       setGroups(grpRes.data.groups || []);
       setDeviceTypes(typeRes.data.device_types || []);
@@ -1494,7 +1618,14 @@ const Dashboard = () => {
       console.error(e); 
       setLoading(false);
     }
-  }, [authAxios, user?.role]);
+  }, [authAxios, user?.role, previousDeviceStates]);
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
 
   useEffect(() => { 
     fetchAll(); 
@@ -1563,11 +1694,31 @@ const Dashboard = () => {
     } catch (e) { toast.error("Error al exportar"); }
   };
 
+  // Filter devices based on user's organization permissions
+  const userOrgIds = user?.organization_ids || [];
+  const hasOrgRestrictions = userOrgIds.length > 0 && user?.role !== "admin";
+  
+  // Filter organizations based on user permissions
+  const allowedOrganizations = hasOrgRestrictions 
+    ? organizations.filter(o => userOrgIds.includes(o.id))
+    : organizations;
+  
+  // Filter groups based on allowed organizations
+  const allowedGroups = hasOrgRestrictions
+    ? groups.filter(g => userOrgIds.includes(g.organization_id))
+    : groups;
+  
   // Filter devices
   let filteredDevices = devices;
   
-  // Get unique countries for filter
-  const uniqueCountries = [...new Set(organizations.map(o => o.country).filter(Boolean))].sort();
+  // First, filter by user's allowed organizations
+  if (hasOrgRestrictions) {
+    const allowedGroupIds = allowedGroups.map(g => g.id);
+    filteredDevices = filteredDevices.filter(d => allowedGroupIds.includes(d.group_id));
+  }
+  
+  // Get unique countries for filter (only from allowed organizations)
+  const uniqueCountries = [...new Set(allowedOrganizations.map(o => o.country).filter(Boolean))].sort();
   
   // Operators only see cameras that are online
   if (isOperator) {
@@ -1575,13 +1726,13 @@ const Dashboard = () => {
   } else {
     // Filter by country first
     if (filterCountry) {
-      const countryOrgIds = organizations.filter(o => o.country === filterCountry).map(o => o.id);
-      const countryGroupIds = groups.filter(g => countryOrgIds.includes(g.organization_id)).map(g => g.id);
+      const countryOrgIds = allowedOrganizations.filter(o => o.country === filterCountry).map(o => o.id);
+      const countryGroupIds = allowedGroups.filter(g => countryOrgIds.includes(g.organization_id)).map(g => g.id);
       filteredDevices = filteredDevices.filter(d => countryGroupIds.includes(d.group_id));
     }
     if (filterGroupId) filteredDevices = filteredDevices.filter(d => d.group_id === filterGroupId);
     else if (filterOrgId) {
-      const orgGroupIds = groups.filter(g => g.organization_id === filterOrgId).map(g => g.id);
+      const orgGroupIds = allowedGroups.filter(g => g.organization_id === filterOrgId).map(g => g.id);
       filteredDevices = filteredDevices.filter(d => orgGroupIds.includes(d.group_id));
     }
     if (filterTypeId) filteredDevices = filteredDevices.filter(d => d.device_type_id === filterTypeId);
@@ -1605,7 +1756,10 @@ const Dashboard = () => {
             <div className="flex items-center gap-3">
               <div className="hidden md:flex items-center gap-4 mr-4">
                 <div className="flex items-center gap-2"><div className="status-dot status-dot-online" /><span className="text-sm font-medium">{onlineCount}</span></div>
-                <div className="flex items-center gap-2"><div className="status-dot status-dot-offline" /><span className="text-sm font-medium">{offlineCount}</span></div>
+                <button onClick={() => setFailuresDialogOpen(true)} className="flex items-center gap-2 hover:bg-red-50 px-2 py-1 rounded transition-colors" title="Ver resumen de fallos">
+                  <div className="status-dot status-dot-offline" /><span className="text-sm font-medium">{offlineCount}</span>
+                  {recentFailures.length > 0 && <Bell className="w-4 h-4 text-red-500 animate-pulse" />}
+                </button>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -1726,10 +1880,11 @@ const Dashboard = () => {
       <DeviceFormDialog open={deviceDialogOpen} onOpenChange={setDeviceDialogOpen} device={selectedDevice} organizations={organizations} groups={groups} deviceTypes={deviceTypes} onSave={handleSaveDevice} />
       <OrganizationFormDialog open={orgDialogOpen} onOpenChange={setOrgDialogOpen} organization={selectedOrg} onSave={handleSaveOrg} />
       <GroupFormDialog open={groupDialogOpen} onOpenChange={(o) => { setGroupDialogOpen(o); if (!o) setGroupDialogOrgId(null); }} group={selectedGroup ? selectedGroup : groupDialogOrgId ? { organization_id: groupDialogOrgId } : null} organizations={organizations} onSave={handleSaveGroup} />
-      <UserFormDialog open={userDialogOpen} onOpenChange={setUserDialogOpen} user={selectedUser} onSave={handleSaveUser} />
+      <UserFormDialog open={userDialogOpen} onOpenChange={setUserDialogOpen} user={selectedUser} organizations={organizations} onSave={handleSaveUser} />
       <DeviceTypeFormDialog open={typeDialogOpen} onOpenChange={setTypeDialogOpen} deviceType={selectedType} onSave={handleSaveType} />
       <HistoryDialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen} device={selectedDevice} history={deviceHistory} />
       <DeleteConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} title="Confirmar Eliminación" message={`¿Eliminar "${deleteTarget.item?.name || deleteTarget.item?.username}"?`} onConfirm={handleDelete} />
+      <FailuresDialog open={failuresDialogOpen} onOpenChange={setFailuresDialogOpen} failures={recentFailures} onClear={() => setRecentFailures([])} />
       
       {/* Mobotix Info Dialog */}
       <Dialog open={mobotixDialogOpen} onOpenChange={setMobotixDialogOpen}>
