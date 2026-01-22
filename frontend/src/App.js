@@ -1959,9 +1959,17 @@ const Dashboard = () => {
               <div className="empty-state py-16"><Server className="w-16 h-16 mb-4 opacity-20" /><h3 className="text-lg font-medium mb-2">No hay dispositivos</h3>{canEdit && <Button onClick={() => setDeviceDialogOpen(true)}><Plus className="w-4 h-4 mr-2" />Agregar</Button>}</div>
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {paginatedDevices.map(d => <ServerCard key={d.id} device={d} group={groups.find(g => g.id === d.group_id)} deviceType={deviceTypes.find(t => t.id === d.device_type_id)} onCheck={handleCheckDevice} onEdit={(dev) => { setSelectedDevice(dev); setDeviceDialogOpen(true); }} onClone={handleCloneDevice} onDelete={(dev) => { setDeleteTarget({ type: "device", item: dev }); setDeleteDialogOpen(true); }} onViewHistory={handleViewHistory} onMobotixInfo={handleMobotixInfo} canEdit={canEdit} />)}
-                </div>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={paginatedDevices.map(d => d.id)} strategy={rectSortingStrategy}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {paginatedDevices.map(d => (
+                        <SortableCard key={d.id} id={d.id}>
+                          <ServerCard device={d} group={groups.find(g => g.id === d.group_id)} deviceType={deviceTypes.find(t => t.id === d.device_type_id)} onCheck={handleCheckDevice} onEdit={(dev) => { setSelectedDevice(dev); setDeviceDialogOpen(true); }} onClone={handleCloneDevice} onDelete={(dev) => { setDeleteTarget({ type: "device", item: dev }); setDeleteDialogOpen(true); }} onViewHistory={handleViewHistory} onMobotixInfo={handleMobotixInfo} canEdit={canEdit} />
+                        </SortableCard>
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
                 
                 {/* Pagination */}
                 {totalPages > 1 && (
