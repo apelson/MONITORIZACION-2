@@ -1820,6 +1820,7 @@ const Dashboard = () => {
       <DeviceTypeFormDialog open={typeDialogOpen} onOpenChange={setTypeDialogOpen} deviceType={selectedType} onSave={handleSaveType} />
       <HistoryDialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen} device={selectedDevice} history={deviceHistory} />
       <DeleteConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} title="Confirmar Eliminación" message={`¿Eliminar "${deleteTarget.item?.name || deleteTarget.item?.username}"?`} onConfirm={handleDelete} />
+      <FailuresDialog open={failuresDialogOpen} onOpenChange={setFailuresDialogOpen} failures={recentFailures} onClear={() => setRecentFailures([])} />
       
       {/* Mobotix Info Dialog */}
       <Dialog open={mobotixDialogOpen} onOpenChange={setMobotixDialogOpen}>
