@@ -756,14 +756,23 @@ const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) =
   );
 };
 
-const UserFormDialog = ({ open, onOpenChange, user, onSave }) => {
-  const [formData, setFormData] = useState({ username: "", email: "", password: "", role: "viewer", full_name: "" });
+const UserFormDialog = ({ open, onOpenChange, user, organizations, onSave }) => {
+  const [formData, setFormData] = useState({ username: "", email: "", password: "", role: "viewer", full_name: "", organization_ids: [] });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (user) setFormData({ username: user.username || "", email: user.email || "", password: "", role: user.role || "viewer", full_name: user.full_name || "" });
-    else setFormData({ username: "", email: "", password: "", role: "viewer", full_name: "" });
+    if (user) setFormData({ username: user.username || "", email: user.email || "", password: "", role: user.role || "viewer", full_name: user.full_name || "", organization_ids: user.organization_ids || [] });
+    else setFormData({ username: "", email: "", password: "", role: "viewer", full_name: "", organization_ids: [] });
   }, [user, open]);
+
+  const toggleOrg = (orgId) => {
+    setFormData(prev => ({
+      ...prev,
+      organization_ids: prev.organization_ids.includes(orgId) 
+        ? prev.organization_ids.filter(id => id !== orgId)
+        : [...prev.organization_ids, orgId]
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -773,26 +782,52 @@ const UserFormDialog = ({ open, onOpenChange, user, onSave }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader><DialogTitle>{user ? "Editar Usuario" : "Nuevo Usuario"}</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
-            <div className="space-y-2"><Label>Usuario *</Label><Input data-testid="user-username-input" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} disabled={!!user} /></div>
-            <div className="space-y-2"><Label>Email *</Label><Input data-testid="user-email-input" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} /></div>
-            {!user && <div className="space-y-2"><Label>Contraseña *</Label><Input data-testid="user-password-input" type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} /></div>}
-            <div className="space-y-2"><Label>Nombre completo</Label><Input value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Rol</Label>
-              <Select value={formData.role} onValueChange={(v) => setFormData({ ...formData, role: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin"><div className="flex items-center gap-2"><Shield className="w-4 h-4" />Admin</div></SelectItem>
-                  <SelectItem value="manager"><div className="flex items-center gap-2"><Edit className="w-4 h-4" />Gestor</div></SelectItem>
-                  <SelectItem value="operator"><div className="flex items-center gap-2"><Camera className="w-4 h-4" />Operador</div></SelectItem>
-                  <SelectItem value="viewer"><div className="flex items-center gap-2"><Eye className="w-4 h-4" />Visor</div></SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">Operador: solo ve cámaras online con preview</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label>Usuario *</Label><Input data-testid="user-username-input" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} disabled={!!user} /></div>
+              <div className="space-y-2"><Label>Email *</Label><Input data-testid="user-email-input" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} /></div>
             </div>
+            {!user && <div className="space-y-2"><Label>Contraseña *</Label><Input data-testid="user-password-input" type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} /></div>}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label>Nombre completo</Label><Input value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Rol</Label>
+                <Select value={formData.role} onValueChange={(v) => setFormData({ ...formData, role: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin"><div className="flex items-center gap-2"><Shield className="w-4 h-4" />Admin</div></SelectItem>
+                    <SelectItem value="manager"><div className="flex items-center gap-2"><Edit className="w-4 h-4" />Gestor</div></SelectItem>
+                    <SelectItem value="operator"><div className="flex items-center gap-2"><Camera className="w-4 h-4" />Operador</div></SelectItem>
+                    <SelectItem value="viewer"><div className="flex items-center gap-2"><Eye className="w-4 h-4" />Visor</div></SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {formData.role !== "admin" && (
+              <div className="space-y-2">
+                <Label>Organizaciones permitidas</Label>
+                <p className="text-xs text-muted-foreground mb-2">Sin selección = acceso a todas. Selecciona para restringir.</p>
+                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border rounded-lg">
+                  {organizations.map(org => (
+                    <button
+                      key={org.id}
+                      type="button"
+                      onClick={() => toggleOrg(org.id)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                        formData.organization_ids.includes(org.id)
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted hover:bg-muted/80'
+                      }`}
+                    >
+                      {org.name}
+                    </button>
+                  ))}
+                  {organizations.length === 0 && <span className="text-xs text-muted-foreground">No hay organizaciones</span>}
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button><Button data-testid="save-user-btn" type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button></DialogFooter>
         </form>
