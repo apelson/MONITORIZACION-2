@@ -326,8 +326,8 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
     };
   }, [device.id, device.status, hasCameraConfig, isCamera, authAxios]);
 
-  // Show image section for cameras or devices with images
-  const showImage = !imageLoading && (imageData || (isCamera && device.status === "offline"));
+  // Show image section ONLY for cameras
+  const showImage = isCamera && !imageLoading && (imageData || device.status === "offline");
   const displayImage = imageData || OFFLINE_PLACEHOLDER;
 
   // Build camera web URL for direct access
