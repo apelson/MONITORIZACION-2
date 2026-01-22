@@ -1860,7 +1860,7 @@ const Dashboard = () => {
       <DeviceFormDialog open={deviceDialogOpen} onOpenChange={setDeviceDialogOpen} device={selectedDevice} organizations={organizations} groups={groups} deviceTypes={deviceTypes} onSave={handleSaveDevice} />
       <OrganizationFormDialog open={orgDialogOpen} onOpenChange={setOrgDialogOpen} organization={selectedOrg} onSave={handleSaveOrg} />
       <GroupFormDialog open={groupDialogOpen} onOpenChange={(o) => { setGroupDialogOpen(o); if (!o) setGroupDialogOrgId(null); }} group={selectedGroup ? selectedGroup : groupDialogOrgId ? { organization_id: groupDialogOrgId } : null} organizations={organizations} onSave={handleSaveGroup} />
-      <UserFormDialog open={userDialogOpen} onOpenChange={setUserDialogOpen} user={selectedUser} onSave={handleSaveUser} />
+      <UserFormDialog open={userDialogOpen} onOpenChange={setUserDialogOpen} user={selectedUser} organizations={organizations} onSave={handleSaveUser} />
       <DeviceTypeFormDialog open={typeDialogOpen} onOpenChange={setTypeDialogOpen} deviceType={selectedType} onSave={handleSaveType} />
       <HistoryDialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen} device={selectedDevice} history={deviceHistory} />
       <DeleteConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} title="Confirmar Eliminación" message={`¿Eliminar "${deleteTarget.item?.name || deleteTarget.item?.username}"?`} onConfirm={handleDelete} />
