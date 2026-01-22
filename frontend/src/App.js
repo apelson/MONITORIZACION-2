@@ -269,24 +269,134 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="text-center pb-2">
-          <img src={LOGO_URL} alt="Siempria" className="h-28 mx-auto mb-6 object-contain" />
-          <CardTitle className="text-2xl font-bold">Network Monitor</CardTitle>
-          <CardDescription className="text-base">Inicia sesión para continuar</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2"><Label>Usuario</Label><Input data-testid="login-username" value={username} onChange={(e) => setUsername(e.target.value)} /></div>
-            <div className="space-y-2"><Label>Contraseña</Label><Input data-testid="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
-            <Button data-testid="login-submit" type="submit" className="w-full" disabled={loading}>{loading ? "Iniciando..." : "Iniciar Sesión"}</Button>
-          </form>
-        </CardContent>
-      </Card>
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Siempria - Todos los derechos reservados
+    <div className="min-h-screen flex bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+      {/* Background grid */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `linear-gradient(rgba(0,163,217,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(0,163,217,0.5) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px'
+        }} />
       </div>
+      
+      {/* Left side - Info */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center p-12 relative">
+        <div className="max-w-md text-center">
+          {/* Camera animation */}
+          <div className="relative mb-8">
+            <div className="absolute inset-0 bg-cyan-500 rounded-full blur-3xl opacity-20 animate-pulse" style={{ transform: 'scale(2)' }} />
+            <div className="relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 p-8 rounded-full border border-cyan-500/30 shadow-2xl backdrop-blur-sm inline-block">
+              <Cctv className="w-24 h-24 text-cyan-400" style={{ animation: 'cameraMove 4s ease-in-out infinite' }} />
+            </div>
+            <div className="absolute top-4 right-4 flex items-center gap-1">
+              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+            </div>
+          </div>
+          
+          <img src={LOGO_URL} alt="Siempria" className="h-20 mx-auto mb-6 object-contain" style={{ filter: 'drop-shadow(0 0 20px rgba(0,163,217,0.3))' }} />
+          
+          <h1 className="text-3xl font-light text-white mb-2">Network Monitor</h1>
+          <p className="text-cyan-400 mb-8">Sistema de Vigilancia Profesional</p>
+          
+          <div className="space-y-4 text-slate-400 text-sm">
+            <div className="flex items-center justify-center gap-3">
+              <Shield className="w-5 h-5 text-cyan-500" />
+              <span>Monitoreo en tiempo real 24/7</span>
+            </div>
+            <div className="flex items-center justify-center gap-3">
+              <Bell className="w-5 h-5 text-cyan-500" />
+              <span>Alertas instantáneas por email</span>
+            </div>
+            <div className="flex items-center justify-center gap-3">
+              <Lock className="w-5 h-5 text-cyan-500" />
+              <span>Conexión segura y encriptada</span>
+            </div>
+          </div>
+          
+          {/* Partner logo */}
+          <div className="mt-12 pt-8 border-t border-slate-700/50">
+            <p className="text-slate-500 text-xs mb-3">Distribuidor Autorizado</p>
+            <div className="bg-white rounded-lg px-4 py-2 inline-block">
+              <img src={MOBOTIX_LOGO_URL} alt="Mobotix" className="h-8 object-contain" onError={(e) => { e.target.parentElement.innerHTML = '<span class="text-lg font-bold text-slate-800">MOBOTIX</span>'; }} />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Right side - Login form */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8">
+        <div className="w-full max-w-md">
+          {/* Mobile logo */}
+          <div className="lg:hidden text-center mb-8">
+            <img src={LOGO_URL} alt="Siempria" className="h-16 mx-auto mb-4 object-contain" />
+            <h1 className="text-xl font-light text-white">Network Monitor</h1>
+          </div>
+          
+          <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur">
+            <CardHeader className="text-center pb-2">
+              <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Lock className="w-8 h-8 text-white" />
+              </div>
+              <CardTitle className="text-2xl font-semibold text-slate-800">Acceso al Sistema</CardTitle>
+              <CardDescription className="text-slate-500">Introduce tus credenciales para continuar</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-2">
+                  <Label className="text-slate-700">Usuario</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input data-testid="login-username" value={username} onChange={(e) => setUsername(e.target.value)} className="pl-10" placeholder="Tu nombre de usuario" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700">Contraseña</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input data-testid="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10" placeholder="••••••••" />
+                  </div>
+                </div>
+                <Button data-testid="login-submit" type="submit" className="w-full h-12 text-base bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700" disabled={loading}>
+                  {loading ? (
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Shield className="w-5 h-5 mr-2" />
+                      Iniciar Sesión
+                    </>
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+          
+          {/* Contact info */}
+          <div className="mt-8 text-center space-y-3">
+            <p className="text-slate-400 text-sm font-medium">¿Necesitas ayuda?</p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
+              <a href="mailto:soporte@siempria.com" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors">
+                <Mail className="w-4 h-4" />
+                soporte@siempria.com
+              </a>
+              <a href="tel:+34900000000" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors">
+                <Phone className="w-4 h-4" />
+                +34 900 000 000
+              </a>
+            </div>
+          </div>
+          
+          {/* Footer */}
+          <div className="mt-8 pt-6 border-t border-slate-700/30 text-center text-slate-500 text-xs space-y-1">
+            <p>© {new Date().getFullYear()} Siempria - Todos los derechos reservados</p>
+            <p>Distribuidor Autorizado Mobotix para España y Portugal</p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Corner decorations */}
+      <div className="absolute top-4 left-4 w-16 h-16 border-l-2 border-t-2 border-cyan-500/20" />
+      <div className="absolute top-4 right-4 w-16 h-16 border-r-2 border-t-2 border-cyan-500/20" />
+      <div className="absolute bottom-4 left-4 w-16 h-16 border-l-2 border-b-2 border-cyan-500/20" />
+      <div className="absolute bottom-4 right-4 w-16 h-16 border-r-2 border-b-2 border-cyan-500/20" />
     </div>
   );
 };
