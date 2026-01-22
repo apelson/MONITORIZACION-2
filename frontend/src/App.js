@@ -270,7 +270,7 @@ const LoginPage = () => {
 };
 
 // ============ SERVER CARD ============
-const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onClone, onViewHistory, onMobotixInfo, canEdit }) => {
+const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete, onClone, onViewHistory, onMobotixInfo, canEdit }) => {
   const [isChecking, setIsChecking] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageData, setImageData] = useState(null);
