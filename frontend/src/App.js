@@ -357,6 +357,9 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
           />
           {hasCameraConfig && device.status === "online" && (
             <>
+              <div className="absolute bottom-1 left-1">
+                {captureTime && <Badge variant="secondary" className="text-xs opacity-75 font-mono">{captureTime}</Badge>}
+              </div>
               <div className="absolute bottom-1 right-1">
                 <Badge variant="secondary" className="text-xs opacity-75"><Cctv className="w-3 h-3 mr-1" />Live</Badge>
               </div>
