@@ -756,21 +756,21 @@ const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) =
   );
 };
 
-const UserFormDialog = ({ open, onOpenChange, user, organizations, onSave }) => {
-  const [formData, setFormData] = useState({ username: "", email: "", password: "", role: "viewer", full_name: "", organization_ids: [] });
+const UserFormDialog = ({ open, onOpenChange, user, organizations, groups, onSave }) => {
+  const [formData, setFormData] = useState({ username: "", email: "", password: "", role: "viewer", full_name: "", group_ids: [] });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (user) setFormData({ username: user.username || "", email: user.email || "", password: "", role: user.role || "viewer", full_name: user.full_name || "", organization_ids: user.organization_ids || [] });
-    else setFormData({ username: "", email: "", password: "", role: "viewer", full_name: "", organization_ids: [] });
+    if (user) setFormData({ username: user.username || "", email: user.email || "", password: "", role: user.role || "viewer", full_name: user.full_name || "", group_ids: user.group_ids || [] });
+    else setFormData({ username: "", email: "", password: "", role: "viewer", full_name: "", group_ids: [] });
   }, [user, open]);
 
-  const toggleOrg = (orgId) => {
+  const toggleGroup = (groupId) => {
     setFormData(prev => ({
       ...prev,
-      organization_ids: prev.organization_ids.includes(orgId) 
-        ? prev.organization_ids.filter(id => id !== orgId)
-        : [...prev.organization_ids, orgId]
+      group_ids: prev.group_ids.includes(groupId) 
+        ? prev.group_ids.filter(id => id !== groupId)
+        : [...prev.group_ids, groupId]
     }));
   };
 
@@ -780,12 +780,18 @@ const UserFormDialog = ({ open, onOpenChange, user, organizations, onSave }) => 
     setSaving(true); await onSave(formData, user?.id); setSaving(false); onOpenChange(false);
   };
 
+  // Group groups by organization for better display
+  const groupsByOrg = organizations.map(org => ({
+    org,
+    groups: groups.filter(g => g.organization_id === org.id)
+  })).filter(item => item.groups.length > 0);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader><DialogTitle>{user ? "Editar Usuario" : "Nuevo Usuario"}</DialogTitle></DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="space-y-4 py-4 overflow-y-auto flex-1">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2"><Label>Usuario *</Label><Input data-testid="user-username-input" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} disabled={!!user} /></div>
               <div className="space-y-2"><Label>Email *</Label><Input data-testid="user-email-input" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} /></div>
@@ -807,29 +813,37 @@ const UserFormDialog = ({ open, onOpenChange, user, organizations, onSave }) => 
             </div>
             {formData.role !== "admin" && (
               <div className="space-y-2">
-                <Label>Organizaciones permitidas</Label>
-                <p className="text-xs text-muted-foreground mb-2">Sin selección = acceso a todas. Selecciona para restringir.</p>
-                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border rounded-lg">
-                  {organizations.map(org => (
-                    <button
-                      key={org.id}
-                      type="button"
-                      onClick={() => toggleOrg(org.id)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                        formData.organization_ids.includes(org.id)
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted hover:bg-muted/80'
-                      }`}
-                    >
-                      {org.name}
-                    </button>
+                <Label>Grupos permitidos</Label>
+                <p className="text-xs text-muted-foreground mb-2">Sin selección = acceso a todos. Selecciona para restringir.</p>
+                <div className="max-h-48 overflow-y-auto border rounded-lg p-3 space-y-3">
+                  {groupsByOrg.map(({ org, groups: orgGroups }) => (
+                    <div key={org.id}>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">{org.name}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {orgGroups.map(grp => (
+                          <button
+                            key={grp.id}
+                            type="button"
+                            onClick={() => toggleGroup(grp.id)}
+                            className={`px-3 py-1 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
+                              formData.group_ids.includes(grp.id)
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted hover:bg-muted/80'
+                            }`}
+                          >
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: grp.color }} />
+                            {grp.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   ))}
-                  {organizations.length === 0 && <span className="text-xs text-muted-foreground">No hay organizaciones</span>}
+                  {groupsByOrg.length === 0 && <span className="text-xs text-muted-foreground">No hay grupos creados</span>}
                 </div>
               </div>
             )}
           </div>
-          <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button><Button data-testid="save-user-btn" type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button></DialogFooter>
+          <DialogFooter className="flex-shrink-0"><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button><Button data-testid="save-user-btn" type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
