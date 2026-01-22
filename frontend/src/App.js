@@ -638,7 +638,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
 const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) => {
   const [formData, setFormData] = useState({ name: "", description: "", color: "#3b82f6", logo_url: "", country: "", city: "" });
   const [saving, setSaving] = useState(false);
-  const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
+  const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#f97316", "#14b8a6", "#6366f1", "#a855f7", "#e11d48", "#0ea5e9", "#65a30d", "#dc2626", "#7c3aed", "#db2777", "#059669", "#ca8a04"];
   
   const countries = [
     "España", "Portugal", "Francia", "Alemania", "Italia", "Reino Unido", "Países Bajos", "Bélgica",
@@ -709,7 +709,7 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
 const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) => {
   const [formData, setFormData] = useState({ name: "", organization_id: "", description: "", color: "#22c55e" });
   const [saving, setSaving] = useState(false);
-  const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
+  const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#f97316", "#14b8a6", "#6366f1", "#a855f7", "#e11d48", "#0ea5e9", "#65a30d", "#dc2626", "#7c3aed", "#db2777", "#059669", "#ca8a04"];
 
   useEffect(() => {
     if (group) setFormData({ name: group.name || "", organization_id: group.organization_id || "", description: group.description || "", color: group.color || "#22c55e" });
