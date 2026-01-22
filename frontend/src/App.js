@@ -285,7 +285,7 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
   // Check if device has camera credentials configured
   const hasCameraConfig = !!(device.camera_user && device.camera_password && device.camera_path);
 
-  // Load image via proxy
+  // Load image via proxy - ONLY ONCE (no auto-refresh for performance with 1000+ cameras)
   useEffect(() => {
     let mounted = true;
     setImageLoading(true);
@@ -319,16 +319,12 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
     
     loadImage();
     
-    // Refresh image every 30 seconds if online camera with config
-    const interval = (hasCameraConfig && device.status === "online") 
-      ? setInterval(loadImage, 30000) 
-      : null;
+    // NO auto-refresh - image loads only once for performance
     
     return () => { 
       mounted = false;
-      if (interval) clearInterval(interval); 
     };
-  }, [device.id, device.name, device.status, device.image_url, device.camera_user, device.camera_password, device.camera_path, hasCameraConfig, isCamera, authAxios]);
+  }, [device.id, device.status, hasCameraConfig, isCamera, authAxios]);
 
   // Show image section for cameras or devices with images
   const showImage = !imageLoading && (imageData || (isCamera && device.status === "offline"));
