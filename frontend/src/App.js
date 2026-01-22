@@ -1617,6 +1617,31 @@ const Dashboard = () => {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const DEVICES_PER_PAGE = 50;
+  
+  // Custom device order (drag & drop)
+  const [deviceOrder, setDeviceOrder] = useState(() => {
+    const saved = localStorage.getItem('siempria-device-order');
+    return saved ? JSON.parse(saved) : [];
+  });
+  
+  // Drag & drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+  
+  // Handle drag end
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      const oldIndex = paginatedDevices.findIndex(d => d.id === active.id);
+      const newIndex = paginatedDevices.findIndex(d => d.id === over.id);
+      const newOrder = arrayMove(paginatedDevices.map(d => d.id), oldIndex, newIndex);
+      setDeviceOrder(newOrder);
+      localStorage.setItem('siempria-device-order', JSON.stringify(newOrder));
+      toast.success('Orden guardado');
+    }
+  };
 
   const canEdit = user?.role === "admin" || user?.role === "manager";
   const isAdmin = user?.role === "admin";
