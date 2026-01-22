@@ -441,7 +441,10 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
       </CardContent>
     </Card>
   );
-};
+});
+
+// Add display name for debugging
+ServerCard.displayName = 'ServerCard';
 
 // ============ DIALOGS ============
 const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, deviceTypes, onSave }) => {
