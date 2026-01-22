@@ -796,7 +796,7 @@ const DeviceTypeFormDialog = ({ open, onOpenChange, deviceType, onSave }) => {
   const [formData, setFormData] = useState({ name: "", icon: "server", color: "#6b7280" });
   const [saving, setSaving] = useState(false);
   const icons = ["camera", "hard-drive", "network", "router", "server", "monitor", "printer", "wifi", "shield", "box", "layers"];
-  const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#6b7280"];
+  const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#f97316", "#14b8a6", "#6366f1", "#a855f7", "#e11d48", "#0ea5e9", "#65a30d", "#dc2626", "#7c3aed", "#db2777", "#059669", "#ca8a04", "#6b7280"];
 
   useEffect(() => {
     if (deviceType) setFormData({ name: deviceType.name || "", icon: deviceType.icon || "server", color: deviceType.color || "#6b7280" });
