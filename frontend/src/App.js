@@ -1481,7 +1481,47 @@ const Dashboard = () => {
         authAxios.get("/devices"), authAxios.get("/organizations"), authAxios.get("/groups"),
         authAxios.get("/device-types"), authAxios.get("/alerts")
       ]);
-      setDevices(devRes.data.devices || []);
+      
+      const newDevices = devRes.data.devices || [];
+      
+      // Detect devices that went offline
+      const newFailures = [];
+      newDevices.forEach(newDev => {
+        const prevState = previousDeviceStates[newDev.id];
+        if (prevState === "online" && newDev.status === "offline") {
+          newFailures.push({
+            id: newDev.id,
+            name: newDev.name,
+            ip: newDev.ip_address,
+            port: newDev.port,
+            time: new Date().toLocaleString()
+          });
+          // Show toast notification
+          toast.error(`🔴 ${newDev.name} está OFFLINE`, { duration: 8000 });
+          // Browser notification if permitted
+          if (Notification.permission === "granted") {
+            new Notification("⚠️ Dispositivo Caído", {
+              body: `${newDev.name} (${newDev.ip_address}) está OFFLINE`,
+              icon: "/favicon.ico",
+              requireInteraction: true
+            });
+          }
+        }
+      });
+      
+      // Update previous states for next comparison
+      const newStates = {};
+      newDevices.forEach(d => { newStates[d.id] = d.status; });
+      setPreviousDeviceStates(newStates);
+      
+      // Add new failures to the list (keep last 50)
+      if (newFailures.length > 0) {
+        setRecentFailures(prev => [...newFailures, ...prev].slice(0, 50));
+        // Auto-show popup if there are new failures
+        setFailuresDialogOpen(true);
+      }
+      
+      setDevices(newDevices);
       setOrganizations(orgRes.data.organizations || []);
       setGroups(grpRes.data.groups || []);
       setDeviceTypes(typeRes.data.device_types || []);
@@ -1497,7 +1537,14 @@ const Dashboard = () => {
       console.error(e); 
       setLoading(false);
     }
-  }, [authAxios, user?.role]);
+  }, [authAxios, user?.role, previousDeviceStates]);
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
 
   useEffect(() => { 
     fetchAll(); 
