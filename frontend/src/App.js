@@ -330,14 +330,13 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
   const showImage = isCamera && !imageLoading && (imageData || device.status === "offline");
   const displayImage = imageData || OFFLINE_PLACEHOLDER;
 
-  // Build camera web URL for direct access
+  // Build device web URL for direct access (works for all devices)
+  const deviceWebUrl = `http://${device.ip_address}:${device.port}`;
   const cameraWebUrl = hasCameraConfig ? 
-    `${device.camera_protocol || 'http'}://${device.ip_address}:${device.port}` : null;
+    `${device.camera_protocol || 'http'}://${device.ip_address}:${device.port}` : deviceWebUrl;
 
-  const openCameraInBrowser = () => {
-    if (cameraWebUrl) {
-      window.open(cameraWebUrl, '_blank');
-    }
+  const openDeviceInBrowser = () => {
+    window.open(cameraWebUrl, '_blank');
   };
 
   return (
