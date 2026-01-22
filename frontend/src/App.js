@@ -342,8 +342,6 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
       setImageLoading(false);
     }
   }, [device.status, device.image_url, isCamera]);
-    };
-  }, [device.id, device.status, hasCameraConfig, isCamera, authAxios]);
 
   // Show image section ONLY for cameras
   const showImage = isCamera && !imageLoading && (imageData || device.status === "offline");
