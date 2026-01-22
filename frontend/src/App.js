@@ -1465,6 +1465,9 @@ const Dashboard = () => {
   const [selectedType, setSelectedType] = useState(null);
   const [deviceHistory, setDeviceHistory] = useState([]);
   const [deleteTarget, setDeleteTarget] = useState({ type: "", item: null });
+  const [failuresDialogOpen, setFailuresDialogOpen] = useState(false);
+  const [recentFailures, setRecentFailures] = useState([]);
+  const [previousDeviceStates, setPreviousDeviceStates] = useState({});
 
   const canEdit = user?.role === "admin" || user?.role === "manager";
   const isAdmin = user?.role === "admin";
