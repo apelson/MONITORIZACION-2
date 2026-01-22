@@ -325,10 +325,18 @@ const LoginPage = () => {
       {/* Right side - Login form */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8">
         <div className="w-full max-w-md">
-          {/* Mobile logo */}
+          {/* Mobile logo and contact */}
           <div className="lg:hidden text-center mb-8">
             <img src={LOGO_URL} alt="Siempria" className="h-16 mx-auto mb-4 object-contain" />
-            <h1 className="text-xl font-light text-white">Network Monitor</h1>
+            <h1 className="text-xl font-light text-white mb-4">Network Monitor</h1>
+            <div className="flex items-center justify-center gap-4">
+              <a href="mailto:soporte@siempria.com" className="p-3 bg-cyan-500/20 rounded-full hover:bg-cyan-500/30 transition-colors" title="Email">
+                <Mail className="w-5 h-5 text-cyan-400" />
+              </a>
+              <a href="tel:+34822220022" className="p-3 bg-cyan-500/20 rounded-full hover:bg-cyan-500/30 transition-colors" title="Teléfono">
+                <Phone className="w-5 h-5 text-cyan-400" />
+              </a>
+            </div>
           </div>
           
           <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur">
@@ -377,9 +385,9 @@ const LoginPage = () => {
                 <Mail className="w-4 h-4" />
                 soporte@siempria.com
               </a>
-              <a href="tel:+34900000000" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors">
+              <a href="tel:+34822220022" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors">
                 <Phone className="w-4 h-4" />
-                +34 900 000 000
+                822 22 00 22
               </a>
             </div>
           </div>
