@@ -377,9 +377,9 @@ const LoginPage = () => {
                 <Mail className="w-4 h-4" />
                 soporte@siempria.com
               </a>
-              <a href="tel:+34900000000" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors">
+              <a href="tel:+34822220022" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors">
                 <Phone className="w-4 h-4" />
-                +34 900 000 000
+                822 22 00 22
               </a>
             </div>
           </div>
