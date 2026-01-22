@@ -415,6 +415,7 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
             <RefreshCw className={`w-3 h-3 mr-1.5 ${isChecking ? 'animate-spin-slow' : ''}`} />Verificar
           </Button>
           <div className="flex items-center justify-center gap-1">
+            <Button variant="ghost" size="sm" onClick={openDeviceInBrowser} title="Abrir en navegador"><Globe className="w-4 h-4" /></Button>
             {isCamera && (
               <Button variant="ghost" size="sm" onClick={() => onMobotixInfo(device)} title="Info Cámara"><Info className="w-4 h-4" /></Button>
             )}
