@@ -8,8 +8,11 @@ import {
   FolderOpen, LogOut, User, Shield, Eye, Lock, ChevronDown, Building2,
   Camera, HardDrive, Network, Router, Monitor, Printer, Box, ChevronRight,
   MapPin, FileText, Image, Tag, Layers, Download, FileSpreadsheet, FileIcon,
-  Info, Globe, Calendar, Copy, Cctv, ExternalLink
+  Info, Globe, Calendar, Copy, Cctv, ExternalLink, GripVertical
 } from "lucide-react";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
