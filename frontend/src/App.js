@@ -1777,6 +1777,18 @@ const Dashboard = () => {
     if (filterTypeId) filteredDevices = filteredDevices.filter(d => d.device_type_id === filterTypeId);
   }
 
+  // Pagination
+  const totalPages = Math.ceil(filteredDevices.length / DEVICES_PER_PAGE);
+  const paginatedDevices = useMemo(() => {
+    const start = (currentPage - 1) * DEVICES_PER_PAGE;
+    return filteredDevices.slice(start, start + DEVICES_PER_PAGE);
+  }, [filteredDevices, currentPage, DEVICES_PER_PAGE]);
+  
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterOrgId, filterGroupId, filterTypeId, filterCountry]);
+
   return (
     <div className="app-container">
       <Toaster position="top-right" richColors />
