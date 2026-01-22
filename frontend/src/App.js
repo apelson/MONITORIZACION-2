@@ -1694,11 +1694,31 @@ const Dashboard = () => {
     } catch (e) { toast.error("Error al exportar"); }
   };
 
+  // Filter devices based on user's organization permissions
+  const userOrgIds = user?.organization_ids || [];
+  const hasOrgRestrictions = userOrgIds.length > 0 && user?.role !== "admin";
+  
+  // Filter organizations based on user permissions
+  const allowedOrganizations = hasOrgRestrictions 
+    ? organizations.filter(o => userOrgIds.includes(o.id))
+    : organizations;
+  
+  // Filter groups based on allowed organizations
+  const allowedGroups = hasOrgRestrictions
+    ? groups.filter(g => userOrgIds.includes(g.organization_id))
+    : groups;
+  
   // Filter devices
   let filteredDevices = devices;
   
-  // Get unique countries for filter
-  const uniqueCountries = [...new Set(organizations.map(o => o.country).filter(Boolean))].sort();
+  // First, filter by user's allowed organizations
+  if (hasOrgRestrictions) {
+    const allowedGroupIds = allowedGroups.map(g => g.id);
+    filteredDevices = filteredDevices.filter(d => allowedGroupIds.includes(d.group_id));
+  }
+  
+  // Get unique countries for filter (only from allowed organizations)
+  const uniqueCountries = [...new Set(allowedOrganizations.map(o => o.country).filter(Boolean))].sort();
   
   // Operators only see cameras that are online
   if (isOperator) {
@@ -1706,13 +1726,13 @@ const Dashboard = () => {
   } else {
     // Filter by country first
     if (filterCountry) {
-      const countryOrgIds = organizations.filter(o => o.country === filterCountry).map(o => o.id);
-      const countryGroupIds = groups.filter(g => countryOrgIds.includes(g.organization_id)).map(g => g.id);
+      const countryOrgIds = allowedOrganizations.filter(o => o.country === filterCountry).map(o => o.id);
+      const countryGroupIds = allowedGroups.filter(g => countryOrgIds.includes(g.organization_id)).map(g => g.id);
       filteredDevices = filteredDevices.filter(d => countryGroupIds.includes(d.group_id));
     }
     if (filterGroupId) filteredDevices = filteredDevices.filter(d => d.group_id === filterGroupId);
     else if (filterOrgId) {
-      const orgGroupIds = groups.filter(g => g.organization_id === filterOrgId).map(g => g.id);
+      const orgGroupIds = allowedGroups.filter(g => g.organization_id === filterOrgId).map(g => g.id);
       filteredDevices = filteredDevices.filter(d => orgGroupIds.includes(d.group_id));
     }
     if (filterTypeId) filteredDevices = filteredDevices.filter(d => d.device_type_id === filterTypeId);
