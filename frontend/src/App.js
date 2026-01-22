@@ -1584,6 +1584,10 @@ const Dashboard = () => {
   const [failuresDialogOpen, setFailuresDialogOpen] = useState(false);
   const [recentFailures, setRecentFailures] = useState([]);
   const [previousDeviceStates, setPreviousDeviceStates] = useState({});
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const DEVICES_PER_PAGE = 50;
 
   const canEdit = user?.role === "admin" || user?.role === "manager";
   const isAdmin = user?.role === "admin";
