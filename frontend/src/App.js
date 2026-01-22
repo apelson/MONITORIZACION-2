@@ -286,49 +286,62 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
   // Check if device has camera credentials configured
   const hasCameraConfig = !!(device.camera_user && device.camera_password && device.camera_path);
 
-  // Load image via proxy - ONLY ONCE (no auto-refresh for performance with 1000+ cameras)
-  useEffect(() => {
-    let mounted = true;
+  // Reference for lazy loading
+  const cardRef = useCallback(node => {
+    if (!node) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !imageData && isCamera && hasCameraConfig && device.status === "online") {
+            loadImageNow();
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    );
+    
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [imageData, isCamera, hasCameraConfig, device.status]);
+
+  // Load image function
+  const loadImageNow = async () => {
+    if (imageData) return; // Already loaded
     setImageLoading(true);
     
-    const loadImage = async () => {
-      // If camera with config and online, use proxy
-      if (hasCameraConfig && device.status === "online") {
-        try {
-          const response = await authAxios.get(`/image-proxy/${device.id}`, { responseType: 'blob' });
-          if (mounted && response.data) {
-            const url = URL.createObjectURL(response.data);
-            setImageData(url);
-            setImageError(false);
-            setCaptureTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-          }
-        } catch (e) {
-          console.error(`Error loading image for ${device.name}:`, e);
-          if (mounted) {
-            setImageData(OFFLINE_PLACEHOLDER);
-            setImageError(true);
-            setCaptureTime(null);
-          }
+    if (hasCameraConfig && device.status === "online") {
+      try {
+        const response = await authAxios.get(`/image-proxy/${device.id}`, { responseType: 'blob' });
+        if (response.data) {
+          const url = URL.createObjectURL(response.data);
+          setImageData(url);
+          setImageError(false);
+          setCaptureTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
         }
-      } else if (device.status === "offline" && isCamera) {
-        // Offline camera - show placeholder
-        if (mounted) {
-          setImageData(OFFLINE_PLACEHOLDER);
-          setCaptureTime(null);
-        }
-      } else if (device.image_url) {
-        // Direct image URL
-        if (mounted) setImageData(device.image_url);
+      } catch (e) {
+        console.error(`Error loading image for ${device.name}:`, e);
+        setImageData(OFFLINE_PLACEHOLDER);
+        setImageError(true);
+        setCaptureTime(null);
       }
-      if (mounted) setImageLoading(false);
-    };
-    
-    loadImage();
-    
-    // NO auto-refresh - image loads only once for performance
-    
-    return () => { 
-      mounted = false;
+    }
+    setImageLoading(false);
+  };
+
+  // Set placeholder for offline cameras immediately
+  useEffect(() => {
+    if (device.status === "offline" && isCamera) {
+      setImageData(OFFLINE_PLACEHOLDER);
+      setCaptureTime(null);
+      setImageLoading(false);
+    } else if (device.image_url && !isCamera) {
+      setImageData(device.image_url);
+      setImageLoading(false);
+    } else if (!isCamera) {
+      setImageLoading(false);
+    }
+  }, [device.status, device.image_url, isCamera]);
     };
   }, [device.id, device.status, hasCameraConfig, isCamera, authAxios]);
 
