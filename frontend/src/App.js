@@ -1708,27 +1708,27 @@ const Dashboard = () => {
     } catch (e) { toast.error("Error al exportar"); }
   };
 
-  // Filter devices based on user's organization permissions
-  const userOrgIds = user?.organization_ids || [];
-  const hasOrgRestrictions = userOrgIds.length > 0 && user?.role !== "admin";
+  // Filter devices based on user's group permissions
+  const userGroupIds = user?.group_ids || [];
+  const hasGroupRestrictions = userGroupIds.length > 0 && user?.role !== "admin";
   
-  // Filter organizations based on user permissions
-  const allowedOrganizations = hasOrgRestrictions 
-    ? organizations.filter(o => userOrgIds.includes(o.id))
-    : organizations;
-  
-  // Filter groups based on allowed organizations
-  const allowedGroups = hasOrgRestrictions
-    ? groups.filter(g => userOrgIds.includes(g.organization_id))
+  // Filter groups based on user permissions
+  const allowedGroups = hasGroupRestrictions
+    ? groups.filter(g => userGroupIds.includes(g.id))
     : groups;
+  
+  // Filter organizations based on allowed groups
+  const allowedOrgIds = [...new Set(allowedGroups.map(g => g.organization_id))];
+  const allowedOrganizations = hasGroupRestrictions 
+    ? organizations.filter(o => allowedOrgIds.includes(o.id))
+    : organizations;
   
   // Filter devices
   let filteredDevices = devices;
   
-  // First, filter by user's allowed organizations
-  if (hasOrgRestrictions) {
-    const allowedGroupIds = allowedGroups.map(g => g.id);
-    filteredDevices = filteredDevices.filter(d => allowedGroupIds.includes(d.group_id));
+  // First, filter by user's allowed groups
+  if (hasGroupRestrictions) {
+    filteredDevices = filteredDevices.filter(d => userGroupIds.includes(d.group_id));
   }
   
   // Get unique countries for filter (only from allowed organizations)
