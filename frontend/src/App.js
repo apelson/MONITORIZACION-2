@@ -355,7 +355,7 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
                 <Badge variant="secondary" className="text-xs opacity-75"><Cctv className="w-3 h-3 mr-1" />Live</Badge>
               </div>
               <button 
-                onClick={openCameraInBrowser}
+                onClick={openDeviceInBrowser}
                 className="absolute top-2 right-2 p-2 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
                 title="Abrir cámara en navegador"
               >
