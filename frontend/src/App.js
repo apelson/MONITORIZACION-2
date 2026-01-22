@@ -1999,34 +1999,54 @@ const Dashboard = () => {
 
       {/* Header */}
       <header className="app-header">
-        <div className="container mx-auto max-w-7xl px-6 py-3">
+        <div className="container mx-auto max-w-7xl px-4 md:px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <img src={LOGO_URL} alt="Siempria" className="h-12 object-contain" />
+              {/* Logo vertical para desktop */}
+              <img src={LOGO_URL} alt="Siempria" className="hidden md:block h-12 object-contain" />
+              {/* Logo horizontal para móvil */}
+              <img src={LOGO_HORIZONTAL_URL} alt="Siempria" className="md:hidden h-8 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
               <div className="hidden md:block">
                 <h1 className="text-xl font-bold tracking-tight">Network Monitor</h1>
                 <p className="text-xs text-muted-foreground">Sistema de monitorización</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="hidden md:flex items-center gap-4 mr-4">
-                <div className="flex items-center gap-2"><div className="status-dot status-dot-online" /><span className="text-sm font-medium">{onlineCount}</span></div>
-                <button onClick={() => setFailuresDialogOpen(true)} className="flex items-center gap-2 hover:bg-red-50 px-2 py-1 rounded transition-colors" title="Ver resumen de fallos">
-                  <div className="status-dot status-dot-offline" /><span className="text-sm font-medium">{offlineCount}</span>
-                  {recentFailures.length > 0 && <Bell className="w-4 h-4 text-red-500 animate-pulse" />}
+            <div className="flex items-center gap-2 md:gap-3">
+              {/* Status counts - visible en móvil con iconos pequeños */}
+              <div className="flex items-center gap-3 mr-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="status-dot status-dot-online" />
+                  <span className="text-sm font-medium">{onlineCount}</span>
+                </div>
+                <button onClick={() => setFailuresDialogOpen(true)} className="flex items-center gap-1.5 hover:bg-red-50/20 px-1.5 py-1 rounded transition-colors" title="Ver resumen de fallos">
+                  <div className="status-dot status-dot-offline" />
+                  <span className="text-sm font-medium">{offlineCount}</span>
+                  {recentFailures.length > 0 && <Bell className="w-3.5 h-3.5 text-red-500 animate-pulse" />}
                 </button>
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button data-testid="export-btn" variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Exportar</Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => handleExport('excel')}><FileSpreadsheet className="w-4 h-4 mr-2" />Exportar todo a Excel</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExport('pdf')}><FileIcon className="w-4 h-4 mr-2" />Exportar todo a PDF</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button data-testid="refresh-all-btn" variant="outline" size="sm" onClick={handleRefreshAll} disabled={refreshing}><RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin-slow' : ''}`} />Verificar</Button>
-              {canEdit && <Button data-testid="add-device-btn" size="sm" onClick={() => { setSelectedDevice(null); setDeviceDialogOpen(true); }}><Plus className="w-4 h-4 mr-2" />Agregar</Button>}
+              {/* Botones desktop */}
+              <div className="hidden md:flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button data-testid="export-btn" variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Exportar</Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => handleExport('excel')}><FileSpreadsheet className="w-4 h-4 mr-2" />Exportar todo a Excel</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('pdf')}><FileIcon className="w-4 h-4 mr-2" />Exportar todo a PDF</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button data-testid="refresh-all-btn" variant="outline" size="sm" onClick={handleRefreshAll} disabled={refreshing}><RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin-slow' : ''}`} />Verificar</Button>
+                {canEdit && <Button data-testid="add-device-btn" size="sm" onClick={() => { setSelectedDevice(null); setDeviceDialogOpen(true); }}><Plus className="w-4 h-4 mr-2" />Agregar</Button>}
+              </div>
+              {/* Botones móvil (solo iconos) */}
+              <div className="flex md:hidden items-center gap-1">
+                <Button variant="ghost" size="sm" onClick={handleRefreshAll} disabled={refreshing} className="p-2">
+                  <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin-slow' : ''}`} />
+                </Button>
+                {canEdit && <Button size="sm" onClick={() => { setSelectedDevice(null); setDeviceDialogOpen(true); }} className="p-2">
+                  <Plus className="w-4 h-4" />
+                </Button>}
+              </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" className="gap-2"><div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center"><User className="w-4 h-4" /></div><span className="hidden md:inline">{user?.username}</span><ChevronDown className="w-4 h-4" /></Button></DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
