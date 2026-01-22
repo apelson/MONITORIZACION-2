@@ -75,12 +75,14 @@ class UserCreate(BaseModel):
     password: str
     role: str = "viewer"
     full_name: Optional[str] = ""
+    organization_ids: Optional[List[str]] = []  # Empty = all organizations (for admin/manager), restricted for others
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     role: Optional[str] = None
     full_name: Optional[str] = None
     is_active: Optional[bool] = None
+    organization_ids: Optional[List[str]] = None  # Organizations this user can access
 
 class UserLogin(BaseModel):
     username: str
