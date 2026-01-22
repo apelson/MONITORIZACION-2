@@ -378,14 +378,20 @@ async def lifespan(app: FastAPI):
     scheduler.start()
     logger.info("Scheduler started")
     
-    # Indexes
+    # Indexes for performance
     await devices_collection.create_index("id", unique=True)
+    await devices_collection.create_index("group_id")  # For filtering by group
+    await devices_collection.create_index("device_type_id")  # For filtering by type
+    await devices_collection.create_index("status")  # For filtering by status
+    await devices_collection.create_index([("group_id", 1), ("status", 1)])  # Compound index
     await history_collection.create_index([("device_id", 1), ("timestamp", -1)])
     await alerts_collection.create_index("timestamp")
+    await alerts_collection.create_index([("timestamp", -1)])  # For recent alerts
     await users_collection.create_index("id", unique=True)
     await users_collection.create_index("username", unique=True)
     await organizations_collection.create_index("id", unique=True)
     await groups_collection.create_index("id", unique=True)
+    await groups_collection.create_index("organization_id")  # For filtering
     await device_types_collection.create_index("id", unique=True)
     
     # Default admin
