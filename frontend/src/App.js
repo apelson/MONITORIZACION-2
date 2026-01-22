@@ -343,7 +343,7 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
   return (
     <Card data-testid={`device-card-${device.id}`} className="server-card fade-in hover:-translate-y-0.5 transition-transform duration-200 overflow-hidden">
       {showImage && (
-        <div className="h-32 bg-muted overflow-hidden relative group">
+        <div className="aspect-[4/3] bg-muted overflow-hidden relative group">
           <img 
             src={displayImage} 
             alt={device.name} 
