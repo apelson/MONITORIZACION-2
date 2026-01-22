@@ -456,7 +456,9 @@ async def create_user(user_data: UserCreate, current_user: dict = Depends(requir
         raise HTTPException(status_code=400, detail="El usuario ya existe")
     user = {"id": str(uuid.uuid4()), "username": user_data.username, "email": user_data.email,
             "password_hash": get_password_hash(user_data.password), "role": user_data.role,
-            "full_name": user_data.full_name or "", "is_active": True, "created_at": datetime.now(timezone.utc).isoformat()}
+            "full_name": user_data.full_name or "", "is_active": True, 
+            "organization_ids": user_data.organization_ids or [],
+            "created_at": datetime.now(timezone.utc).isoformat()}
     await users_collection.insert_one(user)
     user.pop("password_hash"); user.pop("_id", None)
     return {"message": "Usuario creado", "user": user}
