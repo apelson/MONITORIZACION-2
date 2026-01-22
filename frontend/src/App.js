@@ -357,16 +357,23 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
   };
 
   return (
-    <Card data-testid={`device-card-${device.id}`} className="server-card fade-in hover:-translate-y-0.5 transition-transform duration-200 overflow-hidden">
+    <Card ref={cardRef} data-testid={`device-card-${device.id}`} className="server-card fade-in hover:-translate-y-0.5 transition-transform duration-200 overflow-hidden">
       {showImage && (
         <div className="aspect-[4/3] bg-muted overflow-hidden relative group">
-          <img 
-            src={displayImage} 
-            alt={device.name} 
-            className="w-full h-full object-cover"
-            onError={() => { setImageError(true); setImageData(OFFLINE_PLACEHOLDER); }}
-          />
-          {hasCameraConfig && device.status === "online" && (
+          {imageLoading ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <img 
+              src={displayImage} 
+              alt={device.name} 
+              className="w-full h-full object-cover"
+              loading="lazy"
+              onError={() => { setImageError(true); setImageData(OFFLINE_PLACEHOLDER); }}
+            />
+          )}
+          {hasCameraConfig && device.status === "online" && !imageLoading && (
             <>
               <div className="absolute bottom-1 left-1">
                 {captureTime && <Badge variant="secondary" className="text-xs opacity-75 font-mono">{captureTime}</Badge>}
