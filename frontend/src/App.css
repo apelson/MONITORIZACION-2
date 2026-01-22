@@ -182,8 +182,8 @@
 
 /* Loading screen animations */
 @keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
 }
 
 @keyframes float {
@@ -195,6 +195,23 @@
         transform: translateY(-20px) translateX(10px); 
         opacity: 0.4;
     }
+}
+
+@keyframes cameraMove {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+}
+
+@keyframes scanLine {
+    0% { top: 0; opacity: 0; }
+    10% { opacity: 0.3; }
+    90% { opacity: 0.3; }
+    100% { top: 100%; opacity: 0; }
+}
+
+@keyframes gridMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
 }
 
 .animate-fade-in {
