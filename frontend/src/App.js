@@ -41,11 +41,11 @@ const LoadingScreen = () => {
   
   useEffect(() => {
     const messages = [
-      "Iniciando sistema...",
+      "Iniciando sistema de seguridad...",
       "Conectando con servidores...",
-      "Cargando dispositivos...",
-      "Verificando cámaras...",
-      "Preparando dashboard..."
+      "Verificando credenciales...",
+      "Cargando dispositivos de vigilancia...",
+      "Sistema listo"
     ];
     
     let currentProgress = 0;
@@ -65,29 +65,108 @@ const LoadingScreen = () => {
   }, []);
   
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
-      {/* Logo container with animation */}
-      <div className="relative flex items-center justify-center mb-8">
-        {/* Siempria Logo */}
-        <div className="relative z-10 animate-fade-in">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 relative overflow-hidden">
+      {/* Animated security grid background */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `linear-gradient(rgba(0,163,217,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,163,217,0.3) 1px, transparent 1px)`,
+          backgroundSize: '50px 50px',
+          animation: 'gridMove 20s linear infinite'
+        }} />
+      </div>
+      
+      {/* Scanning line effect */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-30" 
+          style={{ animation: 'scanLine 3s ease-in-out infinite' }} />
+      </div>
+
+      {/* Main content */}
+      <div className="relative z-10 flex flex-col items-center">
+        {/* Camera icon with pulse */}
+        <div className="relative mb-6">
+          <div className="absolute inset-0 bg-cyan-500 rounded-full blur-xl opacity-20 animate-pulse" style={{ transform: 'scale(1.5)' }} />
+          <div className="relative bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-full border border-cyan-500/30 shadow-2xl">
+            <Cctv className="w-16 h-16 text-cyan-400" style={{ animation: 'cameraMove 4s ease-in-out infinite' }} />
+          </div>
+          {/* Recording indicator */}
+          <div className="absolute top-2 right-2 flex items-center gap-1">
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            <span className="text-[10px] text-red-400 font-mono">REC</span>
+          </div>
+        </div>
+        
+        {/* Logo container */}
+        <div className="flex items-center justify-center mb-6 gap-4">
           <img 
             src={LOGO_URL} 
             alt="Siempria" 
-            className="h-20 md:h-24 object-contain drop-shadow-2xl"
-            style={{ filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.3))' }}
+            className="h-16 md:h-20 object-contain drop-shadow-2xl"
+            style={{ filter: 'drop-shadow(0 0 15px rgba(0,163,217,0.4))' }}
           />
+          <div className="h-12 w-px bg-gradient-to-b from-transparent via-cyan-500/50 to-transparent" />
+          <div className="bg-white rounded-lg px-3 py-2 shadow-xl">
+            <img 
+              src={MOBOTIX_LOGO_URL} 
+              alt="Mobotix" 
+              className="h-8 md:h-10 object-contain"
+              onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.innerHTML = '<span class="text-lg font-bold text-slate-800">MOBOTIX</span>'; }}
+            />
+          </div>
         </div>
         
-        {/* Connection line animation */}
-        <div className="mx-4 md:mx-8 flex items-center">
-          <div className="flex space-x-1">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <div 
-                key={i}
-                className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"
-                style={{ 
-                  animationDelay: `${i * 0.15}s`,
-                  opacity: 0.4 + (i * 0.15)
+        {/* Title */}
+        <h1 className="text-white text-2xl md:text-3xl font-light mb-1 tracking-wide">
+          Network Monitor
+        </h1>
+        <p className="text-cyan-400/80 text-sm mb-6 flex items-center gap-2">
+          <Shield className="w-4 h-4" />
+          Sistema de Vigilancia Profesional
+        </p>
+        
+        {/* Progress bar */}
+        <div className="w-72 md:w-96 mb-4">
+          <div className="h-1.5 bg-slate-700/50 rounded-full overflow-hidden backdrop-blur">
+            <div 
+              className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-300 ease-out relative"
+              style={{ width: `${progress}%` }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent" 
+                style={{ animation: 'shimmer 1.5s infinite' }} />
+            </div>
+          </div>
+          <div className="flex justify-between mt-2 text-xs text-slate-500">
+            <span>{Math.round(progress)}%</span>
+            <span>{statusText}</span>
+          </div>
+        </div>
+        
+        {/* Security badges */}
+        <div className="flex items-center gap-4 mt-4 text-slate-500 text-xs">
+          <div className="flex items-center gap-1">
+            <Lock className="w-3 h-3" />
+            <span>Conexión segura</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Shield className="w-3 h-3" />
+            <span>Encriptación AES-256</span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Corner decorations */}
+      <div className="absolute top-4 left-4 w-16 h-16 border-l-2 border-t-2 border-cyan-500/30" />
+      <div className="absolute top-4 right-4 w-16 h-16 border-r-2 border-t-2 border-cyan-500/30" />
+      <div className="absolute bottom-4 left-4 w-16 h-16 border-l-2 border-b-2 border-cyan-500/30" />
+      <div className="absolute bottom-4 right-4 w-16 h-16 border-r-2 border-b-2 border-cyan-500/30" />
+      
+      {/* Footer */}
+      <div className="absolute bottom-4 text-center text-slate-600 text-xs">
+        © {new Date().getFullYear()} Siempria - Distribuidor Autorizado Mobotix
+      </div>
+    </div>
+  );
+};
                 }}
               />
             ))}
