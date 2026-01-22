@@ -167,17 +167,8 @@ const LoadingScreen = () => {
     </div>
   );
 };
-                }}
-              />
-            ))}
-          </div>
-        </div>
-        
-        {/* Mobotix Logo */}
-        <div className="relative z-10 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <div className="bg-white rounded-lg px-4 py-2 shadow-xl">
-            <img 
-              src={MOBOTIX_LOGO_URL} 
+
+// ============ LOGIN PAGE ============ 
               alt="Mobotix" 
               className="h-10 md:h-12 object-contain"
               onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.innerHTML = '<span class="text-xl font-bold text-slate-800">MOBOTIX</span>'; }}
