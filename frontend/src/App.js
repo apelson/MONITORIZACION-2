@@ -1692,7 +1692,10 @@ const Dashboard = () => {
             <div className="flex items-center gap-3">
               <div className="hidden md:flex items-center gap-4 mr-4">
                 <div className="flex items-center gap-2"><div className="status-dot status-dot-online" /><span className="text-sm font-medium">{onlineCount}</span></div>
-                <div className="flex items-center gap-2"><div className="status-dot status-dot-offline" /><span className="text-sm font-medium">{offlineCount}</span></div>
+                <button onClick={() => setFailuresDialogOpen(true)} className="flex items-center gap-2 hover:bg-red-50 px-2 py-1 rounded transition-colors" title="Ver resumen de fallos">
+                  <div className="status-dot status-dot-offline" /><span className="text-sm font-medium">{offlineCount}</span>
+                  {recentFailures.length > 0 && <Bell className="w-4 h-4 text-red-500 animate-pulse" />}
+                </button>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
