@@ -275,6 +275,7 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
   const [imageError, setImageError] = useState(false);
   const [imageData, setImageData] = useState(null);
   const [imageLoading, setImageLoading] = useState(true);
+  const [captureTime, setCaptureTime] = useState(null);
   const { authAxios } = useAuth();
   const handleCheck = async () => { setIsChecking(true); await onCheck(device.id); setIsChecking(false); };
   const TypeIcon = deviceType ? getIcon(deviceType.icon) : Server;
@@ -299,17 +300,22 @@ const ServerCard = ({ device, group, deviceType, onCheck, onEdit, onDelete, onCl
             const url = URL.createObjectURL(response.data);
             setImageData(url);
             setImageError(false);
+            setCaptureTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
           }
         } catch (e) {
           console.error(`Error loading image for ${device.name}:`, e);
           if (mounted) {
             setImageData(OFFLINE_PLACEHOLDER);
             setImageError(true);
+            setCaptureTime(null);
           }
         }
       } else if (device.status === "offline" && isCamera) {
         // Offline camera - show placeholder
-        if (mounted) setImageData(OFFLINE_PLACEHOLDER);
+        if (mounted) {
+          setImageData(OFFLINE_PLACEHOLDER);
+          setCaptureTime(null);
+        }
       } else if (device.image_url) {
         // Direct image URL
         if (mounted) setImageData(device.image_url);
