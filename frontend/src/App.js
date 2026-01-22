@@ -1831,12 +1831,24 @@ const Dashboard = () => {
     if (filterTypeId) filteredDevices = filteredDevices.filter(d => d.device_type_id === filterTypeId);
   }
 
-  // Pagination
+  // Pagination with custom order
   const totalPages = Math.ceil(filteredDevices.length / DEVICES_PER_PAGE);
   const paginatedDevices = useMemo(() => {
+    // Apply custom order if exists
+    let orderedDevices = [...filteredDevices];
+    if (deviceOrder.length > 0) {
+      orderedDevices.sort((a, b) => {
+        const indexA = deviceOrder.indexOf(a.id);
+        const indexB = deviceOrder.indexOf(b.id);
+        if (indexA === -1 && indexB === -1) return 0;
+        if (indexA === -1) return 1;
+        if (indexB === -1) return -1;
+        return indexA - indexB;
+      });
+    }
     const start = (currentPage - 1) * DEVICES_PER_PAGE;
-    return filteredDevices.slice(start, start + DEVICES_PER_PAGE);
-  }, [filteredDevices, currentPage, DEVICES_PER_PAGE]);
+    return orderedDevices.slice(start, start + DEVICES_PER_PAGE);
+  }, [filteredDevices, currentPage, DEVICES_PER_PAGE, deviceOrder]);
   
   // Reset to page 1 when filters change
   useEffect(() => {
