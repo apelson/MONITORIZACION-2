@@ -612,11 +612,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
             <div className="space-y-2"><Label>Modelo</Label><Input placeholder="Ej: DS-2CD2143G2" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} /></div>
             <div className="col-span-2 space-y-2"><Label>Ubicación</Label><Input placeholder="Ej: Oficina Madrid - Planta 2" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} /></div>
             
-            {!isCamera && (
-              <div className="col-span-2 space-y-2"><Label>Imagen (URL)</Label><Input placeholder="http://user:pass@ip:puerto/imagen.jpg" value={formData.image_url} onChange={(e) => setFormData({ ...formData, image_url: e.target.value })} />
-                <p className="text-xs text-muted-foreground">Para cámaras, selecciona tipo &quot;Cámara&quot; y usa los campos específicos</p>
-              </div>
-            )}
+            {/* Image URL field removed for non-cameras - they only show icons */}
             
             <div className="col-span-2 space-y-2"><Label>Descripción</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
             <div className="col-span-2 space-y-2"><Label>Notas</Label><Textarea placeholder="Notas internas, configuración..." value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} rows={3} /></div>
