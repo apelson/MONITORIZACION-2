@@ -127,7 +127,7 @@
 .badge-checking {
     background-color: rgba(245, 158, 11, 0.1);
     color: #d97706;
-    border: 1px solid rgba(245, 158, 11, 0.2);
+    border: 1px solid rgba(255, 140, 0, 0.2);
 }
 
 /* Responsive adjustments */
@@ -137,11 +137,20 @@
     }
 }
 
-/* Tab indicator */
+/* Tab indicator - Siempria blue */
 .tab-indicator {
     height: 2px;
-    background-color: hsl(var(--primary));
+    background-color: #00A3D9;
     border-radius: 1px;
+}
+
+/* Primary button override - Siempria blue */
+.btn-primary, button[data-variant="default"] {
+    background-color: #00A3D9 !important;
+}
+
+.btn-primary:hover, button[data-variant="default"]:hover {
+    background-color: #0089b8 !important;
 }
 
 /* Empty state */
