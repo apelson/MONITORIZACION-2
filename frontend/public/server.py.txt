@@ -75,14 +75,14 @@ class UserCreate(BaseModel):
     password: str
     role: str = "viewer"
     full_name: Optional[str] = ""
-    organization_ids: Optional[List[str]] = []  # Empty = all organizations (for admin/manager), restricted for others
+    group_ids: Optional[List[str]] = []  # Empty = all groups (for admin/manager), restricted for others
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     role: Optional[str] = None
     full_name: Optional[str] = None
     is_active: Optional[bool] = None
-    organization_ids: Optional[List[str]] = None  # Organizations this user can access
+    group_ids: Optional[List[str]] = None  # Groups this user can access
 
 class UserLogin(BaseModel):
     username: str
@@ -457,7 +457,7 @@ async def create_user(user_data: UserCreate, current_user: dict = Depends(requir
     user = {"id": str(uuid.uuid4()), "username": user_data.username, "email": user_data.email,
             "password_hash": get_password_hash(user_data.password), "role": user_data.role,
             "full_name": user_data.full_name or "", "is_active": True, 
-            "organization_ids": user_data.organization_ids or [],
+            "group_ids": user_data.group_ids or [],
             "created_at": datetime.now(timezone.utc).isoformat()}
     await users_collection.insert_one(user)
     user.pop("password_hash"); user.pop("_id", None)
