@@ -875,6 +875,43 @@ const DeleteConfirmDialog = ({ open, onOpenChange, title, message, onConfirm }) 
   );
 };
 
+// Failures summary dialog
+const FailuresDialog = ({ open, onOpenChange, failures, onClear }) => {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-red-600">
+            <AlertCircle className="w-5 h-5" />
+            Resumen de Fallos ({failures.length})
+          </DialogTitle>
+          <DialogDescription>Dispositivos que han perdido conexión recientemente</DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 overflow-y-auto space-y-2 py-4">
+          {failures.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">No hay fallos recientes</p>
+          ) : (
+            failures.map((f, i) => (
+              <div key={`${f.id}-${i}`} className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <WifiOff className="w-5 h-5 text-red-500 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{f.name}</p>
+                  <p className="text-xs text-muted-foreground font-mono">{f.ip}:{f.port}</p>
+                </div>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{f.time}</span>
+              </div>
+            ))
+          )}
+        </div>
+        <DialogFooter className="flex-shrink-0">
+          <Button variant="outline" onClick={onClear}>Limpiar historial</Button>
+          <Button onClick={() => onOpenChange(false)}>Cerrar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 // ============ PANELS ============
 const OrganizationsPanel = ({ organizations, groups, devices, onCreateOrg, onEditOrg, onDeleteOrg, onCreateGroup, onEditGroup, onDeleteGroup, canEdit, onExport }) => {
   const [openOrgs, setOpenOrgs] = useState({});
