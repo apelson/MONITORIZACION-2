@@ -152,7 +152,7 @@ async def get_device(device_id: str, current_user: dict = Depends(get_current_us
     return device
 
 @router.put("/devices/{device_id}")
-async def update_device(device_id: str, data: DeviceUpdate, current_user: dict = Depends(require_role(["admin", "manager"]))):
+async def update_device(device_id: str, data: DeviceUpdate, request: Request, current_user: dict = Depends(require_role(["admin", "manager"]))):
     device = await devices_collection.find_one({"id": device_id})
     if not device:
         raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
@@ -172,6 +172,19 @@ async def update_device(device_id: str, data: DeviceUpdate, current_user: dict =
     
     if update:
         await devices_collection.update_one({"id": device_id}, {"$set": update})
+    
+    # Log device update
+    await log_access(
+        log_type="device_update",
+        user_id=current_user["id"],
+        username=current_user["username"],
+        user_role=current_user["role"],
+        ip_address=get_client_ip(request),
+        target_type="device",
+        target_id=device_id,
+        target_name=device.get("name"),
+        details={"updated_fields": list(update.keys())}
+    )
     
     updated_device = await devices_collection.find_one({"id": device_id}, {"_id": 0})
     return {"message": "Dispositivo actualizado", "device": updated_device}
