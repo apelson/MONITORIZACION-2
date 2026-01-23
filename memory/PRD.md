@@ -17,12 +17,15 @@ Aplicación de monitoreo de red para equipos con IPs públicas, desarrollada par
 - [x] Login/Logout con JWT
 - [x] Roles: Admin, Manager, Viewer, Operator, Técnico
 - [x] Vista restringida para Operadores (solo cámaras online)
-- [x] Vista Técnico: Acceso completo de lectura a todos los dispositivos
+- [x] Vista Técnico: Acceso completo de lectura a todos los dispositivos (sin Estadísticas)
+- [x] **Cambio de contraseñas desde panel de admin** (NUEVO 23/01/2026)
 
 ### Estructura Organizacional
 - [x] Organizaciones con logos, país y ciudad
 - [x] Grupos dentro de organizaciones
 - [x] Filtro de dispositivos por país, organización, grupo, tipo, estado
+- [x] **Filtro por estadísticas habilitadas** (NUEVO 23/01/2026)
+- [x] **Filtro por tipo desde panel Tipos** (NUEVO 23/01/2026)
 
 ### Gestión de Dispositivos
 - [x] Tipos: Camera, NAS, Switch, Router, Server, Other
@@ -30,23 +33,24 @@ Aplicación de monitoreo de red para equipos con IPs públicas, desarrollada par
 - [x] Clonación de dispositivos
 - [x] Drag & Drop para reordenar tarjetas
 - [x] Paginación de 24 dispositivos por página
+- [x] **Badge "Stats" en tarjetas con estadísticas** (NUEVO 23/01/2026)
+- [x] **Contador de dispositivos por tipo** (NUEVO 23/01/2026)
 
-### Estadísticas de Cámaras Mobotix (MxAnalytics)
-- [x] Pestaña "Estadísticas" en el menú principal
-- [x] Lista de cámaras con MxAnalytics habilitado
-- [x] Resumen: Corredores, Informes Guardados, Mapas de Calor
-- [x] Terminología: "Entrada/Salida" en lugar de North/South
-- [x] 🏆 Récord del día con más tráfico
-- [x] Selector de informes históricos predefinidos
-- [x] **Búsqueda por fechas personalizadas** (NUEVO)
-- [x] **Gráficos interactivos** - Barras y Circular (Recharts)
-- [x] **Exportar a Excel/CSV** de la vista actual
-- [x] **Exportar a PDF** de la vista actual
+### Estadísticas de Cámaras Mobotix (MxAnalytics) - REDISEÑADO 23/01/2026
+- [x] Panel completamente rediseñado para mayor intuitividad
+- [x] Cabecera con gradiente mostrando info de cámara
+- [x] Pestañas: "Conteo de Personas" y "Mapa de Calor"
+- [x] Selector de período con botones grandes y claros
+- [x] Tarjetas de resumen con totales (Entradas, Salidas, Total, Récord)
+- [x] Gráficos interactivos con Recharts
+- [x] Tabla de detalle por hora
+- [x] Exportación a Excel/CSV
+- [x] Fechas personalizadas
 
 ### UI/UX Profesional
 - [x] Pantalla de login corporativa (colores Siempria)
 - [x] Pantalla de carga animada
-- [x] **Logo horizontal en header móvil** (COMPLETADO)
+- [x] Logo horizontal en header móvil
 - [x] Dashboard responsivo para móvil y desktop
 - [x] Links de contacto clickeables
 
