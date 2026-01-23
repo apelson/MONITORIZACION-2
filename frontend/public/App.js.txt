@@ -908,10 +908,11 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
     const file = e.target.files[0];
     if (!file) return;
     
-    // Validate file
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Tipo de archivo no permitido. Usa JPG, PNG, GIF, WEBP o SVG");
+    // Validate file by extension (more reliable than MIME type)
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.jfif', '.bmp'];
+    const ext = '.' + file.name.split('.').pop().toLowerCase();
+    if (!allowedExtensions.includes(ext)) {
+      toast.error("Tipo de archivo no permitido. Usa JPG, PNG, GIF, WEBP, SVG o JFIF");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -930,6 +931,7 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
       setFormData({ ...formData, logo_url: logoUrl });
       toast.success("Logo subido correctamente");
     } catch (err) {
+      console.error("Upload error:", err);
       toast.error(err.response?.data?.detail || "Error al subir el archivo");
     }
     setUploading(false);
