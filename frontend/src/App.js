@@ -9,7 +9,8 @@ import {
   Camera, HardDrive, Network, Router, Monitor, Printer, Box, ChevronRight,
   MapPin, FileText, Image, Tag, Layers, Download, FileSpreadsheet, FileIcon,
   Info, Globe, Calendar, Copy, Cctv, ExternalLink, GripVertical, Phone,
-  BarChart3, TrendingUp, Flame, ArrowUpDown, Wrench, Trophy, PieChart, Upload
+  BarChart3, TrendingUp, Flame, ArrowUpDown, Wrench, Trophy, PieChart, Upload,
+  Archive, RotateCcw, CloudDownload, FolderArchive
 } from "lucide-react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from '@dnd-kit/sortable';
