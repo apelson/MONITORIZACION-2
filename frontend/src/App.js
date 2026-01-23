@@ -633,7 +633,7 @@ ServerCard.displayName = 'ServerCard';
 
 // ============ DIALOGS ============
 const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, deviceTypes, onSave }) => {
-  const [formData, setFormData] = useState({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_protocol: "http", camera_user: "", camera_password: "", camera_path: "" });
+  const [formData, setFormData] = useState({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_protocol: "http", camera_user: "", camera_password: "", camera_path: "", has_statistics: false });
   const [saving, setSaving] = useState(false);
   const [selectedOrgId, setSelectedOrgId] = useState("");
   const [initialized, setInitialized] = useState(false);
@@ -651,12 +651,13 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
           camera_protocol: device.camera_protocol || "http",
           camera_user: device.camera_user || "",
           camera_password: device.camera_password || "",
-          camera_path: device.camera_path || ""
+          camera_path: device.camera_path || "",
+          has_statistics: device.has_statistics || false
         });
         const grp = groups.find(g => g.id === device.group_id);
         if (grp) setSelectedOrgId(grp.organization_id);
       } else {
-        setFormData({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_protocol: "http", camera_user: "", camera_password: "", camera_path: "" });
+        setFormData({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_protocol: "http", camera_user: "", camera_password: "", camera_path: "", has_statistics: false });
         setSelectedOrgId("");
       }
       setInitialized(true);
