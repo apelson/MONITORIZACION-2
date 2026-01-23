@@ -633,6 +633,9 @@ async def get_devices(group_id: Optional[str] = None, organization_id: Optional[
         query["device_type_id"] = "type-camera"
         query["status"] = "online"
     
+    # Technicians see ALL devices (no filter) - for technical support
+    # They have read-only access to everything including IP/port info
+    
     return {"devices": await devices_collection.find(query, {"_id": 0}).to_list(length=None)}
 
 # Operator cameras view - only online cameras with images
