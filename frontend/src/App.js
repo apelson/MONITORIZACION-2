@@ -2863,14 +2863,14 @@ const Dashboard = () => {
       </main>
 
       {/* Footer fijo con logo para móvil */}
-      <footer className="md:hidden fixed bottom-0 left-0 right-0 bg-gradient-to-r from-[#00A3D9] to-[#0077A3] py-2 px-4 shadow-lg z-50">
+      <footer className="md:hidden fixed bottom-0 left-0 right-0 bg-gradient-to-r from-[#00A3D9] to-[#0077A3] py-3 px-4 shadow-lg" style={{ zIndex: 9999 }}>
         <div className="flex items-center justify-center">
-          <img src={LOGO_HORIZONTAL_URL} alt="Siempria" className="h-8 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+          <img src={LOGO_HORIZONTAL_URL} alt="Siempria" className="h-10 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
         </div>
       </footer>
       
       {/* Spacer para móvil para que el contenido no quede debajo del footer */}
-      <div className="md:hidden h-14" />
+      <div className="md:hidden h-16" />
 
       {/* Dialogs */}
       <DeviceFormDialog open={deviceDialogOpen} onOpenChange={setDeviceDialogOpen} device={selectedDevice} organizations={organizations} groups={groups} deviceTypes={deviceTypes} onSave={handleSaveDevice} />
