@@ -2685,28 +2685,36 @@ const AccessLogsPanel = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        console.log("Starting to load logs...");
         const token = localStorage.getItem("token");
+        console.log("AccessLogsPanel: token exists:", !!token);
+        console.log("AccessLogsPanel: API URL:", API);
+        
         if (!token) {
-          console.log("No token found");
+          console.log("AccessLogsPanel: No token found");
           setLoading(false);
           return;
         }
         
-        const response = await fetch(`${API}/logs?skip=0&limit=50`, {
+        const url = `${API}/logs?skip=0&limit=50`;
+        console.log("AccessLogsPanel: Fetching from:", url);
+        
+        const response = await fetch(url, {
+          method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         });
         
+        console.log("AccessLogsPanel: Response status:", response.status);
+        
         if (response.ok) {
           const data = await response.json();
-          console.log("Logs loaded:", data);
+          console.log("AccessLogsPanel: Logs loaded, count:", data.logs?.length);
           setLogs(data.logs || []);
           setTotal(data.total || 0);
         } else {
-          console.error("Failed to load logs:", response.status);
+          console.error("AccessLogsPanel: Failed to load logs:", response.status);
         }
         
         // Load stats
@@ -2728,7 +2736,7 @@ const AccessLogsPanel = () => {
         }
         
       } catch (e) {
-        console.error("Error loading logs:", e);
+        console.error("AccessLogsPanel: Error loading logs:", e);
       } finally {
         setLoading(false);
       }
