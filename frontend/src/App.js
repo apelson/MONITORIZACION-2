@@ -1383,12 +1383,96 @@ const StatisticsPanel = ({ devices, groups }) => {
   const [heatmapRange, setHeatmapRange] = useState("last");
   const [selectedReportProfile, setSelectedReportProfile] = useState("");
   const [selectedHeatmapProfile, setSelectedHeatmapProfile] = useState("");
+  const [chartType, setChartType] = useState("bar"); // bar or pie
+  const chartRef = useRef(null);
+  
+  // Colors for charts
+  const CHART_COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
   
   // Filter cameras that have statistics enabled
   useEffect(() => {
     const statsDevices = devices.filter(d => d.has_statistics === true && d.device_type_id === "type-camera");
     setCamerasWithStats(statsDevices);
   }, [devices]);
+  
+  // Prepare chart data from report
+  const getChartData = () => {
+    if (!reportData?.tables?.[0]?.data) return [];
+    const data = reportData.tables[0].data;
+    const colTitles = reportData.tables[0].columnTitles || [];
+    const totalsRow = data[data.length - 1];
+    
+    if (!totalsRow) return [];
+    
+    return colTitles.map((day, idx) => {
+      const cell = totalsRow[idx];
+      if (Array.isArray(cell) && cell[0] >= 0) {
+        return { name: day.substring(0, 3), entrada: cell[0], salida: cell[1], total: cell[0] + cell[1] };
+      }
+      return { name: day.substring(0, 3), entrada: 0, salida: 0, total: 0 };
+    }).filter(d => d.total > 0);
+  };
+  
+  // Prepare pie chart data
+  const getPieData = () => {
+    const chartData = getChartData();
+    const totalEntrada = chartData.reduce((sum, d) => sum + d.entrada, 0);
+    const totalSalida = chartData.reduce((sum, d) => sum + d.salida, 0);
+    return [
+      { name: 'Entrada', value: totalEntrada, color: '#22c55e' },
+      { name: 'Salida', value: totalSalida, color: '#ef4444' }
+    ];
+  };
+  
+  // Export current view to Excel
+  const exportToExcel = () => {
+    if (!reportData?.tables?.[0]) { toast.error("No hay datos para exportar"); return; }
+    const table = reportData.tables[0];
+    let csv = "Hora," + (table.columnTitles?.join(",") || "") + "\n";
+    table.data?.forEach((row, idx) => {
+      const rowTitle = table.rowTitles?.[idx] || `Fila ${idx}`;
+      const cells = row.map(cell => Array.isArray(cell) ? (cell[0] >= 0 ? `${cell[0]}/${cell[1]}` : '-') : cell);
+      csv += rowTitle + "," + cells.join(",") + "\n";
+    });
+    const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `estadisticas_${selectedCamera?.name || 'camara'}_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Exportado a CSV/Excel");
+  };
+  
+  // Export current view to PDF (using print)
+  const exportToPDF = () => {
+    const printContent = chartRef.current;
+    if (!printContent) { toast.error("No hay contenido para exportar"); return; }
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html><head><title>Estadísticas - ${selectedCamera?.name || 'Cámara'}</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { color: #0891b2; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background: #f0f9ff; }
+        .green { color: #22c55e; }
+        .red { color: #ef4444; }
+        .record { background: #fef3c7; padding: 10px; border-radius: 8px; margin: 10px 0; }
+        .legend { margin-top: 10px; font-size: 12px; }
+      </style></head><body>
+      <h1>Estadísticas MxAnalytics</h1>
+      <h2>${selectedCamera?.name || 'Cámara'}</h2>
+      <p>Fecha: ${new Date().toLocaleDateString('es-ES')}</p>
+      ${printContent.innerHTML}
+      <div class="legend"><span class="green">Verde</span>: Entrada | <span class="red">Rojo</span>: Salida</div>
+      </body></html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+    toast.success("Exportando a PDF...");
+  };
   
   // Fetch overview when camera is selected
   const fetchCameraStats = async (camera) => {
