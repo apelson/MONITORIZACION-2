@@ -2683,6 +2683,7 @@ const AccessLogsPanel = () => {
 
   // Fetch logs with current filters
   const fetchLogs = useCallback(async () => {
+    console.log("AccessLogsPanel: fetchLogs called");
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -2694,11 +2695,13 @@ const AccessLogsPanel = () => {
       if (filters.start_date) params.append("start_date", filters.start_date);
       if (filters.end_date) params.append("end_date", filters.end_date);
       
+      console.log("AccessLogsPanel: calling API with params:", params.toString());
       const res = await authAxios.get(`/logs?${params.toString()}`);
+      console.log("AccessLogsPanel: got response", res.data);
       setLogs(res.data.logs || []);
       setTotal(res.data.total || 0);
     } catch (e) {
-      console.error("Error fetching logs:", e);
+      console.error("AccessLogsPanel: Error fetching logs:", e);
       setLogs([]);
     } finally {
       setLoading(false);
