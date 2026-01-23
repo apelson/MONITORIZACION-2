@@ -937,8 +937,12 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
     try {
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
-      const res = await authAxios.post('/upload', formDataUpload, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      const token = localStorage.getItem("token");
+      const res = await axios.post(`${API}/upload`, formDataUpload, {
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        }
       });
       const logoUrl = `${process.env.REACT_APP_BACKEND_URL}${res.data.url}`;
       setFormData({ ...formData, logo_url: logoUrl });
