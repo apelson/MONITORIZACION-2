@@ -1650,5 +1650,176 @@ async def export_pdf(organization_id: Optional[str] = None, current_user: dict =
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
+# ============ MOBOTIX STATISTICS API ============
+
+@api_router.get("/cameras/statistics")
+async def get_cameras_with_statistics(current_user: dict = Depends(get_current_user)):
+    """Get all cameras that have statistics enabled (has_statistics=True)"""
+    cameras = await devices_collection.find(
+        {"device_type_id": "type-camera", "has_statistics": True},
+        {"_id": 0}
+    ).to_list(length=None)
+    return {"cameras": cameras}
+
+@api_router.get("/cameras/{camera_id}/mobotix/overview")
+async def get_mobotix_overview(camera_id: str, current_user: dict = Depends(get_current_user)):
+    """Get MxAnalytics overview from a Mobotix camera"""
+    camera = await devices_collection.find_one({"id": camera_id}, {"_id": 0})
+    if not camera:
+        raise HTTPException(status_code=404, detail="Cámara no encontrada")
+    
+    if not camera.get("has_statistics"):
+        raise HTTPException(status_code=400, detail="Esta cámara no tiene estadísticas habilitadas")
+    
+    try:
+        protocol = camera.get("camera_protocol", "http")
+        ip = camera.get("ip_address")
+        port = camera.get("port", 80)
+        user = camera.get("camera_user", "")
+        password = camera.get("camera_password", "")
+        
+        url = f"{protocol}://{ip}:{port}/control/stat_export?overview"
+        
+        # Create SSL context that ignores certificate errors (for self-signed certs)
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        
+        # Create request with basic auth
+        auth_string = base64.b64encode(f"{user}:{password}".encode()).decode()
+        req = urllib.request.Request(url)
+        req.add_header("Authorization", f"Basic {auth_string}")
+        
+        with urllib.request.urlopen(req, timeout=15, context=ctx) as response:
+            import json
+            data = json.loads(response.read().decode())
+            return {"camera_id": camera_id, "camera_name": camera.get("name"), "data": data}
+    except Exception as e:
+        logger.error(f"Error fetching Mobotix overview for {camera_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error al obtener estadísticas: {str(e)}")
+
+@api_router.get("/cameras/{camera_id}/mobotix/counter")
+async def get_mobotix_counter(camera_id: str, current_user: dict = Depends(get_current_user)):
+    """Get current counting values from a Mobotix camera"""
+    camera = await devices_collection.find_one({"id": camera_id}, {"_id": 0})
+    if not camera:
+        raise HTTPException(status_code=404, detail="Cámara no encontrada")
+    
+    if not camera.get("has_statistics"):
+        raise HTTPException(status_code=400, detail="Esta cámara no tiene estadísticas habilitadas")
+    
+    try:
+        protocol = camera.get("camera_protocol", "http")
+        ip = camera.get("ip_address")
+        port = camera.get("port", 80)
+        user = camera.get("camera_user", "")
+        password = camera.get("camera_password", "")
+        
+        url = f"{protocol}://{ip}:{port}/control/stat_export?function=counter"
+        
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        
+        auth_string = base64.b64encode(f"{user}:{password}".encode()).decode()
+        req = urllib.request.Request(url)
+        req.add_header("Authorization", f"Basic {auth_string}")
+        
+        with urllib.request.urlopen(req, timeout=10, context=ctx) as response:
+            import json
+            data = json.loads(response.read().decode())
+            return {"camera_id": camera_id, "camera_name": camera.get("name"), "counter": data}
+    except Exception as e:
+        logger.error(f"Error fetching Mobotix counter for {camera_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error al obtener contador: {str(e)}")
+
+@api_router.get("/cameras/{camera_id}/mobotix/report")
+async def get_mobotix_report(
+    camera_id: str, 
+    report_type: str = "week",  # week or month
+    export_range: str = "current",  # current or last
+    current_user: dict = Depends(get_current_user)
+):
+    """Get counting corridor report from a Mobotix camera"""
+    camera = await devices_collection.find_one({"id": camera_id}, {"_id": 0})
+    if not camera:
+        raise HTTPException(status_code=404, detail="Cámara no encontrada")
+    
+    if not camera.get("has_statistics"):
+        raise HTTPException(status_code=400, detail="Esta cámara no tiene estadísticas habilitadas")
+    
+    try:
+        protocol = camera.get("camera_protocol", "http")
+        ip = camera.get("ip_address")
+        port = camera.get("port", 80)
+        user = camera.get("camera_user", "")
+        password = camera.get("camera_password", "")
+        
+        url = f"{protocol}://{ip}:{port}/control/stat_export?report&export_type={report_type}&export_range={export_range}&export_format=json"
+        
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        
+        auth_string = base64.b64encode(f"{user}:{password}".encode()).decode()
+        req = urllib.request.Request(url)
+        req.add_header("Authorization", f"Basic {auth_string}")
+        
+        with urllib.request.urlopen(req, timeout=20, context=ctx) as response:
+            import json
+            data = json.loads(response.read().decode())
+            return {"camera_id": camera_id, "camera_name": camera.get("name"), "report_type": report_type, "export_range": export_range, "report": data}
+    except Exception as e:
+        logger.error(f"Error fetching Mobotix report for {camera_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error al obtener reporte: {str(e)}")
+
+@api_router.get("/cameras/{camera_id}/mobotix/heatmap")
+async def get_mobotix_heatmap(
+    camera_id: str,
+    heatmap_type: str = "week",  # day, week, month
+    export_range: str = "last",  # current or last
+    current_user: dict = Depends(get_current_user)
+):
+    """Get heatmap image from a Mobotix camera"""
+    camera = await devices_collection.find_one({"id": camera_id}, {"_id": 0})
+    if not camera:
+        raise HTTPException(status_code=404, detail="Cámara no encontrada")
+    
+    if not camera.get("has_statistics"):
+        raise HTTPException(status_code=400, detail="Esta cámara no tiene estadísticas habilitadas")
+    
+    try:
+        protocol = camera.get("camera_protocol", "http")
+        ip = camera.get("ip_address")
+        port = camera.get("port", 80)
+        user = camera.get("camera_user", "")
+        password = camera.get("camera_password", "")
+        
+        # Get heatmap as JPEG
+        url = f"{protocol}://{ip}:{port}/control/stat_export?heatmap&export_type={heatmap_type}&export_range={export_range}&start=0800&end=2200&daylist=1,2,3,4,5,6&export_format=jpeg&legend=1"
+        
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        
+        auth_string = base64.b64encode(f"{user}:{password}".encode()).decode()
+        req = urllib.request.Request(url)
+        req.add_header("Authorization", f"Basic {auth_string}")
+        
+        with urllib.request.urlopen(req, timeout=20, context=ctx) as response:
+            image_data = response.read()
+            # Return as base64 encoded image
+            image_base64 = base64.b64encode(image_data).decode()
+            return {
+                "camera_id": camera_id, 
+                "camera_name": camera.get("name"), 
+                "heatmap_type": heatmap_type,
+                "export_range": export_range,
+                "image": f"data:image/jpeg;base64,{image_base64}"
+            }
+    except Exception as e:
+        logger.error(f"Error fetching Mobotix heatmap for {camera_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error al obtener mapa de calor: {str(e)}")
+
 app.include_router(api_router)
 app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','), allow_methods=["*"], allow_headers=["*"])
