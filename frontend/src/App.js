@@ -2912,7 +2912,8 @@ const Dashboard = () => {
               onCreateGroup={(orgId) => { setSelectedGroup(null); setGroupDialogOrgId(orgId); setGroupDialogOpen(true); }}
               onEditGroup={(g) => { setSelectedGroup(g); setGroupDialogOpen(true); }}
               onDeleteGroup={(g) => { setDeleteTarget({ type: "group", item: g }); setDeleteDialogOpen(true); }}
-              onExport={handleExport} />
+              onExport={handleExport}
+              onViewGroupDevices={(groupId) => { setFilterGroupId(groupId); setActiveTab("devices"); }} />
           </TabsContent>
 
           <TabsContent value="types">
