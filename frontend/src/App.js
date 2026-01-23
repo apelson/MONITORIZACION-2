@@ -1332,12 +1332,16 @@ const OrganizationsPanel = ({ organizations, groups, devices, onCreateOrg, onEdi
                                 </div>
                                 <Badge variant="outline" className="text-xs">{g.device_count || 0}</Badge>
                               </div>
-                              {canEdit && (
-                                <div className="flex justify-end gap-1 mt-2">
-                                  <Button variant="ghost" size="sm" onClick={() => onEditGroup(g)}><Edit className="w-3 h-3" /></Button>
-                                  <Button variant="ghost" size="sm" onClick={() => onDeleteGroup(g)} className="text-destructive"><Trash2 className="w-3 h-3" /></Button>
-                                </div>
-                              )}
+                              <div className="flex justify-between items-center mt-2">
+                                <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => onViewGroupDevices(g.id)}>
+                                  <Eye className="w-3 h-3 mr-1" />Ver dispositivos
+                                </Button>
+                                {canEdit && (
+                                  <div className="flex gap-1">
+                                    <Button variant="ghost" size="sm" onClick={() => onEditGroup(g)}><Edit className="w-3 h-3" /></Button>
+                                    <Button variant="ghost" size="sm" onClick={() => onDeleteGroup(g)} className="text-destructive"><Trash2 className="w-3 h-3" /></Button>
+                                  </div>
+                                )}
                             </div>
                           ))}
                         </div>
