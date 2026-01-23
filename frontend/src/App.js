@@ -1736,8 +1736,8 @@ const StatisticsPanel = ({ devices, groups }) => {
                           </tbody>
                         </table>
                         <p className="text-xs text-muted-foreground mt-2">
-                          <span className="text-green-600">Verde</span>: {reportData.tables[0].directions?.[0] || "Norte"} | 
-                          <span className="text-red-600 ml-2">Rojo</span>: {reportData.tables[0].directions?.[1] || "Sur"}
+                          <span className="text-green-600">Verde</span>: Entrada | 
+                          <span className="text-red-600 ml-2">Rojo</span>: Salida
                         </p>
                       </div>
                     ) : (
