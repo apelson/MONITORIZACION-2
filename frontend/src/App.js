@@ -1380,6 +1380,8 @@ const StatisticsPanel = ({ devices, groups }) => {
   const [reportRange, setReportRange] = useState("current");
   const [heatmapType, setHeatmapType] = useState("week");
   const [heatmapRange, setHeatmapRange] = useState("last");
+  const [selectedReportProfile, setSelectedReportProfile] = useState("");
+  const [selectedHeatmapProfile, setSelectedHeatmapProfile] = useState("");
   
   // Filter cameras that have statistics enabled
   useEffect(() => {
@@ -1394,6 +1396,8 @@ const StatisticsPanel = ({ devices, groups }) => {
     setStatsData(null);
     setHeatmapImage(null);
     setReportData(null);
+    setSelectedReportProfile("");
+    setSelectedHeatmapProfile("");
     
     try {
       const res = await authAxios.get(`/cameras/${camera.id}/mobotix/overview`);
@@ -1431,6 +1435,32 @@ const StatisticsPanel = ({ devices, groups }) => {
   };
   
   const getGroupName = (groupId) => groups.find(g => g.id === groupId)?.name || "Sin grupo";
+  
+  // Calculate record week from report data (highest traffic week)
+  const getRecordInfo = () => {
+    if (!reportData?.tables?.[0]?.data) return null;
+    const data = reportData.tables[0].data;
+    const columnTitles = reportData.tables[0].columnTitles || [];
+    
+    let maxTotal = 0;
+    let recordDay = "";
+    
+    // Last row is totals, skip it. Check each column for highest values
+    const totalsRow = data[data.length - 1];
+    if (totalsRow) {
+      totalsRow.forEach((cell, idx) => {
+        if (Array.isArray(cell) && cell[0] >= 0) {
+          const total = cell[0] + cell[1];
+          if (total > maxTotal) {
+            maxTotal = total;
+            recordDay = columnTitles[idx] || `Día ${idx + 1}`;
+          }
+        }
+      });
+    }
+    
+    return maxTotal > 0 ? { day: recordDay, total: maxTotal } : null;
+  };
   
   return (
     <div className="space-y-6">
