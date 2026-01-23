@@ -2952,10 +2952,11 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="types">
-            <DeviceTypesPanel deviceTypes={deviceTypes} canEdit={canEdit}
+            <DeviceTypesPanel deviceTypes={deviceTypes} canEdit={canEdit} devices={devices}
               onCreateType={() => { setSelectedType(null); setTypeDialogOpen(true); }}
               onEditType={(t) => { setSelectedType(t); setTypeDialogOpen(true); }}
-              onDeleteType={(t) => { setDeleteTarget({ type: "type", item: t }); setDeleteDialogOpen(true); }} />
+              onDeleteType={(t) => { setDeleteTarget({ type: "type", item: t }); setDeleteDialogOpen(true); }}
+              onFilterByType={(typeId) => { setFilterTypeId(typeId); setActiveTab("devices"); }} />
           </TabsContent>
 
           <TabsContent value="alerts"><AlertsPanel alerts={alerts} /></TabsContent>
