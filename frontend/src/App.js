@@ -1589,9 +1589,9 @@ const StatisticsPanel = ({ devices, groups }) => {
                       {reportData && getRecordInfo() && (
                         <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                           <div className="flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-amber-600" />
+                            <Trophy className="w-5 h-5 text-amber-600" />
                             <p className="text-sm font-medium text-amber-800">
-                              📊 Récord: <span className="font-bold">{getRecordInfo().day}</span> con <span className="font-bold">{getRecordInfo().total.toLocaleString()}</span> personas
+                              Récord: <span className="font-bold">{getRecordInfo().day}</span> con <span className="font-bold">{getRecordInfo().total.toLocaleString()}</span> personas
                             </p>
                           </div>
                         </div>
