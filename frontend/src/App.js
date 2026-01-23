@@ -197,7 +197,7 @@ const AuthProvider = ({ children }) => {
       if (token) {
         try {
           const response = await axios.get(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
-          setUser(response.data);
+          setUser(response.data.user);
         } catch (error) {
           localStorage.removeItem("token");
           setToken(null);
