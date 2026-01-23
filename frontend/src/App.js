@@ -2080,7 +2080,7 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="devices">
-            {/* Filters - not for operators */}
+            {/* Filters - not for operators, available for technicians */}
             {!isOperator && (
               <div className="flex gap-2 mb-6 flex-wrap items-center">
                 {uniqueCountries.length > 0 && (
@@ -2101,8 +2101,29 @@ const Dashboard = () => {
                   <SelectTrigger className="w-[180px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
                   <SelectContent><SelectItem value="all">Todos los tipos</SelectItem>{deviceTypes.map(t => { const Icon = getIcon(t.icon); return <SelectItem key={t.id} value={t.id}><div className="flex items-center gap-2"><Icon className="w-4 h-4" style={{ color: t.color }} />{t.name}</div></SelectItem>; })}</SelectContent>
                 </Select>
-                {(filterCountry || filterOrgId || filterGroupId || filterTypeId) && <Button variant="ghost" size="sm" onClick={() => { setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); }}>Limpiar filtros</Button>}
+                {/* NEW: Status filter */}
+                <Select value={filterStatus || "all"} onValueChange={(v) => setFilterStatus(v === "all" ? null : v)}>
+                  <SelectTrigger className="w-[140px]"><SelectValue placeholder="Estado" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="online"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" />Online</div></SelectItem>
+                    <SelectItem value="offline"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500" />Offline</div></SelectItem>
+                    <SelectItem value="unknown"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-400" />Desconocido</div></SelectItem>
+                  </SelectContent>
+                </Select>
+                {(filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus) && <Button variant="ghost" size="sm" onClick={() => { setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); }}>Limpiar filtros</Button>}
                 <span className="text-sm text-muted-foreground ml-auto">{filteredDevices.length} dispositivo(s)</span>
+              </div>
+            )}
+            
+            {/* Technician header */}
+            {isTechnician && (
+              <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="flex items-center gap-2 text-amber-700">
+                  <Shield className="w-5 h-5" />
+                  <span className="font-medium">Vista de Técnico - Acceso completo a información técnica</span>
+                </div>
+                <p className="text-sm text-amber-600 mt-1">Puedes ver IP, puerto, historial y detalles de todos los dispositivos (solo lectura)</p>
               </div>
             )}
             
