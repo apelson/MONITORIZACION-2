@@ -1143,7 +1143,30 @@ const DeleteConfirmDialog = ({ open, onOpenChange, title, message, onConfirm }) 
 };
 
 // Failures summary dialog
+// WhatsApp alert number
+const WHATSAPP_ALERT_NUMBER = "+34610557829";
+
 const FailuresDialog = ({ open, onOpenChange, failures, onClear }) => {
+  // Generate WhatsApp message with all failures
+  const getWhatsAppLink = () => {
+    if (failures.length === 0) return null;
+    const message = `🚨 *ALERTA - Siempria Network Monitor*\n\n` +
+      `${failures.length} dispositivo(s) offline:\n\n` +
+      failures.map(f => `❌ *${f.name}*\n   IP: ${f.ip}:${f.port}\n   Hora: ${f.time}`).join('\n\n') +
+      `\n\n_Enviado desde Siempria Network Monitor_`;
+    return `https://wa.me/${WHATSAPP_ALERT_NUMBER.replace('+', '')}?text=${encodeURIComponent(message)}`;
+  };
+
+  // Generate WhatsApp link for single device
+  const getSingleWhatsAppLink = (device) => {
+    const message = `🚨 *ALERTA - Dispositivo Offline*\n\n` +
+      `❌ *${device.name}*\n` +
+      `IP: ${device.ip}:${device.port}\n` +
+      `Hora: ${device.time}\n\n` +
+      `_Siempria Network Monitor_`;
+    return `https://wa.me/${WHATSAPP_ALERT_NUMBER.replace('+', '')}?text=${encodeURIComponent(message)}`;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
@@ -1165,12 +1188,32 @@ const FailuresDialog = ({ open, onOpenChange, failures, onClear }) => {
                   <p className="font-medium text-sm truncate">{f.name}</p>
                   <p className="text-xs text-muted-foreground font-mono">{f.ip}:{f.port}</p>
                 </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">{f.time}</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap mr-2">{f.time}</span>
+                <a 
+                  href={getSingleWhatsAppLink(f)} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0 p-1.5 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors"
+                  title="Enviar alerta por WhatsApp"
+                >
+                  <Phone className="w-4 h-4" />
+                </a>
               </div>
             ))
           )}
         </div>
-        <DialogFooter className="flex-shrink-0">
+        <DialogFooter className="flex-shrink-0 gap-2">
+          {failures.length > 0 && (
+            <a 
+              href={getWhatsAppLink()} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors"
+            >
+              <Phone className="w-4 h-4" />
+              Enviar todo por WhatsApp
+            </a>
+          )}
           <Button variant="outline" onClick={onClear}>Limpiar historial</Button>
           <Button onClick={() => onOpenChange(false)}>Cerrar</Button>
         </DialogFooter>
