@@ -4,12 +4,33 @@
 Aplicación de monitoreo de red para equipos con IPs públicas, desarrollada para Siempria (distribuidor autorizado de Mobotix).
 
 ## Stack Tecnológico
-- **Backend:** FastAPI + Python + Motor (MongoDB async)
+- **Backend:** FastAPI + Python + Motor (MongoDB async) - **REFACTORIZADO**
 - **Frontend:** React + TailwindCSS + shadcn/ui + @dnd-kit + Recharts
 - **Base de Datos:** MongoDB
 - **Servidor:** Nginx (proxy reverso)
 
 ---
+
+## Arquitectura del Backend (REFACTORIZADO 23/01/2026)
+
+```
+/app/backend/
+├── server.py          # Punto de entrada (396 líneas, antes 1851)
+├── config.py          # Configuración y conexión DB
+├── models/
+│   └── __init__.py    # Modelos Pydantic
+├── routes/
+│   ├── auth.py        # Autenticación y login
+│   ├── users.py       # Gestión de usuarios
+│   ├── organizations.py # Organizaciones y grupos
+│   ├── devices.py     # Dispositivos y tipos
+│   ├── settings.py    # Configuración email/reportes
+│   └── statistics.py  # Estadísticas Mobotix
+└── services/
+    ├── auth_service.py    # Funciones de autenticación
+    ├── device_service.py  # Verificación de dispositivos
+    └── email_service.py   # Envío de alertas por email
+```
 
 ## Características Implementadas ✅
 
@@ -18,14 +39,14 @@ Aplicación de monitoreo de red para equipos con IPs públicas, desarrollada par
 - [x] Roles: Admin, Manager, Viewer, Operator, Técnico
 - [x] Vista restringida para Operadores (solo cámaras online)
 - [x] Vista Técnico: Acceso completo de lectura a todos los dispositivos (sin Estadísticas)
-- [x] **Cambio de contraseñas desde panel de admin** (NUEVO 23/01/2026)
+- [x] Cambio de contraseñas desde panel de admin
 
 ### Estructura Organizacional
 - [x] Organizaciones con logos, país y ciudad
 - [x] Grupos dentro de organizaciones
 - [x] Filtro de dispositivos por país, organización, grupo, tipo, estado
-- [x] **Filtro por estadísticas habilitadas** (NUEVO 23/01/2026)
-- [x] **Filtro por tipo desde panel Tipos** (NUEVO 23/01/2026)
+- [x] Filtro por estadísticas habilitadas
+- [x] Filtro por tipo desde panel Tipos
 
 ### Gestión de Dispositivos
 - [x] Tipos: Camera, NAS, Switch, Router, Server, Other
@@ -33,10 +54,10 @@ Aplicación de monitoreo de red para equipos con IPs públicas, desarrollada par
 - [x] Clonación de dispositivos
 - [x] Drag & Drop para reordenar tarjetas
 - [x] Paginación de 24 dispositivos por página
-- [x] **Badge "Stats" en tarjetas con estadísticas** (NUEVO 23/01/2026)
-- [x] **Contador de dispositivos por tipo** (NUEVO 23/01/2026)
+- [x] Badge "Stats" en tarjetas con estadísticas
+- [x] Contador de dispositivos por tipo
 
-### Estadísticas de Cámaras Mobotix (MxAnalytics) - REDISEÑADO 23/01/2026
+### Estadísticas de Cámaras Mobotix (MxAnalytics) - REDISEÑADO
 - [x] Panel completamente rediseñado para mayor intuitividad
 - [x] Cabecera con gradiente mostrando info de cámara
 - [x] Pestañas: "Conteo de Personas" y "Mapa de Calor"
