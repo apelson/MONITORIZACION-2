@@ -2681,62 +2681,61 @@ const AccessLogsPanel = () => {
   const { authAxios } = useAuth();
   const pageSize = 50;
 
-  // Load data on mount and when dependencies change
+  // Load data on mount
   useEffect(() => {
-    let isCancelled = false;
-    
     const loadData = async () => {
-      if (!authAxios) return;
-      
-      setLoading(true);
       try {
-        // Fetch logs
-        const params = new URLSearchParams();
-        params.append("skip", String(page * pageSize));
-        params.append("limit", String(pageSize));
-        if (filters.category) params.append("category", filters.category);
-        if (filters.username) params.append("username", filters.username);
-        if (filters.log_type) params.append("log_type", filters.log_type);
-        if (filters.start_date) params.append("start_date", filters.start_date);
-        if (filters.end_date) params.append("end_date", filters.end_date);
-        
-        // Fetch each independently to avoid one failure breaking all
-        const logsRes = await authAxios.get(`/logs?${params.toString()}`);
-        if (!isCancelled) {
-          setLogs(logsRes.data.logs || []);
-          setTotal(logsRes.data.total || 0);
+        console.log("Starting to load logs...");
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.log("No token found");
+          setLoading(false);
+          return;
         }
         
-        // Stats in parallel
-        try {
-          const [statsRes, securityRes] = await Promise.all([
-            authAxios.get("/logs/stats?days=7"),
-            authAxios.get("/logs/security?hours=24")
-          ]);
-          if (!isCancelled) {
-            setStats(statsRes.data);
-            setSecurity(securityRes.data);
+        const response = await fetch(`${API}/logs?skip=0&limit=50`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           }
-        } catch (statsError) {
-          console.error("Error loading stats:", statsError);
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Logs loaded:", data);
+          setLogs(data.logs || []);
+          setTotal(data.total || 0);
+        } else {
+          console.error("Failed to load logs:", response.status);
+        }
+        
+        // Load stats
+        const statsResponse = await fetch(`${API}/logs/stats?days=7`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json();
+          setStats(statsData);
+        }
+        
+        // Load security
+        const securityResponse = await fetch(`${API}/logs/security?hours=24`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (securityResponse.ok) {
+          const securityData = await securityResponse.json();
+          setSecurity(securityData);
         }
         
       } catch (e) {
         console.error("Error loading logs:", e);
-        if (!isCancelled) {
-          setLogs([]);
-        }
       } finally {
-        if (!isCancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
     
     loadData();
-    
-    return () => { isCancelled = true; };
-  }, [authAxios, page, filters]);
+  }, [page, filters]);
 
   const fetchLogs = async () => {
     // Manual refresh function
