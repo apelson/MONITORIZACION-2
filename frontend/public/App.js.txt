@@ -607,9 +607,14 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
         {device.location && (
           <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground"><MapPin className="w-3 h-3" />{device.location}</div>
         )}
-        {group && (
-          <Badge variant="outline" className="mt-2 text-xs" style={{ borderColor: group.color, color: group.color }}><FolderOpen className="w-3 h-3 mr-1" />{group.name}</Badge>
-        )}
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
+          {group && (
+            <Badge variant="outline" className="text-xs" style={{ borderColor: group.color, color: group.color }}><FolderOpen className="w-3 h-3 mr-1" />{group.name}</Badge>
+          )}
+          {device.has_statistics && (
+            <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 border-purple-300"><BarChart3 className="w-3 h-3 mr-1" />Stats</Badge>
+          )}
+        </div>
         {device.description && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{device.description}</p>}
         
         <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
@@ -2431,6 +2436,7 @@ const Dashboard = () => {
   const [filterGroupId, setFilterGroupId] = useState(null);
   const [filterTypeId, setFilterTypeId] = useState(null);
   const [filterStatus, setFilterStatus] = useState(null);  // New: filter by status (online/offline)
+  const [filterStats, setFilterStats] = useState(false);  // New: filter by has_statistics
 
   // Dialogs
   const [deviceDialogOpen, setDeviceDialogOpen] = useState(false);
@@ -2444,6 +2450,9 @@ const Dashboard = () => {
   const [mobotixDialogOpen, setMobotixDialogOpen] = useState(false);
   const [mobotixInfo, setMobotixInfo] = useState(null);
   const [mobotixLoading, setMobotixLoading] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [passwordUserId, setPasswordUserId] = useState(null);
+  const [newPassword, setNewPassword] = useState("");
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [selectedOrg, setSelectedOrg] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -2579,7 +2588,11 @@ const Dashboard = () => {
   const handleSaveSettings = async (data) => { try { await authAxios.post("/settings", data); toast.success("Guardado"); fetchAll(); } catch (e) { toast.error("Error"); } };
 
   const handleDelete = async () => { try { const { type, item } = deleteTarget; if (type === "device") await authAxios.delete(`/devices/${item.id}`); else if (type === "org") await authAxios.delete(`/organizations/${item.id}`); else if (type === "group") await authAxios.delete(`/groups/${item.id}`); else if (type === "user") await authAxios.delete(`/users/${item.id}`); else if (type === "type") await authAxios.delete(`/device-types/${item.id}`); toast.success("Eliminado"); fetchAll(); } catch (e) { toast.error(e.response?.data?.detail || "Error"); } };
-  const handleResetPassword = async (userId) => { try { await authAxios.post(`/users/${userId}/reset-password`); toast.success("Contraseña: password123"); } catch (e) { toast.error("Error"); } };
+  const handleOpenPasswordDialog = (userId) => { setPasswordUserId(userId); setNewPassword(""); setPasswordDialogOpen(true); };
+  const handleSetPassword = async () => { 
+    if (!newPassword || newPassword.length < 6) { toast.error("La contraseña debe tener al menos 6 caracteres"); return; }
+    try { await authAxios.post(`/users/${passwordUserId}/set-password`, { new_password: newPassword }); toast.success("Contraseña actualizada"); setPasswordDialogOpen(false); } catch (e) { toast.error(e.response?.data?.detail || "Error"); } 
+  };
   const handleViewHistory = async (device) => { setSelectedDevice(device); try { const res = await authAxios.get(`/devices/${device.id}/history`); setDeviceHistory(res.data.history || []); setHistoryDialogOpen(true); } catch (e) { toast.error("Error"); } };
   
   const handleMobotixInfo = async (device) => {
@@ -2673,6 +2686,8 @@ const Dashboard = () => {
     if (filterTypeId) filteredDevices = filteredDevices.filter(d => d.device_type_id === filterTypeId);
     // NEW: Filter by status
     if (filterStatus) filteredDevices = filteredDevices.filter(d => d.status === filterStatus);
+    // NEW: Filter by has_statistics
+    if (filterStats) filteredDevices = filteredDevices.filter(d => d.has_statistics === true);
   }
 
   // Pagination with custom order
@@ -2697,7 +2712,7 @@ const Dashboard = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterOrgId, filterGroupId, filterTypeId, filterCountry, filterStatus]);
+  }, [filterOrgId, filterGroupId, filterTypeId, filterCountry, filterStatus, filterStats]);
 
   return (
     <div className="app-container">
@@ -2812,7 +2827,17 @@ const Dashboard = () => {
                     <SelectItem value="unknown"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-400" />Desconocido</div></SelectItem>
                   </SelectContent>
                 </Select>
-                {(filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus) && <Button variant="ghost" size="sm" onClick={() => { setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); }}>Limpiar filtros</Button>}
+                {/* NEW: Filter by statistics */}
+                <Button 
+                  variant={filterStats ? "default" : "outline"} 
+                  size="sm" 
+                  onClick={() => setFilterStats(!filterStats)}
+                  className={filterStats ? "bg-purple-600 hover:bg-purple-700" : ""}
+                >
+                  <BarChart3 className="w-4 h-4 mr-1" />
+                  Con Stats
+                </Button>
+                {(filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus || filterStats) && <Button variant="ghost" size="sm" onClick={() => { setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); setFilterStats(false); }}>Limpiar filtros</Button>}
                 <span className="text-sm text-muted-foreground ml-auto">{filteredDevices.length} dispositivo(s)</span>
               </div>
             )}
@@ -2925,7 +2950,7 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="alerts"><AlertsPanel alerts={alerts} /></TabsContent>
-          {isAdmin && <TabsContent value="users"><UsersPanel users={users} onCreateUser={() => { setSelectedUser(null); setUserDialogOpen(true); }} onEditUser={(u) => { setSelectedUser(u); setUserDialogOpen(true); }} onDeleteUser={(u) => { setDeleteTarget({ type: "user", item: u }); setDeleteDialogOpen(true); }} onResetPassword={handleResetPassword} /></TabsContent>}
+          {isAdmin && <TabsContent value="users"><UsersPanel users={users} onCreateUser={() => { setSelectedUser(null); setUserDialogOpen(true); }} onEditUser={(u) => { setSelectedUser(u); setUserDialogOpen(true); }} onDeleteUser={(u) => { setDeleteTarget({ type: "user", item: u }); setDeleteDialogOpen(true); }} onResetPassword={handleOpenPasswordDialog} /></TabsContent>}
           {isAdmin && <TabsContent value="settings">
             <div className="space-y-6">
               <SettingsPanel settings={settings} onSave={handleSaveSettings} />
@@ -2952,6 +2977,37 @@ const Dashboard = () => {
       <HistoryDialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen} device={selectedDevice} history={deviceHistory} />
       <DeleteConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} title="Confirmar Eliminación" message={`¿Eliminar "${deleteTarget.item?.name || deleteTarget.item?.username}"?`} onConfirm={handleDelete} />
       <FailuresDialog open={failuresDialogOpen} onOpenChange={setFailuresDialogOpen} failures={recentFailures} onClear={() => setRecentFailures([])} />
+      
+      {/* Password Change Dialog */}
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="w-5 h-5 text-blue-600" />
+              Cambiar Contraseña
+            </DialogTitle>
+            <DialogDescription>
+              Usuario: {users.find(u => u.id === passwordUserId)?.username}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">Nueva contraseña</Label>
+              <Input 
+                id="new-password" 
+                type="password" 
+                placeholder="Mínimo 6 caracteres"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPasswordDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSetPassword}>Guardar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       {/* Mobotix Info Dialog */}
       <Dialog open={mobotixDialogOpen} onOpenChange={setMobotixDialogOpen}>
