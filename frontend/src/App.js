@@ -551,18 +551,6 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
               <div className="absolute bottom-1 right-1">
                 <Badge variant="secondary" className="text-xs opacity-75"><Cctv className="w-3 h-3 mr-1" />Live</Badge>
               </div>
-              {/* Botón descargar imagen */}
-              {imageData && !imageError && (
-                <a 
-                  href={imageData}
-                  download={`${device.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.jpg`}
-                  className="absolute top-2 left-2 p-2 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
-                  title="Descargar imagen"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Download className="w-4 h-4 text-white" />
-                </a>
-              )}
               <button 
                 onClick={openDeviceInBrowser}
                 className="absolute top-2 right-2 p-2 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
@@ -570,6 +558,18 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
               >
                 <Globe className="w-4 h-4 text-white" />
               </button>
+              {/* Botón descargar imagen - debajo del botón URL */}
+              {imageData && !imageError && (
+                <a 
+                  href={imageData}
+                  download={`${device.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.jpg`}
+                  className="absolute top-12 right-2 p-2 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                  title="Descargar imagen"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Download className="w-4 h-4 text-white" />
+                </a>
+              )}
             </>
           )}
           {device.status === "offline" && isCamera && (
@@ -2772,7 +2772,7 @@ const Dashboard = () => {
               {isOperator ? <Camera className="w-4 h-4" /> : <Server className="w-4 h-4" />}
               {isOperator ? "Cámaras Online" : "Dispositivos"}
             </TabsTrigger>
-            {!isOperator && <TabsTrigger data-testid="tab-statistics" value="statistics" className="gap-2"><BarChart3 className="w-4 h-4" />Estadísticas</TabsTrigger>}
+            {!isOperator && !isTechnician && <TabsTrigger data-testid="tab-statistics" value="statistics" className="gap-2"><BarChart3 className="w-4 h-4" />Estadísticas</TabsTrigger>}
             {!isOperator && <TabsTrigger data-testid="tab-structure" value="structure" className="gap-2"><Building2 className="w-4 h-4" />Estructura</TabsTrigger>}
             {!isOperator && <TabsTrigger data-testid="tab-types" value="types" className="gap-2"><Tag className="w-4 h-4" />Tipos</TabsTrigger>}
             {!isOperator && <TabsTrigger data-testid="tab-alerts" value="alerts" className="gap-2"><Bell className="w-4 h-4" />Alertas{alerts.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-1.5">{alerts.length}</Badge>}</TabsTrigger>}
