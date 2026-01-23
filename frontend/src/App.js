@@ -2917,15 +2917,13 @@ const Dashboard = () => {
         </Tabs>
       </main>
 
-      {/* Footer fijo con logo para móvil */}
-      <footer className="md:hidden fixed bottom-0 left-0 right-0 bg-gradient-to-r from-[#00A3D9] to-[#0077A3] py-3 px-4 shadow-lg" style={{ zIndex: 9999 }}>
-        <div className="flex items-center justify-center">
-          <img src={LOGO_HORIZONTAL_URL} alt="Siempria" className="h-10 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
-        </div>
-      </footer>
+      {/* Logo fijo en la parte inferior para móvil - solo el logo, sin fondo */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 flex justify-center py-2 bg-white/95 backdrop-blur-sm border-t border-gray-100" style={{ zIndex: 9999 }}>
+        <img src={LOGO_HORIZONTAL_URL} alt="Siempria" className="h-8 object-contain" />
+      </div>
       
-      {/* Spacer para móvil para que el contenido no quede debajo del footer */}
-      <div className="md:hidden h-16" />
+      {/* Spacer para móvil para que el contenido no quede debajo del logo */}
+      <div className="md:hidden h-12" />
 
       {/* Dialogs */}
       <DeviceFormDialog open={deviceDialogOpen} onOpenChange={setDeviceDialogOpen} device={selectedDevice} organizations={organizations} groups={groups} deviceTypes={deviceTypes} onSave={handleSaveDevice} />
