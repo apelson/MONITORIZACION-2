@@ -152,6 +152,8 @@ class DeviceCreate(BaseModel):
     camera_user: Optional[str] = ""
     camera_password: Optional[str] = ""
     camera_path: Optional[str] = ""
+    # Mobotix statistics fields
+    has_statistics: Optional[bool] = False  # Camera has counting/heatmap support
 
 class DeviceUpdate(BaseModel):
     name: Optional[str] = None
@@ -169,6 +171,8 @@ class DeviceUpdate(BaseModel):
     camera_user: Optional[str] = None
     camera_password: Optional[str] = None
     camera_path: Optional[str] = None
+    # Mobotix statistics fields
+    has_statistics: Optional[bool] = None  # Camera has counting/heatmap support
 
 class EmailSettings(BaseModel):
     alert_email: EmailStr
@@ -649,6 +653,7 @@ async def create_device(data: DeviceCreate, current_user: dict = Depends(require
         "camera_protocol": protocol,
         "camera_user": data.camera_user or "", "camera_password": data.camera_password or "",
         "camera_path": data.camera_path or "",
+        "has_statistics": data.has_statistics or False,
         "status": "unknown", "last_check": None, "last_online": None,
         "created_by": current_user["id"], "created_at": datetime.now(timezone.utc).isoformat()
     }
