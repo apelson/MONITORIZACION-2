@@ -2450,6 +2450,9 @@ const Dashboard = () => {
   const [mobotixDialogOpen, setMobotixDialogOpen] = useState(false);
   const [mobotixInfo, setMobotixInfo] = useState(null);
   const [mobotixLoading, setMobotixLoading] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [passwordUserId, setPasswordUserId] = useState(null);
+  const [newPassword, setNewPassword] = useState("");
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [selectedOrg, setSelectedOrg] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
