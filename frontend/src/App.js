@@ -1728,6 +1728,7 @@ const Dashboard = () => {
   const [filterOrgId, setFilterOrgId] = useState(null);
   const [filterGroupId, setFilterGroupId] = useState(null);
   const [filterTypeId, setFilterTypeId] = useState(null);
+  const [filterStatus, setFilterStatus] = useState(null);  // New: filter by status (online/offline)
 
   // Dialogs
   const [deviceDialogOpen, setDeviceDialogOpen] = useState(false);
