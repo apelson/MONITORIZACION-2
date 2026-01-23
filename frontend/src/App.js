@@ -2681,9 +2681,54 @@ const AccessLogsPanel = () => {
   const { authAxios } = useAuth();
   const pageSize = 50;
 
-  // Fetch logs with current filters
-  const fetchLogs = useCallback(async () => {
-    console.log("AccessLogsPanel: fetchLogs called");
+  // Load data on mount and when dependencies change
+  useEffect(() => {
+    let isCancelled = false;
+    
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        // Fetch logs
+        const params = new URLSearchParams();
+        params.append("skip", String(page * pageSize));
+        params.append("limit", String(pageSize));
+        if (filters.category) params.append("category", filters.category);
+        if (filters.username) params.append("username", filters.username);
+        if (filters.log_type) params.append("log_type", filters.log_type);
+        if (filters.start_date) params.append("start_date", filters.start_date);
+        if (filters.end_date) params.append("end_date", filters.end_date);
+        
+        const [logsRes, statsRes, securityRes] = await Promise.all([
+          authAxios.get(`/logs?${params.toString()}`),
+          authAxios.get("/logs/stats?days=7"),
+          authAxios.get("/logs/security?hours=24")
+        ]);
+        
+        if (!isCancelled) {
+          setLogs(logsRes.data.logs || []);
+          setTotal(logsRes.data.total || 0);
+          setStats(statsRes.data);
+          setSecurity(securityRes.data);
+        }
+      } catch (e) {
+        console.error("Error loading logs data:", e);
+        if (!isCancelled) {
+          setLogs([]);
+        }
+      } finally {
+        if (!isCancelled) {
+          setLoading(false);
+        }
+      }
+    };
+    
+    loadData();
+    
+    return () => { isCancelled = true; };
+  }, [authAxios, page, filters]);
+
+  const fetchLogs = async () => {
+    // Manual refresh function
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -2691,38 +2736,21 @@ const AccessLogsPanel = () => {
       params.append("limit", String(pageSize));
       if (filters.category) params.append("category", filters.category);
       if (filters.username) params.append("username", filters.username);
-      if (filters.log_type) params.append("log_type", filters.log_type);
-      if (filters.start_date) params.append("start_date", filters.start_date);
-      if (filters.end_date) params.append("end_date", filters.end_date);
       
-      console.log("AccessLogsPanel: calling API with params:", params.toString());
-      const res = await authAxios.get(`/logs?${params.toString()}`);
-      console.log("AccessLogsPanel: got response", res.data);
-      setLogs(res.data.logs || []);
-      setTotal(res.data.total || 0);
+      const [logsRes, statsRes] = await Promise.all([
+        authAxios.get(`/logs?${params.toString()}`),
+        authAxios.get("/logs/stats?days=7")
+      ]);
+      
+      setLogs(logsRes.data.logs || []);
+      setTotal(logsRes.data.total || 0);
+      setStats(statsRes.data);
     } catch (e) {
-      console.error("AccessLogsPanel: Error fetching logs:", e);
-      setLogs([]);
+      console.error("Error refreshing logs:", e);
     } finally {
       setLoading(false);
     }
-  }, [authAxios, page, filters]);
-
-  const fetchStats = useCallback(async () => {
-    try {
-      const [statsRes, securityRes] = await Promise.all([
-        authAxios.get("/logs/stats?days=7"),
-        authAxios.get("/logs/security?hours=24")
-      ]);
-      setStats(statsRes.data);
-      setSecurity(securityRes.data);
-    } catch (e) {
-      console.error("Error fetching stats:", e);
-    }
-  }, [authAxios]);
-
-  useEffect(() => { fetchLogs(); }, [fetchLogs]);
-  useEffect(() => { fetchStats(); }, [fetchStats]);
+  };
 
   const handleExport = async (format) => {
     try {
