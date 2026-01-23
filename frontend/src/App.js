@@ -2978,6 +2978,37 @@ const Dashboard = () => {
       <DeleteConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} title="Confirmar Eliminación" message={`¿Eliminar "${deleteTarget.item?.name || deleteTarget.item?.username}"?`} onConfirm={handleDelete} />
       <FailuresDialog open={failuresDialogOpen} onOpenChange={setFailuresDialogOpen} failures={recentFailures} onClear={() => setRecentFailures([])} />
       
+      {/* Password Change Dialog */}
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="w-5 h-5 text-blue-600" />
+              Cambiar Contraseña
+            </DialogTitle>
+            <DialogDescription>
+              Usuario: {users.find(u => u.id === passwordUserId)?.username}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">Nueva contraseña</Label>
+              <Input 
+                id="new-password" 
+                type="password" 
+                placeholder="Mínimo 6 caracteres"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPasswordDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSetPassword}>Guardar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       {/* Mobotix Info Dialog */}
       <Dialog open={mobotixDialogOpen} onOpenChange={setMobotixDialogOpen}>
         <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
