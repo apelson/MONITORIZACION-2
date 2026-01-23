@@ -933,24 +933,26 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
     }
     
     setUploading(true);
+    const uploadFormData = new FormData();
+    uploadFormData.append('file', file);
+    const token = localStorage.getItem("token");
+    const uploadUrl = `${BACKEND_URL}/api/upload`;
+    
     try {
-      const formDataUpload = new FormData();
-      formDataUpload.append('file', file);
-      const token = localStorage.getItem("token");
-      const res = await axios.post(`${API}/upload`, formDataUpload, {
+      const res = await axios.post(uploadUrl, uploadFormData, {
         headers: { 
-          'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`
         }
       });
-      const logoUrl = `${process.env.REACT_APP_BACKEND_URL}${res.data.url}`;
-      setFormData({ ...formData, logo_url: logoUrl });
+      const logoUrl = `${BACKEND_URL}${res.data.url}`;
+      setFormData(prev => ({ ...prev, logo_url: logoUrl }));
       toast.success("Logo subido correctamente");
     } catch (err) {
       console.error("Upload error:", err);
       toast.error(err.response?.data?.detail || "Error al subir el archivo");
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   };
 
   const handleSubmit = async (e) => {
