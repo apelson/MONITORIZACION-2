@@ -2820,7 +2820,17 @@ const Dashboard = () => {
                     <SelectItem value="unknown"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-400" />Desconocido</div></SelectItem>
                   </SelectContent>
                 </Select>
-                {(filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus) && <Button variant="ghost" size="sm" onClick={() => { setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); }}>Limpiar filtros</Button>}
+                {/* NEW: Filter by statistics */}
+                <Button 
+                  variant={filterStats ? "default" : "outline"} 
+                  size="sm" 
+                  onClick={() => setFilterStats(!filterStats)}
+                  className={filterStats ? "bg-purple-600 hover:bg-purple-700" : ""}
+                >
+                  <BarChart3 className="w-4 h-4 mr-1" />
+                  Con Stats
+                </Button>
+                {(filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus || filterStats) && <Button variant="ghost" size="sm" onClick={() => { setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); setFilterStats(false); }}>Limpiar filtros</Button>}
                 <span className="text-sm text-muted-foreground ml-auto">{filteredDevices.length} dispositivo(s)</span>
               </div>
             )}
