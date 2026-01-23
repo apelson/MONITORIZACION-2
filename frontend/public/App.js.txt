@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, createContext, useContext, memo, useMemo } from "react";
+import { useState, useEffect, useCallback, createContext, useContext, memo, useMemo, useRef } from "react";
 import "@/App.css";
 import axios from "axios";
 import { Toaster, toast } from "sonner";
@@ -8,11 +8,13 @@ import {
   FolderOpen, LogOut, User, Shield, Eye, Lock, ChevronDown, Building2,
   Camera, HardDrive, Network, Router, Monitor, Printer, Box, ChevronRight,
   MapPin, FileText, Image, Tag, Layers, Download, FileSpreadsheet, FileIcon,
-  Info, Globe, Calendar, Copy, Cctv, ExternalLink, GripVertical, Phone
+  Info, Globe, Calendar, Copy, Cctv, ExternalLink, GripVertical, Phone,
+  BarChart3, TrendingUp, Flame, ArrowUpDown, Wrench, Trophy, PieChart
 } from "lucide-react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -32,6 +34,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_equip-tracker-39/artifacts/796492pi_version%20autorizada%202.png";
+const LOGO_HORIZONTAL_URL = "https://customer-assets.emergentagent.com/job_monitorsys-2/artifacts/qs1jn738_logo%20principal.png";
 const MOBOTIX_LOGO_URL = "https://www.mobotix.com/sites/default/files/2019-10/MOBOTIX-Logo.svg";
 
 // ============ LOADING SCREEN ============
@@ -248,7 +251,8 @@ const RoleBadge = ({ role }) => {
     admin: { label: "Admin", cls: "bg-red-100 text-red-700 border-red-200" }, 
     manager: { label: "Gestor", cls: "bg-blue-100 text-blue-700 border-blue-200" }, 
     viewer: { label: "Visor", cls: "bg-gray-100 text-gray-700 border-gray-200" },
-    operator: { label: "Operador", cls: "bg-purple-100 text-purple-700 border-purple-200" }
+    operator: { label: "Operador", cls: "bg-purple-100 text-purple-700 border-purple-200" },
+    technician: { label: "Técnico", cls: "bg-amber-100 text-amber-700 border-amber-200" }
   }[role] || { label: role, cls: "bg-gray-100" };
   return <Badge variant="outline" className={`${cfg.cls} text-xs`}>{cfg.label}</Badge>;
 };
@@ -456,11 +460,35 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
   const cardRef = useCallback(node => {
     if (!node) return;
     
+    // Load image function defined inside callback to avoid hoisting issues
+    const loadImage = async () => {
+      if (imageData) return;
+      setImageLoading(true);
+      
+      if (hasCameraConfig && device.status === "online") {
+        try {
+          const response = await authAxios.get(`/image-proxy/${device.id}`, { responseType: 'blob' });
+          if (response.data) {
+            const url = URL.createObjectURL(response.data);
+            setImageData(url);
+            setImageError(false);
+            setCaptureTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+          }
+        } catch (e) {
+          console.error(`Error loading image for ${device.name}:`, e);
+          setImageData(OFFLINE_PLACEHOLDER);
+          setImageError(true);
+          setCaptureTime(null);
+        }
+      }
+      setImageLoading(false);
+    };
+    
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting && !imageData && isCamera && hasCameraConfig && device.status === "online") {
-            loadImageNow();
+            loadImage();
           }
         });
       },
@@ -469,31 +497,7 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
     
     observer.observe(node);
     return () => observer.disconnect();
-  }, [imageData, isCamera, hasCameraConfig, device.status]);
-
-  // Load image function
-  const loadImageNow = async () => {
-    if (imageData) return; // Already loaded
-    setImageLoading(true);
-    
-    if (hasCameraConfig && device.status === "online") {
-      try {
-        const response = await authAxios.get(`/image-proxy/${device.id}`, { responseType: 'blob' });
-        if (response.data) {
-          const url = URL.createObjectURL(response.data);
-          setImageData(url);
-          setImageError(false);
-          setCaptureTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-        }
-      } catch (e) {
-        console.error(`Error loading image for ${device.name}:`, e);
-        setImageData(OFFLINE_PLACEHOLDER);
-        setImageError(true);
-        setCaptureTime(null);
-      }
-    }
-    setImageLoading(false);
-  };
+  }, [imageData, isCamera, hasCameraConfig, device.status, device.id, device.name, authAxios]);
 
   // Set placeholder for offline cameras immediately
   useEffect(() => {
@@ -604,6 +608,18 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
         <Separator className="my-3" />
 
         <div className="flex flex-col gap-2">
+          {/* WhatsApp alert button for offline devices */}
+          {device.status === 'offline' && (
+            <a 
+              href={`https://wa.me/${WHATSAPP_ALERT_NUMBER.replace('+', '')}?text=${encodeURIComponent(`🚨 *ALERTA - Dispositivo Offline*\n\n❌ *${device.name}*\nIP: ${device.ip_address}:${device.port}\n\n_Siempria Network Monitor_`)}`}
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md text-sm font-medium transition-colors"
+            >
+              <Phone className="w-4 h-4" />
+              Avisar por WhatsApp
+            </a>
+          )}
           <Button data-testid={`check-device-${device.id}`} variant="outline" size="sm" onClick={handleCheck} disabled={isChecking} className="w-full">
             <RefreshCw className={`w-3 h-3 mr-1.5 ${isChecking ? 'animate-spin-slow' : ''}`} />Verificar
           </Button>
@@ -632,7 +648,7 @@ ServerCard.displayName = 'ServerCard';
 
 // ============ DIALOGS ============
 const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, deviceTypes, onSave }) => {
-  const [formData, setFormData] = useState({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_protocol: "http", camera_user: "", camera_password: "", camera_path: "" });
+  const [formData, setFormData] = useState({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_protocol: "http", camera_user: "", camera_password: "", camera_path: "", has_statistics: false });
   const [saving, setSaving] = useState(false);
   const [selectedOrgId, setSelectedOrgId] = useState("");
   const [initialized, setInitialized] = useState(false);
@@ -650,12 +666,13 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
           camera_protocol: device.camera_protocol || "http",
           camera_user: device.camera_user || "",
           camera_password: device.camera_password || "",
-          camera_path: device.camera_path || ""
+          camera_path: device.camera_path || "",
+          has_statistics: device.has_statistics || false
         });
         const grp = groups.find(g => g.id === device.group_id);
         if (grp) setSelectedOrgId(grp.organization_id);
       } else {
-        setFormData({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_protocol: "http", camera_user: "", camera_password: "", camera_path: "" });
+        setFormData({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_protocol: "http", camera_user: "", camera_password: "", camera_path: "", has_statistics: false });
         setSelectedOrgId("");
       }
       setInitialized(true);
@@ -806,6 +823,19 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
                     <code className="text-xs font-mono break-all">{previewUrl}</code>
                   </div>
                 )}
+                {/* Mobotix Statistics checkbox */}
+                <div className="col-span-2 flex items-center gap-3 p-3 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-lg">
+                  <Switch 
+                    id="has-statistics" 
+                    checked={formData.has_statistics} 
+                    onCheckedChange={(checked) => setFormData({ ...formData, has_statistics: checked })}
+                  />
+                  <div className="flex-1">
+                    <Label htmlFor="has-statistics" className="cursor-pointer font-medium text-cyan-700">Estadísticas MxAnalytics</Label>
+                    <p className="text-xs text-cyan-600">Habilita si la cámara tiene conteo de personas y mapa de calor (Mobotix C25/C26)</p>
+                  </div>
+                  <Activity className="w-5 h-5 text-cyan-500" />
+                </div>
               </>
             )}
 
@@ -992,13 +1022,17 @@ const UserFormDialog = ({ open, onOpenChange, user, organizations, groups, onSav
                   <SelectContent>
                     <SelectItem value="admin"><div className="flex items-center gap-2"><Shield className="w-4 h-4" />Admin</div></SelectItem>
                     <SelectItem value="manager"><div className="flex items-center gap-2"><Edit className="w-4 h-4" />Gestor</div></SelectItem>
+                    <SelectItem value="technician"><div className="flex items-center gap-2"><Wrench className="w-4 h-4" />Técnico</div></SelectItem>
                     <SelectItem value="operator"><div className="flex items-center gap-2"><Camera className="w-4 h-4" />Operador</div></SelectItem>
                     <SelectItem value="viewer"><div className="flex items-center gap-2"><Eye className="w-4 h-4" />Visor</div></SelectItem>
                   </SelectContent>
                 </Select>
+                {formData.role === "technician" && (
+                  <p className="text-xs text-amber-600 mt-1">El técnico ve todos los dispositivos (IP, puerto, historial) pero no puede editarlos.</p>
+                )}
               </div>
             </div>
-            {formData.role !== "admin" && (
+            {formData.role !== "admin" && formData.role !== "technician" && (
               <div className="space-y-2">
                 <Label>Grupos permitidos</Label>
                 <p className="text-xs text-muted-foreground mb-2">Sin selección = acceso a todos. Selecciona para restringir.</p>
@@ -1121,7 +1155,30 @@ const DeleteConfirmDialog = ({ open, onOpenChange, title, message, onConfirm }) 
 };
 
 // Failures summary dialog
+// WhatsApp alert number
+const WHATSAPP_ALERT_NUMBER = "+34610557829";
+
 const FailuresDialog = ({ open, onOpenChange, failures, onClear }) => {
+  // Generate WhatsApp message with all failures
+  const getWhatsAppLink = () => {
+    if (failures.length === 0) return null;
+    const message = `🚨 *ALERTA - Siempria Network Monitor*\n\n` +
+      `${failures.length} dispositivo(s) offline:\n\n` +
+      failures.map(f => `❌ *${f.name}*\n   IP: ${f.ip}:${f.port}\n   Hora: ${f.time}`).join('\n\n') +
+      `\n\n_Enviado desde Siempria Network Monitor_`;
+    return `https://wa.me/${WHATSAPP_ALERT_NUMBER.replace('+', '')}?text=${encodeURIComponent(message)}`;
+  };
+
+  // Generate WhatsApp link for single device
+  const getSingleWhatsAppLink = (device) => {
+    const message = `🚨 *ALERTA - Dispositivo Offline*\n\n` +
+      `❌ *${device.name}*\n` +
+      `IP: ${device.ip}:${device.port}\n` +
+      `Hora: ${device.time}\n\n` +
+      `_Siempria Network Monitor_`;
+    return `https://wa.me/${WHATSAPP_ALERT_NUMBER.replace('+', '')}?text=${encodeURIComponent(message)}`;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
@@ -1143,12 +1200,32 @@ const FailuresDialog = ({ open, onOpenChange, failures, onClear }) => {
                   <p className="font-medium text-sm truncate">{f.name}</p>
                   <p className="text-xs text-muted-foreground font-mono">{f.ip}:{f.port}</p>
                 </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">{f.time}</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap mr-2">{f.time}</span>
+                <a 
+                  href={getSingleWhatsAppLink(f)} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0 p-1.5 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors"
+                  title="Enviar alerta por WhatsApp"
+                >
+                  <Phone className="w-4 h-4" />
+                </a>
               </div>
             ))
           )}
         </div>
-        <DialogFooter className="flex-shrink-0">
+        <DialogFooter className="flex-shrink-0 gap-2">
+          {failures.length > 0 && (
+            <a 
+              href={getWhatsAppLink()} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors"
+            >
+              <Phone className="w-4 h-4" />
+              Enviar todo por WhatsApp
+            </a>
+          )}
           <Button variant="outline" onClick={onClear}>Limpiar historial</Button>
           <Button onClick={() => onOpenChange(false)}>Cerrar</Button>
         </DialogFooter>
@@ -1345,6 +1422,615 @@ const AlertsPanel = ({ alerts }) => (
     </CardContent>
   </Card>
 );
+
+// ============ STATISTICS PANEL ============
+const StatisticsPanel = ({ devices, groups }) => {
+  const { authAxios } = useAuth();
+  const [camerasWithStats, setCamerasWithStats] = useState([]);
+  const [selectedCamera, setSelectedCamera] = useState(null);
+  const [statsData, setStatsData] = useState(null);
+  const [heatmapImage, setHeatmapImage] = useState(null);
+  const [reportData, setReportData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [reportType, setReportType] = useState("week");
+  const [reportRange, setReportRange] = useState("current");
+  const [heatmapType, setHeatmapType] = useState("week");
+  const [heatmapRange, setHeatmapRange] = useState("last");
+  const [selectedReportProfile, setSelectedReportProfile] = useState("");
+  const [selectedHeatmapProfile, setSelectedHeatmapProfile] = useState("");
+  const [chartType, setChartType] = useState("bar"); // bar or pie
+  const [useCustomDates, setUseCustomDates] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const chartRef = useRef(null);
+  
+  // Colors for charts
+  const CHART_COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
+  
+  // Filter cameras that have statistics enabled
+  useEffect(() => {
+    const statsDevices = devices.filter(d => d.has_statistics === true && d.device_type_id === "type-camera");
+    setCamerasWithStats(statsDevices);
+  }, [devices]);
+  
+  // Prepare chart data from report - memoized to prevent infinite loops
+  const chartData = useMemo(() => {
+    if (!reportData?.tables?.[0]?.data) return [];
+    const data = reportData.tables[0].data;
+    const colTitles = reportData.tables[0].columnTitles || [];
+    const totalsRow = data[data.length - 1];
+    
+    if (!totalsRow) return [];
+    
+    return colTitles.map((day, idx) => {
+      const cell = totalsRow[idx];
+      if (Array.isArray(cell) && cell[0] >= 0) {
+        return { name: day.substring(0, 3), entrada: cell[0], salida: cell[1], total: cell[0] + cell[1] };
+      }
+      return { name: day.substring(0, 3), entrada: 0, salida: 0, total: 0 };
+    }).filter(d => d.total > 0);
+  }, [reportData]);
+  
+  // Prepare pie chart data - memoized
+  const pieData = useMemo(() => {
+    const totalEntrada = chartData.reduce((sum, d) => sum + d.entrada, 0);
+    const totalSalida = chartData.reduce((sum, d) => sum + d.salida, 0);
+    return [
+      { name: 'Entrada', value: totalEntrada, color: '#22c55e' },
+      { name: 'Salida', value: totalSalida, color: '#ef4444' }
+    ];
+  }, [chartData]);
+  
+  // Export current view to Excel
+  const exportToExcel = () => {
+    if (!reportData?.tables?.[0]) { toast.error("No hay datos para exportar"); return; }
+    const table = reportData.tables[0];
+    const dateInfo = useCustomDates && startDate && endDate ? `${startDate} a ${endDate}` : `${reportType} - ${reportRange}`;
+    let csv = `Cámara: ${selectedCamera?.name || 'N/A'}\nPeriodo: ${dateInfo}\n\nHora,` + (table.columnTitles?.join(",") || "") + "\n";
+    table.data?.forEach((row, idx) => {
+      const rowTitle = table.rowTitles?.[idx] || `Fila ${idx}`;
+      const cells = row.map(cell => Array.isArray(cell) ? (cell[0] >= 0 ? `${cell[0]}/${cell[1]}` : '-') : cell);
+      csv += rowTitle + "," + cells.join(",") + "\n";
+    });
+    const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `estadisticas_${selectedCamera?.name || 'camara'}_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Exportado a CSV/Excel");
+  };
+  
+  // Export current view to PDF (using print)
+  const exportToPDF = () => {
+    const printContent = chartRef.current;
+    if (!printContent) { toast.error("No hay contenido para exportar"); return; }
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html><head><title>Estadísticas - ${selectedCamera?.name || 'Cámara'}</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { color: #0891b2; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background: #f0f9ff; }
+        .green { color: #22c55e; }
+        .red { color: #ef4444; }
+        .record { background: #fef3c7; padding: 10px; border-radius: 8px; margin: 10px 0; }
+        .legend { margin-top: 10px; font-size: 12px; }
+      </style></head><body>
+      <h1>Estadísticas MxAnalytics</h1>
+      <h2>${selectedCamera?.name || 'Cámara'}</h2>
+      <p>Fecha: ${new Date().toLocaleDateString('es-ES')}</p>
+      ${printContent.innerHTML}
+      <div class="legend"><span class="green">Verde</span>: Entrada | <span class="red">Rojo</span>: Salida</div>
+      </body></html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+    toast.success("Exportando a PDF...");
+  };
+  
+  // Fetch overview when camera is selected
+  const fetchCameraStats = async (camera) => {
+    setSelectedCamera(camera);
+    setLoading(true);
+    setStatsData(null);
+    setHeatmapImage(null);
+    setReportData(null);
+    setSelectedReportProfile("");
+    setSelectedHeatmapProfile("");
+    
+    try {
+      const res = await authAxios.get(`/cameras/${camera.id}/mobotix/overview`);
+      setStatsData(res.data.data);
+    } catch (e) {
+      toast.error("Error al obtener estadísticas: " + (e.response?.data?.detail || e.message));
+    }
+    setLoading(false);
+  };
+  
+  // Fetch counting report
+  const fetchReport = async () => {
+    if (!selectedCamera) return;
+    setLoading(true);
+    try {
+      let url = `/cameras/${selectedCamera.id}/mobotix/report?report_type=${reportType}&export_range=${reportRange}`;
+      if (useCustomDates && startDate && endDate) {
+        url = `/cameras/${selectedCamera.id}/mobotix/report?start_date=${startDate}&end_date=${endDate}`;
+      }
+      const res = await authAxios.get(url);
+      setReportData(res.data.report);
+    } catch (e) {
+      toast.error("Error al obtener reporte: " + (e.response?.data?.detail || e.message));
+    }
+    setLoading(false);
+  };
+  
+  // Fetch heatmap
+  const fetchHeatmap = async () => {
+    if (!selectedCamera) return;
+    setLoading(true);
+    try {
+      const res = await authAxios.get(`/cameras/${selectedCamera.id}/mobotix/heatmap?heatmap_type=${heatmapType}&export_range=${heatmapRange}`);
+      setHeatmapImage(res.data.image);
+    } catch (e) {
+      toast.error("Error al obtener mapa de calor: " + (e.response?.data?.detail || e.message));
+    }
+    setLoading(false);
+  };
+  
+  const getGroupName = (groupId) => groups.find(g => g.id === groupId)?.name || "Sin grupo";
+  
+  // Calculate record - memoized
+  const recordInfo = useMemo(() => {
+    if (!reportData?.tables?.[0]?.data) return null;
+    const data = reportData.tables[0].data;
+    const columnTitles = reportData.tables[0].columnTitles || [];
+    
+    let maxTotal = 0;
+    let recordDay = "";
+    
+    const totalsRow = data[data.length - 1];
+    if (totalsRow) {
+      totalsRow.forEach((cell, idx) => {
+        if (Array.isArray(cell) && cell[0] >= 0) {
+          const total = cell[0] + cell[1];
+          if (total > maxTotal) {
+            maxTotal = total;
+            recordDay = columnTitles[idx] || `Día ${idx + 1}`;
+          }
+        }
+      });
+    }
+    
+    return maxTotal > 0 ? { day: recordDay, total: maxTotal } : null;
+  }, [reportData]);
+  
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <Card className="bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 text-cyan-800">
+            <div className="p-2 bg-cyan-100 rounded-lg">
+              <BarChart3 className="w-6 h-6 text-cyan-600" />
+            </div>
+            Estadísticas MxAnalytics
+          </CardTitle>
+          <CardDescription className="text-cyan-700">
+            Conteo de personas y mapas de calor de cámaras Mobotix con MxAnalytics habilitado
+          </CardDescription>
+        </CardHeader>
+      </Card>
+      
+      {camerasWithStats.length === 0 ? (
+        <Card>
+          <CardContent className="py-16 text-center">
+            <Activity className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-30" />
+            <h3 className="text-lg font-medium mb-2">No hay cámaras con estadísticas</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Para ver estadísticas, edita una cámara y activa la opción "Estadísticas MxAnalytics" en el formulario de dispositivo.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Camera List */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Camera className="w-4 h-4" />
+                Cámaras ({camerasWithStats.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[500px]">
+                <div className="space-y-2">
+                  {camerasWithStats.map(camera => (
+                    <button
+                      key={camera.id}
+                      onClick={() => fetchCameraStats(camera)}
+                      className={`w-full text-left p-3 rounded-lg border transition-all ${
+                        selectedCamera?.id === camera.id 
+                          ? 'bg-cyan-50 border-cyan-300 shadow-sm' 
+                          : 'bg-white border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${camera.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{camera.name}</p>
+                          <p className="text-xs text-muted-foreground">{getGroupName(camera.group_id)}</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+          
+          {/* Stats Display */}
+          <div className="lg:col-span-2 space-y-6">
+            {!selectedCamera ? (
+              <Card>
+                <CardContent className="py-16 text-center">
+                  <BarChart3 className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-30" />
+                  <p className="text-muted-foreground">Selecciona una cámara para ver sus estadísticas</p>
+                </CardContent>
+              </Card>
+            ) : loading && !statsData ? (
+              <Card>
+                <CardContent className="py-16 text-center">
+                  <RefreshCw className="w-8 h-8 mx-auto mb-4 animate-spin text-cyan-600" />
+                  <p className="text-muted-foreground">Cargando estadísticas...</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {/* Overview */}
+                {statsData && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-cyan-600" />
+                        {selectedCamera.name} - Resumen
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="bg-green-50 rounded-lg p-4 text-center">
+                          <p className="text-3xl font-bold text-green-700">{statsData.corridors?.length || 0}</p>
+                          <p className="text-xs text-green-600 mt-1">Corredores</p>
+                        </div>
+                        <div className="bg-purple-50 rounded-lg p-4 text-center">
+                          <p className="text-3xl font-bold text-purple-700">{statsData.reports?.length || 0}</p>
+                          <p className="text-xs text-purple-600 mt-1">Informes Guardados</p>
+                        </div>
+                        <div className="bg-orange-50 rounded-lg p-4 text-center">
+                          <p className="text-3xl font-bold text-orange-700">{statsData.heatmaps?.length || 0}</p>
+                          <p className="text-xs text-orange-600 mt-1">Mapas de Calor</p>
+                        </div>
+                      </div>
+                      
+                      {/* Corridors info - Changed North/South to Entrada/Salida */}
+                      {statsData.corridors && statsData.corridors.length > 0 && (
+                        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                          <p className="text-sm font-medium mb-2">Corredores de conteo:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {statsData.corridors.map((c, i) => (
+                              <Badge key={i} variant="outline" className="bg-white">
+                                <ArrowUpDown className="w-3 h-3 mr-1" />
+                                {c.name}: <span className="text-green-600 ml-1">Entrada</span> ↔ <span className="text-red-600">Salida</span>
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Record info - shows when report is loaded */}
+                      {reportData && recordInfo && (
+                        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <Trophy className="w-5 h-5 text-amber-600" />
+                            <p className="text-sm font-medium text-amber-800">
+                              Récord: <span className="font-bold">{recordInfo.day}</span> con <span className="font-bold">{recordInfo.total.toLocaleString()}</span> personas
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Historical report profiles selector */}
+                      {statsData.reports && statsData.reports.length > 0 && (
+                        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <p className="text-sm font-medium text-blue-800 mb-2">📁 Informes históricos disponibles:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {statsData.reports.map((r, i) => (
+                              <Button 
+                                key={i} 
+                                size="sm" 
+                                variant={selectedReportProfile === r._profilename ? "default" : "outline"}
+                                className={selectedReportProfile === r._profilename ? "bg-blue-600" : ""}
+                                onClick={() => setSelectedReportProfile(r._profilename)}
+                              >
+                                <FileText className="w-3 h-3 mr-1" />
+                                {r._profilename}
+                              </Button>
+                            ))}
+                          </div>
+                          {selectedReportProfile && (
+                            <p className="text-xs text-blue-600 mt-2">
+                              Seleccionado: "{selectedReportProfile}" - Usa el selector de reporte para cargar este informe
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Heatmap profiles selector */}
+                      {statsData.heatmaps && statsData.heatmaps.length > 0 && (
+                        <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                          <p className="text-sm font-medium text-orange-800 mb-2">🔥 Mapas de calor disponibles:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {statsData.heatmaps.map((h, i) => (
+                              <Button 
+                                key={i} 
+                                size="sm" 
+                                variant={selectedHeatmapProfile === h._profilename ? "default" : "outline"}
+                                className={selectedHeatmapProfile === h._profilename ? "bg-orange-600" : ""}
+                                onClick={() => setSelectedHeatmapProfile(h._profilename)}
+                              >
+                                <Flame className="w-3 h-3 mr-1" />
+                                {h._profilename}
+                              </Button>
+                            ))}
+                          </div>
+                          {selectedHeatmapProfile && (
+                            <p className="text-xs text-orange-600 mt-2">
+                              Seleccionado: "{selectedHeatmapProfile}" - Usa el selector de mapa de calor para cargar
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+                
+                {/* Counting Report */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-blue-600" />
+                        Reporte de Conteo
+                      </CardTitle>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* Date mode toggle */}
+                        <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                          <Button size="sm" variant={!useCustomDates ? "default" : "ghost"} className="h-7" onClick={() => setUseCustomDates(false)}>
+                            Predefinido
+                          </Button>
+                          <Button size="sm" variant={useCustomDates ? "default" : "ghost"} className="h-7" onClick={() => setUseCustomDates(true)}>
+                            <Calendar className="w-3 h-3 mr-1" />Fechas
+                          </Button>
+                        </div>
+                        
+                        {!useCustomDates ? (
+                          <>
+                            <Select value={reportType} onValueChange={setReportType}>
+                              <SelectTrigger className="w-[100px] h-8"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="week">Semanal</SelectItem>
+                                <SelectItem value="month">Mensual</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Select value={reportRange} onValueChange={setReportRange}>
+                              <SelectTrigger className="w-[100px] h-8"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="current">Actual</SelectItem>
+                                <SelectItem value="last">Anterior</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </>
+                        ) : (
+                          <>
+                            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-[140px] h-8" />
+                            <span className="text-muted-foreground">a</span>
+                            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-[140px] h-8" />
+                          </>
+                        )}
+                        
+                        <Button size="sm" onClick={fetchReport} disabled={loading || (useCustomDates && (!startDate || !endDate))}>
+                          <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                          Obtener
+                        </Button>
+                        {reportData && (
+                          <>
+                            <Separator orientation="vertical" className="h-6" />
+                            <Select value={chartType} onValueChange={setChartType}>
+                              <SelectTrigger className="w-[100px] h-8"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="bar"><div className="flex items-center gap-2"><BarChart3 className="w-4 h-4" />Barras</div></SelectItem>
+                                <SelectItem value="pie"><div className="flex items-center gap-2"><PieChart className="w-4 h-4" />Circular</div></SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button size="sm" variant="outline" onClick={exportToExcel}>
+                              <FileSpreadsheet className="w-4 h-4 mr-1" />Excel
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={exportToPDF}>
+                              <FileText className="w-4 h-4 mr-1" />PDF
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {reportData && reportData.tables && reportData.tables[0] ? (
+                      <div ref={chartRef}>
+                        {/* Chart visualization */}
+                        <div className="mb-6">
+                          {chartType === 'bar' && chartData.length > 0 ? (
+                            <div style={{ width: '100%', height: 250 }}>
+                              <ResponsiveContainer>
+                                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis dataKey="name" />
+                                  <YAxis />
+                                  <Tooltip />
+                                  <Legend />
+                                  <Bar dataKey="entrada" name="Entrada" fill="#22c55e" />
+                                  <Bar dataKey="salida" name="Salida" fill="#ef4444" />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </div>
+                          ) : chartType === 'pie' && pieData.length > 0 ? (
+                            <div style={{ width: '100%', height: 250 }}>
+                              <ResponsiveContainer>
+                                <RechartsPieChart>
+                                  <Pie data={pieData} cx="50%" cy="50%" labelLine={false}
+                                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                    outerRadius={80} fill="#8884d8" dataKey="value">
+                                    {pieData.map((entry, index) => (
+                                      <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                  </Pie>
+                                  <Tooltip />
+                                  <Legend />
+                                </RechartsPieChart>
+                              </ResponsiveContainer>
+                            </div>
+                          ) : null}
+                        </div>
+                        
+                        {/* Data table */}
+                        <div className="overflow-x-auto">
+                          <p className="text-sm font-medium mb-3">{reportData.tables[0].title || "Reporte de conteo"}</p>
+                          <table className="w-full text-sm border-collapse">
+                            <thead>
+                              <tr className="bg-blue-50">
+                                <th className="border p-2 text-left">{reportData.tables[0].rowTitle || "Hora"}</th>
+                                {reportData.tables[0].columnTitles?.map((col, i) => (
+                                  <th key={i} className="border p-2 text-center text-xs">{col}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {reportData.tables[0].data?.slice(0, -1).map((row, rowIdx) => (
+                                <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                  <td className="border p-2 font-medium text-xs">{reportData.tables[0].rowTitles?.[rowIdx]}</td>
+                                  {row.map((cell, colIdx) => (
+                                    <td key={colIdx} className="border p-2 text-center text-xs">
+                                      {Array.isArray(cell) ? (
+                                        cell[0] < 0 ? '-' : (
+                                          <span className="flex items-center justify-center gap-1">
+                                            <span className="text-green-600">{cell[0]}</span>
+                                            <span className="text-muted-foreground">/</span>
+                                            <span className="text-red-600">{cell[1]}</span>
+                                          </span>
+                                        )
+                                      ) : cell}
+                                    </td>
+                                  ))}
+                                </tr>
+                              ))}
+                              {/* Total row */}
+                              {reportData.tables[0].data && (
+                                <tr className="bg-blue-100 font-bold">
+                                  <td className="border p-2">Total</td>
+                                  {reportData.tables[0].data[reportData.tables[0].data.length - 1]?.map((cell, colIdx) => (
+                                    <td key={colIdx} className="border p-2 text-center">
+                                      {Array.isArray(cell) ? (
+                                        cell[0] < 0 ? '-' : (
+                                          <span className="flex items-center justify-center gap-1">
+                                            <span className="text-green-700">{cell[0]}</span>
+                                            <span>/</span>
+                                            <span className="text-red-700">{cell[1]}</span>
+                                          </span>
+                                        )
+                                      ) : cell}
+                                    </td>
+                                  ))}
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            <span className="text-green-600">Verde</span>: Entrada | 
+                            <span className="text-red-600 ml-2">Rojo</span>: Salida
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <TrendingUp className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                        <p>Haz clic en "Obtener" para cargar el reporte de conteo</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                {/* Heatmap */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Flame className="w-4 h-4 text-orange-600" />
+                        Mapa de Calor
+                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Select value={heatmapType} onValueChange={setHeatmapType}>
+                          <SelectTrigger className="w-[120px] h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="day">Diario</SelectItem>
+                            <SelectItem value="week">Semanal</SelectItem>
+                            <SelectItem value="month">Mensual</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select value={heatmapRange} onValueChange={setHeatmapRange}>
+                          <SelectTrigger className="w-[120px] h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="current">Actual</SelectItem>
+                            <SelectItem value="last">Anterior</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button size="sm" onClick={fetchHeatmap} disabled={loading}>
+                          <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                          Obtener
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {heatmapImage ? (
+                      <div className="text-center">
+                        <img 
+                          src={heatmapImage} 
+                          alt="Mapa de calor" 
+                          className="max-w-full rounded-lg border shadow-sm mx-auto"
+                        />
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Mapa de calor {heatmapType === 'day' ? 'diario' : heatmapType === 'week' ? 'semanal' : 'mensual'} ({heatmapRange === 'current' ? 'actual' : 'anterior'})
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Flame className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                        <p>Haz clic en "Obtener" para cargar el mapa de calor</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const PublicDashboardConfig = ({ organization }) => {
   const [config, setConfig] = useState({
@@ -1727,6 +2413,7 @@ const Dashboard = () => {
   const [filterOrgId, setFilterOrgId] = useState(null);
   const [filterGroupId, setFilterGroupId] = useState(null);
   const [filterTypeId, setFilterTypeId] = useState(null);
+  const [filterStatus, setFilterStatus] = useState(null);  // New: filter by status (online/offline)
 
   // Dialogs
   const [deviceDialogOpen, setDeviceDialogOpen] = useState(false);
@@ -1753,7 +2440,7 @@ const Dashboard = () => {
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const DEVICES_PER_PAGE = 50;
+  const DEVICES_PER_PAGE = 24;
   
   // Custom device order (drag & drop)
   const [deviceOrder, setDeviceOrder] = useState(() => {
@@ -1783,6 +2470,7 @@ const Dashboard = () => {
   const canEdit = user?.role === "admin" || user?.role === "manager";
   const isAdmin = user?.role === "admin";
   const isOperator = user?.role === "operator";
+  const isTechnician = user?.role === "technician";
   const onlineCount = devices.filter(d => d.status === 'online').length;
   const offlineCount = devices.filter(d => d.status === 'offline').length;
 
@@ -1966,6 +2654,8 @@ const Dashboard = () => {
       filteredDevices = filteredDevices.filter(d => orgGroupIds.includes(d.group_id));
     }
     if (filterTypeId) filteredDevices = filteredDevices.filter(d => d.device_type_id === filterTypeId);
+    // NEW: Filter by status
+    if (filterStatus) filteredDevices = filteredDevices.filter(d => d.status === filterStatus);
   }
 
   // Pagination with custom order
@@ -1990,7 +2680,7 @@ const Dashboard = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterOrgId, filterGroupId, filterTypeId, filterCountry]);
+  }, [filterOrgId, filterGroupId, filterTypeId, filterCountry, filterStatus]);
 
   return (
     <div className="app-container">
@@ -1998,34 +2688,52 @@ const Dashboard = () => {
 
       {/* Header */}
       <header className="app-header">
-        <div className="container mx-auto max-w-7xl px-6 py-3">
+        <div className="container mx-auto max-w-7xl px-4 md:px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <img src={LOGO_URL} alt="Siempria" className="h-12 object-contain" />
+              {/* Logo vertical para desktop */}
+              <img src={LOGO_URL} alt="Siempria" className="hidden md:block h-12 object-contain" />
               <div className="hidden md:block">
                 <h1 className="text-xl font-bold tracking-tight">Network Monitor</h1>
                 <p className="text-xs text-muted-foreground">Sistema de monitorización</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="hidden md:flex items-center gap-4 mr-4">
-                <div className="flex items-center gap-2"><div className="status-dot status-dot-online" /><span className="text-sm font-medium">{onlineCount}</span></div>
-                <button onClick={() => setFailuresDialogOpen(true)} className="flex items-center gap-2 hover:bg-red-50 px-2 py-1 rounded transition-colors" title="Ver resumen de fallos">
-                  <div className="status-dot status-dot-offline" /><span className="text-sm font-medium">{offlineCount}</span>
-                  {recentFailures.length > 0 && <Bell className="w-4 h-4 text-red-500 animate-pulse" />}
+            <div className="flex items-center gap-2 md:gap-3">
+              {/* Status counts - visible en móvil con iconos pequeños */}
+              <div className="flex items-center gap-3 mr-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="status-dot status-dot-online" />
+                  <span className="text-sm font-medium">{onlineCount}</span>
+                </div>
+                <button onClick={() => setFailuresDialogOpen(true)} className="flex items-center gap-1.5 hover:bg-red-50/20 px-1.5 py-1 rounded transition-colors" title="Ver resumen de fallos">
+                  <div className="status-dot status-dot-offline" />
+                  <span className="text-sm font-medium">{offlineCount}</span>
+                  {recentFailures.length > 0 && <Bell className="w-3.5 h-3.5 text-red-500 animate-pulse" />}
                 </button>
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button data-testid="export-btn" variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Exportar</Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => handleExport('excel')}><FileSpreadsheet className="w-4 h-4 mr-2" />Exportar todo a Excel</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExport('pdf')}><FileIcon className="w-4 h-4 mr-2" />Exportar todo a PDF</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button data-testid="refresh-all-btn" variant="outline" size="sm" onClick={handleRefreshAll} disabled={refreshing}><RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin-slow' : ''}`} />Verificar</Button>
-              {canEdit && <Button data-testid="add-device-btn" size="sm" onClick={() => { setSelectedDevice(null); setDeviceDialogOpen(true); }}><Plus className="w-4 h-4 mr-2" />Agregar</Button>}
+              {/* Botones desktop */}
+              <div className="hidden md:flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button data-testid="export-btn" variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Exportar</Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => handleExport('excel')}><FileSpreadsheet className="w-4 h-4 mr-2" />Exportar todo a Excel</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('pdf')}><FileIcon className="w-4 h-4 mr-2" />Exportar todo a PDF</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button data-testid="refresh-all-btn" variant="outline" size="sm" onClick={handleRefreshAll} disabled={refreshing}><RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin-slow' : ''}`} />Verificar</Button>
+                {canEdit && <Button data-testid="add-device-btn" size="sm" onClick={() => { setSelectedDevice(null); setDeviceDialogOpen(true); }}><Plus className="w-4 h-4 mr-2" />Agregar</Button>}
+              </div>
+              {/* Botones móvil (solo iconos) */}
+              <div className="flex md:hidden items-center gap-1">
+                <Button variant="ghost" size="sm" onClick={handleRefreshAll} disabled={refreshing} className="p-2">
+                  <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin-slow' : ''}`} />
+                </Button>
+                {canEdit && <Button size="sm" onClick={() => { setSelectedDevice(null); setDeviceDialogOpen(true); }} className="p-2">
+                  <Plus className="w-4 h-4" />
+                </Button>}
+              </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" className="gap-2"><div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center"><User className="w-4 h-4" /></div><span className="hidden md:inline">{user?.username}</span><ChevronDown className="w-4 h-4" /></Button></DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -2047,6 +2755,7 @@ const Dashboard = () => {
               {isOperator ? <Camera className="w-4 h-4" /> : <Server className="w-4 h-4" />}
               {isOperator ? "Cámaras Online" : "Dispositivos"}
             </TabsTrigger>
+            {!isOperator && <TabsTrigger data-testid="tab-statistics" value="statistics" className="gap-2"><BarChart3 className="w-4 h-4" />Estadísticas</TabsTrigger>}
             {!isOperator && <TabsTrigger data-testid="tab-structure" value="structure" className="gap-2"><Building2 className="w-4 h-4" />Estructura</TabsTrigger>}
             {!isOperator && <TabsTrigger data-testid="tab-types" value="types" className="gap-2"><Tag className="w-4 h-4" />Tipos</TabsTrigger>}
             {!isOperator && <TabsTrigger data-testid="tab-alerts" value="alerts" className="gap-2"><Bell className="w-4 h-4" />Alertas{alerts.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-1.5">{alerts.length}</Badge>}</TabsTrigger>}
@@ -2055,7 +2764,7 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="devices">
-            {/* Filters - not for operators */}
+            {/* Filters - not for operators, available for technicians */}
             {!isOperator && (
               <div className="flex gap-2 mb-6 flex-wrap items-center">
                 {uniqueCountries.length > 0 && (
@@ -2076,8 +2785,29 @@ const Dashboard = () => {
                   <SelectTrigger className="w-[180px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
                   <SelectContent><SelectItem value="all">Todos los tipos</SelectItem>{deviceTypes.map(t => { const Icon = getIcon(t.icon); return <SelectItem key={t.id} value={t.id}><div className="flex items-center gap-2"><Icon className="w-4 h-4" style={{ color: t.color }} />{t.name}</div></SelectItem>; })}</SelectContent>
                 </Select>
-                {(filterCountry || filterOrgId || filterGroupId || filterTypeId) && <Button variant="ghost" size="sm" onClick={() => { setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); }}>Limpiar filtros</Button>}
+                {/* NEW: Status filter */}
+                <Select value={filterStatus || "all"} onValueChange={(v) => setFilterStatus(v === "all" ? null : v)}>
+                  <SelectTrigger className="w-[140px]"><SelectValue placeholder="Estado" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="online"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" />Online</div></SelectItem>
+                    <SelectItem value="offline"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500" />Offline</div></SelectItem>
+                    <SelectItem value="unknown"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-400" />Desconocido</div></SelectItem>
+                  </SelectContent>
+                </Select>
+                {(filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus) && <Button variant="ghost" size="sm" onClick={() => { setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); }}>Limpiar filtros</Button>}
                 <span className="text-sm text-muted-foreground ml-auto">{filteredDevices.length} dispositivo(s)</span>
+              </div>
+            )}
+            
+            {/* Technician header */}
+            {isTechnician && (
+              <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="flex items-center gap-2 text-amber-700">
+                  <Shield className="w-5 h-5" />
+                  <span className="font-medium">Vista de Técnico - Acceso completo a información técnica</span>
+                </div>
+                <p className="text-sm text-amber-600 mt-1">Puedes ver IP, puerto, historial y detalles de todos los dispositivos (solo lectura)</p>
               </div>
             )}
             
@@ -2153,6 +2883,11 @@ const Dashboard = () => {
             )}
           </TabsContent>
 
+          {/* Statistics Tab */}
+          <TabsContent value="statistics">
+            <StatisticsPanel devices={devices} groups={groups} />
+          </TabsContent>
+
           <TabsContent value="structure">
             <OrganizationsPanel organizations={organizations} groups={groups} devices={devices} canEdit={canEdit}
               onCreateOrg={() => { setSelectedOrg(null); setOrgDialogOpen(true); }}
@@ -2181,6 +2916,14 @@ const Dashboard = () => {
           </TabsContent>}
         </Tabs>
       </main>
+
+      {/* Logo fijo en la parte inferior para móvil - solo el logo, sin fondo */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 flex justify-center py-2 bg-white/95 backdrop-blur-sm border-t border-gray-100" style={{ zIndex: 9999 }}>
+        <img src={LOGO_HORIZONTAL_URL} alt="Siempria" className="h-8 object-contain" />
+      </div>
+      
+      {/* Spacer para móvil para que el contenido no quede debajo del logo */}
+      <div className="md:hidden h-12" />
 
       {/* Dialogs */}
       <DeviceFormDialog open={deviceDialogOpen} onOpenChange={setDeviceDialogOpen} device={selectedDevice} organizations={organizations} groups={groups} deviceTypes={deviceTypes} onSave={handleSaveDevice} />
