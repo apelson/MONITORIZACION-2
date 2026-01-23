@@ -808,6 +808,19 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
                     <code className="text-xs font-mono break-all">{previewUrl}</code>
                   </div>
                 )}
+                {/* Mobotix Statistics checkbox */}
+                <div className="col-span-2 flex items-center gap-3 p-3 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-lg">
+                  <Switch 
+                    id="has-statistics" 
+                    checked={formData.has_statistics} 
+                    onCheckedChange={(checked) => setFormData({ ...formData, has_statistics: checked })}
+                  />
+                  <div className="flex-1">
+                    <Label htmlFor="has-statistics" className="cursor-pointer font-medium text-cyan-700">Estadísticas MxAnalytics</Label>
+                    <p className="text-xs text-cyan-600">Habilita si la cámara tiene conteo de personas y mapa de calor (Mobotix C25/C26)</p>
+                  </div>
+                  <Activity className="w-5 h-5 text-cyan-500" />
+                </div>
               </>
             )}
 
