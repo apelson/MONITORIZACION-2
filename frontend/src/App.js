@@ -250,7 +250,8 @@ const RoleBadge = ({ role }) => {
     admin: { label: "Admin", cls: "bg-red-100 text-red-700 border-red-200" }, 
     manager: { label: "Gestor", cls: "bg-blue-100 text-blue-700 border-blue-200" }, 
     viewer: { label: "Visor", cls: "bg-gray-100 text-gray-700 border-gray-200" },
-    operator: { label: "Operador", cls: "bg-purple-100 text-purple-700 border-purple-200" }
+    operator: { label: "Operador", cls: "bg-purple-100 text-purple-700 border-purple-200" },
+    technician: { label: "Técnico", cls: "bg-amber-100 text-amber-700 border-amber-200" }
   }[role] || { label: role, cls: "bg-gray-100" };
   return <Badge variant="outline" className={`${cfg.cls} text-xs`}>{cfg.label}</Badge>;
 };
