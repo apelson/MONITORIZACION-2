@@ -1789,10 +1789,10 @@ const StatisticsPanel = ({ devices, groups }) => {
                       <div ref={chartRef}>
                         {/* Chart visualization */}
                         <div className="mb-6">
-                          {chartType === 'bar' && getChartData().length > 0 ? (
+                          {chartType === 'bar' && chartData.length > 0 ? (
                             <div style={{ width: '100%', height: 250 }}>
                               <ResponsiveContainer>
-                                <BarChart data={getChartData()} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                   <CartesianGrid strokeDasharray="3 3" />
                                   <XAxis dataKey="name" />
                                   <YAxis />
@@ -1803,14 +1803,14 @@ const StatisticsPanel = ({ devices, groups }) => {
                                 </BarChart>
                               </ResponsiveContainer>
                             </div>
-                          ) : chartType === 'pie' && getPieData().length > 0 ? (
+                          ) : chartType === 'pie' && pieData.length > 0 ? (
                             <div style={{ width: '100%', height: 250 }}>
                               <ResponsiveContainer>
                                 <RechartsPieChart>
-                                  <Pie data={getPieData()} cx="50%" cy="50%" labelLine={false}
+                                  <Pie data={pieData} cx="50%" cy="50%" labelLine={false}
                                     label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                                     outerRadius={80} fill="#8884d8" dataKey="value">
-                                    {getPieData().map((entry, index) => (
+                                    {pieData.map((entry, index) => (
                                       <Cell key={`cell-${index}`} fill={entry.color} />
                                     ))}
                                   </Pie>
