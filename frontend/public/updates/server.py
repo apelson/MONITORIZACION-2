@@ -1,0 +1,400 @@
+"""
+Siempria Network Monitor API - Main Server
+Refactored version with modular routing
+"""
+from fastapi import FastAPI, APIRouter, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+from typing import Optional
+import asyncio
+import os
+import io
+import ssl
+import base64
+import urllib.request
+import uuid
+
+# PDF/Excel exports
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib import colors
+from reportlab.lib.units import cm, inch
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+
+# Local imports
+from config import (
+    devices_collection, organizations_collection, groups_collection,
+    device_types_collection, public_dashboards_collection, logger
+)
+from services.auth_service import get_current_user, require_role, get_password_hash
+from services.device_service import check_single_device, check_all_devices
+from models import PublicDashboardConfig
+
+# Import routers
+from routes.auth import router as auth_router
+from routes.users import router as users_router
+from routes.organizations import router as organizations_router
+from routes.devices import router as devices_router
+from routes.settings import router as settings_router
+from routes.statistics import router as statistics_router
+from routes.upload import router as upload_router
+from routes.backup import router as backup_router
+
+# ============ APP LIFECYCLE ============
+
+async def init_default_data():
+    """Initialize default data if empty"""
+    # Default device types
+    if await device_types_collection.count_documents({}) == 0:
+        default_types = [
+            {"id": "type-camera", "name": "Cámara", "icon": "camera", "color": "#3b82f6", "is_default": True},
+            {"id": "type-nas", "name": "NAS", "icon": "database", "color": "#8b5cf6", "is_default": True},
+            {"id": "type-switch", "name": "Switch", "icon": "network", "color": "#22c55e", "is_default": True},
+            {"id": "type-router", "name": "Router", "icon": "router", "color": "#f59e0b", "is_default": True},
+            {"id": "type-server", "name": "Servidor", "icon": "server", "color": "#ef4444", "is_default": True},
+            {"id": "type-other", "name": "Otro", "icon": "box", "color": "#6b7280", "is_default": True},
+        ]
+        await device_types_collection.insert_many(default_types)
+        logger.info("Default device types created")
+    
+    # Default admin user
+    from config import users_collection
+    if await users_collection.count_documents({}) == 0:
+        admin = {
+            "id": str(uuid.uuid4()), "username": "admin", "email": "admin@siempria.com",
+            "password_hash": get_password_hash("admin123"), "role": "admin",
+            "full_name": "Administrador", "is_active": True, "group_ids": [],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await users_collection.insert_one(admin)
+        
+        # Create additional default users
+        default_users = [
+            {"username": "operador", "email": "operador@siempria.com", "password": "operador", "role": "operator", "full_name": "Operador"},
+            {"username": "tecnico", "email": "tecnico@siempria.com", "password": "tecnico123", "role": "technician", "full_name": "Técnico"},
+        ]
+        for u in default_users:
+            user = {
+                "id": str(uuid.uuid4()), "username": u["username"], "email": u["email"],
+                "password_hash": get_password_hash(u["password"]), "role": u["role"],
+                "full_name": u["full_name"], "is_active": True, "group_ids": [],
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            await users_collection.insert_one(user)
+        logger.info("Default users created")
+
+async def periodic_device_check():
+    """Background task for periodic device checks"""
+    while True:
+        try:
+            await check_all_devices()
+        except Exception as e:
+            logger.error(f"Error in periodic check: {e}")
+        await asyncio.sleep(120)  # Check every 2 minutes
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_default_data()
+    asyncio.create_task(periodic_device_check())
+    logger.info("Siempria Network Monitor API started")
+    yield
+    logger.info("Siempria Network Monitor API stopped")
+
+# ============ APP SETUP ============
+
+app = FastAPI(title="Siempria Network Monitor API", version="3.0", lifespan=lifespan)
+api_router = APIRouter(prefix="/api")
+
+# Include all routers
+api_router.include_router(auth_router)
+api_router.include_router(users_router)
+api_router.include_router(organizations_router)
+api_router.include_router(devices_router)
+api_router.include_router(settings_router)
+api_router.include_router(statistics_router)
+api_router.include_router(upload_router)
+api_router.include_router(backup_router)
+
+# ============ ROOT & IMAGE PROXY ============
+
+@api_router.get("/")
+async def root():
+    return {"message": "Siempria Network Monitor API v3.0 (Refactored)"}
+
+@api_router.get("/image-proxy/{device_id}")
+async def image_proxy(device_id: str, current_user: dict = Depends(get_current_user)):
+    """Proxy to load device images with authentication"""
+    device = await devices_collection.find_one({"id": device_id}, {"_id": 0})
+    if not device:
+        raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
+    
+    protocol = device.get("camera_protocol", "http")
+    ip = device.get("ip_address", "")
+    port = device.get("port", 80)
+    camera_user = device.get("camera_user", "")
+    camera_password = device.get("camera_password", "")
+    camera_path = device.get("camera_path", "")
+    
+    ssl_context = ssl.create_default_context()
+    ssl_context.check_hostname = False
+    ssl_context.verify_mode = ssl.CERT_NONE
+    
+    if not camera_path:
+        image_url = device.get("image_url", "")
+        if not image_url:
+            raise HTTPException(status_code=404, detail="No hay imagen configurada")
+        try:
+            request = urllib.request.Request(image_url)
+            request.add_header("User-Agent", "Mozilla/5.0 SiempriaMonitor/1.0")
+            with urllib.request.urlopen(request, timeout=10, context=ssl_context) as response:
+                image_data = response.read()
+                content_type = response.headers.get('Content-Type', 'image/jpeg')
+            return StreamingResponse(io.BytesIO(image_data), media_type=content_type, headers={"Cache-Control": "max-age=30"})
+        except Exception as e:
+            logger.error(f"Error fetching image for device {device_id}: {str(e)}")
+            raise HTTPException(status_code=502, detail="No se pudo cargar la imagen")
+    
+    clean_url = f"{protocol}://{ip}:{port}{camera_path}"
+    
+    try:
+        request = urllib.request.Request(clean_url)
+        if camera_user and camera_password:
+            credentials = base64.b64encode(f"{camera_user}:{camera_password}".encode()).decode()
+            request.add_header("Authorization", f"Basic {credentials}")
+        request.add_header("User-Agent", "Mozilla/5.0 SiempriaMonitor/1.0")
+        
+        with urllib.request.urlopen(request, timeout=10, context=ssl_context) as response:
+            image_data = response.read()
+            content_type = response.headers.get('Content-Type', 'image/jpeg')
+        
+        return StreamingResponse(io.BytesIO(image_data), media_type=content_type, headers={"Cache-Control": "max-age=30"})
+    except urllib.error.HTTPError as e:
+        raise HTTPException(status_code=502, detail=f"Error al cargar imagen: HTTP {e.code}")
+    except urllib.error.URLError as e:
+        raise HTTPException(status_code=502, detail="No se pudo conectar al dispositivo")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error al cargar imagen")
+
+# ============ PUBLIC DASHBOARD ============
+
+@api_router.get("/organizations/{org_id}/public-dashboard")
+async def get_public_dashboard_config(org_id: str, current_user: dict = Depends(require_role(["admin"]))):
+    config = await public_dashboards_collection.find_one({"organization_id": org_id}, {"_id": 0})
+    return {"config": config or {"enabled": False, "password": None, "show_images": True, "show_details": False}}
+
+@api_router.post("/organizations/{org_id}/public-dashboard")
+async def save_public_dashboard_config(org_id: str, config: PublicDashboardConfig, current_user: dict = Depends(require_role(["admin"]))):
+    existing = await public_dashboards_collection.find_one({"organization_id": org_id})
+    public_token = existing.get("public_token") if existing else str(uuid.uuid4())
+    
+    update_data = {"organization_id": org_id, "public_token": public_token, **config.model_dump()}
+    await public_dashboards_collection.update_one({"organization_id": org_id}, {"$set": update_data}, upsert=True)
+    return {"message": "Configuración guardada", "public_url": f"/public/{public_token}"}
+
+@api_router.get("/public/{token}")
+async def get_public_dashboard(token: str, password: Optional[str] = None):
+    """Get public dashboard data (no auth required)"""
+    config = await public_dashboards_collection.find_one({"public_token": token}, {"_id": 0})
+    if not config:
+        raise HTTPException(status_code=404, detail="Dashboard no encontrado")
+    if not config.get("enabled"):
+        raise HTTPException(status_code=403, detail="Dashboard público deshabilitado")
+    if config.get("password") and config.get("password") != password:
+        raise HTTPException(status_code=401, detail="Contraseña incorrecta")
+    
+    org_id = config.get("organization_id")
+    org = await organizations_collection.find_one({"id": org_id}, {"_id": 0})
+    if not org:
+        raise HTTPException(status_code=404, detail="Organización no encontrada")
+    
+    groups = await groups_collection.find({"organization_id": org_id}, {"_id": 0}).to_list(length=100)
+    group_ids = [g["id"] for g in groups]
+    devices = await devices_collection.find({"group_id": {"$in": group_ids}}, {"_id": 0}).to_list(length=500)
+    
+    show_details = config.get("show_details", False)
+    show_images = config.get("show_images", True)
+    
+    filtered_devices = []
+    for device in devices:
+        d = {
+            "id": device.get("id"), "name": device.get("name"), "status": device.get("status"),
+            "last_check": device.get("last_check"), "device_type_id": device.get("device_type_id"),
+            "group_id": device.get("group_id"), "brand": device.get("brand"),
+            "model": device.get("model"), "location": device.get("location")
+        }
+        if show_details:
+            d["ip_address"] = device.get("ip_address")
+            d["port"] = device.get("port")
+        if show_images and device.get("camera_path"):
+            d["has_image"] = True
+        filtered_devices.append(d)
+    
+    device_types = await device_types_collection.find({}, {"_id": 0}).to_list(length=50)
+    total = len(filtered_devices)
+    online = len([d for d in filtered_devices if d.get("status") == "online"])
+    offline = len([d for d in filtered_devices if d.get("status") == "offline"])
+    
+    return {
+        "organization": {"name": org.get("name"), "logo_url": org.get("logo_url")},
+        "groups": groups, "devices": filtered_devices, "device_types": device_types,
+        "stats": {"total": total, "online": online, "offline": offline, "uptime_percent": round((online / total * 100) if total > 0 else 0, 1)},
+        "config": {"show_images": show_images, "show_details": show_details, "requires_password": bool(config.get("password"))}
+    }
+
+# ============ EXPORT ROUTES ============
+
+@api_router.get("/export/excel")
+async def export_excel(organization_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    """Export devices to Excel file"""
+    devices = await devices_collection.find({}, {"_id": 0}).to_list(length=None)
+    organizations = await organizations_collection.find({}, {"_id": 0}).to_list(length=None)
+    groups = await groups_collection.find({}, {"_id": 0}).to_list(length=None)
+    device_types = await device_types_collection.find({}, {"_id": 0}).to_list(length=None)
+    
+    if organization_id:
+        org_group_ids = [g["id"] for g in groups if g.get("organization_id") == organization_id]
+        devices = [d for d in devices if d.get("group_id") in org_group_ids]
+    
+    org_dict = {o["id"]: o for o in organizations}
+    group_dict = {g["id"]: g for g in groups}
+    type_dict = {t["id"]: t for t in device_types}
+    
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Dispositivos"
+    
+    header_font = Font(bold=True, color="FFFFFF", size=11)
+    header_fill = PatternFill(start_color="1F4E79", end_color="1F4E79", fill_type="solid")
+    header_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    cell_alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+    thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+    
+    headers = ["Nombre", "IP:Puerto", "Estado", "Tipo", "Organización", "Grupo", "Marca", "Modelo", "Ubicación"]
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+        cell.border = thin_border
+    
+    for row_num, device in enumerate(devices, 2):
+        group = group_dict.get(device.get("group_id"))
+        org = org_dict.get(group.get("organization_id")) if group else None
+        device_type = type_dict.get(device.get("device_type_id"))
+        
+        row_data = [
+            device.get("name", ""),
+            f"{device.get('ip_address', '')}:{device.get('port', '')}",
+            "Online" if device.get("status") == "online" else "Offline" if device.get("status") == "offline" else "?",
+            device_type.get("name", "") if device_type else "",
+            org.get("name", "") if org else "",
+            group.get("name", "") if group else "",
+            device.get("brand", ""),
+            device.get("model", ""),
+            device.get("location", "")
+        ]
+        
+        for col, value in enumerate(row_data, 1):
+            cell = ws.cell(row=row_num, column=col, value=value)
+            cell.alignment = cell_alignment
+            cell.border = thin_border
+            if col == 3:
+                if value == "Online":
+                    cell.fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+                elif value == "Offline":
+                    cell.fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+    
+    column_widths = [25, 20, 12, 15, 20, 20, 15, 20, 25]
+    for col, width in enumerate(column_widths, 1):
+        ws.column_dimensions[get_column_letter(col)].width = width
+    
+    ws.freeze_panes = "A2"
+    
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    
+    filename = f"dispositivos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return StreamingResponse(buffer, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                           headers={"Content-Disposition": f"attachment; filename={filename}"})
+
+# ============ MOBOTIX INFO ENDPOINT ============
+
+@api_router.get("/devices/{device_id}/mobotix-info")
+async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_current_user)):
+    """Get Mobotix camera information using HTTP API"""
+    device = await devices_collection.find_one({"id": device_id}, {"_id": 0})
+    if not device:
+        raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
+    
+    protocol = device.get("camera_protocol", "http")
+    ip = device.get("ip_address", "")
+    port = device.get("port", 80)
+    camera_user = device.get("camera_user", "")
+    camera_password = device.get("camera_password", "")
+    
+    if not ip:
+        raise HTTPException(status_code=400, detail="IP del dispositivo no configurada")
+    
+    base_url = f"{protocol}://{ip}:{port}"
+    info = {
+        "device_id": device_id, "device_name": device.get("name", ""),
+        "ip_address": f"{ip}:{port}", "protocol": protocol,
+        "mobotix_info": None, "device_status": None, "configuration": None, "errors": []
+    }
+    
+    def make_request(url_path: str, timeout: int = 5):
+        try:
+            full_url = f"{base_url}{url_path}"
+            request = urllib.request.Request(full_url)
+            if camera_user and camera_password:
+                credentials = base64.b64encode(f"{camera_user}:{camera_password}".encode()).decode()
+                request.add_header("Authorization", f"Basic {credentials}")
+            request.add_header("User-Agent", "Mozilla/5.0 SiempriaMonitor/1.0")
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return response.read().decode('utf-8', errors='ignore')
+        except urllib.error.HTTPError as e:
+            return f"HTTP_ERROR:{e.code}"
+        except urllib.error.URLError as e:
+            return f"URL_ERROR:{str(e.reason)}"
+        except Exception as e:
+            return f"ERROR:{str(e)}"
+    
+    loop = asyncio.get_event_loop()
+    endpoints_to_try = [
+        ("/control/control?listsection=deviceinfo", "device_info"),
+        ("/control/control?listsection=network", "network_info"),
+    ]
+    
+    mobotix_data = {}
+    for endpoint, key in endpoints_to_try:
+        result = await loop.run_in_executor(None, make_request, endpoint)
+        if not result.startswith(("HTTP_ERROR", "URL_ERROR", "ERROR")):
+            mobotix_data[key] = result
+        else:
+            info["errors"].append(f"{key}: {result}")
+    
+    if mobotix_data:
+        info["mobotix_info"] = mobotix_data
+        info["device_status"] = "Mobotix API accessible"
+    else:
+        info["device_status"] = "No Mobotix API response"
+    
+    return info
+
+# ============ INCLUDE ROUTER & CORS ============
+
+app.include_router(api_router)
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
