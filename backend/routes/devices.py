@@ -190,11 +190,29 @@ async def update_device(device_id: str, data: DeviceUpdate, request: Request, cu
     return {"message": "Dispositivo actualizado", "device": updated_device}
 
 @router.delete("/devices/{device_id}")
-async def delete_device(device_id: str, current_user: dict = Depends(require_role(["admin", "manager"]))):
+async def delete_device(device_id: str, request: Request, current_user: dict = Depends(require_role(["admin", "manager"]))):
+    device = await devices_collection.find_one({"id": device_id})
+    if not device:
+        raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
+    
     result = await devices_collection.delete_one({"id": device_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
     await history_collection.delete_many({"device_id": device_id})
+    
+    # Log device deletion
+    await log_access(
+        log_type="device_delete",
+        user_id=current_user["id"],
+        username=current_user["username"],
+        user_role=current_user["role"],
+        ip_address=get_client_ip(request),
+        target_type="device",
+        target_id=device_id,
+        target_name=device.get("name"),
+        details={"ip": device.get("ip_address")}
+    )
+    
     return {"message": "Dispositivo eliminado"}
 
 @router.post("/devices/{device_id}/check")
