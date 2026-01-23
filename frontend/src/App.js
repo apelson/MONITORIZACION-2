@@ -1969,6 +1969,8 @@ const Dashboard = () => {
       filteredDevices = filteredDevices.filter(d => orgGroupIds.includes(d.group_id));
     }
     if (filterTypeId) filteredDevices = filteredDevices.filter(d => d.device_type_id === filterTypeId);
+    // NEW: Filter by status
+    if (filterStatus) filteredDevices = filteredDevices.filter(d => d.status === filterStatus);
   }
 
   // Pagination with custom order
@@ -1993,7 +1995,7 @@ const Dashboard = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterOrgId, filterGroupId, filterTypeId, filterCountry]);
+  }, [filterOrgId, filterGroupId, filterTypeId, filterCountry, filterStatus]);
 
   return (
     <div className="app-container">
