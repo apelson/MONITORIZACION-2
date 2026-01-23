@@ -346,20 +346,35 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
     
     base_url = f"{protocol}://{ip}:{port}"
     info = {
-        "device_id": device_id, "device_name": device.get("name", ""),
-        "ip_address": f"{ip}:{port}", "protocol": protocol,
-        "mobotix_info": None, "device_status": None, "configuration": None, "errors": []
+        "device_id": device_id, 
+        "device_name": device.get("name", ""),
+        "ip_address": f"{ip}:{port}", 
+        "protocol": protocol,
+        "system": {},
+        "networking": {},
+        "storage": {},
+        "sensors": {},
+        "image": {},
+        "recording": {},
+        "raw_html": None,
+        "errors": []
     }
     
-    def make_request(url_path: str, timeout: int = 5):
+    def make_request(url_path: str, timeout: int = 8):
         try:
             full_url = f"{base_url}{url_path}"
+            # Create SSL context that ignores certificate errors (for self-signed certs)
+            import ssl
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+            
             request = urllib.request.Request(full_url)
             if camera_user and camera_password:
                 credentials = base64.b64encode(f"{camera_user}:{camera_password}".encode()).decode()
                 request.add_header("Authorization", f"Basic {credentials}")
             request.add_header("User-Agent", "Mozilla/5.0 SiempriaMonitor/1.0")
-            with urllib.request.urlopen(request, timeout=timeout) as response:
+            with urllib.request.urlopen(request, timeout=timeout, context=ctx) as response:
                 return response.read().decode('utf-8', errors='ignore')
         except urllib.error.HTTPError as e:
             return f"HTTP_ERROR:{e.code}"
@@ -368,25 +383,127 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
         except Exception as e:
             return f"ERROR:{str(e)}"
     
+    def parse_camerainfo_html(html: str) -> dict:
+        """Parse the /control/camerainfo HTML response to extract structured data"""
+        import re
+        data = {
+            "system": {},
+            "networking": {},
+            "storage": {},
+            "sensors": {},
+            "image": {},
+            "recording": {},
+            "firmware_version": None
+        }
+        
+        # Extract firmware from JavaScript variable
+        firmware_match = re.search(r'filesystem__version="([^"]+)"', html)
+        if firmware_match:
+            data["firmware_version"] = firmware_match.group(1)
+        
+        # Parse table rows - pattern: <td>Label</td>\n<td colspan=2>Value</td>
+        # System section
+        patterns = {
+            "model": r'<td>Model</td>\s*<td[^>]*>([^<]+)</td>',
+            "serial_number": r'<td>Serial Number</td>\s*<td[^>]*>([^<]+)</td>',
+            "hardware": r'<td>Hardware</td>\s*<td[^>]*>([^<]+)</td>',
+            "image_sensor": r'<td>Image Sensor</td>\s*<td[^>]*>([^<]+)</td>',
+            "software": r'<td>Software</td>\s*<td[^>]*>([^<]+)</td>',
+            "uptime": r'<td>Current Uptime</td>\s*<td[^>]*>([^<]+)</td>',
+            "date_time": r'<td>Date and Time</td>\s*<td[^>]*>([^<\n]+)',
+        }
+        for key, pattern in patterns.items():
+            match = re.search(pattern, html, re.IGNORECASE)
+            if match:
+                data["system"][key] = match.group(1).strip()
+        
+        # Networking section
+        net_patterns = {
+            "camera_name": r'<td>Camera Name</td>\s*<td[^>]*>([^<]+)</td>',
+            "ip_address": r'<td>IP Address</td>\s*<td[^>]*>([^<]+)</td>',
+            "network_mask": r'<td>Network Mask</td>\s*<td[^>]*>([^<]+)</td>',
+            "link_speed": r'<td>Link Speed and Duplex</td>\s*<td[^>]*>([^<]+)</td>',
+        }
+        for key, pattern in net_patterns.items():
+            match = re.search(pattern, html, re.IGNORECASE)
+            if match:
+                data["networking"][key] = match.group(1).strip()
+        
+        # Storage section
+        storage_patterns = {
+            "type": r'<tbody ID=[\'"]fileserver[\'"]>.*?<td>Type</td>\s*<td[^>]*>([^<]+)</td>',
+            "flash_wear": r'<td>Flash Wear</td>\s*<td>([^<]+)</td>',
+            "current_usage": r'<td>Current Usage</td>\s*<td[^>]*>([^<]+)</td>',
+            "maximum_size": r'<td>Maximum Size</td>\s*<td[^>]*>([^<]+)</td>',
+            "sequences": r'<td>Sequences </td>\s*<td[^>]*>([^<]+)</td>',
+        }
+        for key, pattern in storage_patterns.items():
+            match = re.search(pattern, html, re.IGNORECASE | re.DOTALL)
+            if match:
+                data["storage"][key] = match.group(1).strip()
+        
+        # Sensors section
+        sensor_patterns = {
+            "illumination": r'<td>Illumination</td>\s*<td[^>]*>([^<]+)</td>',
+            "temperature": r'<td>Camera Temperature</td>\s*<td[^>]*>([^<]+)</td>',
+        }
+        for key, pattern in sensor_patterns.items():
+            match = re.search(pattern, html, re.IGNORECASE)
+            if match:
+                data["sensors"][key] = match.group(1).strip()
+        
+        # Image section
+        image_patterns = {
+            "video_codec": r'<td>Video Codec</td>\s*<td[^>]*>([^<]+)</td>',
+            "image_quality": r'<td>Image Quality</td>\s*<td[^>]*>([^<]+)</td>',
+            "image_properties": r'<td>Image Properties</td>\s*<td[^>]*>([^<]+)',
+            "frame_rate": r'<td>Current Frame Rate</td>\s*<td[^>]*>([^<]+)</td>',
+        }
+        for key, pattern in image_patterns.items():
+            match = re.search(pattern, html, re.IGNORECASE)
+            if match:
+                data["image"][key] = match.group(1).strip()
+        
+        # Recording section
+        rec_patterns = {
+            "recording_mode": r'<td>Recording Mode</td>\s*<td[^>]*>([^<]+)</td>',
+            "event_frame_rate": r'<td>Event Frame Rate</td>\s*<td[^>]*>([^<]+)</td>',
+        }
+        for key, pattern in rec_patterns.items():
+            match = re.search(pattern, html, re.IGNORECASE)
+            if match:
+                data["recording"][key] = match.group(1).strip()
+        
+        return data
+    
     loop = asyncio.get_event_loop()
-    endpoints_to_try = [
-        ("/control/control?listsection=deviceinfo", "device_info"),
-        ("/control/control?listsection=network", "network_info"),
-    ]
     
-    mobotix_data = {}
-    for endpoint, key in endpoints_to_try:
-        result = await loop.run_in_executor(None, make_request, endpoint)
-        if not result.startswith(("HTTP_ERROR", "URL_ERROR", "ERROR")):
-            mobotix_data[key] = result
-        else:
-            info["errors"].append(f"{key}: {result}")
+    # First try /control/camerainfo which has all the info
+    result = await loop.run_in_executor(None, make_request, "/control/camerainfo")
     
-    if mobotix_data:
-        info["mobotix_info"] = mobotix_data
-        info["device_status"] = "Mobotix API accessible"
+    if not result.startswith(("HTTP_ERROR", "URL_ERROR", "ERROR")):
+        parsed = parse_camerainfo_html(result)
+        info["system"] = parsed["system"]
+        info["networking"] = parsed["networking"]
+        info["storage"] = parsed["storage"]
+        info["sensors"] = parsed["sensors"]
+        info["image"] = parsed["image"]
+        info["recording"] = parsed["recording"]
+        info["firmware_version"] = parsed["firmware_version"]
+        
+        # Update device with firmware version if found
+        if parsed["firmware_version"]:
+            await devices_collection.update_one(
+                {"id": device_id},
+                {"$set": {
+                    "firmware_version": parsed["firmware_version"],
+                    "firmware_last_check": datetime.now(timezone.utc).isoformat(),
+                    "camera_model": parsed["system"].get("model", ""),
+                    "camera_sensor": parsed["system"].get("image_sensor", "")
+                }}
+            )
     else:
-        info["device_status"] = "No Mobotix API response"
+        info["errors"].append(f"camerainfo: {result}")
     
     return info
 
