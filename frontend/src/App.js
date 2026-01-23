@@ -2633,13 +2633,16 @@ const Dashboard = () => {
 
       {/* Header */}
       <header className="app-header">
+        {/* Logo horizontal centrado para móvil - encima del header */}
+        <div className="md:hidden flex justify-center py-2 border-b border-white/10">
+          <img src={LOGO_HORIZONTAL_URL} alt="Siempria" className="h-8 object-contain" />
+        </div>
+        
         <div className="container mx-auto max-w-7xl px-4 md:px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {/* Logo vertical para desktop */}
               <img src={LOGO_URL} alt="Siempria" className="hidden md:block h-12 object-contain" />
-              {/* Logo horizontal para móvil */}
-              <img src={LOGO_HORIZONTAL_URL} alt="Siempria" className="md:hidden h-10 object-contain" />
               <div className="hidden md:block">
                 <h1 className="text-xl font-bold tracking-tight">Network Monitor</h1>
                 <p className="text-xs text-muted-foreground">Sistema de monitorización</p>
