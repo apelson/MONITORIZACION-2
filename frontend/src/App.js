@@ -1342,6 +1342,7 @@ const OrganizationsPanel = ({ organizations, groups, devices, onCreateOrg, onEdi
                                     <Button variant="ghost" size="sm" onClick={() => onDeleteGroup(g)} className="text-destructive"><Trash2 className="w-3 h-3" /></Button>
                                   </div>
                                 )}
+                              </div>
                             </div>
                           ))}
                         </div>
