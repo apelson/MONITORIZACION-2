@@ -45,6 +45,21 @@ async def upload_file(
     unique_name = f"{uuid.uuid4().hex}{ext}"
     file_path = UPLOAD_DIR / unique_name
     
+    # Ensure upload directory exists and is writable
+    try:
+        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        logger.error(f"Cannot create upload directory: {e}")
+        raise HTTPException(status_code=500, detail=f"No se puede crear el directorio de uploads: {str(e)}")
+    
+    # Check if directory is writable
+    if not os.access(UPLOAD_DIR, os.W_OK):
+        logger.error(f"Upload directory is not writable: {UPLOAD_DIR}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"El directorio de uploads no tiene permisos de escritura. Ejecuta: sudo chmod 777 {UPLOAD_DIR}"
+        )
+    
     # Save file
     try:
         with open(file_path, "wb") as f:
@@ -58,9 +73,15 @@ async def upload_file(
             "filename": unique_name,
             "url": f"/api/upload/{unique_name}"
         }
+    except PermissionError as e:
+        logger.error(f"Permission error uploading file: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Sin permisos para escribir. Ejecuta en tu servidor: sudo chmod 777 /opt/siempria-monitor/backend/uploads"
+        )
     except Exception as e:
         logger.error(f"Error uploading file: {e}")
-        raise HTTPException(status_code=500, detail="Error al guardar el archivo")
+        raise HTTPException(status_code=500, detail=f"Error al guardar: {str(e)}")
 
 @router.get("/{filename}")
 async def get_uploaded_file(filename: str):

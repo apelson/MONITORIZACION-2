@@ -44,6 +44,7 @@ from routes.devices import router as devices_router
 from routes.settings import router as settings_router
 from routes.statistics import router as statistics_router
 from routes.upload import router as upload_router
+from routes.backup import router as backup_router
 
 # ============ APP LIFECYCLE ============
 
@@ -118,6 +119,7 @@ api_router.include_router(devices_router)
 api_router.include_router(settings_router)
 api_router.include_router(statistics_router)
 api_router.include_router(upload_router)
+api_router.include_router(backup_router)
 
 # ============ ROOT & IMAGE PROXY ============
 
