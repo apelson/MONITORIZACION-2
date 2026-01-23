@@ -117,6 +117,7 @@ api_router.include_router(organizations_router)
 api_router.include_router(devices_router)
 api_router.include_router(settings_router)
 api_router.include_router(statistics_router)
+api_router.include_router(upload_router)
 
 # ============ ROOT & IMAGE PROXY ============
 
