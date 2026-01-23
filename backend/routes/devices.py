@@ -92,7 +92,7 @@ async def get_cameras(current_user: dict = Depends(get_current_user)):
     return {"cameras": cameras}
 
 @router.post("/devices")
-async def create_device(data: DeviceCreate, current_user: dict = Depends(require_role(["admin", "manager"]))):
+async def create_device(data: DeviceCreate, request: Request, current_user: dict = Depends(require_role(["admin", "manager"]))):
     if await devices_collection.find_one({"ip_address": data.ip_address, "port": data.port}):
         raise HTTPException(status_code=400, detail="Ya existe un dispositivo con esa IP y puerto")
     
@@ -128,6 +128,20 @@ async def create_device(data: DeviceCreate, current_user: dict = Depends(require
     }
     await devices_collection.insert_one(device)
     device.pop("_id", None)
+    
+    # Log device creation
+    await log_access(
+        log_type="device_create",
+        user_id=current_user["id"],
+        username=current_user["username"],
+        user_role=current_user["role"],
+        ip_address=get_client_ip(request),
+        target_type="device",
+        target_id=device["id"],
+        target_name=device["name"],
+        details={"ip": data.ip_address, "port": data.port, "type": data.device_type_id}
+    )
+    
     return {"message": "Dispositivo creado", "device": device}
 
 @router.get("/devices/{device_id}")
