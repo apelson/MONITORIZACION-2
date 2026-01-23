@@ -1785,6 +1785,7 @@ const Dashboard = () => {
   const canEdit = user?.role === "admin" || user?.role === "manager";
   const isAdmin = user?.role === "admin";
   const isOperator = user?.role === "operator";
+  const isTechnician = user?.role === "technician";
   const onlineCount = devices.filter(d => d.status === 'online').length;
   const offlineCount = devices.filter(d => d.status === 'offline').length;
 
