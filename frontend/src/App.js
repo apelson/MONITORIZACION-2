@@ -210,9 +210,9 @@ const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     const response = await axios.post(`${API}/auth/login`, { username, password });
-    const { access_token, user: userData } = response.data;
-    localStorage.setItem("token", access_token);
-    setToken(access_token);
+    const { token: accessToken, user: userData } = response.data;
+    localStorage.setItem("token", accessToken);
+    setToken(accessToken);
     setUser(userData);
     return userData;
   };
