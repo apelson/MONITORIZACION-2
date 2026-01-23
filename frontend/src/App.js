@@ -459,7 +459,6 @@ const FirmwareBadge = ({ device }) => {
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  const { authAxios } = useAuth();
   
   // Check if device is a Mobotix camera
   const isMobotix = device.brand?.toLowerCase().includes('mobotix');
@@ -472,8 +471,14 @@ const FirmwareBadge = ({ device }) => {
     if (info || loading) return;
     setLoading(true);
     try {
-      const res = await authAxios.get(`/devices/${device.id}/mobotix-info`);
-      setInfo(res.data);
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API}/devices/${device.id}/mobotix-info`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setInfo(data);
+      }
     } catch (e) {
       console.error("Error fetching camera info:", e);
     }
