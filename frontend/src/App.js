@@ -551,6 +551,18 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
               <div className="absolute bottom-1 right-1">
                 <Badge variant="secondary" className="text-xs opacity-75"><Cctv className="w-3 h-3 mr-1" />Live</Badge>
               </div>
+              {/* Botón descargar imagen */}
+              {imageData && !imageError && (
+                <a 
+                  href={imageData}
+                  download={`${device.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.jpg`}
+                  className="absolute top-2 left-2 p-2 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                  title="Descargar imagen"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Download className="w-4 h-4 text-white" />
+                </a>
+              )}
               <button 
                 onClick={openDeviceInBrowser}
                 className="absolute top-2 right-2 p-2 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
