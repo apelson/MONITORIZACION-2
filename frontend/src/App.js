@@ -1790,9 +1790,9 @@ const StatisticsPanel = ({ devices, groups }) => {
                       <div ref={chartRef}>
                         {/* Chart visualization */}
                         <div className="mb-6">
-                          {chartType === 'bar' ? (
-                            <div className="h-64">
-                              <ResponsiveContainer width="100%" height="100%">
+                          {chartType === 'bar' && getChartData().length > 0 ? (
+                            <div style={{ width: '100%', height: 250 }}>
+                              <ResponsiveContainer>
                                 <BarChart data={getChartData()} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                   <CartesianGrid strokeDasharray="3 3" />
                                   <XAxis dataKey="name" />
@@ -1804,9 +1804,9 @@ const StatisticsPanel = ({ devices, groups }) => {
                                 </BarChart>
                               </ResponsiveContainer>
                             </div>
-                          ) : (
-                            <div className="h-64 flex items-center justify-center">
-                              <ResponsiveContainer width="100%" height="100%">
+                          ) : chartType === 'pie' && getPieData().length > 0 ? (
+                            <div style={{ width: '100%', height: 250 }}>
+                              <ResponsiveContainer>
                                 <RechartsPieChart>
                                   <Pie data={getPieData()} cx="50%" cy="50%" labelLine={false}
                                     label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
@@ -1820,7 +1820,7 @@ const StatisticsPanel = ({ devices, groups }) => {
                                 </RechartsPieChart>
                               </ResponsiveContainer>
                             </div>
-                          )}
+                          ) : null}
                         </div>
                         
                         {/* Data table */}
