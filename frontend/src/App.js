@@ -219,18 +219,24 @@ const AuthProvider = ({ children }) => {
 
   const logout = () => { localStorage.removeItem("token"); setToken(null); setUser(null); };
 
-  const authAxios = axios.create({ baseURL: API });
-  authAxios.interceptors.request.use((config) => { if (token) config.headers.Authorization = `Bearer ${token}`; return config; });
-  authAxios.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      // For blob requests, don't try to parse error response
-      if (error.config?.responseType === 'blob') {
-        error.response = { data: null, status: error.response?.status || 0 };
+  const authAxios = useMemo(() => {
+    const instance = axios.create({ baseURL: API });
+    instance.interceptors.request.use((config) => { 
+      const currentToken = localStorage.getItem("token");
+      if (currentToken) config.headers.Authorization = `Bearer ${currentToken}`; 
+      return config; 
+    });
+    instance.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.config?.responseType === 'blob') {
+          error.response = { data: null, status: error.response?.status || 0 };
+        }
+        return Promise.reject(error);
       }
-      return Promise.reject(error);
-    }
-  );
+    );
+    return instance;
+  }, []);
 
   return <AuthContext.Provider value={{ user, token, login, logout, loading, authAxios }}>{children}</AuthContext.Provider>;
 };
