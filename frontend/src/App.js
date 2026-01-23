@@ -1384,6 +1384,9 @@ const StatisticsPanel = ({ devices, groups }) => {
   const [selectedReportProfile, setSelectedReportProfile] = useState("");
   const [selectedHeatmapProfile, setSelectedHeatmapProfile] = useState("");
   const [chartType, setChartType] = useState("bar"); // bar or pie
+  const [useCustomDates, setUseCustomDates] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const chartRef = useRef(null);
   
   // Colors for charts
@@ -1427,7 +1430,8 @@ const StatisticsPanel = ({ devices, groups }) => {
   const exportToExcel = () => {
     if (!reportData?.tables?.[0]) { toast.error("No hay datos para exportar"); return; }
     const table = reportData.tables[0];
-    let csv = "Hora," + (table.columnTitles?.join(",") || "") + "\n";
+    const dateInfo = useCustomDates && startDate && endDate ? `${startDate} a ${endDate}` : `${reportType} - ${reportRange}`;
+    let csv = `Cámara: ${selectedCamera?.name || 'N/A'}\nPeriodo: ${dateInfo}\n\nHora,` + (table.columnTitles?.join(",") || "") + "\n";
     table.data?.forEach((row, idx) => {
       const rowTitle = table.rowTitles?.[idx] || `Fila ${idx}`;
       const cells = row.map(cell => Array.isArray(cell) ? (cell[0] >= 0 ? `${cell[0]}/${cell[1]}` : '-') : cell);
