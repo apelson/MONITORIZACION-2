@@ -777,7 +777,10 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
         </div>
 
         {(device.brand || device.model) && (
-          <p className="text-xs text-muted-foreground mt-2 font-medium">{[device.brand, device.model].filter(Boolean).join(" • ")}</p>
+          <div className="flex items-center gap-2 mt-2">
+            <p className="text-xs text-muted-foreground font-medium">{[device.brand, device.model].filter(Boolean).join(" • ")}</p>
+            <FirmwareBadge device={device} />
+          </div>
         )}
         {device.location && (
           <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground"><MapPin className="w-3 h-3" />{device.location}</div>
