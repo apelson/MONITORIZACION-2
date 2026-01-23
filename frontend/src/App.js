@@ -2639,7 +2639,7 @@ const Dashboard = () => {
               {/* Logo vertical para desktop */}
               <img src={LOGO_URL} alt="Siempria" className="hidden md:block h-12 object-contain" />
               {/* Logo horizontal para móvil */}
-              <img src={LOGO_HORIZONTAL_URL} alt="Siempria" className="md:hidden h-8 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+              <img src={LOGO_HORIZONTAL_URL} alt="Siempria" className="md:hidden h-10 object-contain" />
               <div className="hidden md:block">
                 <h1 className="text-xl font-bold tracking-tight">Network Monitor</h1>
                 <p className="text-xs text-muted-foreground">Sistema de monitorización</p>
