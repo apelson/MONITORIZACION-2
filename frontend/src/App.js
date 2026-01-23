@@ -2679,6 +2679,8 @@ const Dashboard = () => {
     if (filterTypeId) filteredDevices = filteredDevices.filter(d => d.device_type_id === filterTypeId);
     // NEW: Filter by status
     if (filterStatus) filteredDevices = filteredDevices.filter(d => d.status === filterStatus);
+    // NEW: Filter by has_statistics
+    if (filterStats) filteredDevices = filteredDevices.filter(d => d.has_statistics === true);
   }
 
   // Pagination with custom order
