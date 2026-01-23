@@ -1738,6 +1738,8 @@ async def get_mobotix_report(
     camera_id: str, 
     report_type: str = "week",  # week or month
     export_range: str = "current",  # current or last
+    start_date: Optional[str] = None,  # Custom date range: YYYY-MM-DD
+    end_date: Optional[str] = None,  # Custom date range: YYYY-MM-DD
     current_user: dict = Depends(get_current_user)
 ):
     """Get counting corridor report from a Mobotix camera"""
@@ -1755,7 +1757,11 @@ async def get_mobotix_report(
         user = camera.get("camera_user", "")
         password = camera.get("camera_password", "")
         
-        url = f"{protocol}://{ip}:{port}/control/stat_export?report&export_type={report_type}&export_range={export_range}&export_format=json"
+        # Build URL with optional date range
+        if start_date and end_date:
+            url = f"{protocol}://{ip}:{port}/control/stat_export?report&corridors=2&start={start_date}&end={end_date}&export_format=json"
+        else:
+            url = f"{protocol}://{ip}:{port}/control/stat_export?report&export_type={report_type}&export_range={export_range}&export_format=json"
         
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
@@ -1768,7 +1774,15 @@ async def get_mobotix_report(
         with urllib.request.urlopen(req, timeout=20, context=ctx) as response:
             import json
             data = json.loads(response.read().decode())
-            return {"camera_id": camera_id, "camera_name": camera.get("name"), "report_type": report_type, "export_range": export_range, "report": data}
+            return {
+                "camera_id": camera_id, 
+                "camera_name": camera.get("name"), 
+                "report_type": report_type, 
+                "export_range": export_range,
+                "start_date": start_date,
+                "end_date": end_date,
+                "report": data
+            }
     except Exception as e:
         logger.error(f"Error fetching Mobotix report for {camera_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Error al obtener reporte: {str(e)}")
