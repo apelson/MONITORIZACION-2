@@ -10,7 +10,7 @@ import {
   MapPin, FileText, Image, Tag, Layers, Download, FileSpreadsheet, FileIcon,
   Info, Globe, Calendar, Copy, Cctv, ExternalLink, GripVertical, Phone,
   BarChart3, TrendingUp, Flame, ArrowUpDown, Wrench, Trophy, PieChart, Upload,
-  Archive, RotateCcw, CloudDownload, FolderArchive, FileSearch, AlertTriangle
+  Archive, RotateCcw, CloudDownload, FolderArchive, FileSearch, AlertTriangle, Cpu, Thermometer, HardDrive as HardDriveIcon
 } from "lucide-react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from '@dnd-kit/sortable';
@@ -31,6 +31,7 @@ import { Switch } from "@/components/ui/switch";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -453,6 +454,171 @@ const SortableCard = ({ id, children }) => {
   );
 };
 
+// ============ FIRMWARE BADGE WITH POPOVER ============
+const FirmwareBadge = ({ device }) => {
+  const [info, setInfo] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  
+  // Check if device is a Mobotix camera
+  const isMobotix = device.brand?.toLowerCase().includes('mobotix');
+  
+  // Get cached firmware or show placeholder
+  const firmwareVersion = device.firmware_version;
+  const shortVersion = firmwareVersion ? firmwareVersion.replace('MX-', '').split('-')[0] : null;
+  
+  const fetchInfo = async () => {
+    if (info || loading) return;
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API}/devices/${device.id}/mobotix-info`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setInfo(data);
+      }
+    } catch (e) {
+      console.error("Error fetching camera info:", e);
+    }
+    setLoading(false);
+  };
+  
+  const handleOpenChange = (isOpen) => {
+    setOpen(isOpen);
+    if (isOpen && !info) {
+      fetchInfo();
+    }
+  };
+  
+  if (!isMobotix) return null;
+  
+  return (
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <PopoverTrigger asChild>
+        <button 
+          className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-mono bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors cursor-pointer border border-blue-200"
+          title="Ver información del firmware"
+        >
+          <Cpu className="w-3 h-3" />
+          {shortVersion || 'Info'}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0" align="start">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 rounded-t-lg">
+          <div className="flex items-center gap-2">
+            <Cpu className="w-5 h-5" />
+            <div>
+              <p className="font-semibold text-sm">{device.name}</p>
+              <p className="text-xs opacity-90">Información del dispositivo</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="p-3 max-h-80 overflow-y-auto">
+          {loading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          ) : info ? (
+            <div className="space-y-3 text-sm">
+              {/* System */}
+              {info.system && Object.keys(info.system).length > 0 && (
+                <div>
+                  <p className="font-semibold text-blue-700 mb-1 flex items-center gap-1">
+                    <Cpu className="w-3 h-3" /> Sistema
+                  </p>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
+                    {info.system.software && <><span className="text-muted-foreground">Firmware:</span><span className="font-mono font-medium">{info.system.software.split(' ')[0]}</span></>}
+                    {info.system.model && <><span className="text-muted-foreground">Modelo:</span><span className="font-medium">{info.system.model.toUpperCase()}</span></>}
+                    {info.system.hardware && <><span className="text-muted-foreground">Hardware:</span><span>{info.system.hardware}</span></>}
+                    {info.system.image_sensor && <><span className="text-muted-foreground">Sensor:</span><span>{info.system.image_sensor.split(',')[0]}</span></>}
+                    {info.system.uptime && <><span className="text-muted-foreground">Uptime:</span><span className="font-mono">{info.system.uptime}</span></>}
+                  </div>
+                </div>
+              )}
+              
+              {/* Sensors */}
+              {info.sensors && Object.keys(info.sensors).length > 0 && (
+                <div>
+                  <p className="font-semibold text-orange-600 mb-1 flex items-center gap-1">
+                    <Thermometer className="w-3 h-3" /> Sensores
+                  </p>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
+                    {info.sensors.temperature && <><span className="text-muted-foreground">Temperatura:</span><span className="font-medium">{info.sensors.temperature.replace('&deg;', '°')}</span></>}
+                    {info.sensors.illumination && <><span className="text-muted-foreground">Iluminación:</span><span>{info.sensors.illumination}</span></>}
+                  </div>
+                </div>
+              )}
+              
+              {/* Storage */}
+              {info.storage && Object.keys(info.storage).length > 0 && (
+                <div>
+                  <p className="font-semibold text-green-600 mb-1 flex items-center gap-1">
+                    <HardDriveIcon className="w-3 h-3" /> Almacenamiento
+                  </p>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
+                    {info.storage.current_usage && <><span className="text-muted-foreground">Uso:</span><span>{info.storage.current_usage}</span></>}
+                    {info.storage.maximum_size && <><span className="text-muted-foreground">Capacidad:</span><span>{info.storage.maximum_size}</span></>}
+                    {info.storage.flash_wear && <><span className="text-muted-foreground">Desgaste SD:</span><span className={parseInt(info.storage.flash_wear) > 100 ? 'text-red-600 font-medium' : ''}>{info.storage.flash_wear}</span></>}
+                    {info.storage.sequences && <><span className="text-muted-foreground">Secuencias:</span><span>{info.storage.sequences}</span></>}
+                  </div>
+                </div>
+              )}
+              
+              {/* Networking */}
+              {info.networking && Object.keys(info.networking).length > 0 && (
+                <div>
+                  <p className="font-semibold text-purple-600 mb-1 flex items-center gap-1">
+                    <Globe className="w-3 h-3" /> Red
+                  </p>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
+                    {info.networking.camera_name && <><span className="text-muted-foreground">Nombre:</span><span>{info.networking.camera_name}</span></>}
+                    {info.networking.ip_address && <><span className="text-muted-foreground">IP Local:</span><span className="font-mono">{info.networking.ip_address}</span></>}
+                    {info.networking.link_speed && <><span className="text-muted-foreground">Velocidad:</span><span>{info.networking.link_speed}</span></>}
+                  </div>
+                </div>
+              )}
+              
+              {/* Image */}
+              {info.image && Object.keys(info.image).length > 0 && (
+                <div>
+                  <p className="font-semibold text-cyan-600 mb-1 flex items-center gap-1">
+                    <Camera className="w-3 h-3" /> Imagen
+                  </p>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
+                    {info.image.image_properties && <><span className="text-muted-foreground">Resolución:</span><span>{info.image.image_properties.split(',')[0]}</span></>}
+                    {info.image.frame_rate && <><span className="text-muted-foreground">FPS:</span><span>{info.image.frame_rate}</span></>}
+                    {info.image.video_codec && <><span className="text-muted-foreground">Codec:</span><span>{info.image.video_codec.split(' ')[0]}</span></>}
+                  </div>
+                </div>
+              )}
+              
+              {info.errors && info.errors.length > 0 && (
+                <div className="text-xs text-red-500 mt-2">
+                  <p className="font-medium">Errores:</p>
+                  {info.errors.map((err, i) => <p key={i}>{err}</p>)}
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No se pudo obtener información</p>
+          )}
+        </div>
+        
+        <div className="border-t px-3 py-2 bg-gray-50 rounded-b-lg">
+          <p className="text-[10px] text-muted-foreground text-center">
+            Haz clic fuera para cerrar
+          </p>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
 // ============ SERVER CARD ============
 const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete, onClone, onViewHistory, onMobotixInfo, canEdit }) => {
   const [isChecking, setIsChecking] = useState(false);
@@ -616,7 +782,10 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
         </div>
 
         {(device.brand || device.model) && (
-          <p className="text-xs text-muted-foreground mt-2 font-medium">{[device.brand, device.model].filter(Boolean).join(" • ")}</p>
+          <div className="flex items-center gap-2 mt-2">
+            <p className="text-xs text-muted-foreground font-medium">{[device.brand, device.model].filter(Boolean).join(" • ")}</p>
+            <FirmwareBadge device={device} />
+          </div>
         )}
         {device.location && (
           <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground"><MapPin className="w-3 h-3" />{device.location}</div>
