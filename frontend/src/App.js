@@ -1501,7 +1501,11 @@ const StatisticsPanel = ({ devices, groups }) => {
     if (!selectedCamera) return;
     setLoading(true);
     try {
-      const res = await authAxios.get(`/cameras/${selectedCamera.id}/mobotix/report?report_type=${reportType}&export_range=${reportRange}`);
+      let url = `/cameras/${selectedCamera.id}/mobotix/report?report_type=${reportType}&export_range=${reportRange}`;
+      if (useCustomDates && startDate && endDate) {
+        url = `/cameras/${selectedCamera.id}/mobotix/report?start_date=${startDate}&end_date=${endDate}`;
+      }
+      const res = await authAxios.get(url);
       setReportData(res.data.report);
     } catch (e) {
       toast.error("Error al obtener reporte: " + (e.response?.data?.detail || e.message));
