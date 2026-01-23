@@ -2685,65 +2685,33 @@ const AccessLogsPanel = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const token = localStorage.getItem("token");
-        console.log("AccessLogsPanel: token exists:", !!token);
-        console.log("AccessLogsPanel: API URL:", API);
+        const params = new URLSearchParams();
+        params.append("skip", String(page * pageSize));
+        params.append("limit", String(pageSize));
+        if (filters.category) params.append("category", filters.category);
+        if (filters.username) params.append("username", filters.username);
         
-        if (!token) {
-          console.log("AccessLogsPanel: No token found");
-          setLoading(false);
-          return;
-        }
+        const logsRes = await authAxios.get(`/logs?${params.toString()}`);
+        setLogs(logsRes.data.logs || []);
+        setTotal(logsRes.data.total || 0);
         
-        const url = `${API}/logs?skip=0&limit=50`;
-        console.log("AccessLogsPanel: Fetching from:", url);
+        const statsRes = await authAxios.get("/logs/stats?days=7");
+        setStats(statsRes.data);
         
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        console.log("AccessLogsPanel: Response status:", response.status);
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log("AccessLogsPanel: Logs loaded, count:", data.logs?.length);
-          setLogs(data.logs || []);
-          setTotal(data.total || 0);
-        } else {
-          console.error("AccessLogsPanel: Failed to load logs:", response.status);
-        }
-        
-        // Load stats
-        const statsResponse = await fetch(`${API}/logs/stats?days=7`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (statsResponse.ok) {
-          const statsData = await statsResponse.json();
-          setStats(statsData);
-        }
-        
-        // Load security
-        const securityResponse = await fetch(`${API}/logs/security?hours=24`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (securityResponse.ok) {
-          const securityData = await securityResponse.json();
-          setSecurity(securityData);
-        }
-        
+        const securityRes = await authAxios.get("/logs/security?hours=24");
+        setSecurity(securityRes.data);
       } catch (e) {
-        console.error("AccessLogsPanel: Error loading logs:", e);
+        console.error("Error loading logs:", e);
+        setLogs([]);
       } finally {
         setLoading(false);
       }
     };
     
-    loadData();
-  }, [page, filters]);
+    if (authAxios) {
+      loadData();
+    }
+  }, [authAxios, page, filters]);
 
   const fetchLogs = async () => {
     // Manual refresh function
