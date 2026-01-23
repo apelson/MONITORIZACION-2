@@ -2686,6 +2686,8 @@ const AccessLogsPanel = () => {
     let isCancelled = false;
     
     const loadData = async () => {
+      if (!authAxios) return;
+      
       setLoading(true);
       try {
         // Fetch logs
@@ -2698,20 +2700,29 @@ const AccessLogsPanel = () => {
         if (filters.start_date) params.append("start_date", filters.start_date);
         if (filters.end_date) params.append("end_date", filters.end_date);
         
-        const [logsRes, statsRes, securityRes] = await Promise.all([
-          authAxios.get(`/logs?${params.toString()}`),
-          authAxios.get("/logs/stats?days=7"),
-          authAxios.get("/logs/security?hours=24")
-        ]);
-        
+        // Fetch each independently to avoid one failure breaking all
+        const logsRes = await authAxios.get(`/logs?${params.toString()}`);
         if (!isCancelled) {
           setLogs(logsRes.data.logs || []);
           setTotal(logsRes.data.total || 0);
-          setStats(statsRes.data);
-          setSecurity(securityRes.data);
         }
+        
+        // Stats in parallel
+        try {
+          const [statsRes, securityRes] = await Promise.all([
+            authAxios.get("/logs/stats?days=7"),
+            authAxios.get("/logs/security?hours=24")
+          ]);
+          if (!isCancelled) {
+            setStats(statsRes.data);
+            setSecurity(securityRes.data);
+          }
+        } catch (statsError) {
+          console.error("Error loading stats:", statsError);
+        }
+        
       } catch (e) {
-        console.error("Error loading logs data:", e);
+        console.error("Error loading logs:", e);
         if (!isCancelled) {
           setLogs([]);
         }
