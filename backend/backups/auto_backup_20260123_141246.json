@@ -1,0 +1,438 @@
+{
+  "version": "1.0",
+  "created_at": "2026-01-23T14:12:46.817657+00:00",
+  "collections": {
+    "organizations": [
+      {
+        "id": "e9c561c6-0e8c-40b2-bfd3-1e82fe14c253",
+        "name": "DOMINGO ALONSO GROUP",
+        "description": "",
+        "color": "#06b6d4",
+        "created_by": "28231dc1-bd13-48b5-bddc-c1edfa8b4bb8",
+        "created_at": "2026-01-20T13:43:01.198895+00:00",
+        "city": "ISLAS CANARIAS",
+        "country": "España",
+        "logo_url": "https://moboview.preview.emergentagent.com/api/upload/c7298f3354f7478ca32561f3b63def01.jpg"
+      },
+      {
+        "id": "dc0113e4-406d-40d7-8b6c-408f4b49ca90",
+        "name": "SIEMPRIA",
+        "description": "",
+        "color": "#3b82f6",
+        "logo_url": "",
+        "created_by": "28231dc1-bd13-48b5-bddc-c1edfa8b4bb8",
+        "created_at": "2026-01-20T16:49:07.989625+00:00",
+        "city": "Tenerife",
+        "country": "España"
+      },
+      {
+        "id": "b819f10c-60ce-4ddd-870e-225a24f1a729",
+        "name": "DOMINGO ALONSO TENERIFE",
+        "description": "",
+        "color": "#3b82f6",
+        "logo_url": "",
+        "country": "España",
+        "city": "Santa Cruz de Tenerife",
+        "created_by": "28231dc1-bd13-48b5-bddc-c1edfa8b4bb8",
+        "created_at": "2026-01-20T21:05:30.324024+00:00"
+      },
+      {
+        "id": "718ea17f-307e-4c10-9f61-cefa51f130f3",
+        "name": "DOMINGO ALONSO GRAN CANARIA",
+        "description": "",
+        "color": "#3b82f6",
+        "logo_url": "",
+        "country": "España",
+        "city": "Gran Canaria",
+        "created_by": "28231dc1-bd13-48b5-bddc-c1edfa8b4bb8",
+        "created_at": "2026-01-20T21:06:01.931989+00:00"
+      },
+      {
+        "id": "9c9a6308-1962-456f-ac31-c9127f6a3a91",
+        "name": "DOMINGO ALONSO LA PALMA",
+        "description": "",
+        "color": "#3b82f6",
+        "logo_url": "",
+        "country": "España",
+        "city": "La Palma",
+        "created_by": "28231dc1-bd13-48b5-bddc-c1edfa8b4bb8",
+        "created_at": "2026-01-20T21:08:05.342746+00:00"
+      },
+      {
+        "id": "55685ab2-ff2d-4cb9-a20e-667feb7e6df4",
+        "name": "DOMINGO ALONSO FUERTEVENTURA",
+        "description": "",
+        "color": "#3b82f6",
+        "logo_url": "",
+        "country": "España",
+        "city": "Fuerteventura",
+        "created_by": "28231dc1-bd13-48b5-bddc-c1edfa8b4bb8",
+        "created_at": "2026-01-20T21:08:25.091240+00:00"
+      },
+      {
+        "id": "0ca87467-70cc-4ae4-8d51-121b88f32c39",
+        "name": "Test Org",
+        "description": "Test",
+        "color": "#3b82f6",
+        "logo_url": "",
+        "country": "",
+        "city": "",
+        "created_at": "2026-01-23T13:17:15.942963+00:00"
+      },
+      {
+        "id": "f0bc9d65-c821-4d6b-8c25-40a4f4acc000",
+        "name": "TEST ORG API",
+        "description": "Creada desde API",
+        "color": "#3b82f6",
+        "logo_url": "",
+        "country": "",
+        "city": "",
+        "created_at": "2026-01-23T13:27:19.725315+00:00"
+      }
+    ],
+    "groups": [
+      {
+        "id": "c5bf994e-fb5f-4c81-9517-ce2731ace353",
+        "name": "DOMINGO ALONSO",
+        "description": "",
+        "color": "#3b82f6",
+        "created_by": "28231dc1-bd13-48b5-bddc-c1edfa8b4bb8",
+        "created_at": "2026-01-20T13:28:53.981175+00:00"
+      },
+      {
+        "id": "4aae2a52-6e68-4030-bf4f-a89910fcaeb2",
+        "name": "LOS MAJUELOS",
+        "organization_id": "e9c561c6-0e8c-40b2-bfd3-1e82fe14c253",
+        "description": "",
+        "color": "#3b82f6",
+        "created_by": "28231dc1-bd13-48b5-bddc-c1edfa8b4bb8",
+        "created_at": "2026-01-20T13:44:35.389836+00:00"
+      },
+      {
+        "id": "3709123a-2c3f-4d06-9f01-6823aa9d1b6d",
+        "name": "NAVE",
+        "organization_id": "dc0113e4-406d-40d7-8b6c-408f4b49ca90",
+        "description": "",
+        "color": "#22c55e",
+        "created_by": "28231dc1-bd13-48b5-bddc-c1edfa8b4bb8",
+        "created_at": "2026-01-20T16:49:38.003310+00:00"
+      },
+      {
+        "id": "763dd52f-7e6b-434a-8e86-727c00c5201c",
+        "name": "GUAMASA",
+        "organization_id": "e9c561c6-0e8c-40b2-bfd3-1e82fe14c253",
+        "description": "",
+        "color": "#22c55e",
+        "created_by": "28231dc1-bd13-48b5-bddc-c1edfa8b4bb8",
+        "created_at": "2026-01-20T16:50:02.838030+00:00"
+      },
+      {
+        "id": "3abd9ffc-6546-47ca-ac75-d276206d78e6",
+        "name": "Test Group",
+        "organization_id": "0ca87467-70cc-4ae4-8d51-121b88f32c39",
+        "description": "Test group",
+        "color": "#22c55e",
+        "created_at": "2026-01-23T13:17:23.683893+00:00"
+      }
+    ],
+    "devices": [
+      {
+        "id": "e0a9bdf2-359a-4d8d-a9ac-1a5ec44379d6",
+        "name": "EXTERIOR NAVE MOBOTIX",
+        "ip_address": "2.136.126.152",
+        "port": 9002,
+        "description": "EXTERIOR",
+        "status": "online",
+        "last_check": "2026-01-23T14:12:17.021502+00:00",
+        "last_online": "2026-01-23T11:52:11.320701+00:00",
+        "created_at": "2026-01-20T13:10:32.590266+00:00",
+        "brand": "MOBOTIX",
+        "image_url": "http://admin:pucelano16071977@2.136.126.152:9002/cgi-bin/image.jpg",
+        "location": "",
+        "model": "D16",
+        "notes": "",
+        "camera_password": "pucelano16071977",
+        "camera_path": "/cgi-bin/image.jpg",
+        "camera_user": "admin",
+        "device_type_id": "type-camera",
+        "camera_protocol": "http",
+        "group_id": "3709123a-2c3f-4d06-9f01-6823aa9d1b6d"
+      },
+      {
+        "id": "be073e35-0b3b-4526-9770-d22da74da38b",
+        "name": "TIMELAPSE-GC1",
+        "ip_address": "212.64.162.233",
+        "port": 20201,
+        "description": "CAMARA PARA TIMELAPSE",
+        "status": "online",
+        "last_check": "2026-01-23T14:12:17.251007+00:00",
+        "last_online": "2026-01-23T11:52:11.942768+00:00",
+        "created_at": "2026-01-20T13:11:49.485618+00:00",
+        "group_id": "4aae2a52-6e68-4030-bf4f-a89910fcaeb2",
+        "brand": "MOBOTIX",
+        "image_url": "http://admin:Spw@6009@212.64.162.233:20201/cgi-bin/image.jpg",
+        "location": "MILLER BAJO, EDIFICIO LA LOZA",
+        "model": "M26",
+        "notes": "admin:Spw@6009",
+        "device_type_id": "type-camera",
+        "camera_password": "Spw@6009",
+        "camera_path": "/cgi-bin/image.jpg",
+        "camera_user": "admin",
+        "camera_protocol": "http"
+      },
+      {
+        "id": "b5258e72-f66d-4531-9456-9580298b7707",
+        "name": "TIMELAPSE-GC2",
+        "ip_address": "212.64.162.233",
+        "port": 20202,
+        "description": "CAMARA PARA TIMELAPSE",
+        "group_id": "4aae2a52-6e68-4030-bf4f-a89910fcaeb2",
+        "device_type_id": "type-camera",
+        "brand": "MOBOTIX",
+        "model": "M26",
+        "location": "MILLER BAJO, EDIFICIO LA LOZA",
+        "notes": "admin:Spw@6009",
+        "image_url": "http://admin:Spw@6009@212.64.162.233:20202/cgi-bin/image.jpg",
+        "camera_protocol": "http",
+        "camera_user": "admin",
+        "camera_password": "Spw@6009",
+        "camera_path": "/cgi-bin/image.jpg",
+        "status": "online",
+        "last_check": "2026-01-23T14:12:17.483053+00:00",
+        "last_online": "2026-01-23T11:52:12.576676+00:00",
+        "created_by": "28231dc1-bd13-48b5-bddc-c1edfa8b4bb8",
+        "created_at": "2026-01-20T17:08:35.758289+00:00"
+      },
+      {
+        "id": "beb20812-ea09-4d30-9404-d122a06c5c4f",
+        "name": "PRUEBA ESTADISTICAS",
+        "ip_address": "212.64.162.40",
+        "port": 40002,
+        "description": "",
+        "group_id": "763dd52f-7e6b-434a-8e86-727c00c5201c",
+        "device_type_id": "type-camera",
+        "brand": "MOBOTIX",
+        "model": "C25",
+        "location": "",
+        "notes": "",
+        "image_url": "https://admin2:Canarias@2020@212.64.162.40:40002/cgi-bin/image.jpg",
+        "camera_protocol": "https",
+        "camera_user": "admin2",
+        "camera_password": "Canarias@2020",
+        "camera_path": "/cgi-bin/image.jpg",
+        "has_statistics": true,
+        "status": "online",
+        "last_check": "2026-01-23T14:12:17.714422+00:00",
+        "last_online": "2026-01-23T11:52:32.719919+00:00",
+        "created_by": "28231dc1-bd13-48b5-bddc-c1edfa8b4bb8",
+        "created_at": "2026-01-23T08:49:07.937249+00:00"
+      }
+    ],
+    "device_types": [
+      {
+        "id": "type-camera",
+        "name": "Cámara",
+        "icon": "camera",
+        "color": "#8b5cf6",
+        "is_default": true,
+        "created_at": "2026-01-20T13:33:02.335421+00:00"
+      },
+      {
+        "id": "type-nas",
+        "name": "NAS",
+        "icon": "hard-drive",
+        "color": "#f59e0b",
+        "is_default": true,
+        "created_at": "2026-01-20T13:33:02.336049+00:00"
+      },
+      {
+        "id": "type-switch",
+        "name": "Switch",
+        "icon": "network",
+        "color": "#22c55e",
+        "is_default": true,
+        "created_at": "2026-01-20T13:33:02.336499+00:00"
+      },
+      {
+        "id": "type-router",
+        "name": "Router",
+        "icon": "router",
+        "color": "#3b82f6",
+        "is_default": true,
+        "created_at": "2026-01-20T13:33:02.336927+00:00"
+      },
+      {
+        "id": "type-server",
+        "name": "Servidor",
+        "icon": "server",
+        "color": "#ef4444",
+        "is_default": true,
+        "created_at": "2026-01-20T13:33:02.337424+00:00"
+      },
+      {
+        "id": "type-pc",
+        "name": "PC/Workstation",
+        "icon": "monitor",
+        "color": "#06b6d4",
+        "is_default": true,
+        "created_at": "2026-01-20T13:33:02.337900+00:00"
+      },
+      {
+        "id": "type-printer",
+        "name": "Impresora",
+        "icon": "printer",
+        "color": "#84cc16",
+        "is_default": true,
+        "created_at": "2026-01-20T13:33:02.338337+00:00"
+      },
+      {
+        "id": "type-access-point",
+        "name": "Access Point",
+        "icon": "wifi",
+        "color": "#ec4899",
+        "is_default": true,
+        "created_at": "2026-01-20T13:33:02.338745+00:00"
+      },
+      {
+        "id": "type-firewall",
+        "name": "Firewall",
+        "icon": "shield",
+        "color": "#f97316",
+        "is_default": true,
+        "created_at": "2026-01-20T13:33:02.339159+00:00"
+      },
+      {
+        "id": "type-other",
+        "name": "Otro",
+        "icon": "box",
+        "color": "#6b7280",
+        "is_default": true,
+        "created_at": "2026-01-20T13:33:02.339858+00:00"
+      }
+    ],
+    "users": [
+      {
+        "id": "28231dc1-bd13-48b5-bddc-c1edfa8b4bb8",
+        "username": "admin",
+        "email": "admin@siempria.com",
+        "password_hash": "$2b$12$0PL2Ms4Ri.j3AhS0EEwtYuFzL7Ne9akGJNann2xK2cQ2RmL60s/DG",
+        "role": "admin",
+        "full_name": "Administrador",
+        "is_active": true,
+        "created_at": "2026-01-20T13:23:18.419419+00:00"
+      },
+      {
+        "id": "45fd05b3-88a6-4ba1-9255-6eb715addc4a",
+        "username": "operador",
+        "email": "operador@siempria.com",
+        "password_hash": "$2b$12$AHbnj8AXLXzyrVuucmL9Q.4ZRKZ/i0JgCmJ6xHf7NeC8nb2LsMUvS",
+        "role": "operator",
+        "full_name": "Operador",
+        "is_active": true,
+        "created_at": "2026-01-20T14:45:31.077118+00:00"
+      },
+      {
+        "id": "d6b21462-00b6-4a3e-9630-a5149b061b87",
+        "username": "tecnico",
+        "email": "tecnico@siempria.com",
+        "password_hash": "$2b$12$JzQp3uSS27f5faFoC8ndGegzjOD0ALEge5bAWJ4WfXM74tndUR68m",
+        "role": "technician",
+        "full_name": "Técnico",
+        "is_active": true,
+        "created_at": "2026-01-23T08:38:57.118411+00:00",
+        "group_ids": []
+      }
+    ],
+    "alerts": [
+      {
+        "id": "47395e05-bf50-4f44-947d-66648d3f3012",
+        "device_id": "be073e35-0b3b-4526-9770-d22da74da38b",
+        "device_name": "TIMELAPSE-GC1",
+        "device_ip": "212.64.162.233",
+        "alert_type": "device_up",
+        "message": "Dispositivo TIMELAPSE-GC1 (212.64.162.233:20201) cambió a online",
+        "email_sent": false,
+        "timestamp": "2026-01-20T13:15:03.178876+00:00"
+      },
+      {
+        "id": "c55bac39-c111-47b0-b7e4-8287cbf7c86d",
+        "device_id": "e0a9bdf2-359a-4d8d-a9ac-1a5ec44379d6",
+        "device_name": "CAMARA PRUEBA",
+        "device_ip": "2.136.126.152",
+        "alert_type": "device_up",
+        "message": "Dispositivo CAMARA PRUEBA (2.136.126.152:9002) cambió a online",
+        "email_sent": false,
+        "timestamp": "2026-01-20T13:15:46.102861+00:00"
+      },
+      {
+        "id": "bc49cbf3-3f1e-4c01-bb47-813f5a17d3e5",
+        "device_id": "e0a9bdf2-359a-4d8d-a9ac-1a5ec44379d6",
+        "device_name": "CAMARA PRUEBA",
+        "device_ip": "2.136.126.152",
+        "alert_type": "device_up",
+        "message": "Dispositivo CAMARA PRUEBA (2.136.126.152:9002) cambió a online",
+        "email_sent": false,
+        "timestamp": "2026-01-20T13:27:19.747906+00:00"
+      },
+      {
+        "id": "96730b64-3420-4deb-b5fe-353d8fa853f1",
+        "device_id": "e0a9bdf2-359a-4d8d-a9ac-1a5ec44379d6",
+        "device_name": "EXTERIOR NAVE MOBOTIX",
+        "device_ip": "2.136.126.152",
+        "alert_type": "device_down",
+        "message": "Dispositivo EXTERIOR NAVE MOBOTIX (2.136.126.152:9002) cambió a offline",
+        "email_sent": false,
+        "timestamp": "2026-01-21T11:36:48.594912+00:00"
+      },
+      {
+        "id": "679e4eae-5190-4288-b3e2-e3a09a7308cf",
+        "device_id": "e0a9bdf2-359a-4d8d-a9ac-1a5ec44379d6",
+        "device_name": "EXTERIOR NAVE MOBOTIX",
+        "device_ip": "2.136.126.152",
+        "alert_type": "device_up",
+        "message": "Dispositivo EXTERIOR NAVE MOBOTIX (2.136.126.152:9002) cambió a online",
+        "email_sent": false,
+        "timestamp": "2026-01-21T11:41:45.522073+00:00"
+      },
+      {
+        "id": "ca09d2a3-0bbc-4cfc-bf90-e24edfe894ff",
+        "device_id": "be073e35-0b3b-4526-9770-d22da74da38b",
+        "device_name": "TIMELAPSE-GC1",
+        "device_ip": "212.64.162.233",
+        "alert_type": "device_up",
+        "message": "Dispositivo TIMELAPSE-GC1 (212.64.162.233:20201) cambió a online",
+        "email_sent": false,
+        "timestamp": "2026-01-23T10:23:54.460977+00:00"
+      },
+      {
+        "id": "2c4d2266-86ee-4d9c-982b-85fb031287a7",
+        "device_id": "b5258e72-f66d-4531-9456-9580298b7707",
+        "device_name": "TIMELAPSE-GC2",
+        "alert_type": "device_down",
+        "message": "Dispositivo se ha desconectado",
+        "timestamp": "2026-01-23T12:04:12.065655+00:00",
+        "email_sent": false,
+        "acknowledged": false
+      },
+      {
+        "id": "8abe4ccf-3a30-4c7b-b371-368d6a2fe302",
+        "device_id": "b5258e72-f66d-4531-9456-9580298b7707",
+        "device_name": "TIMELAPSE-GC2",
+        "alert_type": "device_up",
+        "message": "Dispositivo se ha recuperado",
+        "timestamp": "2026-01-23T12:06:13.711209+00:00",
+        "email_sent": false,
+        "acknowledged": false
+      }
+    ],
+    "settings": [
+      {
+        "alert_email": "apelson@gmail.com",
+        "gmail_app_password": "htas jwqy zzhr kfxk",
+        "gmail_user": "apelson@gmail.com"
+      }
+    ],
+    "scheduled_reports": [],
+    "public_dashboards": []
+  }
+}
