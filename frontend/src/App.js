@@ -607,9 +607,14 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
         {device.location && (
           <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground"><MapPin className="w-3 h-3" />{device.location}</div>
         )}
-        {group && (
-          <Badge variant="outline" className="mt-2 text-xs" style={{ borderColor: group.color, color: group.color }}><FolderOpen className="w-3 h-3 mr-1" />{group.name}</Badge>
-        )}
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
+          {group && (
+            <Badge variant="outline" className="text-xs" style={{ borderColor: group.color, color: group.color }}><FolderOpen className="w-3 h-3 mr-1" />{group.name}</Badge>
+          )}
+          {device.has_statistics && (
+            <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 border-purple-300"><BarChart3 className="w-3 h-3 mr-1" />Stats</Badge>
+          )}
+        </div>
         {device.description && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{device.description}</p>}
         
         <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
