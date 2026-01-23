@@ -2588,7 +2588,11 @@ const Dashboard = () => {
   const handleSaveSettings = async (data) => { try { await authAxios.post("/settings", data); toast.success("Guardado"); fetchAll(); } catch (e) { toast.error("Error"); } };
 
   const handleDelete = async () => { try { const { type, item } = deleteTarget; if (type === "device") await authAxios.delete(`/devices/${item.id}`); else if (type === "org") await authAxios.delete(`/organizations/${item.id}`); else if (type === "group") await authAxios.delete(`/groups/${item.id}`); else if (type === "user") await authAxios.delete(`/users/${item.id}`); else if (type === "type") await authAxios.delete(`/device-types/${item.id}`); toast.success("Eliminado"); fetchAll(); } catch (e) { toast.error(e.response?.data?.detail || "Error"); } };
-  const handleResetPassword = async (userId) => { try { await authAxios.post(`/users/${userId}/reset-password`); toast.success("Contraseña: password123"); } catch (e) { toast.error("Error"); } };
+  const handleOpenPasswordDialog = (userId) => { setPasswordUserId(userId); setNewPassword(""); setPasswordDialogOpen(true); };
+  const handleSetPassword = async () => { 
+    if (!newPassword || newPassword.length < 6) { toast.error("La contraseña debe tener al menos 6 caracteres"); return; }
+    try { await authAxios.post(`/users/${passwordUserId}/set-password`, { new_password: newPassword }); toast.success("Contraseña actualizada"); setPasswordDialogOpen(false); } catch (e) { toast.error(e.response?.data?.detail || "Error"); } 
+  };
   const handleViewHistory = async (device) => { setSelectedDevice(device); try { const res = await authAxios.get(`/devices/${device.id}/history`); setDeviceHistory(res.data.history || []); setHistoryDialogOpen(true); } catch (e) { toast.error("Error"); } };
   
   const handleMobotixInfo = async (device) => {
