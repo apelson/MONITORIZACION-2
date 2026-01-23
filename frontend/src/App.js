@@ -1364,30 +1364,39 @@ const OrganizationsPanel = ({ organizations, groups, devices, onCreateOrg, onEdi
   );
 };
 
-const DeviceTypesPanel = ({ deviceTypes, onCreateType, onEditType, onDeleteType, canEdit }) => {
+const DeviceTypesPanel = ({ deviceTypes, onCreateType, onEditType, onDeleteType, canEdit, onFilterByType, devices }) => {
+  // Count devices per type
+  const getDeviceCount = (typeId) => devices?.filter(d => d.device_type_id === typeId).length || 0;
+  
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <div><CardTitle className="flex items-center gap-2"><Tag className="w-5 h-5" />Tipos de Dispositivos</CardTitle><CardDescription>Define tipos con iconos para categorizar</CardDescription></div>
+        <div><CardTitle className="flex items-center gap-2"><Tag className="w-5 h-5" />Tipos de Dispositivos</CardTitle><CardDescription>Haz clic en un tipo para filtrar dispositivos</CardDescription></div>
         {canEdit && <Button size="sm" onClick={() => onCreateType()}><Plus className="w-4 h-4 mr-2" />Nuevo Tipo</Button>}
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {deviceTypes.map(t => {
             const Icon = getIcon(t.icon);
+            const count = getDeviceCount(t.id);
             return (
-              <div key={t.id} className="p-4 rounded-lg border bg-card hover:shadow-sm transition-shadow text-center">
-                <div className="w-12 h-12 mx-auto rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: `${t.color}20` }}>
+              <div 
+                key={t.id} 
+                className="p-4 rounded-lg border bg-card hover:shadow-md hover:border-cyan-300 transition-all cursor-pointer group"
+                onClick={() => onFilterByType(t.id)}
+              >
+                <div className="w-12 h-12 mx-auto rounded-lg flex items-center justify-center mb-2 group-hover:scale-110 transition-transform" style={{ backgroundColor: `${t.color}20` }}>
                   <Icon className="w-6 h-6" style={{ color: t.color }} />
                 </div>
-                <h4 className="font-medium text-sm">{t.name}</h4>
+                <h4 className="font-medium text-sm text-center">{t.name}</h4>
+                <p className="text-xs text-center text-muted-foreground mt-1">{count} dispositivo{count !== 1 ? 's' : ''}</p>
                 {canEdit && !t.is_default && (
-                  <div className="flex justify-center gap-1 mt-2">
-                    <Button variant="ghost" size="sm" onClick={() => onEditType(t)}><Edit className="w-3 h-3" /></Button>
-                    <Button variant="ghost" size="sm" onClick={() => onDeleteType(t)} className="text-destructive"><Trash2 className="w-3 h-3" /></Button>
+                  <div className="flex justify-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onEditType(t); }}><Edit className="w-3 h-3" /></Button>
+                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onDeleteType(t); }} className="text-destructive"><Trash2 className="w-3 h-3" /></Button>
                   </div>
                 )}
-                {t.is_default && <p className="text-xs text-muted-foreground mt-1">Predefinido</p>}
+                {t.is_default && <p className="text-xs text-muted-foreground mt-1 text-center">Predefinido</p>}
               </div>
             );
           })}
