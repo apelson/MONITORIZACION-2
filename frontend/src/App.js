@@ -219,11 +219,14 @@ const AuthProvider = ({ children }) => {
 
   const logout = () => { localStorage.removeItem("token"); setToken(null); setUser(null); };
 
+  // Create axios instance that always reads fresh token from localStorage
   const authAxios = useMemo(() => {
     const instance = axios.create({ baseURL: API });
     instance.interceptors.request.use((config) => { 
       const currentToken = localStorage.getItem("token");
-      if (currentToken) config.headers.Authorization = `Bearer ${currentToken}`; 
+      if (currentToken) {
+        config.headers.Authorization = `Bearer ${currentToken}`; 
+      }
       return config; 
     });
     instance.interceptors.response.use(
@@ -231,6 +234,10 @@ const AuthProvider = ({ children }) => {
       (error) => {
         if (error.config?.responseType === 'blob') {
           error.response = { data: null, status: error.response?.status || 0 };
+        }
+        // Auto logout on 401
+        if (error.response?.status === 401) {
+          localStorage.removeItem("token");
         }
         return Promise.reject(error);
       }
