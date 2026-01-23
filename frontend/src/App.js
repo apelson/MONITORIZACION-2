@@ -608,6 +608,18 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
         <Separator className="my-3" />
 
         <div className="flex flex-col gap-2">
+          {/* WhatsApp alert button for offline devices */}
+          {device.status === 'offline' && (
+            <a 
+              href={`https://wa.me/${WHATSAPP_ALERT_NUMBER.replace('+', '')}?text=${encodeURIComponent(`🚨 *ALERTA - Dispositivo Offline*\n\n❌ *${device.name}*\nIP: ${device.ip_address}:${device.port}\n\n_Siempria Network Monitor_`)}`}
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md text-sm font-medium transition-colors"
+            >
+              <Phone className="w-4 h-4" />
+              Avisar por WhatsApp
+            </a>
+          )}
           <Button data-testid={`check-device-${device.id}`} variant="outline" size="sm" onClick={handleCheck} disabled={isChecking} className="w-full">
             <RefreshCw className={`w-3 h-3 mr-1.5 ${isChecking ? 'animate-spin-slow' : ''}`} />Verificar
           </Button>
