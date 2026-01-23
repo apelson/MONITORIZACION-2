@@ -2216,6 +2216,11 @@ const Dashboard = () => {
             )}
           </TabsContent>
 
+          {/* Statistics Tab */}
+          <TabsContent value="statistics">
+            <StatisticsPanel devices={devices} groups={groups} />
+          </TabsContent>
+
           <TabsContent value="structure">
             <OrganizationsPanel organizations={organizations} groups={groups} devices={devices} canEdit={canEdit}
               onCreateOrg={() => { setSelectedOrg(null); setOrgDialogOpen(true); }}
