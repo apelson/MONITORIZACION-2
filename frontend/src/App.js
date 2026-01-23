@@ -1669,12 +1669,12 @@ const StatisticsPanel = ({ devices, groups }) => {
                       )}
                       
                       {/* Record info - shows when report is loaded */}
-                      {reportData && getRecordInfo() && (
+                      {reportData && recordInfo && (
                         <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                           <div className="flex items-center gap-2">
                             <Trophy className="w-5 h-5 text-amber-600" />
                             <p className="text-sm font-medium text-amber-800">
-                              Récord: <span className="font-bold">{getRecordInfo().day}</span> con <span className="font-bold">{getRecordInfo().total.toLocaleString()}</span> personas
+                              Récord: <span className="font-bold">{recordInfo.day}</span> con <span className="font-bold">{recordInfo.total.toLocaleString()}</span> personas
                             </p>
                           </div>
                         </div>
