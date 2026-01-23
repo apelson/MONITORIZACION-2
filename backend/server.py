@@ -43,6 +43,7 @@ from routes.organizations import router as organizations_router
 from routes.devices import router as devices_router
 from routes.settings import router as settings_router
 from routes.statistics import router as statistics_router
+from routes.upload import router as upload_router
 
 # ============ APP LIFECYCLE ============
 
