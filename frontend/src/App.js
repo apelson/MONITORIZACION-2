@@ -1363,6 +1363,358 @@ const AlertsPanel = ({ alerts }) => (
   </Card>
 );
 
+// ============ STATISTICS PANEL ============
+const StatisticsPanel = ({ devices, groups }) => {
+  const { authAxios } = useAuth();
+  const [camerasWithStats, setCamerasWithStats] = useState([]);
+  const [selectedCamera, setSelectedCamera] = useState(null);
+  const [statsData, setStatsData] = useState(null);
+  const [heatmapImage, setHeatmapImage] = useState(null);
+  const [reportData, setReportData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [reportType, setReportType] = useState("week");
+  const [reportRange, setReportRange] = useState("current");
+  const [heatmapType, setHeatmapType] = useState("week");
+  const [heatmapRange, setHeatmapRange] = useState("last");
+  
+  // Filter cameras that have statistics enabled
+  useEffect(() => {
+    const statsDevices = devices.filter(d => d.has_statistics === true && d.device_type_id === "type-camera");
+    setCamerasWithStats(statsDevices);
+  }, [devices]);
+  
+  // Fetch overview when camera is selected
+  const fetchCameraStats = async (camera) => {
+    setSelectedCamera(camera);
+    setLoading(true);
+    setStatsData(null);
+    setHeatmapImage(null);
+    setReportData(null);
+    
+    try {
+      const res = await authAxios.get(`/cameras/${camera.id}/mobotix/overview`);
+      setStatsData(res.data.data);
+    } catch (e) {
+      toast.error("Error al obtener estadísticas: " + (e.response?.data?.detail || e.message));
+    }
+    setLoading(false);
+  };
+  
+  // Fetch counting report
+  const fetchReport = async () => {
+    if (!selectedCamera) return;
+    setLoading(true);
+    try {
+      const res = await authAxios.get(`/cameras/${selectedCamera.id}/mobotix/report?report_type=${reportType}&export_range=${reportRange}`);
+      setReportData(res.data.report);
+    } catch (e) {
+      toast.error("Error al obtener reporte: " + (e.response?.data?.detail || e.message));
+    }
+    setLoading(false);
+  };
+  
+  // Fetch heatmap
+  const fetchHeatmap = async () => {
+    if (!selectedCamera) return;
+    setLoading(true);
+    try {
+      const res = await authAxios.get(`/cameras/${selectedCamera.id}/mobotix/heatmap?heatmap_type=${heatmapType}&export_range=${heatmapRange}`);
+      setHeatmapImage(res.data.image);
+    } catch (e) {
+      toast.error("Error al obtener mapa de calor: " + (e.response?.data?.detail || e.message));
+    }
+    setLoading(false);
+  };
+  
+  const getGroupName = (groupId) => groups.find(g => g.id === groupId)?.name || "Sin grupo";
+  
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <Card className="bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 text-cyan-800">
+            <div className="p-2 bg-cyan-100 rounded-lg">
+              <BarChart3 className="w-6 h-6 text-cyan-600" />
+            </div>
+            Estadísticas MxAnalytics
+          </CardTitle>
+          <CardDescription className="text-cyan-700">
+            Conteo de personas y mapas de calor de cámaras Mobotix con MxAnalytics habilitado
+          </CardDescription>
+        </CardHeader>
+      </Card>
+      
+      {camerasWithStats.length === 0 ? (
+        <Card>
+          <CardContent className="py-16 text-center">
+            <Activity className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-30" />
+            <h3 className="text-lg font-medium mb-2">No hay cámaras con estadísticas</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Para ver estadísticas, edita una cámara y activa la opción "Estadísticas MxAnalytics" en el formulario de dispositivo.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Camera List */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Camera className="w-4 h-4" />
+                Cámaras ({camerasWithStats.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[500px]">
+                <div className="space-y-2">
+                  {camerasWithStats.map(camera => (
+                    <button
+                      key={camera.id}
+                      onClick={() => fetchCameraStats(camera)}
+                      className={`w-full text-left p-3 rounded-lg border transition-all ${
+                        selectedCamera?.id === camera.id 
+                          ? 'bg-cyan-50 border-cyan-300 shadow-sm' 
+                          : 'bg-white border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${camera.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{camera.name}</p>
+                          <p className="text-xs text-muted-foreground">{getGroupName(camera.group_id)}</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+          
+          {/* Stats Display */}
+          <div className="lg:col-span-2 space-y-6">
+            {!selectedCamera ? (
+              <Card>
+                <CardContent className="py-16 text-center">
+                  <BarChart3 className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-30" />
+                  <p className="text-muted-foreground">Selecciona una cámara para ver sus estadísticas</p>
+                </CardContent>
+              </Card>
+            ) : loading && !statsData ? (
+              <Card>
+                <CardContent className="py-16 text-center">
+                  <RefreshCw className="w-8 h-8 mx-auto mb-4 animate-spin text-cyan-600" />
+                  <p className="text-muted-foreground">Cargando estadísticas...</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {/* Overview */}
+                {statsData && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-cyan-600" />
+                        {selectedCamera.name} - Resumen
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-cyan-50 rounded-lg p-4 text-center">
+                          <p className="text-3xl font-bold text-cyan-700">{statsData.count?.toLocaleString() || 0}</p>
+                          <p className="text-xs text-cyan-600 mt-1">Total conteos</p>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-4 text-center">
+                          <p className="text-3xl font-bold text-green-700">{statsData.corridors?.length || 0}</p>
+                          <p className="text-xs text-green-600 mt-1">Corredores</p>
+                        </div>
+                        <div className="bg-purple-50 rounded-lg p-4 text-center">
+                          <p className="text-3xl font-bold text-purple-700">{statsData.reports?.length || 0}</p>
+                          <p className="text-xs text-purple-600 mt-1">Reportes</p>
+                        </div>
+                        <div className="bg-orange-50 rounded-lg p-4 text-center">
+                          <p className="text-3xl font-bold text-orange-700">{statsData.heatmaps?.length || 0}</p>
+                          <p className="text-xs text-orange-600 mt-1">Mapas calor</p>
+                        </div>
+                      </div>
+                      
+                      {/* Corridors info */}
+                      {statsData.corridors && statsData.corridors.length > 0 && (
+                        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                          <p className="text-sm font-medium mb-2">Corredores de conteo:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {statsData.corridors.map((c, i) => (
+                              <Badge key={i} variant="outline" className="bg-white">
+                                <ArrowUpDown className="w-3 h-3 mr-1" />
+                                {c.name}: {c.north} ↔ {c.south}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+                
+                {/* Counting Report */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-blue-600" />
+                        Reporte de Conteo
+                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Select value={reportType} onValueChange={setReportType}>
+                          <SelectTrigger className="w-[120px] h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="week">Semanal</SelectItem>
+                            <SelectItem value="month">Mensual</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select value={reportRange} onValueChange={setReportRange}>
+                          <SelectTrigger className="w-[120px] h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="current">Actual</SelectItem>
+                            <SelectItem value="last">Anterior</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button size="sm" onClick={fetchReport} disabled={loading}>
+                          <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                          Obtener
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {reportData && reportData.tables && reportData.tables[0] ? (
+                      <div className="overflow-x-auto">
+                        <p className="text-sm font-medium mb-3">{reportData.tables[0].title || "Reporte de conteo"}</p>
+                        <table className="w-full text-sm border-collapse">
+                          <thead>
+                            <tr className="bg-blue-50">
+                              <th className="border p-2 text-left">{reportData.tables[0].rowTitle || "Hora"}</th>
+                              {reportData.tables[0].columnTitles?.map((col, i) => (
+                                <th key={i} className="border p-2 text-center text-xs">{col}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {reportData.tables[0].data?.slice(0, -1).map((row, rowIdx) => (
+                              <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                <td className="border p-2 font-medium text-xs">{reportData.tables[0].rowTitles?.[rowIdx]}</td>
+                                {row.map((cell, colIdx) => (
+                                  <td key={colIdx} className="border p-2 text-center text-xs">
+                                    {Array.isArray(cell) ? (
+                                      cell[0] < 0 ? '-' : (
+                                        <span className="flex items-center justify-center gap-1">
+                                          <span className="text-green-600">{cell[0]}</span>
+                                          <span className="text-muted-foreground">/</span>
+                                          <span className="text-red-600">{cell[1]}</span>
+                                        </span>
+                                      )
+                                    ) : cell}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                            {/* Total row */}
+                            {reportData.tables[0].data && (
+                              <tr className="bg-blue-100 font-bold">
+                                <td className="border p-2">Total</td>
+                                {reportData.tables[0].data[reportData.tables[0].data.length - 1]?.map((cell, colIdx) => (
+                                  <td key={colIdx} className="border p-2 text-center">
+                                    {Array.isArray(cell) ? (
+                                      cell[0] < 0 ? '-' : (
+                                        <span className="flex items-center justify-center gap-1">
+                                          <span className="text-green-700">{cell[0]}</span>
+                                          <span>/</span>
+                                          <span className="text-red-700">{cell[1]}</span>
+                                        </span>
+                                      )
+                                    ) : cell}
+                                  </td>
+                                ))}
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          <span className="text-green-600">Verde</span>: {reportData.tables[0].directions?.[0] || "Norte"} | 
+                          <span className="text-red-600 ml-2">Rojo</span>: {reportData.tables[0].directions?.[1] || "Sur"}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <TrendingUp className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                        <p>Haz clic en "Obtener" para cargar el reporte de conteo</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                {/* Heatmap */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Flame className="w-4 h-4 text-orange-600" />
+                        Mapa de Calor
+                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Select value={heatmapType} onValueChange={setHeatmapType}>
+                          <SelectTrigger className="w-[120px] h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="day">Diario</SelectItem>
+                            <SelectItem value="week">Semanal</SelectItem>
+                            <SelectItem value="month">Mensual</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select value={heatmapRange} onValueChange={setHeatmapRange}>
+                          <SelectTrigger className="w-[120px] h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="current">Actual</SelectItem>
+                            <SelectItem value="last">Anterior</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button size="sm" onClick={fetchHeatmap} disabled={loading}>
+                          <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                          Obtener
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {heatmapImage ? (
+                      <div className="text-center">
+                        <img 
+                          src={heatmapImage} 
+                          alt="Mapa de calor" 
+                          className="max-w-full rounded-lg border shadow-sm mx-auto"
+                        />
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Mapa de calor {heatmapType === 'day' ? 'diario' : heatmapType === 'week' ? 'semanal' : 'mensual'} ({heatmapRange === 'current' ? 'actual' : 'anterior'})
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Flame className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                        <p>Haz clic en "Obtener" para cargar el mapa de calor</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const PublicDashboardConfig = ({ organization }) => {
   const [config, setConfig] = useState({
     enabled: false,
