@@ -1520,8 +1520,8 @@ const StatisticsPanel = ({ devices, groups }) => {
   
   const getGroupName = (groupId) => groups.find(g => g.id === groupId)?.name || "Sin grupo";
   
-  // Calculate record week from report data (highest traffic week)
-  const getRecordInfo = () => {
+  // Calculate record - memoized
+  const recordInfo = useMemo(() => {
     if (!reportData?.tables?.[0]?.data) return null;
     const data = reportData.tables[0].data;
     const columnTitles = reportData.tables[0].columnTitles || [];
@@ -1529,7 +1529,6 @@ const StatisticsPanel = ({ devices, groups }) => {
     let maxTotal = 0;
     let recordDay = "";
     
-    // Last row is totals, skip it. Check each column for highest values
     const totalsRow = data[data.length - 1];
     if (totalsRow) {
       totalsRow.forEach((cell, idx) => {
@@ -1544,7 +1543,7 @@ const StatisticsPanel = ({ devices, groups }) => {
     }
     
     return maxTotal > 0 ? { day: recordDay, total: maxTotal } : null;
-  };
+  }, [reportData]);
   
   return (
     <div className="space-y-6">
