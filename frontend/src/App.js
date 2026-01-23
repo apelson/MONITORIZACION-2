@@ -2088,6 +2088,7 @@ const Dashboard = () => {
               {isOperator ? <Camera className="w-4 h-4" /> : <Server className="w-4 h-4" />}
               {isOperator ? "Cámaras Online" : "Dispositivos"}
             </TabsTrigger>
+            {!isOperator && <TabsTrigger data-testid="tab-statistics" value="statistics" className="gap-2"><BarChart3 className="w-4 h-4" />Estadísticas</TabsTrigger>}
             {!isOperator && <TabsTrigger data-testid="tab-structure" value="structure" className="gap-2"><Building2 className="w-4 h-4" />Estructura</TabsTrigger>}
             {!isOperator && <TabsTrigger data-testid="tab-types" value="types" className="gap-2"><Tag className="w-4 h-4" />Tipos</TabsTrigger>}
             {!isOperator && <TabsTrigger data-testid="tab-alerts" value="alerts" className="gap-2"><Bell className="w-4 h-4" />Alertas{alerts.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-1.5">{alerts.length}</Badge>}</TabsTrigger>}
