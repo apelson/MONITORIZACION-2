@@ -1752,21 +1752,42 @@ const StatisticsPanel = ({ devices, groups }) => {
                         Reporte de Conteo
                       </CardTitle>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Select value={reportType} onValueChange={setReportType}>
-                          <SelectTrigger className="w-[100px] h-8"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="week">Semanal</SelectItem>
-                            <SelectItem value="month">Mensual</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Select value={reportRange} onValueChange={setReportRange}>
-                          <SelectTrigger className="w-[100px] h-8"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="current">Actual</SelectItem>
-                            <SelectItem value="last">Anterior</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Button size="sm" onClick={fetchReport} disabled={loading}>
+                        {/* Date mode toggle */}
+                        <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                          <Button size="sm" variant={!useCustomDates ? "default" : "ghost"} className="h-7" onClick={() => setUseCustomDates(false)}>
+                            Predefinido
+                          </Button>
+                          <Button size="sm" variant={useCustomDates ? "default" : "ghost"} className="h-7" onClick={() => setUseCustomDates(true)}>
+                            <Calendar className="w-3 h-3 mr-1" />Fechas
+                          </Button>
+                        </div>
+                        
+                        {!useCustomDates ? (
+                          <>
+                            <Select value={reportType} onValueChange={setReportType}>
+                              <SelectTrigger className="w-[100px] h-8"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="week">Semanal</SelectItem>
+                                <SelectItem value="month">Mensual</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Select value={reportRange} onValueChange={setReportRange}>
+                              <SelectTrigger className="w-[100px] h-8"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="current">Actual</SelectItem>
+                                <SelectItem value="last">Anterior</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </>
+                        ) : (
+                          <>
+                            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-[140px] h-8" />
+                            <span className="text-muted-foreground">a</span>
+                            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-[140px] h-8" />
+                          </>
+                        )}
+                        
+                        <Button size="sm" onClick={fetchReport} disabled={loading || (useCustomDates && (!startDate || !endDate))}>
                           <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
                           Obtener
                         </Button>
