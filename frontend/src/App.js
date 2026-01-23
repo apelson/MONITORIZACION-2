@@ -1745,16 +1745,16 @@ const StatisticsPanel = ({ devices, groups }) => {
                         <TrendingUp className="w-4 h-4 text-blue-600" />
                         Reporte de Conteo
                       </CardTitle>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Select value={reportType} onValueChange={setReportType}>
-                          <SelectTrigger className="w-[120px] h-8"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="w-[100px] h-8"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="week">Semanal</SelectItem>
                             <SelectItem value="month">Mensual</SelectItem>
                           </SelectContent>
                         </Select>
                         <Select value={reportRange} onValueChange={setReportRange}>
-                          <SelectTrigger className="w-[120px] h-8"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="w-[100px] h-8"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="current">Actual</SelectItem>
                             <SelectItem value="last">Anterior</SelectItem>
@@ -1764,66 +1764,122 @@ const StatisticsPanel = ({ devices, groups }) => {
                           <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
                           Obtener
                         </Button>
+                        {reportData && (
+                          <>
+                            <Separator orientation="vertical" className="h-6" />
+                            <Select value={chartType} onValueChange={setChartType}>
+                              <SelectTrigger className="w-[100px] h-8"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="bar"><div className="flex items-center gap-2"><BarChart3 className="w-4 h-4" />Barras</div></SelectItem>
+                                <SelectItem value="pie"><div className="flex items-center gap-2"><PieChart className="w-4 h-4" />Circular</div></SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button size="sm" variant="outline" onClick={exportToExcel}>
+                              <FileSpreadsheet className="w-4 h-4 mr-1" />Excel
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={exportToPDF}>
+                              <FileText className="w-4 h-4 mr-1" />PDF
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     {reportData && reportData.tables && reportData.tables[0] ? (
-                      <div className="overflow-x-auto">
-                        <p className="text-sm font-medium mb-3">{reportData.tables[0].title || "Reporte de conteo"}</p>
-                        <table className="w-full text-sm border-collapse">
-                          <thead>
-                            <tr className="bg-blue-50">
-                              <th className="border p-2 text-left">{reportData.tables[0].rowTitle || "Hora"}</th>
-                              {reportData.tables[0].columnTitles?.map((col, i) => (
-                                <th key={i} className="border p-2 text-center text-xs">{col}</th>
+                      <div ref={chartRef}>
+                        {/* Chart visualization */}
+                        <div className="mb-6">
+                          {chartType === 'bar' ? (
+                            <div className="h-64">
+                              <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={getChartData()} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis dataKey="name" />
+                                  <YAxis />
+                                  <Tooltip />
+                                  <Legend />
+                                  <Bar dataKey="entrada" name="Entrada" fill="#22c55e" />
+                                  <Bar dataKey="salida" name="Salida" fill="#ef4444" />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </div>
+                          ) : (
+                            <div className="h-64 flex items-center justify-center">
+                              <ResponsiveContainer width="100%" height="100%">
+                                <RechartsPieChart>
+                                  <Pie data={getPieData()} cx="50%" cy="50%" labelLine={false}
+                                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                    outerRadius={80} fill="#8884d8" dataKey="value">
+                                    {getPieData().map((entry, index) => (
+                                      <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                  </Pie>
+                                  <Tooltip />
+                                  <Legend />
+                                </RechartsPieChart>
+                              </ResponsiveContainer>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Data table */}
+                        <div className="overflow-x-auto">
+                          <p className="text-sm font-medium mb-3">{reportData.tables[0].title || "Reporte de conteo"}</p>
+                          <table className="w-full text-sm border-collapse">
+                            <thead>
+                              <tr className="bg-blue-50">
+                                <th className="border p-2 text-left">{reportData.tables[0].rowTitle || "Hora"}</th>
+                                {reportData.tables[0].columnTitles?.map((col, i) => (
+                                  <th key={i} className="border p-2 text-center text-xs">{col}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {reportData.tables[0].data?.slice(0, -1).map((row, rowIdx) => (
+                                <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                  <td className="border p-2 font-medium text-xs">{reportData.tables[0].rowTitles?.[rowIdx]}</td>
+                                  {row.map((cell, colIdx) => (
+                                    <td key={colIdx} className="border p-2 text-center text-xs">
+                                      {Array.isArray(cell) ? (
+                                        cell[0] < 0 ? '-' : (
+                                          <span className="flex items-center justify-center gap-1">
+                                            <span className="text-green-600">{cell[0]}</span>
+                                            <span className="text-muted-foreground">/</span>
+                                            <span className="text-red-600">{cell[1]}</span>
+                                          </span>
+                                        )
+                                      ) : cell}
+                                    </td>
+                                  ))}
+                                </tr>
                               ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {reportData.tables[0].data?.slice(0, -1).map((row, rowIdx) => (
-                              <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                <td className="border p-2 font-medium text-xs">{reportData.tables[0].rowTitles?.[rowIdx]}</td>
-                                {row.map((cell, colIdx) => (
-                                  <td key={colIdx} className="border p-2 text-center text-xs">
-                                    {Array.isArray(cell) ? (
-                                      cell[0] < 0 ? '-' : (
-                                        <span className="flex items-center justify-center gap-1">
-                                          <span className="text-green-600">{cell[0]}</span>
-                                          <span className="text-muted-foreground">/</span>
-                                          <span className="text-red-600">{cell[1]}</span>
-                                        </span>
-                                      )
-                                    ) : cell}
-                                  </td>
-                                ))}
-                              </tr>
-                            ))}
-                            {/* Total row */}
-                            {reportData.tables[0].data && (
-                              <tr className="bg-blue-100 font-bold">
-                                <td className="border p-2">Total</td>
-                                {reportData.tables[0].data[reportData.tables[0].data.length - 1]?.map((cell, colIdx) => (
-                                  <td key={colIdx} className="border p-2 text-center">
-                                    {Array.isArray(cell) ? (
-                                      cell[0] < 0 ? '-' : (
-                                        <span className="flex items-center justify-center gap-1">
-                                          <span className="text-green-700">{cell[0]}</span>
-                                          <span>/</span>
-                                          <span className="text-red-700">{cell[1]}</span>
-                                        </span>
-                                      )
-                                    ) : cell}
-                                  </td>
-                                ))}
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          <span className="text-green-600">Verde</span>: Entrada | 
-                          <span className="text-red-600 ml-2">Rojo</span>: Salida
-                        </p>
+                              {/* Total row */}
+                              {reportData.tables[0].data && (
+                                <tr className="bg-blue-100 font-bold">
+                                  <td className="border p-2">Total</td>
+                                  {reportData.tables[0].data[reportData.tables[0].data.length - 1]?.map((cell, colIdx) => (
+                                    <td key={colIdx} className="border p-2 text-center">
+                                      {Array.isArray(cell) ? (
+                                        cell[0] < 0 ? '-' : (
+                                          <span className="flex items-center justify-center gap-1">
+                                            <span className="text-green-700">{cell[0]}</span>
+                                            <span>/</span>
+                                            <span className="text-red-700">{cell[1]}</span>
+                                          </span>
+                                        )
+                                      ) : cell}
+                                    </td>
+                                  ))}
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            <span className="text-green-600">Verde</span>: Entrada | 
+                            <span className="text-red-600 ml-2">Rojo</span>: Salida
+                          </p>
+                        </div>
                       </div>
                     ) : (
                       <div className="text-center py-8 text-muted-foreground">
