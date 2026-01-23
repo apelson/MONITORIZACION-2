@@ -2681,11 +2681,13 @@ const AccessLogsPanel = () => {
   const { authAxios } = useAuth();
   const pageSize = 50;
 
+  // Fetch logs with current filters
   const fetchLogs = useCallback(async () => {
+    setLoading(true);
     try {
       const params = new URLSearchParams();
-      params.append("skip", page * pageSize);
-      params.append("limit", pageSize);
+      params.append("skip", String(page * pageSize));
+      params.append("limit", String(pageSize));
       if (filters.category) params.append("category", filters.category);
       if (filters.username) params.append("username", filters.username);
       if (filters.log_type) params.append("log_type", filters.log_type);
@@ -2697,8 +2699,10 @@ const AccessLogsPanel = () => {
       setTotal(res.data.total || 0);
     } catch (e) {
       console.error("Error fetching logs:", e);
+      setLogs([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [authAxios, page, filters]);
 
   const fetchStats = useCallback(async () => {
