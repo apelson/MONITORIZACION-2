@@ -1,7 +1,7 @@
 """
 Device management routes
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from typing import Optional
 from datetime import datetime, timezone
 import uuid
@@ -14,8 +14,15 @@ from config import (
 from models import DeviceCreate, DeviceUpdate, DeviceTypeCreate, DeviceTypeUpdate
 from services.auth_service import get_current_user, require_role
 from services.device_service import check_single_device, check_all_devices
+from services.logging_service import log_access
 
 router = APIRouter(tags=["devices"])
+
+def get_client_ip(request: Request) -> str:
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
 
 # ============ DEVICE TYPES ============
 
