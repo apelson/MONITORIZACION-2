@@ -1754,7 +1754,7 @@ const Dashboard = () => {
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const DEVICES_PER_PAGE = 50;
+  const DEVICES_PER_PAGE = 24;
   
   // Custom device order (drag & drop)
   const [deviceOrder, setDeviceOrder] = useState(() => {
