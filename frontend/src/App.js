@@ -3406,6 +3406,7 @@ const Dashboard = () => {
             {!isOperator && <TabsTrigger data-testid="tab-types" value="types" className="gap-2"><Tag className="w-4 h-4" />Tipos</TabsTrigger>}
             {!isOperator && <TabsTrigger data-testid="tab-alerts" value="alerts" className="gap-2"><Bell className="w-4 h-4" />Alertas{alerts.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-1.5">{alerts.length}</Badge>}</TabsTrigger>}
             {isAdmin && <TabsTrigger data-testid="tab-users" value="users" className="gap-2"><Users className="w-4 h-4" />Usuarios</TabsTrigger>}
+            {isAdmin && <TabsTrigger data-testid="tab-logs" value="logs" className="gap-2"><FileSearch className="w-4 h-4" />Logs</TabsTrigger>}
             {isAdmin && <TabsTrigger data-testid="tab-settings" value="settings" className="gap-2"><Settings className="w-4 h-4" />Config</TabsTrigger>}
           </TabsList>
 
