@@ -1009,13 +1009,17 @@ const UserFormDialog = ({ open, onOpenChange, user, organizations, groups, onSav
                   <SelectContent>
                     <SelectItem value="admin"><div className="flex items-center gap-2"><Shield className="w-4 h-4" />Admin</div></SelectItem>
                     <SelectItem value="manager"><div className="flex items-center gap-2"><Edit className="w-4 h-4" />Gestor</div></SelectItem>
+                    <SelectItem value="technician"><div className="flex items-center gap-2"><Wrench className="w-4 h-4" />Técnico</div></SelectItem>
                     <SelectItem value="operator"><div className="flex items-center gap-2"><Camera className="w-4 h-4" />Operador</div></SelectItem>
                     <SelectItem value="viewer"><div className="flex items-center gap-2"><Eye className="w-4 h-4" />Visor</div></SelectItem>
                   </SelectContent>
                 </Select>
+                {formData.role === "technician" && (
+                  <p className="text-xs text-amber-600 mt-1">El técnico ve todos los dispositivos (IP, puerto, historial) pero no puede editarlos.</p>
+                )}
               </div>
             </div>
-            {formData.role !== "admin" && (
+            {formData.role !== "admin" && formData.role !== "technician" && (
               <div className="space-y-2">
                 <Label>Grupos permitidos</Label>
                 <p className="text-xs text-muted-foreground mb-2">Sin selección = acceso a todos. Selecciona para restringir.</p>
