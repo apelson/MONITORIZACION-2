@@ -892,7 +892,6 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
 };
 
 const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) => {
-  const { authAxios } = useAuth();
   const [formData, setFormData] = useState({ name: "", description: "", color: "#3b82f6", logo_url: "", country: "", city: "" });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
