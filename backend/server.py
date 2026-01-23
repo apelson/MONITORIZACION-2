@@ -416,6 +416,15 @@ async def lifespan(app: FastAPI):
             "created_at": datetime.now(timezone.utc).isoformat()
         })
     
+    # Default technician
+    if not await users_collection.find_one({"username": "tecnico"}):
+        await users_collection.insert_one({
+            "id": str(uuid.uuid4()), "username": "tecnico", "email": "tecnico@siempria.com",
+            "password_hash": get_password_hash("tecnico123"), "role": "technician",
+            "full_name": "Técnico", "is_active": True,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+    
     # Default device types
     for dt in DEFAULT_DEVICE_TYPES:
         if not await device_types_collection.find_one({"id": dt["id"]}):
