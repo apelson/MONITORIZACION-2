@@ -45,6 +45,7 @@ from routes.settings import router as settings_router
 from routes.statistics import router as statistics_router
 from routes.upload import router as upload_router
 from routes.backup import router as backup_router
+from routes.logs import router as logs_router
 
 # ============ APP LIFECYCLE ============
 
