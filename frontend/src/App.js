@@ -879,8 +879,11 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
 };
 
 const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) => {
+  const { authAxios } = useAuth();
   const [formData, setFormData] = useState({ name: "", description: "", color: "#3b82f6", logo_url: "", country: "", city: "" });
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#f97316", "#14b8a6", "#6366f1", "#a855f7", "#e11d48", "#0ea5e9", "#65a30d", "#dc2626", "#7c3aed", "#db2777", "#059669", "#ca8a04"];
   
   const countries = [
@@ -900,6 +903,37 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
     });
     else setFormData({ name: "", description: "", color: "#3b82f6", logo_url: "", country: "", city: "" });
   }, [organization, open]);
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Validate file
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Tipo de archivo no permitido. Usa JPG, PNG, GIF, WEBP o SVG");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Archivo demasiado grande. Máximo 5MB");
+      return;
+    }
+    
+    setUploading(true);
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+      const res = await authAxios.post('/upload', formDataUpload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const logoUrl = `${process.env.REACT_APP_BACKEND_URL}${res.data.url}`;
+      setFormData({ ...formData, logo_url: logoUrl });
+      toast.success("Logo subido correctamente");
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Error al subir el archivo");
+    }
+    setUploading(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -934,9 +968,38 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
             </div>
             
             <div className="space-y-2">
-              <Label>Logo (URL)</Label>
-              <Input placeholder="https://ejemplo.com/logo.png" value={formData.logo_url} onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })} />
-              {formData.logo_url && <img src={formData.logo_url} alt="Logo preview" className="h-16 object-contain rounded border mt-2" />}
+              <Label>Logo</Label>
+              <div className="flex gap-2">
+                <Input 
+                  placeholder="URL del logo o sube una imagen" 
+                  value={formData.logo_url} 
+                  onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
+                  className="flex-1"
+                />
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                </Button>
+              </div>
+              {formData.logo_url && (
+                <div className="flex items-center gap-2 mt-2">
+                  <img src={formData.logo_url} alt="Logo preview" className="h-16 object-contain rounded border" />
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setFormData({ ...formData, logo_url: "" })}>
+                    <Trash2 className="w-4 h-4 text-red-500" />
+                  </Button>
+                </div>
+              )}
             </div>
             <div className="space-y-2"><Label>Color</Label>
               <div className="flex gap-2 flex-wrap">{colors.map((c) => <button key={c} type="button" onClick={() => setFormData({ ...formData, color: c })} className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${formData.color === c ? 'border-foreground scale-110' : 'border-transparent'}`} style={{ backgroundColor: c }} />)}</div>
