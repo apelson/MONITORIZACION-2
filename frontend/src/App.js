@@ -2705,7 +2705,7 @@ const Dashboard = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterOrgId, filterGroupId, filterTypeId, filterCountry, filterStatus]);
+  }, [filterOrgId, filterGroupId, filterTypeId, filterCountry, filterStatus, filterStats]);
 
   return (
     <div className="app-container">
