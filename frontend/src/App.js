@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, createContext, useContext, memo, useMemo } from "react";
+import { useState, useEffect, useCallback, createContext, useContext, memo, useMemo, useRef } from "react";
 import "@/App.css";
 import axios from "axios";
 import { Toaster, toast } from "sonner";
@@ -9,11 +9,12 @@ import {
   Camera, HardDrive, Network, Router, Monitor, Printer, Box, ChevronRight,
   MapPin, FileText, Image, Tag, Layers, Download, FileSpreadsheet, FileIcon,
   Info, Globe, Calendar, Copy, Cctv, ExternalLink, GripVertical, Phone,
-  BarChart3, TrendingUp, Flame, ArrowUpDown, Wrench, Trophy
+  BarChart3, TrendingUp, Flame, ArrowUpDown, Wrench, Trophy, PieChart
 } from "lucide-react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
