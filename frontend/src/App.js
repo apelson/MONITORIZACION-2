@@ -459,11 +459,35 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
   const cardRef = useCallback(node => {
     if (!node) return;
     
+    // Load image function defined inside callback to avoid hoisting issues
+    const loadImage = async () => {
+      if (imageData) return;
+      setImageLoading(true);
+      
+      if (hasCameraConfig && device.status === "online") {
+        try {
+          const response = await authAxios.get(`/image-proxy/${device.id}`, { responseType: 'blob' });
+          if (response.data) {
+            const url = URL.createObjectURL(response.data);
+            setImageData(url);
+            setImageError(false);
+            setCaptureTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+          }
+        } catch (e) {
+          console.error(`Error loading image for ${device.name}:`, e);
+          setImageData(OFFLINE_PLACEHOLDER);
+          setImageError(true);
+          setCaptureTime(null);
+        }
+      }
+      setImageLoading(false);
+    };
+    
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting && !imageData && isCamera && hasCameraConfig && device.status === "online") {
-            loadImageNow();
+            loadImage();
           }
         });
       },
@@ -472,31 +496,7 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
     
     observer.observe(node);
     return () => observer.disconnect();
-  }, [imageData, isCamera, hasCameraConfig, device.status]);
-
-  // Load image function
-  const loadImageNow = async () => {
-    if (imageData) return; // Already loaded
-    setImageLoading(true);
-    
-    if (hasCameraConfig && device.status === "online") {
-      try {
-        const response = await authAxios.get(`/image-proxy/${device.id}`, { responseType: 'blob' });
-        if (response.data) {
-          const url = URL.createObjectURL(response.data);
-          setImageData(url);
-          setImageError(false);
-          setCaptureTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-        }
-      } catch (e) {
-        console.error(`Error loading image for ${device.name}:`, e);
-        setImageData(OFFLINE_PLACEHOLDER);
-        setImageError(true);
-        setCaptureTime(null);
-      }
-    }
-    setImageLoading(false);
-  };
+  }, [imageData, isCamera, hasCameraConfig, device.status, device.id, device.name, authAxios]);
 
   // Set placeholder for offline cameras immediately
   useEffect(() => {
