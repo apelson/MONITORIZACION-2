@@ -1395,8 +1395,8 @@ const StatisticsPanel = ({ devices, groups }) => {
     setCamerasWithStats(statsDevices);
   }, [devices]);
   
-  // Prepare chart data from report
-  const getChartData = () => {
+  // Prepare chart data from report - memoized to prevent infinite loops
+  const chartData = useMemo(() => {
     if (!reportData?.tables?.[0]?.data) return [];
     const data = reportData.tables[0].data;
     const colTitles = reportData.tables[0].columnTitles || [];
@@ -1411,18 +1411,17 @@ const StatisticsPanel = ({ devices, groups }) => {
       }
       return { name: day.substring(0, 3), entrada: 0, salida: 0, total: 0 };
     }).filter(d => d.total > 0);
-  };
+  }, [reportData]);
   
-  // Prepare pie chart data
-  const getPieData = () => {
-    const chartData = getChartData();
+  // Prepare pie chart data - memoized
+  const pieData = useMemo(() => {
     const totalEntrada = chartData.reduce((sum, d) => sum + d.entrada, 0);
     const totalSalida = chartData.reduce((sum, d) => sum + d.salida, 0);
     return [
       { name: 'Entrada', value: totalEntrada, color: '#22c55e' },
       { name: 'Salida', value: totalSalida, color: '#ef4444' }
     ];
-  };
+  }, [chartData]);
   
   // Export current view to Excel
   const exportToExcel = () => {
