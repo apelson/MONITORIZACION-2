@@ -4713,6 +4713,62 @@ const Dashboard = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Create Incident from Device Dialog */}
+      <Dialog open={incidentFromDeviceOpen} onOpenChange={setIncidentFromDeviceOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardList className="w-5 h-5 text-orange-600" />
+              Crear Incidencia
+            </DialogTitle>
+            <DialogDescription>
+              Crear incidencia para {incidentDeviceData.device?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Título</label>
+              <Input 
+                value={incidentDeviceData.title}
+                onChange={(e) => setIncidentDeviceData({ ...incidentDeviceData, title: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Descripción</label>
+              <Textarea 
+                value={incidentDeviceData.description}
+                onChange={(e) => setIncidentDeviceData({ ...incidentDeviceData, description: e.target.value })}
+                rows={4}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Prioridad</label>
+              <Select value={incidentDeviceData.priority} onValueChange={(v) => setIncidentDeviceData({ ...incidentDeviceData, priority: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Baja</SelectItem>
+                  <SelectItem value="medium">Media</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="critical">Crítica</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {incidentDeviceData.device && (
+              <div className="p-3 bg-blue-50 rounded-lg text-sm flex items-center gap-2">
+                <Camera className="w-4 h-4 text-blue-600" />
+                <span><strong>Dispositivo:</strong> {incidentDeviceData.device.name} ({incidentDeviceData.device.ip_address})</span>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIncidentFromDeviceOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSubmitIncidentFromDevice} disabled={creatingIncident}>
+              {creatingIncident ? "Creando..." : "Crear Incidencia"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Footer */}
       <footer className="border-t bg-muted/30 mt-auto">
         <div className="container mx-auto max-w-7xl px-6 py-4">
