@@ -3418,6 +3418,446 @@ const AccessLogsPanel = () => {
   );
 };
 
+// ============ INCIDENTS PANEL ============
+const IncidentsPanel = ({ devices }) => {
+  const [incidents, setIncidents] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState({ status: "", priority: "" });
+  const [showForm, setShowForm] = useState(false);
+  const [selectedIncident, setSelectedIncident] = useState(null);
+  const [showResolveDialog, setShowResolveDialog] = useState(false);
+  const [formData, setFormData] = useState({ title: "", description: "", device_id: "", priority: "medium", category: "other" });
+  const [resolution, setResolution] = useState({ text: "", notes: "" });
+  const [noteText, setNoteText] = useState("");
+  const { authAxios } = useAuth();
+
+  const fetchIncidents = useCallback(async () => {
+    try {
+      const params = new URLSearchParams();
+      if (filter.status) params.append("status", filter.status);
+      if (filter.priority) params.append("priority", filter.priority);
+      
+      const [incidentsRes, statsRes] = await Promise.all([
+        authAxios.get(`/incidents?${params.toString()}`),
+        authAxios.get("/incidents/stats")
+      ]);
+      setIncidents(incidentsRes.data.incidents || []);
+      setStats(statsRes.data);
+    } catch (e) {
+      console.error("Error fetching incidents:", e);
+    }
+    setLoading(false);
+  }, [authAxios, filter]);
+
+  useEffect(() => { fetchIncidents(); }, [fetchIncidents]);
+
+  const handleCreate = async () => {
+    if (!formData.title || !formData.description) {
+      toast.error("Completa título y descripción");
+      return;
+    }
+    try {
+      await authAxios.post("/incidents", {
+        title: formData.title,
+        description: formData.description,
+        device_id: formData.device_id || null,
+        priority: formData.priority,
+        category: formData.category
+      });
+      toast.success("Incidencia creada");
+      setShowForm(false);
+      setFormData({ title: "", description: "", device_id: "", priority: "medium", category: "other" });
+      fetchIncidents();
+    } catch (e) {
+      toast.error("Error al crear incidencia");
+    }
+  };
+
+  const handleResolve = async () => {
+    if (!resolution.text) {
+      toast.error("Describe la solución");
+      return;
+    }
+    try {
+      await authAxios.post(`/incidents/${selectedIncident.id}/resolve`, {
+        resolution: resolution.text,
+        resolution_notes: resolution.notes || null
+      });
+      toast.success("Incidencia resuelta");
+      setShowResolveDialog(false);
+      setSelectedIncident(null);
+      setResolution({ text: "", notes: "" });
+      fetchIncidents();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Error al resolver");
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!noteText.trim()) return;
+    try {
+      await authAxios.post(`/incidents/${selectedIncident.id}/notes`, { note: noteText });
+      toast.success("Nota añadida");
+      setNoteText("");
+      // Refresh selected incident
+      const res = await authAxios.get(`/incidents/${selectedIncident.id}`);
+      setSelectedIncident(res.data);
+      fetchIncidents();
+    } catch (e) {
+      toast.error("Error al añadir nota");
+    }
+  };
+
+  const handleStatusChange = async (incidentId, newStatus) => {
+    try {
+      await authAxios.put(`/incidents/${incidentId}`, { status: newStatus });
+      toast.success("Estado actualizado");
+      fetchIncidents();
+      if (selectedIncident?.id === incidentId) {
+        const res = await authAxios.get(`/incidents/${incidentId}`);
+        setSelectedIncident(res.data);
+      }
+    } catch (e) {
+      toast.error("Error al actualizar");
+    }
+  };
+
+  const getPriorityBadge = (priority) => {
+    const styles = {
+      low: "bg-gray-100 text-gray-700",
+      medium: "bg-blue-100 text-blue-700",
+      high: "bg-orange-100 text-orange-700",
+      critical: "bg-red-100 text-red-700"
+    };
+    const labels = { low: "Baja", medium: "Media", high: "Alta", critical: "Crítica" };
+    return <Badge className={styles[priority] || styles.medium}>{labels[priority] || priority}</Badge>;
+  };
+
+  const getStatusBadge = (status) => {
+    const styles = {
+      open: "bg-red-100 text-red-700",
+      in_progress: "bg-yellow-100 text-yellow-700",
+      resolved: "bg-green-100 text-green-700"
+    };
+    const labels = { open: "Abierta", in_progress: "En Progreso", resolved: "Resuelta" };
+    return <Badge className={styles[status] || styles.open}>{labels[status] || status}</Badge>;
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Stats */}
+      {stats && (
+        <div className="grid grid-cols-4 gap-4">
+          <Card className="bg-gradient-to-br from-red-50 to-red-100">
+            <CardContent className="p-4 text-center">
+              <p className="text-3xl font-bold text-red-700">{stats.open}</p>
+              <p className="text-sm text-red-600">Abiertas</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100">
+            <CardContent className="p-4 text-center">
+              <p className="text-3xl font-bold text-yellow-700">{stats.in_progress}</p>
+              <p className="text-sm text-yellow-600">En Progreso</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-green-50 to-green-100">
+            <CardContent className="p-4 text-center">
+              <p className="text-3xl font-bold text-green-700">{stats.resolved}</p>
+              <p className="text-sm text-green-600">Resueltas</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
+            <CardContent className="p-4 text-center">
+              <p className="text-3xl font-bold text-blue-700">{stats.total}</p>
+              <p className="text-sm text-blue-600">Total</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Filters & Actions */}
+      <div className="flex items-center justify-between">
+        <div className="flex gap-2">
+          <Select value={filter.status || "all"} onValueChange={(v) => setFilter({ ...filter, status: v === "all" ? "" : v })}>
+            <SelectTrigger className="w-[150px]"><SelectValue placeholder="Estado" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="open">Abiertas</SelectItem>
+              <SelectItem value="in_progress">En Progreso</SelectItem>
+              <SelectItem value="resolved">Resueltas</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filter.priority || "all"} onValueChange={(v) => setFilter({ ...filter, priority: v === "all" ? "" : v })}>
+            <SelectTrigger className="w-[150px]"><SelectValue placeholder="Prioridad" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              <SelectItem value="critical">Crítica</SelectItem>
+              <SelectItem value="high">Alta</SelectItem>
+              <SelectItem value="medium">Media</SelectItem>
+              <SelectItem value="low">Baja</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Button onClick={() => setShowForm(true)}>
+          <Plus className="w-4 h-4 mr-2" />Nueva Incidencia
+        </Button>
+      </div>
+
+      {/* Incidents List */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* List */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ClipboardList className="w-5 h-5" />
+              Lista de Incidencias
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-48 w-full" />
+            ) : incidents.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">No hay incidencias</p>
+            ) : (
+              <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                {incidents.map(inc => (
+                  <div 
+                    key={inc.id}
+                    className={`p-3 rounded-lg border cursor-pointer hover:bg-gray-50 transition-colors ${selectedIncident?.id === inc.id ? 'bg-blue-50 border-blue-300' : ''}`}
+                    onClick={() => setSelectedIncident(inc)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{inc.title}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(inc.created_at).toLocaleDateString('es-ES')} • {inc.created_by_name}
+                        </p>
+                      </div>
+                      <div className="flex gap-1 ml-2">
+                        {getPriorityBadge(inc.priority)}
+                        {getStatusBadge(inc.status)}
+                      </div>
+                    </div>
+                    {inc.device && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        📷 {inc.device.name}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Detail */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Detalle de Incidencia
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {selectedIncident ? (
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-lg">{selectedIncident.title}</h3>
+                    <div className="flex gap-1">
+                      {getPriorityBadge(selectedIncident.priority)}
+                      {getStatusBadge(selectedIncident.status)}
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{selectedIncident.description}</p>
+                </div>
+
+                {selectedIncident.device && (
+                  <div className="p-2 bg-gray-50 rounded-lg text-sm">
+                    <span className="font-medium">Dispositivo:</span> {selectedIncident.device.name} ({selectedIncident.device.ip_address})
+                  </div>
+                )}
+
+                {selectedIncident.resolution && (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm font-medium text-green-800 flex items-center gap-1">
+                      <CheckCircle className="w-4 h-4" /> Solución aplicada
+                    </p>
+                    <p className="text-sm text-green-700 mt-1">{selectedIncident.resolution}</p>
+                    {selectedIncident.resolution_notes && (
+                      <p className="text-xs text-green-600 mt-1">Notas: {selectedIncident.resolution_notes}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Resuelto por {selectedIncident.resolved_by_name} el {new Date(selectedIncident.resolved_at).toLocaleString('es-ES')}
+                    </p>
+                  </div>
+                )}
+
+                {/* Actions */}
+                {selectedIncident.status !== "resolved" && (
+                  <div className="flex gap-2">
+                    {selectedIncident.status === "open" && (
+                      <Button size="sm" variant="outline" onClick={() => handleStatusChange(selectedIncident.id, "in_progress")}>
+                        Marcar En Progreso
+                      </Button>
+                    )}
+                    <Button size="sm" onClick={() => setShowResolveDialog(true)} className="bg-green-600 hover:bg-green-700">
+                      <Wrench className="w-4 h-4 mr-1" />Resolver
+                    </Button>
+                  </div>
+                )}
+
+                {/* History */}
+                <div>
+                  <p className="font-medium text-sm mb-2">Historial</p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {selectedIncident.history?.map((h, i) => (
+                      <div key={i} className="text-xs p-2 bg-gray-50 rounded">
+                        <div className="flex justify-between">
+                          <span className="font-medium">{h.user_name}</span>
+                          <span className="text-muted-foreground">{new Date(h.timestamp).toLocaleString('es-ES')}</span>
+                        </div>
+                        <p className="text-muted-foreground mt-1">{h.details}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Add Note */}
+                {selectedIncident.status !== "resolved" && (
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Añadir nota..." 
+                      value={noteText}
+                      onChange={(e) => setNoteText(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleAddNote()}
+                    />
+                    <Button variant="outline" onClick={handleAddNote}>
+                      <MessageSquare className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground py-12">
+                Selecciona una incidencia para ver los detalles
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Create Incident Dialog */}
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nueva Incidencia</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Título *</label>
+              <Input 
+                placeholder="Ej: Cámara sin conexión"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Descripción *</label>
+              <Textarea 
+                placeholder="Describe el problema..."
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Prioridad</label>
+                <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Baja</SelectItem>
+                    <SelectItem value="medium">Media</SelectItem>
+                    <SelectItem value="high">Alta</SelectItem>
+                    <SelectItem value="critical">Crítica</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Categoría</label>
+                <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hardware">Hardware</SelectItem>
+                    <SelectItem value="software">Software</SelectItem>
+                    <SelectItem value="network">Red</SelectItem>
+                    <SelectItem value="other">Otro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Dispositivo relacionado (opcional)</label>
+              <Select value={formData.device_id || "none"} onValueChange={(v) => setFormData({ ...formData, device_id: v === "none" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Ninguno</SelectItem>
+                  {devices.map(d => (
+                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowForm(false)}>Cancelar</Button>
+            <Button onClick={handleCreate}>Crear Incidencia</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Resolve Dialog */}
+      <Dialog open={showResolveDialog} onOpenChange={setShowResolveDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Resolver Incidencia</DialogTitle>
+            <DialogDescription>
+              Documenta la solución aplicada para futuras referencias
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Solución aplicada *</label>
+              <Textarea 
+                placeholder="Describe cómo se resolvió el problema..."
+                value={resolution.text}
+                onChange={(e) => setResolution({ ...resolution, text: e.target.value })}
+                rows={4}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Notas adicionales</label>
+              <Textarea 
+                placeholder="Información adicional, repuestos usados, etc."
+                value={resolution.notes}
+                onChange={(e) => setResolution({ ...resolution, notes: e.target.value })}
+                rows={2}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowResolveDialog(false)}>Cancelar</Button>
+            <Button onClick={handleResolve} className="bg-green-600 hover:bg-green-700">
+              <CheckCircle className="w-4 h-4 mr-2" />Marcar como Resuelto
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
 const LoadingSkeleton = () => (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">{[1,2,3,4].map(i => <Card key={i} className="server-card"><CardContent className="p-6"><div className="flex items-start gap-3"><Skeleton className="w-10 h-10 rounded-lg" /><div className="flex-1 space-y-2"><Skeleton className="h-5 w-32" /><Skeleton className="h-4 w-24" /></div></div><Skeleton className="h-4 w-full mt-4" /><Separator className="my-4" /><div className="flex gap-2"><Skeleton className="h-8 flex-1" /><Skeleton className="h-8 w-8" /></div></CardContent></Card>)}</div>);
 
 // ============ DASHBOARD ============
