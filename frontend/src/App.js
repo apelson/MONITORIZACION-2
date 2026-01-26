@@ -829,6 +829,9 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
               <Button variant="ghost" size="sm" onClick={() => onMobotixInfo(device)} title="Info Cámara"><Info className="w-4 h-4" /></Button>
             )}
             <Button variant="ghost" size="sm" onClick={() => onViewHistory(device)} title="Historial"><History className="w-4 h-4" /></Button>
+            {onCreateIncident && (
+              <Button variant="ghost" size="sm" onClick={() => onCreateIncident(device)} title="Crear Incidencia" className="text-orange-600 hover:text-orange-700"><ClipboardList className="w-4 h-4" /></Button>
+            )}
             {canEdit && (
               <>
                 <Button variant="ghost" size="sm" onClick={() => onClone(device)} title="Clonar dispositivo" className="text-blue-600 hover:text-blue-700"><Copy className="w-4 h-4" /></Button>
