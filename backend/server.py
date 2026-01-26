@@ -123,8 +123,21 @@ async def periodic_device_check():
 async def lifespan(app: FastAPI):
     await init_default_data()
     asyncio.create_task(periodic_device_check())
+    
+    # Start scheduler for daily reports
+    # Default: 8:00 AM every day (will be overridden by settings)
+    scheduler.add_job(
+        scheduled_daily_report,
+        CronTrigger(hour=8, minute=0),
+        id="daily_report",
+        replace_existing=True
+    )
+    scheduler.start()
+    logger.info("Scheduler started for daily reports")
+    
     logger.info("Siempria Network Monitor API started")
     yield
+    scheduler.shutdown()
     logger.info("Siempria Network Monitor API stopped")
 
 # ============ APP SETUP ============
@@ -142,6 +155,7 @@ api_router.include_router(statistics_router)
 api_router.include_router(upload_router)
 api_router.include_router(backup_router)
 api_router.include_router(logs_router)
+api_router.include_router(reports_router)
 
 # ============ ROOT & IMAGE PROXY ============
 
