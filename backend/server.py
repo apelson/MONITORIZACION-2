@@ -47,6 +47,7 @@ from routes.upload import router as upload_router
 from routes.backup import router as backup_router
 from routes.logs import router as logs_router
 from routes.reports import router as reports_router
+from routes.incidents import router as incidents_router
 
 # ============ SCHEDULER FOR DAILY REPORTS ============
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
