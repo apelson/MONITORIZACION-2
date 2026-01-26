@@ -620,7 +620,7 @@ const FirmwareBadge = ({ device }) => {
 };
 
 // ============ SERVER CARD ============
-const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete, onClone, onViewHistory, onMobotixInfo, canEdit }) => {
+const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete, onClone, onViewHistory, onMobotixInfo, onCreateIncident, canEdit }) => {
   const [isChecking, setIsChecking] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageData, setImageData] = useState(null);
@@ -829,6 +829,9 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
               <Button variant="ghost" size="sm" onClick={() => onMobotixInfo(device)} title="Info Cámara"><Info className="w-4 h-4" /></Button>
             )}
             <Button variant="ghost" size="sm" onClick={() => onViewHistory(device)} title="Historial"><History className="w-4 h-4" /></Button>
+            {onCreateIncident && (
+              <Button variant="ghost" size="sm" onClick={() => onCreateIncident(device)} title="Crear Incidencia" className="text-orange-600 hover:text-orange-700"><ClipboardList className="w-4 h-4" /></Button>
+            )}
             {canEdit && (
               <>
                 <Button variant="ghost" size="sm" onClick={() => onClone(device)} title="Clonar dispositivo" className="text-blue-600 hover:text-blue-700"><Copy className="w-4 h-4" /></Button>
@@ -4015,6 +4018,10 @@ const Dashboard = () => {
   const [failuresDialogOpen, setFailuresDialogOpen] = useState(false);
   const [recentFailures, setRecentFailures] = useState([]);
   const [previousDeviceStates, setPreviousDeviceStates] = useState({});
+  // Incident from device
+  const [incidentFromDeviceOpen, setIncidentFromDeviceOpen] = useState(false);
+  const [incidentDeviceData, setIncidentDeviceData] = useState({ device: null, title: "", description: "", priority: "medium" });
+  const [creatingIncident, setCreatingIncident] = useState(false);
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -4160,6 +4167,41 @@ const Dashboard = () => {
       setMobotixInfo({ error: e.response?.data?.detail || "Error de conexión" });
     }
     setMobotixLoading(false);
+  };
+
+  // Create incident from device card
+  const handleCreateIncidentFromDevice = (device) => {
+    const statusText = device.status === 'offline' ? '🔴 Offline' : device.status === 'online' ? '🟢 Online' : '⚪ Estado desconocido';
+    setIncidentDeviceData({
+      device,
+      title: `${statusText}: ${device.name}`,
+      description: `Incidencia reportada para dispositivo ${device.name}\n\nIP: ${device.ip_address}:${device.port}\nEstado actual: ${device.status}\nÚltima verificación: ${device.last_check ? new Date(device.last_check).toLocaleString('es-ES') : 'Nunca'}`,
+      priority: device.status === 'offline' ? 'high' : 'medium'
+    });
+    setIncidentFromDeviceOpen(true);
+  };
+
+  const handleSubmitIncidentFromDevice = async () => {
+    if (!incidentDeviceData.title || !incidentDeviceData.description) {
+      toast.error("Completa título y descripción");
+      return;
+    }
+    setCreatingIncident(true);
+    try {
+      await authAxios.post("/incidents", {
+        title: incidentDeviceData.title,
+        description: incidentDeviceData.description,
+        device_id: incidentDeviceData.device?.id || null,
+        priority: incidentDeviceData.priority,
+        category: "hardware"
+      });
+      toast.success("Incidencia creada");
+      setIncidentFromDeviceOpen(false);
+      setIncidentDeviceData({ device: null, title: "", description: "", priority: "medium" });
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Error al crear incidencia");
+    }
+    setCreatingIncident(false);
   };
 
   const handleCloneDevice = (device) => {
@@ -4462,7 +4504,7 @@ const Dashboard = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                       {paginatedDevices.map(d => (
                         <SortableCard key={d.id} id={d.id}>
-                          <ServerCard device={d} group={groups.find(g => g.id === d.group_id)} deviceType={deviceTypes.find(t => t.id === d.device_type_id)} onCheck={handleCheckDevice} onEdit={(dev) => { setSelectedDevice(dev); setDeviceDialogOpen(true); }} onClone={handleCloneDevice} onDelete={(dev) => { setDeleteTarget({ type: "device", item: dev }); setDeleteDialogOpen(true); }} onViewHistory={handleViewHistory} onMobotixInfo={handleMobotixInfo} canEdit={canEdit} />
+                          <ServerCard device={d} group={groups.find(g => g.id === d.group_id)} deviceType={deviceTypes.find(t => t.id === d.device_type_id)} onCheck={handleCheckDevice} onEdit={(dev) => { setSelectedDevice(dev); setDeviceDialogOpen(true); }} onClone={handleCloneDevice} onDelete={(dev) => { setDeleteTarget({ type: "device", item: dev }); setDeleteDialogOpen(true); }} onViewHistory={handleViewHistory} onMobotixInfo={handleMobotixInfo} onCreateIncident={(isAdmin || isTechnician) ? handleCreateIncidentFromDevice : null} canEdit={canEdit} />
                         </SortableCard>
                       ))}
                     </div>
@@ -4668,6 +4710,62 @@ const Dashboard = () => {
               </div>
             </div>
           ) : null}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Incident from Device Dialog */}
+      <Dialog open={incidentFromDeviceOpen} onOpenChange={setIncidentFromDeviceOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardList className="w-5 h-5 text-orange-600" />
+              Crear Incidencia
+            </DialogTitle>
+            <DialogDescription>
+              Crear incidencia para {incidentDeviceData.device?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Título</label>
+              <Input 
+                value={incidentDeviceData.title}
+                onChange={(e) => setIncidentDeviceData({ ...incidentDeviceData, title: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Descripción</label>
+              <Textarea 
+                value={incidentDeviceData.description}
+                onChange={(e) => setIncidentDeviceData({ ...incidentDeviceData, description: e.target.value })}
+                rows={4}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Prioridad</label>
+              <Select value={incidentDeviceData.priority} onValueChange={(v) => setIncidentDeviceData({ ...incidentDeviceData, priority: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Baja</SelectItem>
+                  <SelectItem value="medium">Media</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="critical">Crítica</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {incidentDeviceData.device && (
+              <div className="p-3 bg-blue-50 rounded-lg text-sm flex items-center gap-2">
+                <Camera className="w-4 h-4 text-blue-600" />
+                <span><strong>Dispositivo:</strong> {incidentDeviceData.device.name} ({incidentDeviceData.device.ip_address})</span>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIncidentFromDeviceOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSubmitIncidentFromDevice} disabled={creatingIncident}>
+              {creatingIncident ? "Creando..." : "Crear Incidencia"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
