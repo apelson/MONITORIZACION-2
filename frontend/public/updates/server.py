@@ -47,6 +47,7 @@ from routes.upload import router as upload_router
 from routes.backup import router as backup_router
 from routes.logs import router as logs_router
 from routes.reports import router as reports_router
+from routes.incidents import router as incidents_router
 
 # ============ SCHEDULER FOR DAILY REPORTS ============
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -156,6 +157,7 @@ api_router.include_router(upload_router)
 api_router.include_router(backup_router)
 api_router.include_router(logs_router)
 api_router.include_router(reports_router)
+api_router.include_router(incidents_router)
 
 # ============ ROOT & IMAGE PROXY ============
 
