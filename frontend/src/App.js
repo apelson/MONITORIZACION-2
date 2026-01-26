@@ -2831,6 +2831,204 @@ const BackupPanel = () => {
   );
 };
 
+// ============ DAILY DOWNTIME REPORT PANEL ============
+const DailyReportPanel = () => {
+  const [config, setConfig] = useState({
+    enabled: false,
+    time: "08:00",
+    recipients: []
+  });
+  const [emailInput, setEmailInput] = useState("");
+  const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [loadingPreview, setLoadingPreview] = useState(false);
+  const { authAxios } = useAuth();
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await authAxios.get("/reports/settings");
+        setConfig({
+          enabled: res.data.daily_report_enabled || false,
+          time: res.data.daily_report_time || "08:00",
+          recipients: res.data.daily_report_recipients || []
+        });
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    };
+    fetchSettings();
+  }, [authAxios]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await authAxios.put("/reports/settings", {
+        daily_report_enabled: config.enabled,
+        daily_report_time: config.time,
+        daily_report_recipients: config.recipients
+      });
+      toast.success("Configuración guardada");
+    } catch (e) {
+      toast.error("Error al guardar");
+    }
+    setSaving(false);
+  };
+
+  const handleSendNow = async () => {
+    if (config.recipients.length === 0) {
+      toast.error("Añade al menos un destinatario");
+      return;
+    }
+    setSending(true);
+    try {
+      await authAxios.post(`/reports/send?days=1`, config.recipients);
+      toast.success("Informe enviado correctamente");
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Error al enviar");
+    }
+    setSending(false);
+  };
+
+  const loadPreview = async () => {
+    setLoadingPreview(true);
+    try {
+      const res = await authAxios.get("/reports/preview?days=1");
+      setPreview(res.data);
+    } catch (e) {
+      toast.error("Error al cargar preview");
+    }
+    setLoadingPreview(false);
+  };
+
+  const addEmail = () => {
+    const email = emailInput.trim().toLowerCase();
+    if (email && email.includes("@") && !config.recipients.includes(email)) {
+      setConfig({ ...config, recipients: [...config.recipients, email] });
+      setEmailInput("");
+    }
+  };
+
+  const removeEmail = (email) => {
+    setConfig({ ...config, recipients: config.recipients.filter(e => e !== email) });
+  };
+
+  if (loading) return <Card><CardContent className="p-6"><Skeleton className="h-32 w-full" /></CardContent></Card>;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FileText className="w-5 h-5 text-orange-600" />
+          Informe Diario de Caídas
+        </CardTitle>
+        <CardDescription>
+          Recibe un resumen diario con todas las caídas de dispositivos
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Enable */}
+        <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg">
+          <div>
+            <p className="font-medium text-orange-900">Informe automático diario</p>
+            <p className="text-sm text-orange-700">Recibe cada día un resumen de las caídas del sistema</p>
+          </div>
+          <Switch checked={config.enabled} onCheckedChange={(v) => setConfig({ ...config, enabled: v })} />
+        </div>
+
+        {/* Time */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Hora de envío</label>
+            <Input 
+              type="time" 
+              value={config.time}
+              onChange={(e) => setConfig({ ...config, time: e.target.value })}
+            />
+            <p className="text-xs text-muted-foreground">Hora local del servidor</p>
+          </div>
+        </div>
+
+        {/* Recipients */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Destinatarios</label>
+          <div className="flex gap-2">
+            <Input 
+              placeholder="email@ejemplo.com"
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addEmail()}
+            />
+            <Button onClick={addEmail} variant="outline">
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+          {config.recipients.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {config.recipients.map(email => (
+                <Badge key={email} variant="secondary" className="flex items-center gap-1">
+                  <Mail className="w-3 h-3" />
+                  {email}
+                  <button onClick={() => removeEmail(email)} className="ml-1 hover:text-red-500">
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Preview */}
+        <div className="border rounded-lg p-4 bg-gray-50">
+          <div className="flex items-center justify-between mb-3">
+            <p className="font-medium text-sm">Vista previa del informe</p>
+            <Button variant="outline" size="sm" onClick={loadPreview} disabled={loadingPreview}>
+              <Eye className="w-4 h-4 mr-1" />
+              {loadingPreview ? "Cargando..." : "Ver preview"}
+            </Button>
+          </div>
+          {preview && (
+            <div className="grid grid-cols-4 gap-3 text-center">
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-2xl font-bold text-green-600">{preview.summary.online_now}</p>
+                <p className="text-xs text-muted-foreground">Online</p>
+              </div>
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-2xl font-bold text-red-600">{preview.summary.offline_now}</p>
+                <p className="text-xs text-muted-foreground">Offline</p>
+              </div>
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-2xl font-bold text-amber-600">{preview.summary.total_downtime_events}</p>
+                <p className="text-xs text-muted-foreground">Caídas (24h)</p>
+              </div>
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-2xl font-bold text-gray-600">{preview.summary.total_devices}</p>
+                <p className="text-xs text-muted-foreground">Total</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2 pt-4 border-t">
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? "Guardando..." : "Guardar configuración"}
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={handleSendNow} 
+            disabled={sending || config.recipients.length === 0}
+          >
+            <Send className="w-4 h-4 mr-2" />
+            {sending ? "Enviando..." : "Enviar ahora"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 // ============ ACCESS LOGS PANEL ============
 const AccessLogsPanel = () => {
   const [logs, setLogs] = useState([]);
