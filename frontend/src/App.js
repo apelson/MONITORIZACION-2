@@ -3241,6 +3241,7 @@ const Dashboard = () => {
   const [filterTypeId, setFilterTypeId] = useState(null);
   const [filterStatus, setFilterStatus] = useState(null);  // New: filter by status (online/offline)
   const [filterStats, setFilterStats] = useState(false);  // New: filter by has_statistics
+  const [searchQuery, setSearchQuery] = useState("");  // NEW: Search by name
 
   // Dialogs
   const [deviceDialogOpen, setDeviceDialogOpen] = useState(false);
