@@ -1685,27 +1685,136 @@ const UsersPanel = ({ users, onCreateUser, onEditUser, onDeleteUser, onResetPass
   </Card>
 );
 
-const AlertsPanel = ({ alerts }) => (
-  <Card>
-    <CardHeader><CardTitle className="flex items-center gap-2"><Bell className="w-5 h-5" />Alertas</CardTitle></CardHeader>
-    <CardContent>
-      {alerts.length === 0 ? <div className="empty-state py-8"><Bell className="w-12 h-12 mb-4 opacity-20" /><p>No hay alertas</p></div> : (
-        <ScrollArea className="h-[400px]">
-          <div className="space-y-3">{alerts.map(a => (
-            <div key={a.id} className={`p-4 rounded-lg border ${a.alert_type === 'device_down' ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">{a.alert_type === 'device_down' ? <WifiOff className="w-4 h-4 text-red-600" /> : <Wifi className="w-4 h-4 text-green-600" />}<span className={`font-medium ${a.alert_type === 'device_down' ? 'text-red-700' : 'text-green-700'}`}>{a.device_name}</span></div>
-                {a.email_sent && <Badge variant="outline" className="text-xs"><Mail className="w-3 h-3 mr-1" />Enviado</Badge>}
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">{a.message}</p>
-              <p className="text-xs text-muted-foreground mt-2">{new Date(a.timestamp).toLocaleString()}</p>
+const AlertsPanel = ({ alerts, onCreateIncident }) => {
+  const [showIncidentDialog, setShowIncidentDialog] = useState(false);
+  const [selectedAlert, setSelectedAlert] = useState(null);
+  const [incidentData, setIncidentData] = useState({ title: "", description: "", priority: "high" });
+  const [creating, setCreating] = useState(false);
+  const { authAxios } = useAuth();
+
+  const handleCreateFromAlert = (alert) => {
+    setSelectedAlert(alert);
+    setIncidentData({
+      title: `${alert.alert_type === 'device_down' ? '🔴 Caída' : '🟢 Recuperación'}: ${alert.device_name}`,
+      description: `${alert.message}\n\nFecha del evento: ${new Date(alert.timestamp).toLocaleString('es-ES')}\nIP: ${alert.device_ip || 'N/A'}`,
+      priority: alert.alert_type === 'device_down' ? 'high' : 'low'
+    });
+    setShowIncidentDialog(true);
+  };
+
+  const handleSubmitIncident = async () => {
+    if (!incidentData.title || !incidentData.description) {
+      toast.error("Completa título y descripción");
+      return;
+    }
+    setCreating(true);
+    try {
+      await authAxios.post("/incidents", {
+        title: incidentData.title,
+        description: incidentData.description,
+        device_id: selectedAlert?.device_id || null,
+        priority: incidentData.priority,
+        category: "network"
+      });
+      toast.success("Incidencia creada desde alerta");
+      setShowIncidentDialog(false);
+      setSelectedAlert(null);
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Error al crear incidencia");
+    }
+    setCreating(false);
+  };
+
+  return (
+    <>
+      <Card>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Bell className="w-5 h-5" />Alertas</CardTitle></CardHeader>
+        <CardContent>
+          {alerts.length === 0 ? <div className="empty-state py-8"><Bell className="w-12 h-12 mb-4 opacity-20" /><p>No hay alertas</p></div> : (
+            <ScrollArea className="h-[400px]">
+              <div className="space-y-3">{alerts.map(a => (
+                <div key={a.id} className={`p-4 rounded-lg border ${a.alert_type === 'device_down' ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2">{a.alert_type === 'device_down' ? <WifiOff className="w-4 h-4 text-red-600" /> : <Wifi className="w-4 h-4 text-green-600" />}<span className={`font-medium ${a.alert_type === 'device_down' ? 'text-red-700' : 'text-green-700'}`}>{a.device_name}</span></div>
+                    <div className="flex items-center gap-2">
+                      {a.email_sent && <Badge variant="outline" className="text-xs"><Mail className="w-3 h-3 mr-1" />Enviado</Badge>}
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-7 text-xs"
+                        onClick={() => handleCreateFromAlert(a)}
+                      >
+                        <ClipboardList className="w-3 h-3 mr-1" />
+                        Crear Incidencia
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">{a.message}</p>
+                  <p className="text-xs text-muted-foreground mt-2">{new Date(a.timestamp).toLocaleString('es-ES')}</p>
+                </div>
+              ))}</div>
+            </ScrollArea>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Create Incident from Alert Dialog */}
+      <Dialog open={showIncidentDialog} onOpenChange={setShowIncidentDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardList className="w-5 h-5" />
+              Crear Incidencia desde Alerta
+            </DialogTitle>
+            <DialogDescription>
+              Se creará una incidencia vinculada al dispositivo {selectedAlert?.device_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Título</label>
+              <Input 
+                value={incidentData.title}
+                onChange={(e) => setIncidentData({ ...incidentData, title: e.target.value })}
+              />
             </div>
-          ))}</div>
-        </ScrollArea>
-      )}
-    </CardContent>
-  </Card>
-);
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Descripción</label>
+              <Textarea 
+                value={incidentData.description}
+                onChange={(e) => setIncidentData({ ...incidentData, description: e.target.value })}
+                rows={4}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Prioridad</label>
+              <Select value={incidentData.priority} onValueChange={(v) => setIncidentData({ ...incidentData, priority: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Baja</SelectItem>
+                  <SelectItem value="medium">Media</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="critical">Crítica</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedAlert?.device_id && (
+              <div className="p-3 bg-blue-50 rounded-lg text-sm">
+                <span className="font-medium">Dispositivo vinculado:</span> {selectedAlert.device_name}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowIncidentDialog(false)}>Cancelar</Button>
+            <Button onClick={handleSubmitIncident} disabled={creating}>
+              {creating ? "Creando..." : "Crear Incidencia"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
 
 // ============ STATISTICS PANEL - REDESIGNED ============
 const StatisticsPanel = ({ devices, groups }) => {
