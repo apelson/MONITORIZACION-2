@@ -3493,7 +3493,24 @@ const Dashboard = () => {
     if (filterStatus) filteredDevices = filteredDevices.filter(d => d.status === filterStatus);
     // NEW: Filter by has_statistics
     if (filterStats) filteredDevices = filteredDevices.filter(d => d.has_statistics === true);
+    // NEW: Filter by search query (name, IP, location, description)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filteredDevices = filteredDevices.filter(d => 
+        d.name?.toLowerCase().includes(query) ||
+        d.ip_address?.toLowerCase().includes(query) ||
+        d.location?.toLowerCase().includes(query) ||
+        d.description?.toLowerCase().includes(query) ||
+        d.brand?.toLowerCase().includes(query) ||
+        d.model?.toLowerCase().includes(query)
+      );
+    }
   }
+
+  // Sort groups alphabetically
+  const sortedGroups = useMemo(() => {
+    return [...groups].sort((a, b) => a.name.localeCompare(b.name, 'es'));
+  }, [groups]);
 
   // Pagination with custom order
   const totalPages = Math.ceil(filteredDevices.length / DEVICES_PER_PAGE);
@@ -3517,7 +3534,7 @@ const Dashboard = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterOrgId, filterGroupId, filterTypeId, filterCountry, filterStatus, filterStats]);
+  }, [filterOrgId, filterGroupId, filterTypeId, filterCountry, filterStatus, filterStats, searchQuery]);
 
   return (
     <div className="app-container">
