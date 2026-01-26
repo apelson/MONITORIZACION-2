@@ -3996,6 +3996,7 @@ const Dashboard = () => {
             <div className="space-y-6">
               <SettingsPanel settings={settings} onSave={handleSaveSettings} />
               <ScheduledReportsPanel organizations={organizations} />
+              <DailyReportPanel />
               <BackupPanel />
             </div>
           </TabsContent>}
