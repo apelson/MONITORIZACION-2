@@ -4433,6 +4433,7 @@ const Dashboard = () => {
           <TabsContent value="alerts"><AlertsPanel alerts={alerts} /></TabsContent>
           {isAdmin && <TabsContent value="users"><UsersPanel users={users} onCreateUser={() => { setSelectedUser(null); setUserDialogOpen(true); }} onEditUser={(u) => { setSelectedUser(u); setUserDialogOpen(true); }} onDeleteUser={(u) => { setDeleteTarget({ type: "user", item: u }); setDeleteDialogOpen(true); }} onResetPassword={handleOpenPasswordDialog} /></TabsContent>}
           {isAdmin && <TabsContent value="logs"><AccessLogsPanel /></TabsContent>}
+          {(isAdmin || isTechnician) && <TabsContent value="incidents"><IncidentsPanel devices={devices} /></TabsContent>}
           {isAdmin && <TabsContent value="settings">
             <div className="space-y-6">
               <SettingsPanel settings={settings} onSave={handleSaveSettings} />
