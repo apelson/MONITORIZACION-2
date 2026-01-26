@@ -157,6 +157,7 @@ api_router.include_router(upload_router)
 api_router.include_router(backup_router)
 api_router.include_router(logs_router)
 api_router.include_router(reports_router)
+api_router.include_router(incidents_router)
 
 # ============ ROOT & IMAGE PROXY ============
 
