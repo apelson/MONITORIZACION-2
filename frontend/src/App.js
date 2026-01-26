@@ -4018,6 +4018,10 @@ const Dashboard = () => {
   const [failuresDialogOpen, setFailuresDialogOpen] = useState(false);
   const [recentFailures, setRecentFailures] = useState([]);
   const [previousDeviceStates, setPreviousDeviceStates] = useState({});
+  // Incident from device
+  const [incidentFromDeviceOpen, setIncidentFromDeviceOpen] = useState(false);
+  const [incidentDeviceData, setIncidentDeviceData] = useState({ device: null, title: "", description: "", priority: "medium" });
+  const [creatingIncident, setCreatingIncident] = useState(false);
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
