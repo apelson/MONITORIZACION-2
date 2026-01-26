@@ -46,6 +46,26 @@ from routes.statistics import router as statistics_router
 from routes.upload import router as upload_router
 from routes.backup import router as backup_router
 from routes.logs import router as logs_router
+from routes.reports import router as reports_router
+
+# ============ SCHEDULER FOR DAILY REPORTS ============
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
+
+scheduler = AsyncIOScheduler()
+
+async def scheduled_daily_report():
+    """Send daily report at scheduled time"""
+    from services.report_service import send_daily_report, get_report_settings
+    try:
+        settings = await get_report_settings()
+        if settings.get("daily_report_enabled"):
+            recipients = settings.get("daily_report_recipients", [])
+            if recipients:
+                result = await send_daily_report(recipients=recipients, days=1)
+                logger.info(f"Scheduled daily report: {result}")
+    except Exception as e:
+        logger.error(f"Error in scheduled daily report: {e}")
 
 # ============ APP LIFECYCLE ============
 
