@@ -46,6 +46,26 @@ from routes.statistics import router as statistics_router
 from routes.upload import router as upload_router
 from routes.backup import router as backup_router
 from routes.logs import router as logs_router
+from routes.reports import router as reports_router
+
+# ============ SCHEDULER FOR DAILY REPORTS ============
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
+
+scheduler = AsyncIOScheduler()
+
+async def scheduled_daily_report():
+    """Send daily report at scheduled time"""
+    from services.report_service import send_daily_report, get_report_settings
+    try:
+        settings = await get_report_settings()
+        if settings.get("daily_report_enabled"):
+            recipients = settings.get("daily_report_recipients", [])
+            if recipients:
+                result = await send_daily_report(recipients=recipients, days=1)
+                logger.info(f"Scheduled daily report: {result}")
+    except Exception as e:
+        logger.error(f"Error in scheduled daily report: {e}")
 
 # ============ APP LIFECYCLE ============
 
@@ -103,8 +123,21 @@ async def periodic_device_check():
 async def lifespan(app: FastAPI):
     await init_default_data()
     asyncio.create_task(periodic_device_check())
+    
+    # Start scheduler for daily reports
+    # Default: 8:00 AM every day (will be overridden by settings)
+    scheduler.add_job(
+        scheduled_daily_report,
+        CronTrigger(hour=8, minute=0),
+        id="daily_report",
+        replace_existing=True
+    )
+    scheduler.start()
+    logger.info("Scheduler started for daily reports")
+    
     logger.info("Siempria Network Monitor API started")
     yield
+    scheduler.shutdown()
     logger.info("Siempria Network Monitor API stopped")
 
 # ============ APP SETUP ============
@@ -122,6 +155,7 @@ api_router.include_router(statistics_router)
 api_router.include_router(upload_router)
 api_router.include_router(backup_router)
 api_router.include_router(logs_router)
+api_router.include_router(reports_router)
 
 # ============ ROOT & IMAGE PROXY ============
 
