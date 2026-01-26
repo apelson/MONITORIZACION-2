@@ -4169,6 +4169,41 @@ const Dashboard = () => {
     setMobotixLoading(false);
   };
 
+  // Create incident from device card
+  const handleCreateIncidentFromDevice = (device) => {
+    const statusText = device.status === 'offline' ? '🔴 Offline' : device.status === 'online' ? '🟢 Online' : '⚪ Estado desconocido';
+    setIncidentDeviceData({
+      device,
+      title: `${statusText}: ${device.name}`,
+      description: `Incidencia reportada para dispositivo ${device.name}\n\nIP: ${device.ip_address}:${device.port}\nEstado actual: ${device.status}\nÚltima verificación: ${device.last_check ? new Date(device.last_check).toLocaleString('es-ES') : 'Nunca'}`,
+      priority: device.status === 'offline' ? 'high' : 'medium'
+    });
+    setIncidentFromDeviceOpen(true);
+  };
+
+  const handleSubmitIncidentFromDevice = async () => {
+    if (!incidentDeviceData.title || !incidentDeviceData.description) {
+      toast.error("Completa título y descripción");
+      return;
+    }
+    setCreatingIncident(true);
+    try {
+      await authAxios.post("/incidents", {
+        title: incidentDeviceData.title,
+        description: incidentDeviceData.description,
+        device_id: incidentDeviceData.device?.id || null,
+        priority: incidentDeviceData.priority,
+        category: "hardware"
+      });
+      toast.success("Incidencia creada");
+      setIncidentFromDeviceOpen(false);
+      setIncidentDeviceData({ device: null, title: "", description: "", priority: "medium" });
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Error al crear incidencia");
+    }
+    setCreatingIncident(false);
+  };
+
   const handleCloneDevice = (device) => {
     // Create a clone of the device - keep IP, user, password, only increment port
     const clonedDevice = {
