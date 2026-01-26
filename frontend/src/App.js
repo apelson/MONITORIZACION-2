@@ -3622,6 +3622,24 @@ const Dashboard = () => {
             {/* Filters - not for operators, available for technicians */}
             {!isOperator && (
               <div className="flex gap-2 mb-6 flex-wrap items-center">
+                {/* Search input with magnifying glass */}
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Buscar por nombre, IP..." 
+                    className="w-[200px] pl-8"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  {searchQuery && (
+                    <button 
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setSearchQuery("")}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
                 {uniqueCountries.length > 0 && (
                   <Select value={filterCountry || "all"} onValueChange={(v) => { setFilterCountry(v === "all" ? null : v); setFilterOrgId(null); setFilterGroupId(null); }}>
                     <SelectTrigger className="w-[150px]"><SelectValue placeholder="País" /></SelectTrigger>
@@ -3630,11 +3648,11 @@ const Dashboard = () => {
                 )}
                 <Select value={filterOrgId || "all"} onValueChange={(v) => { setFilterOrgId(v === "all" ? null : v); setFilterGroupId(null); }}>
                   <SelectTrigger className="w-[180px]"><SelectValue placeholder="Organización" /></SelectTrigger>
-                  <SelectContent><SelectItem value="all">Todas las org.</SelectItem>{(filterCountry ? organizations.filter(o => o.country === filterCountry) : organizations).map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
+                  <SelectContent><SelectItem value="all">Todas las org.</SelectItem>{(filterCountry ? organizations.filter(o => o.country === filterCountry) : organizations).sort((a,b) => a.name.localeCompare(b.name, 'es')).map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
                 </Select>
                 <Select value={filterGroupId || "all"} onValueChange={(v) => setFilterGroupId(v === "all" ? null : v)}>
                   <SelectTrigger className="w-[180px]"><SelectValue placeholder="Grupo" /></SelectTrigger>
-                  <SelectContent><SelectItem value="all">Todos los grupos</SelectItem>{(filterOrgId ? groups.filter(g => g.organization_id === filterOrgId) : groups).map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
+                  <SelectContent><SelectItem value="all">Todos los grupos</SelectItem>{(filterOrgId ? sortedGroups.filter(g => g.organization_id === filterOrgId) : sortedGroups).map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
                 </Select>
                 <Select value={filterTypeId || "all"} onValueChange={(v) => setFilterTypeId(v === "all" ? null : v)}>
                   <SelectTrigger className="w-[180px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
@@ -3660,7 +3678,7 @@ const Dashboard = () => {
                   <BarChart3 className="w-4 h-4 mr-1" />
                   Con Stats
                 </Button>
-                {(filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus || filterStats) && <Button variant="ghost" size="sm" onClick={() => { setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); setFilterStats(false); }}>Limpiar filtros</Button>}
+                {(searchQuery || filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus || filterStats) && <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(""); setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); setFilterStats(false); }}>Limpiar filtros</Button>}
                 <span className="text-sm text-muted-foreground ml-auto">{filteredDevices.length} dispositivo(s)</span>
               </div>
             )}
