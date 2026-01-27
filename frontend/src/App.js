@@ -4887,6 +4887,7 @@ const Dashboard = () => {
           {isAdmin && <TabsContent value="settings">
             <div className="space-y-6">
               <SettingsPanel settings={settings} onSave={handleSaveSettings} />
+              <SecurityPanel />
               <ScheduledReportsPanel organizations={organizations} />
               <DailyReportPanel />
               <BackupPanel />
