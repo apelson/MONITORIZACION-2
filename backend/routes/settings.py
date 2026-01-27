@@ -102,20 +102,20 @@ async def send_report_now(current_user: dict = Depends(require_role(["admin"])))
         raise HTTPException(status_code=500, detail=f"Error al enviar reporte: {str(e)}")
 
 async def generate_and_send_report():
-    """Generate and send scheduled report"""
+    """Generate and send scheduled report using generic SMTP"""
     config = await scheduled_reports_collection.find_one({}, {"_id": 0})
     if not config or not config.get("enabled"):
         logger.info("Scheduled reports disabled, skipping")
         return
     
-    settings = await settings_collection.find_one({}, {"_id": 0})
-    if not settings:
-        logger.error("No email settings configured for reports")
+    smtp_config = await get_smtp_config()
+    if not smtp_config:
+        logger.error("No SMTP settings configured for reports")
         return
     
     recipient_emails = config.get("recipient_emails", [])
     if not recipient_emails:
-        recipient_emails = [settings.get("alert_email")]
+        recipient_emails = [smtp_config["alert_email"]]
     
     org_filter = {}
     if config.get("organization_ids"):
@@ -163,16 +163,9 @@ async def generate_and_send_report():
     """
     
     try:
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = f"📊 Reporte de Monitoreo - {period_name}"
-        msg['From'] = settings["gmail_user"]
-        msg['To'] = ", ".join(recipient_emails)
-        msg.attach(MIMEText(html_content, 'html'))
-        
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-            server.login(settings["gmail_user"], settings["gmail_app_password"])
-            server.sendmail(settings["gmail_user"], recipient_emails, msg.as_string())
-        
+        subject = f"📊 Reporte de Monitoreo - {period_name}"
+        for recipient in recipient_emails:
+            send_email_generic(smtp_config, recipient, subject, html_content)
         logger.info(f"Report sent to {len(recipient_emails)} recipients")
     except Exception as e:
         logger.error(f"Error sending report: {e}")
