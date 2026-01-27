@@ -12,6 +12,10 @@ from services.auth_service import (
     get_current_user, require_role
 )
 from services.logging_service import log_access
+from services.security_service import (
+    check_ip_allowed, check_account_allowed, 
+    record_failed_attempt, record_successful_login
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -27,8 +31,37 @@ async def login(credentials: UserLogin, request: Request):
     ip_address = get_client_ip(request)
     user_agent = request.headers.get("User-Agent", "unknown")
     
+    # Security check 1: Is this IP allowed?
+    ip_allowed, ip_reason = await check_ip_allowed(ip_address)
+    if not ip_allowed:
+        await log_access(
+            log_type="auth_blocked",
+            username=credentials.username,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            details={"reason": "ip_blocked", "message": ip_reason},
+            success=False
+        )
+        raise HTTPException(status_code=403, detail=ip_reason)
+    
+    # Security check 2: Is this account allowed?
+    account_allowed, account_reason = await check_account_allowed(credentials.username)
+    if not account_allowed:
+        await log_access(
+            log_type="auth_blocked",
+            username=credentials.username,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            details={"reason": "account_blocked", "message": account_reason},
+            success=False
+        )
+        raise HTTPException(status_code=403, detail=account_reason)
+    
     user = await users_collection.find_one({"username": credentials.username})
     if not user or not verify_password(credentials.password, user.get("password_hash", "")):
+        # Record failed attempt for security tracking
+        await record_failed_attempt(ip_address, credentials.username)
+        
         # Log failed attempt
         await log_access(
             log_type="auth_failed",
@@ -54,6 +87,9 @@ async def login(credentials: UserLogin, request: Request):
         raise HTTPException(status_code=401, detail="Usuario desactivado")
     
     token = create_access_token({"sub": user["id"], "role": user["role"]})
+    
+    # Clear failed attempts on successful login
+    await record_successful_login(ip_address, credentials.username)
     
     # Log successful login
     await log_access(
