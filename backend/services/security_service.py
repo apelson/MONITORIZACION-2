@@ -118,28 +118,17 @@ async def record_successful_login(ip_address: str, username: str):
 
 async def send_security_alert(ip_address: str, username: str, event_type: str):
     """
-    Send email alert for security events
+    Send email alert for security events using generic SMTP
     """
     try:
-        settings = await settings_collection.find_one({}, {"_id": 0})
-        if not settings:
+        from services.email_service import get_smtp_config, send_email_generic
+        
+        smtp_config = await get_smtp_config()
+        if not smtp_config:
+            logger.warning("No SMTP configuration found for security alerts")
             return
         
-        alert_email = settings.get("alert_email")
-        gmail_user = settings.get("gmail_user")
-        gmail_password = settings.get("gmail_app_password")
-        
-        if not alert_email or not gmail_user or not gmail_password:
-            return
-        
-        import smtplib
-        from email.mime.text import MIMEText
-        from email.mime.multipart import MIMEMultipart
-        
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = f"🚨 Alerta de Seguridad - Siempria Network Monitor"
-        msg['From'] = gmail_user
-        msg['To'] = alert_email
+        subject = f"🚨 Alerta de Seguridad - Siempria Network Monitor"
         
         html = f"""
         <html>
@@ -162,13 +151,11 @@ async def send_security_alert(ip_address: str, username: str, event_type: str):
         </html>
         """
         
-        msg.attach(MIMEText(html, 'html'))
-        
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-            server.login(gmail_user, gmail_password)
-            server.sendmail(gmail_user, [alert_email], msg.as_string())
-        
-        logger.info(f"Security alert sent to {alert_email}")
+        success = send_email_generic(smtp_config, smtp_config["alert_email"], subject, html)
+        if success:
+            logger.info(f"Security alert sent to {smtp_config['alert_email']}")
+        else:
+            logger.error("Failed to send security alert email")
         
     except Exception as e:
         logger.error(f"Error sending security alert: {e}")
