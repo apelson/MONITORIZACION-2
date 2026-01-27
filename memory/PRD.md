@@ -11,28 +11,50 @@ Aplicación de monitoreo de red para equipos con IPs públicas, desarrollada par
 
 ---
 
-## Arquitectura del Backend (REFACTORIZADO 23/01/2026)
+## Arquitectura del Backend (ACTUALIZADO 27/01/2026)
 
 ```
 /app/backend/
-├── server.py          # Punto de entrada (396 líneas, antes 1851)
+├── server.py          # Punto de entrada
 ├── config.py          # Configuración y conexión DB
 ├── models/
 │   └── __init__.py    # Modelos Pydantic
 ├── routes/
-│   ├── auth.py        # Autenticación y login
+│   ├── auth.py        # Autenticación y login (con seguridad integrada)
 │   ├── users.py       # Gestión de usuarios
 │   ├── organizations.py # Organizaciones y grupos
 │   ├── devices.py     # Dispositivos y tipos
-│   ├── settings.py    # Configuración email/reportes
-│   └── statistics.py  # Estadísticas Mobotix
+│   ├── settings.py    # Configuración email/reportes (SMTP genérico)
+│   ├── statistics.py  # Estadísticas Mobotix
+│   ├── backup.py      # Sistema de backups
+│   ├── logs.py        # Logs de acceso
+│   ├── reports.py     # Reportes diarios
+│   ├── incidents.py   # Gestión de incidentes
+│   └── security.py    # Gestión de seguridad (IPs bloqueadas)
 └── services/
     ├── auth_service.py    # Funciones de autenticación
     ├── device_service.py  # Verificación de dispositivos
-    └── email_service.py   # Envío de alertas por email
+    ├── email_service.py   # Envío de alertas (SMTP genérico)
+    ├── logging_service.py # Servicio de logging
+    ├── report_service.py  # Servicio de reportes
+    └── security_service.py # Protección contra ataques
 ```
 
 ## Características Implementadas ✅
+
+### Sistema de Seguridad (NUEVO - 27/01/2026)
+- [x] Bloqueo automático de IP después de 5 intentos fallidos (30 min)
+- [x] Lista negra permanente de IPs
+- [x] Registro de eventos de seguridad
+- [x] Alertas por email cuando se bloquea una IP
+- [x] Panel de gestión de seguridad en Configuración
+- [x] Endpoints: /api/security/blocked-ips, /api/security/blacklist, /api/security/events
+
+### Email Corporativo (NUEVO - 27/01/2026)
+- [x] Soporte para servidores SMTP genéricos (no solo Gmail)
+- [x] Configurado: siempria-com.correoseguro.dinaserver.com:465
+- [x] Usuario: monitorizacion@siempria.com
+- [x] Panel de configuración avanzada SMTP en frontend
 
 ### Sistema de Usuarios y Autenticación
 - [x] Login/Logout con JWT
