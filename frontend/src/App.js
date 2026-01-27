@@ -2531,6 +2531,216 @@ const SettingsPanel = ({ settings, onSave }) => {
   );
 };
 
+// ============ SECURITY PANEL ============
+const SecurityPanel = () => {
+  const [blockedIPs, setBlockedIPs] = useState([]);
+  const [blacklist, setBlacklist] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newBlacklistIP, setNewBlacklistIP] = useState("");
+  const [newBlacklistReason, setNewBlacklistReason] = useState("");
+  const [adding, setAdding] = useState(false);
+  const { authAxios } = useAuth();
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [blockedRes, blacklistRes, eventsRes] = await Promise.all([
+        authAxios.get("/security/blocked-ips"),
+        authAxios.get("/security/blacklist"),
+        authAxios.get("/security/events?limit=20")
+      ]);
+      setBlockedIPs(blockedRes.data.blocked_ips || []);
+      setBlacklist(blacklistRes.data.blacklist || []);
+      setEvents(eventsRes.data.events || []);
+    } catch (e) {
+      console.error("Error fetching security data:", e);
+    }
+    setLoading(false);
+  }, [authAxios]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  const handleUnblock = async (ip) => {
+    try {
+      await authAxios.post("/security/unblock-ip", null, { params: { ip } });
+      toast.success(`IP ${ip} desbloqueada`);
+      fetchData();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Error al desbloquear");
+    }
+  };
+
+  const handleAddToBlacklist = async () => {
+    if (!newBlacklistIP) { toast.error("Introduce una IP"); return; }
+    setAdding(true);
+    try {
+      await authAxios.post("/security/blacklist", { ip: newBlacklistIP, reason: newBlacklistReason || "Bloqueado manualmente" });
+      toast.success(`IP ${newBlacklistIP} añadida a lista negra`);
+      setNewBlacklistIP("");
+      setNewBlacklistReason("");
+      fetchData();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Error al añadir");
+    }
+    setAdding(false);
+  };
+
+  const handleRemoveFromBlacklist = async (ip) => {
+    try {
+      await authAxios.delete(`/security/blacklist/${ip}`);
+      toast.success(`IP ${ip} eliminada de lista negra`);
+      fetchData();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Error al eliminar");
+    }
+  };
+
+  if (loading) return <Card><CardContent className="p-6"><Skeleton className="h-32 w-full" /></CardContent></Card>;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Shield className="w-5 h-5 text-red-600" />
+          Seguridad - Protección contra Ataques
+        </CardTitle>
+        <CardDescription>
+          Gestiona IPs bloqueadas y eventos de seguridad. Las IPs se bloquean automáticamente después de 5 intentos fallidos de login.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-yellow-600">{blockedIPs.length}</div>
+            <div className="text-sm text-yellow-700">IPs Bloqueadas (Temp)</div>
+          </div>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-red-600">{blacklist.length}</div>
+            <div className="text-sm text-red-700">Lista Negra (Perm)</div>
+          </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600">{events.length}</div>
+            <div className="text-sm text-blue-700">Eventos Recientes</div>
+          </div>
+        </div>
+
+        {/* Temporarily Blocked IPs */}
+        <div className="space-y-2">
+          <h4 className="font-semibold flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            IPs Bloqueadas Temporalmente
+          </h4>
+          {blockedIPs.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">No hay IPs bloqueadas temporalmente</p>
+          ) : (
+            <div className="space-y-2">
+              {blockedIPs.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div>
+                    <span className="font-mono font-semibold">{item.ip}</span>
+                    <span className="text-sm text-muted-foreground ml-2">
+                      (Desbloqueo en {item.remaining_minutes} min)
+                    </span>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => handleUnblock(item.ip)}>
+                    Desbloquear
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <Separator />
+
+        {/* Permanent Blacklist */}
+        <div className="space-y-2">
+          <h4 className="font-semibold flex items-center gap-2">
+            <Lock className="w-4 h-4" />
+            Lista Negra Permanente
+          </h4>
+          
+          {/* Add to blacklist */}
+          <div className="flex gap-2 p-3 bg-muted rounded-lg">
+            <Input 
+              placeholder="IP a bloquear (ej: 192.168.1.1)" 
+              value={newBlacklistIP} 
+              onChange={(e) => setNewBlacklistIP(e.target.value)}
+              className="flex-1"
+            />
+            <Input 
+              placeholder="Razón (opcional)" 
+              value={newBlacklistReason} 
+              onChange={(e) => setNewBlacklistReason(e.target.value)}
+              className="flex-1"
+            />
+            <Button onClick={handleAddToBlacklist} disabled={adding}>
+              {adding ? "Añadiendo..." : "Añadir"}
+            </Button>
+          </div>
+
+          {blacklist.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">Lista negra vacía</p>
+          ) : (
+            <div className="space-y-2">
+              {blacklist.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div>
+                    <span className="font-mono font-semibold">{item.ip}</span>
+                    <span className="text-sm text-muted-foreground ml-2">- {item.reason}</span>
+                    <div className="text-xs text-muted-foreground">
+                      Añadida por {item.added_by} el {new Date(item.added_at).toLocaleString()}
+                    </div>
+                  </div>
+                  <Button size="sm" variant="destructive" onClick={() => handleRemoveFromBlacklist(item.ip)}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <Separator />
+
+        {/* Security Events */}
+        <div className="space-y-2">
+          <h4 className="font-semibold flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            Eventos de Seguridad Recientes
+          </h4>
+          {events.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">No hay eventos de seguridad</p>
+          ) : (
+            <ScrollArea className="h-48">
+              <div className="space-y-2">
+                {events.map((event, idx) => (
+                  <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 border rounded-lg text-sm">
+                    <Badge variant={event.event_type === "ip_blocked" ? "destructive" : "secondary"}>
+                      {event.event_type === "ip_blocked" ? "IP Bloqueada" : event.event_type}
+                    </Badge>
+                    <span className="font-mono">{event.ip_address}</span>
+                    <span className="text-muted-foreground">Usuario: {event.username}</span>
+                    <span className="text-muted-foreground ml-auto">{new Date(event.timestamp).toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+        </div>
+
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={fetchData}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Actualizar
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 const ScheduledReportsPanel = ({ organizations }) => {
   const [config, setConfig] = useState({
     enabled: false,
