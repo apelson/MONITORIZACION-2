@@ -5,9 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from datetime import datetime, timezone, timedelta
 from typing import Optional
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+from pydantic import BaseModel
 import io
 
 from config import (
@@ -16,8 +14,22 @@ from config import (
 )
 from models import EmailSettings, ScheduledReportConfig
 from services.auth_service import get_current_user, require_role
+from services.email_service import send_test_email, get_smtp_config, send_email_generic
 
 router = APIRouter(tags=["settings"])
+
+class SMTPSettings(BaseModel):
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 465
+    smtp_user: str
+    smtp_password: str
+    smtp_use_ssl: bool = True
+    smtp_use_tls: bool = False
+    alert_email: str
+    
+    # Legacy fields for backwards compatibility
+    gmail_user: Optional[str] = None
+    gmail_app_password: Optional[str] = None
 
 # ============ EMAIL SETTINGS ============
 
@@ -25,7 +37,11 @@ router = APIRouter(tags=["settings"])
 async def get_settings(current_user: dict = Depends(require_role(["admin"]))):
     settings = await settings_collection.find_one({}, {"_id": 0})
     if settings:
-        settings["gmail_app_password"] = "********" if settings.get("gmail_app_password") else None
+        # Mask passwords
+        if settings.get("gmail_app_password"):
+            settings["gmail_app_password"] = "********"
+        if settings.get("smtp_password"):
+            settings["smtp_password"] = "********"
     return {"settings": settings}
 
 @router.post("/settings")
@@ -33,24 +49,32 @@ async def save_settings(settings: EmailSettings, current_user: dict = Depends(re
     await settings_collection.update_one({}, {"$set": settings.model_dump()}, upsert=True)
     return {"message": "Configuración guardada"}
 
+@router.post("/settings/smtp")
+async def save_smtp_settings(smtp: SMTPSettings, current_user: dict = Depends(require_role(["admin"]))):
+    """Save SMTP configuration (supports any SMTP server, not just Gmail)"""
+    update_data = {
+        "smtp_host": smtp.smtp_host,
+        "smtp_port": smtp.smtp_port,
+        "smtp_user": smtp.smtp_user,
+        "smtp_password": smtp.smtp_password,
+        "smtp_use_ssl": smtp.smtp_use_ssl,
+        "smtp_use_tls": smtp.smtp_use_tls,
+        "alert_email": smtp.alert_email,
+        # Also update legacy fields for backwards compatibility
+        "gmail_user": smtp.smtp_user,
+        "gmail_app_password": smtp.smtp_password
+    }
+    await settings_collection.update_one({}, {"$set": update_data}, upsert=True)
+    return {"message": "Configuración SMTP guardada"}
+
 @router.post("/settings/test-email")
 async def test_email(current_user: dict = Depends(require_role(["admin"]))):
-    settings = await settings_collection.find_one({}, {"_id": 0})
-    if not settings:
-        raise HTTPException(status_code=400, detail="No hay configuración de email")
-    try:
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = "✅ Test - Siempria Network Monitor"
-        msg['From'] = settings["gmail_user"]
-        msg['To'] = settings["alert_email"]
-        msg.attach(MIMEText("<h2 style='color:#22c55e'>✅ Configuración correcta</h2><p>Email de prueba de Siempria Network Monitor.</p>", 'html'))
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-            server.starttls()
-            server.login(settings["gmail_user"], settings["gmail_app_password"])
-            server.sendmail(settings["gmail_user"], [settings["alert_email"]], msg.as_string())
-        return {"message": "Email enviado"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+    """Send test email using configured SMTP settings"""
+    result = await send_test_email()
+    if result["success"]:
+        return {"message": result["message"]}
+    else:
+        raise HTTPException(status_code=500, detail=result["error"])
 
 # ============ SCHEDULED REPORTS ============
 
