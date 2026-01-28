@@ -4714,6 +4714,7 @@ const Dashboard = () => {
   return (
     <div className="app-container">
       <Toaster position="top-right" richColors />
+      <PWAInstallPrompt />
 
       {/* Header */}
       <header className="app-header">
