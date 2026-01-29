@@ -10,13 +10,16 @@ import io
 
 from config import (
     settings_collection, scheduled_reports_collection, organizations_collection,
-    groups_collection, devices_collection, logger
+    groups_collection, devices_collection, logger, cache
 )
 from models import EmailSettings, ScheduledReportConfig
 from services.auth_service import get_current_user, require_role
 from services.email_service import send_test_email, get_smtp_config, send_email_generic
 
 router = APIRouter(tags=["settings"])
+
+# Cache TTL for settings (5 minutes)
+SETTINGS_CACHE_TTL = 300
 
 class SMTPSettings(BaseModel):
     smtp_host: str = "smtp.gmail.com"
@@ -31,17 +34,35 @@ class SMTPSettings(BaseModel):
     gmail_user: Optional[str] = None
     gmail_app_password: Optional[str] = None
 
+# ============ CACHED SETTINGS HELPER ============
+async def get_cached_settings():
+    """Get settings with caching for performance"""
+    cached = cache.get("settings", SETTINGS_CACHE_TTL)
+    if cached:
+        return cached
+    
+    settings = await settings_collection.find_one({}, {"_id": 0})
+    if settings:
+        cache.set("settings", settings)
+    return settings
+
+def invalidate_settings_cache():
+    """Invalidate settings cache when updated"""
+    cache.invalidate("settings")
+
 # ============ EMAIL SETTINGS ============
 
 @router.get("/settings")
 async def get_settings(current_user: dict = Depends(require_role(["admin"]))):
-    settings = await settings_collection.find_one({}, {"_id": 0})
+    settings = await get_cached_settings()
     if settings:
-        # Mask passwords
-        if settings.get("gmail_app_password"):
-            settings["gmail_app_password"] = "********"
-        if settings.get("smtp_password"):
-            settings["smtp_password"] = "********"
+        # Return a copy with masked passwords
+        settings_copy = dict(settings)
+        if settings_copy.get("gmail_app_password"):
+            settings_copy["gmail_app_password"] = "********"
+        if settings_copy.get("smtp_password"):
+            settings_copy["smtp_password"] = "********"
+        return {"settings": settings_copy}
     return {"settings": settings}
 
 @router.post("/settings")
