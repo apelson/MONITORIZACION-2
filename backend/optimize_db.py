@@ -110,8 +110,8 @@ async def create_indexes():
     print("    ✅ 1 índice creado")
     
     print("\n✅ OPTIMIZACIÓN COMPLETADA")
-    print("   Total: 44 índices creados")
-    print("   Los índices TTL limpiarán automáticamente datos antiguos")
+    print("   Total: ~35 índices creados")
+    print("   Las consultas ahora serán significativamente más rápidas")
     
     # Show collection stats
     print("\n📊 Estadísticas de colecciones:")
