@@ -50,6 +50,11 @@ from routes.reports import router as reports_router
 from routes.incidents import router as incidents_router
 from routes.security import router as security_router
 
+# Multi-tenant routers (SaaS)
+from routes.tenant_auth import router as tenant_auth_router
+from routes.tenant_devices import router as tenant_devices_router
+from routes.superadmin import router as superadmin_router
+
 # ============ SCHEDULER FOR DAILY REPORTS ============
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
