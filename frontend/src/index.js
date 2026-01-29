@@ -2,6 +2,8 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "@/index.css";
 import App from "@/App";
+import SaaSApp from "@/SaaSApp";
+import SuperAdminPanel from "@/SuperAdminPanel";
 
 // Disable error overlay in development
 if (process.env.NODE_ENV === 'development') {
@@ -14,9 +16,27 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
+// Simple path-based routing for different apps
+const getAppComponent = () => {
+  const path = window.location.pathname;
+  
+  // SaaS public landing and client dashboard
+  if (path.startsWith('/saas') || path.startsWith('/app')) {
+    return <SaaSApp />;
+  }
+  
+  // Super Admin panel
+  if (path.startsWith('/admin') || path.startsWith('/superadmin')) {
+    return <SuperAdminPanel />;
+  }
+  
+  // Default: Original Siempria Monitor app
+  return <App />;
+};
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <App />
+    {getAppComponent()}
   </React.StrictMode>,
 );
