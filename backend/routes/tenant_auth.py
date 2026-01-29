@@ -16,7 +16,7 @@ from services.tenant_service import (
 )
 from models.tenant import TenantCreate, PlanType
 
-router = APIRouter(prefix="/auth", tags=["Multi-tenant Auth"])
+router = APIRouter(prefix="/saas", tags=["Multi-tenant Auth"])
 security = HTTPBearer(auto_error=False)
 
 class LoginRequest(BaseModel):
