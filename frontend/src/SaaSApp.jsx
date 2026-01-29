@@ -180,20 +180,20 @@ const LandingPage = ({ onShowAuth }) => {
       {/* Hero */}
       <section className="pt-32 pb-20 px-4">
         <div className="max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-full text-cyan-400 text-sm mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#00AEEF]/10 border border-[#00AEEF]/30 rounded-full text-[#00AEEF] text-sm mb-8">
             <Zap className="w-4 h-4" />
             Monitorización profesional en la nube
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
             Monitoriza tu infraestructura<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">desde cualquier lugar</span>
+            <span className="text-[#00AEEF]">desde cualquier lugar</span>
           </h1>
           <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
             Controla cámaras, servidores y dispositivos de red en tiempo real. 
             Alertas instantáneas, estadísticas detalladas y acceso desde cualquier dispositivo.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button onClick={() => onShowAuth('register')} className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl font-semibold text-lg hover:from-cyan-400 hover:to-blue-400 transition flex items-center gap-2 shadow-lg shadow-cyan-500/25">
+            <button onClick={() => onShowAuth('register')} className="px-8 py-4 bg-[#00AEEF] text-white rounded-xl font-semibold text-lg hover:bg-[#00C0F0] transition flex items-center gap-2 shadow-lg shadow-[#00AEEF]/25">
               Comenzar Gratis <ArrowRight className="w-5 h-5" />
             </button>
             <button className="px-8 py-4 bg-slate-800 text-white rounded-xl font-semibold text-lg hover:bg-slate-700 transition border border-slate-700">
