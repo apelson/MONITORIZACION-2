@@ -67,7 +67,26 @@ async def delete_device_type(type_id: str, current_user: dict = Depends(require_
 # ============ DEVICES ============
 
 @router.get("/devices")
-async def get_devices(group_id: Optional[str] = None, organization_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+async def get_devices(
+    group_id: Optional[str] = None, 
+    organization_id: Optional[str] = None,
+    page: int = 1,
+    limit: int = 100,
+    status_filter: Optional[str] = None,
+    search: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get devices with pagination and filtering
+    - page: Page number (default 1)
+    - limit: Items per page (default 100, max 500)
+    - status_filter: Filter by status (online/offline)
+    - search: Search by name or IP
+    """
+    # Validate and cap limit
+    limit = min(max(1, limit), 500)
+    skip = (page - 1) * limit
+    
     query = {}
     if group_id:
         query["group_id"] = group_id
@@ -76,13 +95,37 @@ async def get_devices(group_id: Optional[str] = None, organization_id: Optional[
         if group_ids:
             query["group_id"] = {"$in": group_ids}
     
+    # Status filter
+    if status_filter and status_filter in ["online", "offline"]:
+        query["status"] = status_filter
+    
+    # Search filter
+    if search:
+        query["$or"] = [
+            {"name": {"$regex": search, "$options": "i"}},
+            {"ip_address": {"$regex": search, "$options": "i"}}
+        ]
+    
     # Operators only see cameras that are online
     if current_user.get("role") == "operator":
         query["device_type_id"] = "type-camera"
         query["status"] = "online"
     
-    # Technicians see ALL devices (read-only access)
-    return {"devices": await devices_collection.find(query, {"_id": 0}).to_list(length=None)}
+    # Get total count for pagination
+    total = await devices_collection.count_documents(query)
+    
+    # Get paginated devices
+    devices = await devices_collection.find(query, {"_id": 0}).skip(skip).limit(limit).to_list(length=limit)
+    
+    return {
+        "devices": devices,
+        "pagination": {
+            "page": page,
+            "limit": limit,
+            "total": total,
+            "pages": (total + limit - 1) // limit
+        }
+    }
 
 @router.get("/cameras")
 async def get_cameras(current_user: dict = Depends(get_current_user)):
