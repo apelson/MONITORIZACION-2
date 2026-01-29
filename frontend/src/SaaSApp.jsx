@@ -239,9 +239,9 @@ const LandingPage = ({ onShowAuth }) => {
           <p className="text-slate-400 text-center mb-12">Elige el plan que mejor se adapte a tu negocio</p>
           <div className="grid md:grid-cols-4 gap-6">
             {plans.map((plan, i) => (
-              <div key={i} className={`relative p-6 rounded-2xl border ${plan.highlighted ? 'bg-gradient-to-b from-cyan-500/10 to-blue-500/10 border-cyan-500' : 'bg-slate-800 border-slate-700'}`}>
+              <div key={i} className={`relative p-6 rounded-2xl border ${plan.highlighted ? 'bg-[#00AEEF]/10 border-[#00AEEF]' : 'bg-slate-800 border-slate-700'}`}>
                 {plan.highlighted && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs font-semibold rounded-full flex items-center gap-1">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-[#00AEEF] text-white text-xs font-semibold rounded-full flex items-center gap-1">
                     <Star className="w-3 h-3" /> MÁS POPULAR
                   </div>
                 )}
@@ -253,14 +253,14 @@ const LandingPage = ({ onShowAuth }) => {
                 </div>
                 <button 
                   onClick={() => onShowAuth('register')}
-                  className={`w-full py-3 rounded-lg font-medium transition mb-6 ${plan.highlighted ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400' : 'bg-slate-700 text-white hover:bg-slate-600'}`}
+                  className={`w-full py-3 rounded-lg font-medium transition mb-6 ${plan.highlighted ? 'bg-[#00AEEF] text-white hover:bg-[#00C0F0]' : 'bg-slate-700 text-white hover:bg-slate-600'}`}
                 >
                   {plan.cta}
                 </button>
                 <ul className="space-y-3">
                   {plan.features.map((f, j) => (
                     <li key={j} className="flex items-center gap-2 text-sm text-slate-300">
-                      <Check className="w-4 h-4 text-cyan-400 flex-shrink-0" /> {f}
+                      <Check className="w-4 h-4 text-[#00AEEF] flex-shrink-0" /> {f}
                     </li>
                   ))}
                   {plan.notIncluded.map((f, j) => (
