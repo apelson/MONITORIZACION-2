@@ -220,9 +220,9 @@ const LandingPage = ({ onShowAuth }) => {
               { icon: Globe, title: 'Acceso Global', desc: 'Monitoriza desde cualquier lugar con nuestra PWA' },
               { icon: Clock, title: '24/7 Automático', desc: 'Verificación continua sin intervención manual' }
             ].map((f, i) => (
-              <div key={i} className="p-6 bg-slate-800 rounded-2xl border border-slate-700 hover:border-cyan-500/50 transition group">
-                <div className="w-12 h-12 bg-cyan-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-cyan-500/20 transition">
-                  <f.icon className="w-6 h-6 text-cyan-400" />
+              <div key={i} className="p-6 bg-slate-800 rounded-2xl border border-slate-700 hover:border-[#00AEEF]/50 transition group">
+                <div className="w-12 h-12 bg-[#00AEEF]/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#00AEEF]/20 transition">
+                  <f.icon className="w-6 h-6 text-[#00AEEF]" />
                 </div>
                 <h3 className="text-lg font-semibold text-white mb-2">{f.title}</h3>
                 <p className="text-slate-400">{f.desc}</p>
