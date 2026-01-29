@@ -68,6 +68,7 @@ async def get_settings(current_user: dict = Depends(require_role(["admin"]))):
 @router.post("/settings")
 async def save_settings(settings: EmailSettings, current_user: dict = Depends(require_role(["admin"]))):
     await settings_collection.update_one({}, {"$set": settings.model_dump()}, upsert=True)
+    invalidate_settings_cache()  # Clear cache on update
     return {"message": "Configuración guardada"}
 
 @router.post("/settings/smtp")
