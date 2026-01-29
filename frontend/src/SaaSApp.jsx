@@ -831,7 +831,7 @@ const SaaSApp = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <Loader2 className="w-10 h-10 text-cyan-400 animate-spin" />
+        <Loader2 className="w-10 h-10 text-[#00AEEF] animate-spin" />
       </div>
     );
   }
