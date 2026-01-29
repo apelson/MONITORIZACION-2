@@ -159,21 +159,18 @@ const LandingPage = ({ onShowAuth }) => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-lg border-b border-slate-700/50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center">
-              <Monitor className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-xl font-bold text-white">Siempria<span className="text-cyan-400">App</span></span>
+            <img src={SIEMPRIA_LOGO_WHITE} alt="Siempria" className="h-8 md:h-10" />
           </div>
           <nav className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-slate-300 hover:text-white transition">Características</a>
             <a href="#pricing" className="text-slate-300 hover:text-white transition">Precios</a>
-            <a href="#contact" className="text-slate-300 hover:text-white transition">Contacto</a>
+            <a href="https://www.siempria.com/contacto/" target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-white transition">Contacto</a>
           </nav>
           <div className="flex items-center gap-3">
             <button onClick={() => onShowAuth('login')} className="px-4 py-2 text-slate-300 hover:text-white transition">
               Iniciar Sesión
             </button>
-            <button onClick={() => onShowAuth('register')} className="px-5 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg font-medium hover:from-cyan-400 hover:to-blue-400 transition">
+            <button onClick={() => onShowAuth('register')} className="px-5 py-2 bg-[#00AEEF] text-white rounded-lg font-medium hover:bg-[#00C0F0] transition">
               Prueba Gratis
             </button>
           </div>
