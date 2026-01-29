@@ -470,6 +470,52 @@ const TenantDashboard = () => {
     }
   };
 
+  const handleUpgrade = async (planId) => {
+    try {
+      const originUrl = window.location.origin;
+      const res = await authAxios.post('/billing/checkout', {
+        plan_id: planId,
+        origin_url: originUrl
+      });
+      // Redirect to Stripe checkout
+      window.location.href = res.data.checkout_url;
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Error al procesar');
+    }
+  };
+
+  // Check for payment status on return from Stripe
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+    const paymentStatus = params.get('payment');
+    
+    if (sessionId && paymentStatus === 'success') {
+      // Poll payment status
+      const pollStatus = async () => {
+        try {
+          const res = await authAxios.get(`/billing/checkout/status/${sessionId}`);
+          if (res.data.status === 'complete') {
+            toast.success(res.data.message);
+            // Clear URL params and reload to get new limits
+            window.history.replaceState({}, '', '/saas');
+            window.location.reload();
+          } else if (res.data.status === 'expired') {
+            toast.error('La sesión de pago ha expirado');
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+      pollStatus();
+    } else if (paymentStatus === 'cancelled') {
+      toast.info('Pago cancelado');
+      window.history.replaceState({}, '', '/saas');
+    }
+  }, [authAxios]);
+
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
   return (
     <div className="min-h-screen bg-slate-900">
       {/* Header */}
