@@ -656,6 +656,90 @@ const TenantDashboard = () => {
   );
 };
 
+// ============ UPGRADE MODAL ============
+const UpgradeModal = ({ currentPlan, onClose, onUpgrade }) => {
+  const [loading, setLoading] = useState(null);
+  
+  const plans = [
+    { id: 'basic', name: 'Básico', price: '29€', period: '/mes', devices: 50, users: 3, highlight: false },
+    { id: 'pro', name: 'Pro', price: '79€', period: '/mes', devices: 200, users: 10, highlight: true },
+    { id: 'enterprise', name: 'Enterprise', price: '299€', period: '/mes', devices: '∞', users: '∞', highlight: false }
+  ];
+  
+  // Filter out current and lower plans
+  const planOrder = ['free', 'basic', 'pro', 'enterprise'];
+  const currentIdx = planOrder.indexOf(currentPlan || 'free');
+  const availablePlans = plans.filter(p => planOrder.indexOf(p.id) > currentIdx);
+  
+  const handleSelect = async (planId) => {
+    setLoading(planId);
+    await onUpgrade(planId);
+    setLoading(null);
+  };
+  
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-3xl bg-slate-800 rounded-2xl border border-slate-700 p-8" onClick={e => e.stopPropagation()}>
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-white">Actualizar Plan</h2>
+          <p className="text-slate-400 mt-2">Elige el plan que mejor se adapte a tus necesidades</p>
+        </div>
+        
+        <div className="grid md:grid-cols-3 gap-6">
+          {availablePlans.map(plan => (
+            <div key={plan.id} className={`p-6 rounded-xl border ${plan.highlight ? 'bg-gradient-to-b from-cyan-500/10 to-blue-500/10 border-cyan-500' : 'bg-slate-900 border-slate-700'}`}>
+              <h3 className="text-xl font-bold text-white mb-1">{plan.name}</h3>
+              <div className="mb-4">
+                <span className="text-2xl font-bold text-white">{plan.price}</span>
+                <span className="text-slate-400">{plan.period}</span>
+              </div>
+              <ul className="space-y-2 mb-6 text-sm">
+                <li className="flex items-center gap-2 text-slate-300">
+                  <Check className="w-4 h-4 text-cyan-400" /> {plan.devices} dispositivos
+                </li>
+                <li className="flex items-center gap-2 text-slate-300">
+                  <Check className="w-4 h-4 text-cyan-400" /> {plan.users} usuarios
+                </li>
+                <li className="flex items-center gap-2 text-slate-300">
+                  <Check className="w-4 h-4 text-cyan-400" /> Alertas por email
+                </li>
+                {plan.id !== 'basic' && (
+                  <li className="flex items-center gap-2 text-slate-300">
+                    <Check className="w-4 h-4 text-cyan-400" /> API access
+                  </li>
+                )}
+              </ul>
+              <button
+                onClick={() => handleSelect(plan.id)}
+                disabled={loading === plan.id}
+                className={`w-full py-3 rounded-lg font-medium transition flex items-center justify-center gap-2 ${
+                  plan.highlight 
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400' 
+                    : 'bg-slate-700 text-white hover:bg-slate-600'
+                } disabled:opacity-50`}
+              >
+                {loading === plan.id ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                {loading === plan.id ? 'Procesando...' : 'Seleccionar'}
+              </button>
+            </div>
+          ))}
+        </div>
+        
+        <p className="text-center text-slate-500 text-sm mt-6">
+          Pago seguro con Stripe. Puedes cancelar en cualquier momento.
+        </p>
+        
+        <button
+          onClick={onClose}
+          className="mt-4 w-full py-2 text-slate-400 hover:text-white transition"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // ============ ADD DEVICE MODAL ============
 const AddDeviceModal = ({ onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
