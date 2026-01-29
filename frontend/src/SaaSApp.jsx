@@ -276,11 +276,11 @@ const LandingPage = ({ onShowAuth }) => {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4 bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
+      <section className="py-20 px-4 bg-[#00AEEF]/10">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">¿Listo para empezar?</h2>
           <p className="text-slate-400 mb-8">Crea tu cuenta gratis y empieza a monitorizar en menos de 2 minutos</p>
-          <button onClick={() => onShowAuth('register')} className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl font-semibold text-lg hover:from-cyan-400 hover:to-blue-400 transition shadow-lg shadow-cyan-500/25">
+          <button onClick={() => onShowAuth('register')} className="px-8 py-4 bg-[#00AEEF] text-white rounded-xl font-semibold text-lg hover:bg-[#00C0F0] transition shadow-lg shadow-[#00AEEF]/25">
             Crear Cuenta Gratis
           </button>
         </div>
@@ -290,14 +290,13 @@ const LandingPage = ({ onShowAuth }) => {
       <footer className="py-12 px-4 border-t border-slate-800">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Monitor className="w-6 h-6 text-cyan-400" />
-            <span className="font-semibold text-white">SiempriaApp</span>
+            <img src={SIEMPRIA_LOGO_WHITE} alt="Siempria" className="h-6" />
           </div>
-          <p className="text-slate-500 text-sm">© 2024 Siempria - Distribuidor Autorizado Mobotix</p>
+          <p className="text-slate-500 text-sm">© 2024 Grupo Siempria - Infinite Tech Solutions · Distribuidor Autorizado Mobotix</p>
           <div className="flex items-center gap-6 text-slate-400 text-sm">
-            <a href="#" className="hover:text-white transition">Privacidad</a>
-            <a href="#" className="hover:text-white transition">Términos</a>
-            <a href="#" className="hover:text-white transition">Contacto</a>
+            <a href="https://www.siempria.com/politica-de-privacidad/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">Privacidad</a>
+            <a href="https://www.siempria.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">Web</a>
+            <a href="https://www.siempria.com/contacto/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">Contacto</a>
           </div>
         </div>
       </footer>
