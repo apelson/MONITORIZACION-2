@@ -13,7 +13,7 @@ from services.tenant_service import (
     check_verification_limit, increment_verification_count
 )
 
-router = APIRouter(prefix="/devices", tags=["Tenant Devices"])
+router = APIRouter(prefix="/saas/devices", tags=["Tenant Devices"])
 
 class DeviceCreate(BaseModel):
     name: str
