@@ -334,9 +334,7 @@ const AuthModal = ({ mode, onClose, onModeChange }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-md bg-slate-800 rounded-2xl border border-slate-700 p-8" onClick={e => e.stopPropagation()}>
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Monitor className="w-8 h-8 text-white" />
-          </div>
+          <img src={SIEMPRIA_LOGO_WHITE} alt="Siempria" className="h-10 mx-auto mb-6" />
           <h2 className="text-2xl font-bold text-white">
             {mode === 'register' ? 'Crear Cuenta' : 'Iniciar Sesión'}
           </h2>
@@ -357,7 +355,7 @@ const AuthModal = ({ mode, onClose, onModeChange }) => {
                   placeholder="Mi Empresa S.L."
                   value={formData.companyName}
                   onChange={e => setFormData({...formData, companyName: e.target.value})}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none transition"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-[#00AEEF] focus:outline-none transition"
                 />
               </div>
             </div>
@@ -373,7 +371,7 @@ const AuthModal = ({ mode, onClose, onModeChange }) => {
                 placeholder="tu@email.com"
                 value={formData.email}
                 onChange={e => setFormData({...formData, email: e.target.value})}
-                className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none transition"
+                className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-[#00AEEF] focus:outline-none transition"
               />
             </div>
           </div>
@@ -388,7 +386,7 @@ const AuthModal = ({ mode, onClose, onModeChange }) => {
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={e => setFormData({...formData, password: e.target.value})}
-                className="w-full pl-10 pr-12 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none transition"
+                className="w-full pl-10 pr-12 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-[#00AEEF] focus:outline-none transition"
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -399,7 +397,7 @@ const AuthModal = ({ mode, onClose, onModeChange }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg font-semibold hover:from-cyan-400 hover:to-blue-400 transition disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full py-3 bg-[#00AEEF] text-white rounded-lg font-semibold hover:bg-[#00C0F0] transition disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
             {mode === 'register' ? 'Crear Cuenta Gratis' : 'Iniciar Sesión'}
@@ -408,7 +406,7 @@ const AuthModal = ({ mode, onClose, onModeChange }) => {
 
         <p className="text-center text-slate-400 mt-6">
           {mode === 'register' ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}
-          <button onClick={() => onModeChange(mode === 'register' ? 'login' : 'register')} className="text-cyan-400 hover:text-cyan-300 ml-1 font-medium">
+          <button onClick={() => onModeChange(mode === 'register' ? 'login' : 'register')} className="text-[#00AEEF] hover:text-[#00C0F0] ml-1 font-medium">
             {mode === 'register' ? 'Iniciar sesión' : 'Regístrate gratis'}
           </button>
         </p>
