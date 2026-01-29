@@ -87,6 +87,7 @@ async def save_smtp_settings(smtp: SMTPSettings, current_user: dict = Depends(re
         "gmail_app_password": smtp.smtp_password
     }
     await settings_collection.update_one({}, {"$set": update_data}, upsert=True)
+    invalidate_settings_cache()  # Clear cache on update
     return {"message": "Configuración SMTP guardada"}
 
 @router.post("/settings/test-email")
