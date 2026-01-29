@@ -54,11 +54,8 @@ async def create_indexes():
     # ============ STATUS HISTORY COLLECTION ============
     print("  📊 Colección: status_history")
     await db.status_history.create_index("device_id", background=True)
-    await db.status_history.create_index("timestamp", background=True)
     await db.status_history.create_index([("device_id", 1), ("timestamp", -1)], background=True)  # Compound for history queries
-    # TTL index to auto-delete old history (keep 90 days)
-    await db.status_history.create_index("timestamp", expireAfterSeconds=90*24*60*60, background=True, name="ttl_90days")
-    print("    ✅ 4 índices creados (incluyendo TTL de 90 días)")
+    print("    ✅ 2 índices creados")
     
     # ============ ALERTS COLLECTION ============
     print("  🔔 Colección: alerts")
