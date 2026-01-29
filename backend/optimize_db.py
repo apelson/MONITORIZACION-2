@@ -76,11 +76,8 @@ async def create_indexes():
     print("  🛡️ Colección: security_events")
     await db.security_events.create_index("ip_address", background=True)
     await db.security_events.create_index("event_type", background=True)
-    await db.security_events.create_index("created_at", background=True)
     await db.security_events.create_index([("created_at", -1)], background=True)
-    # TTL index (keep 30 days)
-    await db.security_events.create_index("created_at", expireAfterSeconds=30*24*60*60, background=True, name="ttl_30days")
-    print("    ✅ 5 índices creados (incluyendo TTL de 30 días)")
+    print("    ✅ 3 índices creados")
     
     # ============ INCIDENTS COLLECTION ============
     print("  🎫 Colección: incidents")
