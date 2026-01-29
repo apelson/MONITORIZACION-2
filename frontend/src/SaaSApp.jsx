@@ -767,7 +767,7 @@ const AddDeviceModal = ({ onClose, onSubmit }) => {
               placeholder="Cámara Entrada"
               value={formData.name}
               onChange={e => setFormData({...formData, name: e.target.value})}
-              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
+              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-[#00AEEF] focus:outline-none"
             />
           </div>
           <div className="grid grid-cols-3 gap-4">
@@ -779,7 +779,7 @@ const AddDeviceModal = ({ onClose, onSubmit }) => {
                 placeholder="192.168.1.100"
                 value={formData.ip_address}
                 onChange={e => setFormData({...formData, ip_address: e.target.value})}
-                className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-[#00AEEF] focus:outline-none"
               />
             </div>
             <div>
@@ -789,7 +789,7 @@ const AddDeviceModal = ({ onClose, onSubmit }) => {
                 required
                 value={formData.port}
                 onChange={e => setFormData({...formData, port: parseInt(e.target.value)})}
-                className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white focus:border-[#00AEEF] focus:outline-none"
               />
             </div>
           </div>
@@ -798,7 +798,7 @@ const AddDeviceModal = ({ onClose, onSubmit }) => {
             <select
               value={formData.device_type_id}
               onChange={e => setFormData({...formData, device_type_id: e.target.value})}
-              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white focus:border-cyan-500 focus:outline-none"
+              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white focus:border-[#00AEEF] focus:outline-none"
             >
               <option value="type-camera">Cámara</option>
               <option value="type-nvr">NVR</option>
@@ -812,7 +812,7 @@ const AddDeviceModal = ({ onClose, onSubmit }) => {
             <button type="button" onClick={onClose} className="flex-1 py-3 bg-slate-700 text-white rounded-lg font-medium hover:bg-slate-600 transition">
               Cancelar
             </button>
-            <button type="submit" disabled={loading} className="flex-1 py-3 bg-cyan-500 text-white rounded-lg font-medium hover:bg-cyan-400 transition disabled:opacity-50 flex items-center justify-center gap-2">
+            <button type="submit" disabled={loading} className="flex-1 py-3 bg-[#00AEEF] text-white rounded-lg font-medium hover:bg-[#00C0F0] transition disabled:opacity-50 flex items-center justify-center gap-2">
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
               Añadir
             </button>
