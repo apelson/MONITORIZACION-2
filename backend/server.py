@@ -171,6 +171,7 @@ api_router.include_router(security_router)
 api_router.include_router(tenant_auth_router)
 api_router.include_router(tenant_devices_router)
 api_router.include_router(superadmin_router)
+api_router.include_router(payments_router)
 
 # ============ ROOT & IMAGE PROXY ============
 
