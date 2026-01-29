@@ -684,7 +684,7 @@ const UpgradeModal = ({ currentPlan, onClose, onUpgrade }) => {
         
         <div className="grid md:grid-cols-3 gap-6">
           {availablePlans.map(plan => (
-            <div key={plan.id} className={`p-6 rounded-xl border ${plan.highlight ? 'bg-gradient-to-b from-cyan-500/10 to-blue-500/10 border-cyan-500' : 'bg-slate-900 border-slate-700'}`}>
+            <div key={plan.id} className={`p-6 rounded-xl border ${plan.highlight ? 'bg-[#00AEEF]/10 border-[#00AEEF]' : 'bg-slate-900 border-slate-700'}`}>
               <h3 className="text-xl font-bold text-white mb-1">{plan.name}</h3>
               <div className="mb-4">
                 <span className="text-2xl font-bold text-white">{plan.price}</span>
@@ -692,17 +692,17 @@ const UpgradeModal = ({ currentPlan, onClose, onUpgrade }) => {
               </div>
               <ul className="space-y-2 mb-6 text-sm">
                 <li className="flex items-center gap-2 text-slate-300">
-                  <Check className="w-4 h-4 text-cyan-400" /> {plan.devices} dispositivos
+                  <Check className="w-4 h-4 text-[#00AEEF]" /> {plan.devices} dispositivos
                 </li>
                 <li className="flex items-center gap-2 text-slate-300">
-                  <Check className="w-4 h-4 text-cyan-400" /> {plan.users} usuarios
+                  <Check className="w-4 h-4 text-[#00AEEF]" /> {plan.users} usuarios
                 </li>
                 <li className="flex items-center gap-2 text-slate-300">
-                  <Check className="w-4 h-4 text-cyan-400" /> Alertas por email
+                  <Check className="w-4 h-4 text-[#00AEEF]" /> Alertas por email
                 </li>
                 {plan.id !== 'basic' && (
                   <li className="flex items-center gap-2 text-slate-300">
-                    <Check className="w-4 h-4 text-cyan-400" /> API access
+                    <Check className="w-4 h-4 text-[#00AEEF]" /> API access
                   </li>
                 )}
               </ul>
@@ -711,7 +711,7 @@ const UpgradeModal = ({ currentPlan, onClose, onUpgrade }) => {
                 disabled={loading === plan.id}
                 className={`w-full py-3 rounded-lg font-medium transition flex items-center justify-center gap-2 ${
                   plan.highlight 
-                    ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400' 
+                    ? 'bg-[#00AEEF] text-white hover:bg-[#00C0F0]' 
                     : 'bg-slate-700 text-white hover:bg-slate-600'
                 } disabled:opacity-50`}
               >
