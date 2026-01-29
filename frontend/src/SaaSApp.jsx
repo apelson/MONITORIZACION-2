@@ -520,13 +520,11 @@ const TenantDashboard = () => {
       {/* Header */}
       <header className="bg-slate-800 border-b border-slate-700">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center">
-              <Monitor className="w-6 h-6 text-white" />
-            </div>
-            <div>
+          <div className="flex items-center gap-4">
+            <img src={SIEMPRIA_LOGO_WHITE} alt="Siempria" className="h-8" />
+            <div className="border-l border-slate-600 pl-4">
               <span className="text-lg font-bold text-white">{tenant?.name}</span>
-              <span className="ml-2 px-2 py-0.5 bg-cyan-500/20 text-cyan-400 text-xs rounded-full uppercase">{tenant?.plan}</span>
+              <span className="ml-2 px-2 py-0.5 bg-[#00AEEF]/20 text-[#00AEEF] text-xs rounded-full uppercase">{tenant?.plan}</span>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -543,7 +541,7 @@ const TenantDashboard = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
             <div className="flex items-center justify-between">
-              <Server className="w-8 h-8 text-cyan-400" />
+              <Server className="w-8 h-8 text-[#00AEEF]" />
               <span className="text-2xl font-bold text-white">{devices.length}/{limits?.max_devices}</span>
             </div>
             <p className="text-slate-400 text-sm mt-2">Dispositivos</p>
@@ -594,7 +592,7 @@ const TenantDashboard = () => {
             <button 
               onClick={() => setShowAddDevice(true)}
               disabled={devices.length >= limits?.max_devices}
-              className="px-4 py-2 bg-cyan-500 text-white rounded-lg font-medium hover:bg-cyan-400 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-4 py-2 bg-[#00AEEF] text-white rounded-lg font-medium hover:bg-[#00C0F0] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <PlusCircle className="w-4 h-4" /> Añadir
             </button>
@@ -602,13 +600,13 @@ const TenantDashboard = () => {
 
           {loading ? (
             <div className="p-12 text-center">
-              <Loader2 className="w-8 h-8 text-cyan-400 animate-spin mx-auto" />
+              <Loader2 className="w-8 h-8 text-[#00AEEF] animate-spin mx-auto" />
             </div>
           ) : devices.length === 0 ? (
             <div className="p-12 text-center">
               <Server className="w-12 h-12 text-slate-600 mx-auto mb-4" />
               <p className="text-slate-400">No hay dispositivos configurados</p>
-              <button onClick={() => setShowAddDevice(true)} className="mt-4 text-cyan-400 hover:text-cyan-300">
+              <button onClick={() => setShowAddDevice(true)} className="mt-4 text-[#00AEEF] hover:text-[#00C0F0]">
                 Añadir tu primer dispositivo →
               </button>
             </div>
@@ -624,7 +622,7 @@ const TenantDashboard = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => handleCheckDevice(device.id)} className="p-2 text-slate-400 hover:text-cyan-400 transition" title="Verificar ahora">
+                    <button onClick={() => handleCheckDevice(device.id)} className="p-2 text-slate-400 hover:text-[#00AEEF] transition" title="Verificar ahora">
                       <RefreshCw className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleDeleteDevice(device.id)} className="p-2 text-slate-400 hover:text-red-400 transition" title="Eliminar">
