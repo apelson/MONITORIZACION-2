@@ -1,11 +1,11 @@
 {
   "name": "Siempria Network Monitor",
   "short_name": "Siempria Monitor",
-  "description": "Sistema de monitorización de red y cámaras de seguridad",
+  "description": "Sistema de monitorización de red y cámaras de seguridad - Infinite Tech Solutions",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#00a3d9",
+  "background_color": "#1a202c",
+  "theme_color": "#00AEEF",
   "orientation": "any",
   "icons": [
     {
