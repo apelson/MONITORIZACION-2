@@ -152,7 +152,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Siempria Network Monitor API", version="3.0", lifespan=lifespan)
 api_router = APIRouter(prefix="/api")
 
-# Include all routers
+# Include all routers - Original (single tenant)
 api_router.include_router(auth_router)
 api_router.include_router(users_router)
 api_router.include_router(organizations_router)
@@ -165,6 +165,11 @@ api_router.include_router(logs_router)
 api_router.include_router(reports_router)
 api_router.include_router(incidents_router)
 api_router.include_router(security_router)
+
+# Include multi-tenant routers (SaaS)
+api_router.include_router(tenant_auth_router)
+api_router.include_router(tenant_devices_router)
+api_router.include_router(superadmin_router)
 
 # ============ ROOT & IMAGE PROXY ============
 
