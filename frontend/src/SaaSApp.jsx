@@ -643,6 +643,15 @@ const TenantDashboard = () => {
       {showAddDevice && (
         <AddDeviceModal onClose={() => setShowAddDevice(false)} onSubmit={handleAddDevice} />
       )}
+
+      {/* Upgrade Modal */}
+      {showUpgradeModal && (
+        <UpgradeModal 
+          currentPlan={tenant?.plan} 
+          onClose={() => setShowUpgradeModal(false)} 
+          onUpgrade={handleUpgrade} 
+        />
+      )}
     </div>
   );
 };
