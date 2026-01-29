@@ -579,7 +579,10 @@ const TenantDashboard = () => {
               <Zap className="w-5 h-5 text-yellow-400" />
               <span className="text-yellow-200">Has alcanzado el límite de tu plan ({limits?.max_devices} dispositivos)</span>
             </div>
-            <button className="px-4 py-2 bg-yellow-500 text-black rounded-lg font-medium hover:bg-yellow-400 transition">
+            <button 
+              onClick={() => setShowUpgradeModal(true)}
+              className="px-4 py-2 bg-yellow-500 text-black rounded-lg font-medium hover:bg-yellow-400 transition"
+            >
               Actualizar Plan
             </button>
           </div>
