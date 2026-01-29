@@ -68,12 +68,9 @@ async def create_indexes():
     print("  📝 Colección: access_logs")
     await db.access_logs.create_index("user_id", background=True)
     await db.access_logs.create_index("action", background=True)
-    await db.access_logs.create_index("created_at", background=True)
     await db.access_logs.create_index([("created_at", -1)], background=True)
     await db.access_logs.create_index("ip_address", background=True)
-    # TTL index to auto-delete old logs (keep 90 days)
-    await db.access_logs.create_index("created_at", expireAfterSeconds=90*24*60*60, background=True, name="ttl_90days")
-    print("    ✅ 6 índices creados (incluyendo TTL de 90 días)")
+    print("    ✅ 4 índices creados")
     
     # ============ SECURITY EVENTS COLLECTION ============
     print("  🛡️ Colección: security_events")
