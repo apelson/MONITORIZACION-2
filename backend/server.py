@@ -54,7 +54,7 @@ from routes.security import router as security_router
 from routes.tenant_auth import router as tenant_auth_router
 from routes.tenant_devices import router as tenant_devices_router
 from routes.superadmin import router as superadmin_router
-from routes.payments import router as payments_router
+from routes.billing import router as billing_router
 
 # ============ SCHEDULER FOR DAILY REPORTS ============
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
