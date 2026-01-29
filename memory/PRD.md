@@ -1,162 +1,197 @@
 # Siempria Network Monitor - Product Requirements Document
 
-## Descripción del Producto
-Aplicación de monitoreo de red para equipos con IPs públicas, desarrollada para Siempria (distribuidor autorizado de Mobotix).
+## Información General
+- **Nombre**: Siempria Network Monitor / SiempriaApp
+- **Tipo**: Aplicación de monitorización de red y cámaras con modelo SaaS multi-tenant
+- **Dominio**: https://siempriapp.com
+- **Stack**: React + FastAPI + MongoDB
+- **Fecha última actualización**: 29 Enero 2026
 
-## Stack Tecnológico
-- **Backend:** FastAPI + Python + Motor (MongoDB async) - **REFACTORIZADO**
-- **Frontend:** React + TailwindCSS + shadcn/ui + @dnd-kit + Recharts
-- **Base de Datos:** MongoDB
-- **Servidor:** Nginx (proxy reverso)
+## URLs de Acceso
+- **Landing SaaS**: https://siempriapp.com/saas
+- **Panel Cliente**: https://siempriapp.com/saas (después de login)
+- **Super Admin**: https://siempriapp.com/admin
+- **App Original (Siempria interno)**: https://siempriapp.com/
 
----
+## Arquitectura Multi-tenant
 
-## Arquitectura del Backend (ACTUALIZADO 27/01/2026)
-
+### Base de Datos
 ```
-/app/backend/
-├── server.py          # Punto de entrada
-├── config.py          # Configuración y conexión DB
-├── models/
-│   └── __init__.py    # Modelos Pydantic
-├── routes/
-│   ├── auth.py        # Autenticación y login (con seguridad integrada)
-│   ├── users.py       # Gestión de usuarios
-│   ├── organizations.py # Organizaciones y grupos
-│   ├── devices.py     # Dispositivos y tipos
-│   ├── settings.py    # Configuración email/reportes (SMTP genérico)
-│   ├── statistics.py  # Estadísticas Mobotix
-│   ├── backup.py      # Sistema de backups
-│   ├── logs.py        # Logs de acceso
-│   ├── reports.py     # Reportes diarios
-│   ├── incidents.py   # Gestión de incidentes
-│   └── security.py    # Gestión de seguridad (IPs bloqueadas)
-└── services/
-    ├── auth_service.py    # Funciones de autenticación
-    ├── device_service.py  # Verificación de dispositivos
-    ├── email_service.py   # Envío de alertas (SMTP genérico)
-    ├── logging_service.py # Servicio de logging
-    ├── report_service.py  # Servicio de reportes
-    └── security_service.py # Protección contra ataques
+siempriapp_master         → Gestión de tenants, usuarios, suscripciones
+├── tenants               → Empresas/clientes registrados
+├── users                 → Usuarios (vinculados a tenant_id)
+└── payment_transactions  → Historial de pagos
+
+tenant_{slug}             → Base de datos por cliente
+├── devices               → Dispositivos del cliente
+├── groups                → Grupos de dispositivos
+├── organizations         → Organizaciones
+├── alerts                → Alertas
+├── status_history        → Historial de estados
+└── device_types          → Tipos de dispositivos
 ```
 
-## Características Implementadas ✅
+### Planes de Suscripción
 
-### Sistema de Seguridad (NUEVO - 27/01/2026)
-- [x] Bloqueo automático de IP después de 5 intentos fallidos (30 min)
-- [x] Lista negra permanente de IPs
-- [x] Registro de eventos de seguridad
-- [x] Alertas por email cuando se bloquea una IP
-- [x] Panel de gestión de seguridad en Configuración
-- [x] Endpoints: /api/security/blocked-ips, /api/security/blacklist, /api/security/events
+| Plan | Dispositivos | Verificaciones/día | Historial | Precio | Características |
+|------|--------------|-------------------|-----------|--------|-----------------|
+| Free | 4 | 24 (1/hora) | 7 días | 0€ | Básico |
+| Básico | 50 | 1440 (1/min) | 30 días | 29€/mes | + Alertas email, exportar |
+| Pro | 200 | Ilimitado | 90 días | 79€/mes | + API, dashboard público, WhatsApp |
+| Enterprise | ∞ | Ilimitado | 1 año | 299€/mes | Todo + Soporte prioritario |
 
-### Email Corporativo (NUEVO - 27/01/2026)
-- [x] Soporte para servidores SMTP genéricos (no solo Gmail)
-- [x] Configurado: siempria-com.correoseguro.dinaserver.com:465
-- [x] Usuario: monitorizacion@siempria.com
-- [x] Panel de configuración avanzada SMTP en frontend
+## Endpoints API SaaS
 
-### Sistema de Usuarios y Autenticación
-- [x] Login/Logout con JWT
-- [x] Roles: Admin, Manager, Viewer, Operator, Técnico
-- [x] Vista restringida para Operadores (solo cámaras online)
-- [x] Vista Técnico: Acceso completo de lectura a todos los dispositivos (sin Estadísticas)
-- [x] Cambio de contraseñas desde panel de admin
+### Autenticación
+- `POST /api/saas/register` - Registrar nueva empresa
+- `POST /api/saas/login` - Iniciar sesión
+- `GET /api/saas/me` - Obtener info usuario/tenant actual
+- `POST /api/saas/logout` - Cerrar sesión
 
-### Estructura Organizacional
-- [x] Organizaciones con logos, país y ciudad
-- [x] Grupos dentro de organizaciones
-- [x] Filtro de dispositivos por país, organización, grupo, tipo, estado
-- [x] Filtro por estadísticas habilitadas
-- [x] Filtro por tipo desde panel Tipos
+### Dispositivos (por tenant)
+- `GET /api/saas/devices` - Listar dispositivos
+- `POST /api/saas/devices` - Crear dispositivo (con límite por plan)
+- `GET /api/saas/devices/{id}` - Obtener dispositivo
+- `PUT /api/saas/devices/{id}` - Actualizar dispositivo
+- `DELETE /api/saas/devices/{id}` - Eliminar dispositivo
+- `POST /api/saas/devices/{id}/check` - Verificar estado (con límite por plan)
 
-### Gestión de Dispositivos
-- [x] Tipos: Camera, NAS, Switch, Router, Server, Other
-- [x] Campos: IP, Puerto, Protocolo, Credenciales, Marca, Modelo, Ubicación
-- [x] Clonación de dispositivos
-- [x] Drag & Drop para reordenar tarjetas
-- [x] Paginación de 24 dispositivos por página
-- [x] Badge "Stats" en tarjetas con estadísticas
-- [x] Contador de dispositivos por tipo
+### Billing (Stripe)
+- `GET /api/saas/billing/plans` - Obtener planes disponibles
+- `POST /api/saas/billing/checkout` - Crear sesión de checkout
+- `GET /api/saas/billing/checkout/status/{session_id}` - Verificar estado de pago
+- `GET /api/saas/billing/transactions` - Historial de transacciones
+- `POST /api/webhook/stripe` - Webhook de Stripe
 
-### Estadísticas de Cámaras Mobotix (MxAnalytics) - REDISEÑADO
-- [x] Panel completamente rediseñado para mayor intuitividad
-- [x] Cabecera con gradiente mostrando info de cámara
-- [x] Pestañas: "Conteo de Personas" y "Mapa de Calor"
-- [x] Selector de período con botones grandes y claros
-- [x] Tarjetas de resumen con totales (Entradas, Salidas, Total, Récord)
-- [x] Gráficos interactivos con Recharts
-- [x] Tabla de detalle por hora
-- [x] Exportación a Excel/CSV
-- [x] Fechas personalizadas
-
-### UI/UX Profesional
-- [x] Pantalla de login corporativa (colores Siempria)
-- [x] Pantalla de carga animada
-- [x] Logo horizontal en header móvil
-- [x] Dashboard responsivo para móvil y desktop
-- [x] Links de contacto clickeables
-
-### Monitoreo TCP
-- [x] Verificación de puertos TCP
-- [x] Historial de estados
-- [x] Alertas por email
-
-### Exportación
-- [x] Exportar a Excel
-- [x] Exportar a PDF
-
----
-
-## Tareas Pendientes 📋
-
-### 🟡 P1 - Reportes Programados por Email
-- [x] Backend: Modelo y endpoints de configuración
-- [x] Frontend: UI de configuración
-- [ ] Backend: Implementar envío real con APScheduler
-
-### 🟠 P2 - Dashboards Públicos
-- [x] Backend: Modelo PublicDashboard
-- [x] Backend: Endpoints básicos
-- [ ] Frontend: UI de configuración
-- [ ] Frontend: Vista pública compartible
-
-### 🔴 P0 - Refactorización CRÍTICA
-- [ ] Dividir App.js (2700+ líneas) en componentes separados
-- [ ] Dividir server.py en routers, modelos y servicios
-
----
+### Super Admin
+- `GET /api/saas/admin/tenants` - Listar todos los clientes
+- `GET /api/saas/admin/tenants/{id}` - Detalle de cliente
+- `PATCH /api/saas/admin/tenants/{id}` - Actualizar cliente (plan, estado)
+- `POST /api/saas/admin/tenants/{id}/suspend` - Suspender cuenta
+- `POST /api/saas/admin/tenants/{id}/activate` - Activar cuenta
+- `GET /api/saas/admin/stats` - Estadísticas de la plataforma
+- `DELETE /api/saas/admin/tenants/{id}?confirm=true` - Eliminar tenant
 
 ## Credenciales de Prueba
-| Usuario | Contraseña | Rol |
-|---------|------------|-----|
-| admin | admin123 | Administrador |
-| operador | operador123 | Operador |
-| tecnico | tecnico123 | Técnico |
 
----
+### Super Admin
+- Email: `superadmin@siempriapp.com`
+- Password: `SuperAdmin2024!`
 
-## Cámaras con Estadísticas
-| Nombre | IP | Puerto | Credenciales |
-|--------|-----|--------|--------------|
-| PRUEBA ESTADISTICAS | 212.64.162.40 | 40002 | admin2:Canarias@2020 |
+### Tenant Demo
+- Email: `demo@empresa.com`
+- Password: `demo123`
 
----
+## Despliegue en Producción
 
-## API de Mobotix MxAnalytics
+### Archivos SaaS a descargar
+```bash
+cd /opt/siempria-monitor
+
+# Backend
+mkdir -p backend/models backend/routes backend/services
+curl -o backend/models/tenant.py "https://siempriapp.com/saas_files/tenant_model.py.txt"
+curl -o backend/services/tenant_service.py "https://siempriapp.com/saas_files/tenant_service.py.txt"
+curl -o backend/routes/tenant_auth.py "https://siempriapp.com/saas_files/tenant_auth.py.txt"
+curl -o backend/routes/tenant_devices.py "https://siempriapp.com/saas_files/tenant_devices.py.txt"
+curl -o backend/routes/superadmin.py "https://siempriapp.com/saas_files/superadmin.py.txt"
+curl -o backend/routes/billing.py "https://siempriapp.com/saas_files/billing.py.txt"
+curl -o backend/server.py "https://siempriapp.com/saas_files/server.py.txt"
+
+# Frontend
+curl -o frontend/src/SaaSApp.jsx "https://siempriapp.com/saas_files/SaaSApp.jsx.txt"
+curl -o frontend/src/SuperAdminPanel.jsx "https://siempriapp.com/saas_files/SuperAdminPanel.jsx.txt"
+curl -o frontend/src/index.js "https://siempriapp.com/saas_files/index.js.txt"
+
+# Instalar dependencias
+cd backend && pip install emergentintegrations --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/
+cd ../frontend && yarn build
+
+# Reiniciar servicios
+sudo systemctl restart siempria-backend
+sudo systemctl reload nginx
 ```
-GET /control/stat_export?overview                    → Resumen JSON
-GET /control/stat_export?report&export_type=week     → Reporte semanal
-GET /control/stat_export?report&start=YYYY-MM-DD&end=YYYY-MM-DD  → Fechas personalizadas
-GET /control/stat_export?heatmap&export_format=jpeg  → Mapa de calor
+
+## Lo que está Implementado ✅
+
+### Sistema Original (Single-tenant)
+- [x] Autenticación JWT con roles (admin, manager, technician, operator)
+- [x] CRUD de dispositivos, grupos, organizaciones
+- [x] Monitorización automática con ping
+- [x] Alertas por email configurables
+- [x] Estadísticas y reportes
+- [x] Preview de cámaras en tiempo real
+- [x] Panel de seguridad (IP blocking)
+- [x] PWA instalable
+- [x] Dominio siempriapp.com con SSL
+
+### Sistema SaaS Multi-tenant
+- [x] Landing page profesional
+- [x] Registro de empresas (auto-creación de DB)
+- [x] Login con detección automática de tenant
+- [x] Dashboard de cliente con límites de plan
+- [x] Sistema de planes (Free, Básico, Pro, Enterprise)
+- [x] Límites por plan (dispositivos, verificaciones)
+- [x] Panel Super Admin
+- [x] Integración Stripe (checkout sessions)
+- [x] Modal de upgrade con pasarela de pago
+
+## Pendiente / Backlog 📋
+
+### P0 - Crítico
+- [ ] Refactorizar App.js monolítico (5000+ líneas)
+- [ ] Configurar claves Stripe de producción
+- [ ] Crear usuario super_admin en producción
+
+### P1 - Alto
+- [ ] Subdominios por cliente (cliente.siempriapp.com)
+- [ ] Suscripciones recurrentes con Stripe (webhooks completos)
+- [ ] Alertas por WhatsApp
+- [ ] Dashboard público por tenant
+
+### P2 - Medio
+- [ ] Portal de facturación para clientes
+- [ ] Exportación de datos (CSV, PDF)
+- [ ] API pública con tokens
+- [ ] White-labeling (logo/colores personalizados)
+
+### P3 - Bajo
+- [ ] App móvil nativa
+- [ ] Integración con Dahua P2P
+- [ ] Análisis avanzado con Mobotix
+
+## Arquitectura de Archivos
+
+```
+/opt/siempria-monitor/
+├── backend/
+│   ├── server.py           # Main FastAPI server
+│   ├── config.py           # Database config + cache
+│   ├── models/
+│   │   └── tenant.py       # SaaS models (plans, limits)
+│   ├── routes/
+│   │   ├── auth.py         # Original auth
+│   │   ├── tenant_auth.py  # SaaS auth
+│   │   ├── tenant_devices.py
+│   │   ├── superadmin.py
+│   │   ├── billing.py      # Stripe integration
+│   │   └── ...
+│   └── services/
+│       ├── tenant_service.py  # Multi-tenant logic
+│       └── ...
+├── frontend/
+│   └── src/
+│       ├── App.js          # Original app
+│       ├── SaaSApp.jsx     # SaaS landing + dashboard
+│       ├── SuperAdminPanel.jsx
+│       └── index.js        # Router
+└── .env files
 ```
 
----
+## Notas Importantes
 
-## Última actualización
-Fecha: 2026-01-23
-- ✅ Implementada búsqueda por fechas personalizadas
-- ✅ Implementados gráficos de barras y circulares (Recharts)
-- ✅ Implementada exportación Excel/PDF de vista actual
-- ✅ Completado logo horizontal en header móvil
-- ✅ Corregida terminología "Entrada/Salida"
+1. **HTTPS obligatorio** para PWA y Stripe
+2. **Hairpin NAT** necesario para acceso interno con dominio
+3. **emergentintegrations** para Stripe (pip install con URL especial)
+4. **Cache de configuración** en backend (5 min TTL)
+5. **Índices MongoDB** críticos para rendimiento con +300 dispositivos
