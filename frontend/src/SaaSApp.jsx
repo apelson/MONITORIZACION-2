@@ -11,6 +11,11 @@ import {
 
 const API = process.env.REACT_APP_BACKEND_URL ? `${process.env.REACT_APP_BACKEND_URL}/api/saas` : '/api/saas';
 
+// Siempria Brand Assets
+const SIEMPRIA_LOGO = "https://www.siempria.com/wp-content/uploads/2018/04/horizontal-gris225-blanco.png";
+const SIEMPRIA_LOGO_WHITE = "https://www.siempria.com/wp-content/uploads/2018/04/horizontal-blanco225-blanco.png";
+const SIEMPRIA_ICON = "/icons/icon-192x192.png";
+
 // ============ AUTH CONTEXT ============
 const SaaSAuthContext = createContext(null);
 
