@@ -13,7 +13,7 @@ from services.tenant_service import (
 from models.tenant import PlanType
 from routes.tenant_auth import get_current_tenant_user
 
-router = APIRouter(prefix="/superadmin", tags=["Super Admin"])
+router = APIRouter(prefix="/saas/admin", tags=["Super Admin"])
 
 # Super admin credentials (should be in env vars in production)
 SUPER_ADMIN_TENANT_ID = "siempria_master"
