@@ -1,197 +1,195 @@
 <analysis>**original_problem_statement:**
-The user's goal is to build, enhance, and deploy Siempria Network Monitor, a full-stack network monitoring application. The project has evolved to include user/device management, live camera previews, email alerts, advanced statistics, and multiple user roles. A key requirement is that the application must be deployable and maintainable on the user's external Ubuntu 24.04 server at .
+The user's primary goal is to build and deploy Siempria Network Monitor, a full-stack network monitoring application. The project has recently pivoted towards commercialization, transforming the application into a multi-tenant SaaS platform named Siempriapp.
 
-Recent user requests included hardening application security, implementing a PWA for mobile access, and resolving deployment issues related to domain configuration and SSL. A critical incident occurred where the production frontend file  was accidentally deleted, and subsequent recovery attempts have left the application in a non-functional state, which is the current top priority.
+Initial work involved resolving a critical production outage caused by a corrupted frontend file. After restoring the application, the focus shifted to performance optimization, domain/SSL setup, and then a complete architectural overhaul to support a multi-tenant SaaS model with different subscription plans (including a freemium tier), Stripe integration for payments, and a super-admin panel for customer management.
+
+The current immediate priority is to fix a new production outage where the backend service fails to start, rendering the entire application unusable.
 
 **PRODUCT REQUIREMENTS:**
-- The application must be deployed and maintained on the user's external production server. All instructions must be tailored for this environment ().
-- New features must be integrated into the existing stack (React, FastAPI, MongoDB).
-- **Immediate Priority**: Restore full functionality to the production application.
-- **Next Priority**: Address critical technical debt by refactoring the monolithic frontend to ensure future stability and maintainability.
+- The application must be deployed and maintained on the user's external Ubuntu 24.04 server at .
+- Implement a multi-tenant SaaS architecture where each client's data is isolated in its own database.
+- Develop a full frontend for the SaaS platform, including a landing page, registration, login, tenant dashboard, and an upgrade path via Stripe.
+- Create a super-admin dashboard for managing tenants and viewing platform analytics.
+- Ensure the application is accessible via the new domain  with a valid SSL certificate.
 
 **User's preferred language**: Spanish
 
 **what currently exists?**
-A full-stack network monitoring application with a modular FastAPI backend and a monolithic React frontend (). The backend is feature-rich, with security hardening (IP blocking), generic email services, and connections to the correct production database (). The user's production database contains all 383+ devices and user data, which is safe and intact.
+A full-stack application with a dual architecture:
+1.  The original single-tenant network monitoring application, accessible at the root URL.
+2.  A newly developed multi-tenant SaaS platform.
 
-However, the production deployment is currently **non-functional**. While the user can log in, the frontend fails to load any data (devices, organizations, etc.) because all API requests after login are failing with a 403 Forbidden error. This was caused by  being accidentally deleted and then restored from an old, incompatible git version.
+The **backend** has been significantly extended with a multi-tenant architecture. It uses a master database () for managing tenants and users, and creates a separate database for each new tenant (). It includes new API endpoints under  for registration, login, tenant-specific device management, and billing via Stripe. A super-admin API is also present.
+
+The **frontend** now has a router in  that directs traffic:
+- : The original monolithic app ().
+- : A new comprehensive SaaS application () with a landing page, registration/login, tenant dashboard, and a Stripe-powered upgrade modal.
+- : A new super-admin panel () for managing all tenants.
+
+However, the entire production deployment is **CRITICALLY BROKEN**. The backend service () is in a crash loop due to a  in a corrupted Python file, causing all API calls to fail with a  error. Additionally, external access to the production server via HTTPS (port 443) is failing, likely due to a misconfigured router.
 
 **Last working item**:
-- Last item agent was working: Diagnosing a critical production outage. After a long debugging session to restore access via IP, the agent confirmed that the backend API works correctly when tested directly with  and a valid token, and it connects to the correct database () with all 383 devices. The final diagnosis was that the restored  on the user's server is an old version that handles authentication incorrectly, causing all subsequent API calls to fail with 403 Forbidden errors.
+- Last item agent was working: Debugging a critical production backend crash. The agent identified that the  fails to start because the file  contains HTML instead of Python code, leading to a . This happened because the user downloaded a corrupted file via a  command provided by the agent. The agent was attempting to resolve this file corruption issue.
 - Status: IN PROGRESS
 - Agent Testing Done: N
-- Which testing method agent to use? This is a production debugging task. The agent must guide the user to replace the faulty  file, rebuild the frontend, and verify the fix in their browser. The primary test will be the user confirming the application works again. Browser developer tools (Console and Network tabs) are essential for this.
+- Which testing method agent to use? Backend debugging. The next agent must first fix the corrupted file to allow the service to start. Then, use -- No entries -- and  to confirm the backend is running without errors. Finally,  should be used to test API endpoints (both old and new SaaS ones) to ensure full functionality.
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-- **Issue 1: CRITICAL PRODUCTION OUTAGE: Frontend fails to load data (403 Forbidden) (P0)**
-  - **Description:** The application is unusable in production. After a successful login, the frontend does not display any devices, groups, or other data. The browser's network tab shows that API requests to , , etc., are failing with a 403 Forbidden status. This is due to an outdated  file being restored from git, which lacks the correct authentication-handling logic compatible with the current backend.
-  - **Attempted fixes:** Restored  from git, corrected backend  to point to  DB, restarted all services, cleared python cache. These steps confirmed the backend and database are correct, isolating the problem to the frontend code.
+- **Issue 1: CRITICAL PRODUCTION OUTAGE: Backend service fails to start (P0)**
+  - **Description:** The  is in a crash loop. Logs show a  in . The file was downloaded via  and contains an HTML error page instead of the Python source code. This renders the entire application non-functional.
+  - **Attempted fixes:** The agent provided a  command to download the correct file, but it was downloaded incorrectly twice, perpetuating the issue.
   - **Next debug checklist:**
-    1.  Reassure the user that their data is safe. The issue is confined to the frontend code.
-    2.  Provide the user with the complete, correct content of the latest  from the agent's environment (). This file is over 5000 lines and contains the new security panel, PWA logic, and correct API-calling patterns.
-    3.  Instruct the user to replace the content of their production file at  with the correct code.
-    4.  Guide the user to rebuild the frontend: .
-    5.  Guide the user to reload Nginx: .
-    6.  Ask the user to test again, ensuring they clear their browser cache (Ctrl+Shift+R).
-  - **Why fix this issue and what will be achieved with the fix?** This will restore the application to a fully working state for the user and recover all recently developed features (Security UI, PWA install prompt, improved settings panel).
+    1.  **Do not use  to download files from the preview environment.** It is unreliable.
+    2.  View the correct content of  from the agent's own environment.
+    3.  Use the  tool to directly write the correct Python code into the user's production file at . This bypasses any download or proxy issues.
+    4.  Run .
+    5.  Verify the service status with  and check the logs with -- No entries -- to ensure it starts without errors.
+  - **Why fix this issue and what will be achieved with the fix?** This will bring the entire backend online, making both the original application and the new SaaS platform functional again.
   - **Status:** IN PROGRESS
-  - **Is recurring issue?** N
-  - **Should Test frontend/backend/both after fix?** Frontend (user verification)
+  - **Is recurring issue?** Y
+  - **Should Test frontend/backend/both after fix?** Backend
   - **Blocked on other issue:** None. This is the top blocker.
 
-- **Issue 2: Dinahosting Proxy Blocks SSL and Domain Usage (P1)**
-  - **Description:** Attempts to use a custom subdomain () and install a Let's Encrypt SSL certificate failed due to a proxy/firewall from the DNS provider (Dinahosting). This forces the user to access the application via IP address, which is not ideal.
-  - **Next debug checklist:** This is on hold until production is restored. The user must be advised to contact Dinahosting support to disable the proxy/DDoS protection for their subdomain or, alternatively, correctly follow the agent's instructions for a DNS-01 challenge with Let's Encrypt.
-  - **Status:** BLOCKED
+- **Issue 2: Production site inaccessible via HTTPS (Port 443) (P0)**
+  - **Description:** External access to  is failing with a timeout. The user's MikroTik router does not seem to have the correct port forwarding rule for port 443, even though it was briefly working when the SSL certificate was generated. Port 80 is correctly forwarded.
+  - **Attempted fixes:** The agent guided the user to check server-side firewall () and Nginx status, which are both correct. The issue is confirmed to be at the router level.
+  - **Next debug checklist:**
+    1.  Guide the user to log into their MikroTik router.
+    2.  Instruct them to go to **IP -> Firewall -> NAT**.
+    3.  Instruct them to create a  rule to forward all TCP traffic from the external interface on port **443** to the internal server IP  on port **443**.
+    4.  Confirm the rule is enabled and has no blocking firewall rules preceding it.
+  - **Why fix this issue and what will be achieved with the fix?** This will make the production application accessible to the world and enable the PWA functionality, which requires HTTPS.
+  - **Status:** IN PROGRESS
   - **Is recurring issue?** Y
-  - **Should Test frontend/backend/both after fix?** N/A
-  - **Blocked on other issue:** Issue 1
+  - **Should Test frontend/backend/both after fix?** N/A (Network configuration)
+  - **Blocked on other issue:** None. Can be fixed in parallel with Issue 1.
 
 **In progress Task List**:
-- **Task 1: Complete PWA Implementation (P1)**
-  - **Where to resume:** The necessary files (, , icons) were created in the agent's environment, and the logic was added to . This work was lost on the user's server.
-  - **What will be achieved with this?** The application will be installable on mobile and desktop devices.
-  - **Status:** BLOCKED (by Issue 1). The fix for Issue 1 will also deploy the correct  containing this feature. The user will then need to run the deployment script for the PWA assets.
-  - **Blocked on something:** Issue 1
-
-- **Task 2: Complete Security UI Implementation (P1)**
-  - **Where to resume:** The backend is complete. The frontend  component was created in  but lost on the user's server.
-  - **What will be achieved with this?** Admins will have a UI to manage blocked IPs and view security events.
-  - **Status:** BLOCKED (by Issue 1). The fix for Issue 1 will deploy the correct  containing this feature.
-  - **Blocked on something:** Issue 1
+- **Task 1: Complete the Production Deployment of the SaaS Platform (P0)**
+  - **Where to resume:** The user has attempted to run a comprehensive deployment script provided by the agent (in message 297), but it failed due to permission errors and the backend crashing (Issue 1). All required files exist in the agent's environment.
+  - **What will be achieved with this?** The full SaaS platform, including registration, multi-tenant dashboards, plan limits, and Stripe integration, will be live and functional on .
+  - **Status:** BLOCKED
+  - **Should Test frontend/backend/both after fix?** Both
+  - **Blocked on something:** Issue 1 and Issue 2.
 
 **Upcoming and Future Tasks**
 Upcoming Tasks:
-- **P0: Refactor Monolithic Frontend:** This is the highest priority technical task after the production outage is resolved. The current  is over 5000 lines and is the root cause of the recent catastrophic failure. It must be broken into smaller components and custom hooks.
-- **P1: Commercialize the platform (SaaS):** A user-requested goal to explore turning the platform into a multi-tenant service.
-- **P1: Install SSL Certificate:** Blocked by the Dinahosting proxy issue.
-- **P1: Implement WhatsApp alerts:** Backend logic for this feature is pending.
+- **P1: Frontend Refactor ()**: The original monolithic frontend file is over 5000 lines and is a major source of technical debt. It should be broken down into smaller, maintainable components.
+- **P2: Finalize Stripe Integration**: Implement the frontend UI for the checkout process and webhooks on the backend to confirm successful payments and update tenant plans automatically.
+- **P2: Implement Subdomains per Client**: Configure the server to handle tenant-specific subdomains like .
 
 Future Tasks:
-- Complete Public Dashboards UI.
-- Start new Dahua P2P project.
+- Complete the Public Dashboards UI.
+- Start the Dahua P2P project.
 
 **Completed work in this session**
-- **Backend Security Hardening:** Implemented and tested IP blocking for brute-force attacks, security event logging, and email alerts.
-- **Generic SMTP Service:** Refactored the email service to support any SMTP provider and configured it successfully with the user's corporate email credentials in the development environment.
-- **Production Outage Triage:** Successfully diagnosed a complex production issue, identifying that the database and backend code were correct, and isolating the fault to the frontend  file.
-- **Production Nginx Configuration:** Reconfigured the user's Nginx server to work via IP address and specific ports (1499 for remote, 80 for local) as a workaround for the domain/proxy issues.
-- **Frontend  Fix:** Corrected the production frontend environment file to use relative paths for API calls, allowing access from both local and public IPs.
-
-**Earlier issues found/mentioned but not fixed**
-- **Frontend components show indefinite loading in preview (P2)**
-  - **Description:** A recurring issue in the agent's preview environment (not production) where UI panels get stuck on loading skeletons. This is a low-priority issue that will be resolved by the P0 frontend refactoring task.
-  - **Status:** BLOCKED
-
-**Known issue recurrence from previous fork**
-- **Issue:** Frontend API calls failing in the preview environment due to CORS.
-- **Recurrence count:** High.
-- **Status:** NOT RESOLVED. The P0 frontend refactoring is the long-term solution.
+- **Production Outage Resolution:** Fixed the initial 403 Forbidden errors by replacing the faulty  on the user's server.
+- **Performance Optimization:** Added crucial MongoDB indexes, implemented backend API pagination, and introduced caching for settings to improve app speed.
+- **Domain & SSL Setup:** Guided the user through purchasing a new domain (), configuring DNS records on IONOS, and successfully installing a Let's Encrypt SSL certificate.
+- **Nginx Hardening:** Deployed a professional-grade Nginx configuration with HTTPS redirection, security headers, Gzip compression, browser caching, and rate limiting.
+- **SaaS Backend Architecture:** Designed and implemented a complete multi-tenant backend, including a master database (), tenant-specific databases, JWT-based authentication that automatically detects tenants, plan-based feature limits, and a super-admin API.
+- **SaaS Frontend Development:** Built a new React frontend for the SaaS platform (), featuring a landing page, registration/login modals, and a functional tenant dashboard.
+- **Super Admin Panel:** Created a full-stack super-admin panel () allowing management of tenants (viewing stats, changing plans) and platform analytics.
+- **Stripe Integration (Phase 1):** Integrated the Stripe SDK, added backend endpoints to create checkout sessions, and implemented a frontend modal displaying pricing plans and an Upgrade button.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Backend:** FastAPI,  (async MongoDB), Pydantic, APScheduler.
+- **Backend:** FastAPI, Motor (async MongoDB), Pydantic, APScheduler.
 - **Frontend:** React, TailwindCSS, shadcn/ui, .
-- **Deployment:** Manual deployment and debugging on a user's external Ubuntu server via shell commands (, , yarn run v1.22.22
-info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command., Current Mongosh Log ID:	697b315770e1a673b1284d0b
+- **SaaS Architecture:** Multi-tenancy (database-per-tenant model), master database for tenant management, plan-based feature flagging.
+- **Deployment:** Manual deployment on a user-managed Ubuntu server using , , yarn install v1.22.22
+[1/4] Resolving packages...
+[2/4] Fetching packages...
+[3/4] Linking dependencies...
+[4/4] Building fresh packages...
+success Saved lockfile.
+Done in 0.14s., and Current Mongosh Log ID:	697b6ff660a5de21bc284d0b
 Connecting to:		mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.6.0
 Using MongoDB:		7.0.28
 Using Mongosh:		2.6.0
 
 For mongosh info see: https://www.mongodb.com/docs/mongodb-shell/
 
-
-To help improve our products, anonymous usage data is collected and sent to MongoDB periodically (https://www.mongodb.com/legal/privacy-policy).
-You can opt-out by running the disableTelemetry() command.
-
 ------
    The server generated these startup warnings when booting
-   2026-01-29T10:07:10.850+00:00: Using the XFS filesystem is strongly recommended with the WiredTiger storage engine. See http://dochub.mongodb.org/core/prodnotes-filesystem
-   2026-01-29T10:07:13.013+00:00: Access control is not enabled for the database. Read and write access to data and configuration is unrestricted
-   2026-01-29T10:07:13.013+00:00: You are running this process as the root user, which is not recommended
-   2026-01-29T10:07:13.013+00:00: Soft rlimits for open file descriptors too low
+   2026-01-29T14:34:23.302+00:00: Using the XFS filesystem is strongly recommended with the WiredTiger storage engine. See http://dochub.mongodb.org/core/prodnotes-filesystem
+   2026-01-29T14:34:25.600+00:00: Access control is not enabled for the database. Read and write access to data and configuration is unrestricted
+   2026-01-29T14:34:25.600+00:00: You are running this process as the root user, which is not recommended
+   2026-01-29T14:34:25.600+00:00: Soft rlimits for open file descriptors too low
 ------
 
-test> ).
-- **Security:** IP-based rate limiting for logins, event logging.
-- **PWA:** , service workers for offline capability and installability.
+test> .
+- **Networking:** Nginx reverse proxy, Let's Encrypt SSL, DNS configuration (IONOS), Port Forwarding (MikroTik).
+- **Payments:** Stripe integration for subscription billing.
 
 **key DB schema**
-- **users:** 
-- **devices:** 
-- **access_logs:** 
-- **settings:** 
-- **Database Name:** The correct production database is .
+- ** (New DB):**
+  - : 
+  - : 
+- ** (DB per client):**
+  - Contains the original application schema: , , root, , , etc.
+- ** (Original DB):**
+  - Now serves as the database for the original, single-tenant instance running for the user's own company.
 
 **All files of reference**
-- : **(CRITICAL)** The latest version in the agent's environment must be copied to the user's production server to fix the outage.
-- : **(BROKEN)** The file on the user's server that is causing the outage.
-- : The backend environment file, now correctly pointing to .
-- : The frontend environment file, now correctly set to .
-- : The Nginx configuration file on the user's server.
-- : The systemd service file for the backend.
-- : Updated to support generic SMTP. This needs to be deployed to production.
-- : Updated to support generic SMTP. This needs to be deployed to production.
+- : **(BROKEN)** This file is corrupted on the production server and is the cause of the backend crash.
+- : Updated to include all new SaaS routes.
+- : Updated to route between the old app and the new SaaS UIs.
+- : The new, hardened Nginx configuration for the  domain.
+- : The main Nginx config file, updated to include rate-limiting zones.
+- New SaaS files to be deployed: , , , , , , , .
 
 **Areas that need refactoring**:
-- **CRITICAL (P0): **. The monolithic nature of this file directly led to the current production outage. It is impossible to maintain and must be broken down into smaller components as the very next step after the application is stabilized.
-
-**key api endpoints**
-- : Used for authentication.
-- : Fails with 403 in production UI.
-- : Fails with 403 in production UI.
-- : Fails with 403 in production UI.
+- **P1: **: Still a 5000+ line monolith that is difficult to maintain. It powers the app for the user's primary tenant.
+- **P3: Code Duplication**: There is significant code duplication between the original routes () and the tenant-aware routes (). This could be refactored into shared services to improve maintainability.
 
 **Critical Info for New Agent**
-- **PRIORITY #1: FIX PRODUCTION.** The user's application is down. Your first and only task is to restore it. The problem is isolated to . You must guide the user to replace this file's content with the one from your environment ().
-- **Data is Safe:** Emphasize to the user that their 383+ devices are safe in the  database. This is a code issue, not a data loss issue.
-- **Be Methodical:** The user is under stress. Provide clear, step-by-step  commands. Assume you are operating as  or with  on their server.
-- **Deploy All Recent Backend Changes:** The user's backend code for  and  is also out of date. After fixing the frontend, you must provide the user with the updated backend files to fix the email report functionality.
-- **Address Refactoring Next:** Once the fire is out, you must immediately pivot to the P0 task of refactoring . Do not accept any new feature requests until this technical debt is paid down.
-
-**documents and test reports created in this job**
-None.
+- **PRIORITY #1: FIX THE BACKEND CRASH.** The application is completely down. Your first action must be to fix the corrupted  file. **Use , not **, to ensure the correct content is written. Do not proceed until  shows it's running.
+- **PRIORITY #2: FIX HTTPS ACCESS.** The site is inaccessible from the internet. Guide the user to add the missing NAT rule for port 443 on their MikroTik router. The user has provided screenshots and is comfortable with the router's CLI.
+- **SaaS Deployment is Incomplete:** The user has downloaded the files but the deployment failed. After fixing the critical issues, you must guide the user through the deployment script again, ensuring  is used for commands requiring it (like  and ).
+- **Be Explicit with Commands:** The user's environment is complex. Provide clear, copy-pasteable commands for their Ubuntu server, always using  where necessary to avoid permission errors.
+- **Project has Pivoted:** The primary goal is now the SaaS platform. All future development should be focused on enhancing this new architecture.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **sigue sin cargar los dispositivos, por favor, ayudame**: User confirms the app is still broken after a frontend rebuild. (PENDING)
-2.  **User provides screenshot of browser console**: Shows 403 Forbidden errors on API calls. (COMPLETED - issue diagnosed)
-3.  **entra perfectamente, pero no hay nada, fijate que la version de la app, no tiene nada de lo ultimo implementado...**: User can log in but sees no data and an old UI. Confirms the problem. (PENDING)
-4.  **ahora si tenemos problema, se ha borrado toda la informacion...**: User panics, thinking all data was lost. (ADDRESSED - Data is safe in another DB)
-5.  **ok, ahora funciona, estoy intentando desplegar el pwa...**: User confirms login works after fixing  and Nginx, then runs into permission errors deploying PWA assets. (COMPLETED - user used sudo)
-6.  **tambien, tengo que poder acceder localmente en 192.168.1.76**: User requests local IP access. (COMPLETED - agent set blank )
-7.  **no funciona el envio de informes...**: User reports that email reports are failing in production. (PENDING - backend files need updating)
-8.  **ESA IP NO ES LA PUBLICA NUESTRA...**: User provides correct public IP () and local IP (). (COMPLETED)
-9.  **ahora no puedo entrar en la aplicacion, ni con la ip, ni con el subdominio**: User reports total loss of access after Nginx changes. (COMPLETED - fixed Nginx config)
-10. **Opción 1: PWA... vamos con esto, adelante**: User approves the PWA implementation. (IN PROGRESS)
+1.  **maravilloso, mandame los comandos para actualizarlo en produccion, por cierto, he vuelto a no tener acceso desde internet al dominio, puedes probarlo tu, y decirme como resolverlo?**: User is happy with the SaaS progress but reports the domain is inaccessible again and asks for deployment commands. (PENDING)
+2.  **crees q podemos empezar a plantear la comercializacion... bases de datos limpias y separadas...**: User approves the SaaS commercialization plan and confirms the database-per-tenant approach. (COMPLETED)
+3.  **ya tenemos certificado, ahora si somos profesionales, alguna mejora, se te ocurre, tenemos que ser los mejores**: User is excited about having SSL and asks for professional improvements. (COMPLETED - Nginx hardened)
+4.  **User provides output showing  was successful**: (COMPLETED)
+5.  **creados, no deberian apuntar al puerto?**: User asks if DNS records should include ports. (COMPLETED - Agent explained they should not)
+6.  **he contratado en ionos el dominio siempriapp.com, me guias paso a paso...**: User bought a new domain and asks for step-by-step guidance to set it up. (COMPLETED)
+7.  **puedes verificar el pwa este desplegado correctamente... si esta ok, me puedes pasar captura...**: User asks to verify the PWA setup and provide a guide for technicians. (COMPLETED - Agent explained HTTPS is required)
+8.  **algo ha pasado, ahora solo muestra 100 dispositivos, deberiamos tener 385**: User reports that pagination is limiting device view. (COMPLETED - Agent provided a fix)
+9.  **vamos adelante con las mejoras propuestas...**: User approves performance optimizations (pagination, lazy loading, caching). (COMPLETED)
+10. **ahora esta ok, pero parece que va algo lenta, podrias revisar todo el codigo...**: User reports the app is slow after the initial fix. (COMPLETED - Agent identified missing DB indexes)
 
 **Project Health Check:**
-- **Broken:** The production environment is critically broken. The frontend is unable to fetch any data from the backend due to authentication errors (403 Forbidden), rendering the application unusable.
-- **Mocked:** N/A.
+- **Broken:** The production environment is entirely non-functional. The backend service is down (502 Bad Gateway errors), and the domain is inaccessible from the internet via HTTPS.
 
 **3rd Party Integrations**
-- **Gmail SMTP:** Being replaced by a generic SMTP service.
-- ** SMTP:** The user's corporate email provider.
-- **:** For drag-and-drop UI.
-- **:** For data visualization charts.
-- **Mobotix Camera API:** Direct HTTP integration for analytics.
-- **APScheduler:** For running scheduled backend tasks.
-- **reportlab:** For generating PDF reports.
+- **Stripe:** For SaaS subscription payments. (Test key  is in use).
+- **IONOS:** DNS provider for .
+- **Let's Encrypt:** For SSL certificates.
+- **Gmail/Dinaserver SMTP:** For email alerts (configured via the UI).
+- ** library**: Used for Stripe integration.
 
 **Testing status**
 - Testing agent used after significant changes: NO
 - Troubleshoot agent used after agent stuck in loop: NO
 - Test files created: []
-- Known regressions: The entire production frontend is a regression due to the incorrect  file.
+- Known regressions:
+    - Entire application is down in production due to backend crash.
+    - HTTPS access is broken.
 
 **Credentials to test flow:**
-- **Admin:**  / 
-- **Technician:**  / 
-- **Operator:**  / 
-- **Production IPs:** Remote , Local 
+- **Original App Admin:**  / 
+- **SaaS Super Admin:**  /  (To be created via script)
+- **Production URL:** 
+- **SaaS Landing URL:** 
+- **Super Admin URL:** 
 
 **What agent forgot to execute**
-- The agent has not yet deployed the updated backend files (, ) to the user's production server, which is why email reports are failing there.
-- The P0 task to refactor the monolithic frontend was postponed and has not been started. The consequence of this delay is the current production outage.</analysis>
+- The agent provided a  file that imported , but forgot to instruct the user to download the corresponding  file, leading to the initial .
+- The agent repeatedly suggested using  to download files from its preview environment, which has proven to be an unreliable method, leading to file corruption and wasted time. A more robust method like  should have been used.</analysis>
