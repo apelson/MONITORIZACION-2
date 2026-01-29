@@ -61,11 +61,8 @@ async def create_indexes():
     print("  🔔 Colección: alerts")
     await db.alerts.create_index("id", unique=True, background=True)
     await db.alerts.create_index("device_id", background=True)
-    await db.alerts.create_index("timestamp", background=True)
     await db.alerts.create_index([("timestamp", -1)], background=True)  # For sorting
-    # TTL index to auto-delete old alerts (keep 30 days)
-    await db.alerts.create_index("timestamp", expireAfterSeconds=30*24*60*60, background=True, name="ttl_30days")
-    print("    ✅ 5 índices creados (incluyendo TTL de 30 días)")
+    print("    ✅ 3 índices creados")
     
     # ============ ACCESS LOGS COLLECTION ============
     print("  📝 Colección: access_logs")
