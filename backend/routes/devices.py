@@ -71,22 +71,18 @@ async def get_devices(
     group_id: Optional[str] = None, 
     organization_id: Optional[str] = None,
     page: int = 1,
-    limit: int = 100,
+    limit: int = 0,  # 0 means no limit (return all)
     status_filter: Optional[str] = None,
     search: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
     """
-    Get devices with pagination and filtering
+    Get devices with optional pagination and filtering
     - page: Page number (default 1)
-    - limit: Items per page (default 100, max 500)
+    - limit: Items per page (0 = all, default 0 for backwards compatibility)
     - status_filter: Filter by status (online/offline)
     - search: Search by name or IP
     """
-    # Validate and cap limit
-    limit = min(max(1, limit), 500)
-    skip = (page - 1) * limit
-    
     query = {}
     if group_id:
         query["group_id"] = group_id
@@ -111,10 +107,17 @@ async def get_devices(
         query["device_type_id"] = "type-camera"
         query["status"] = "online"
     
-    # Get total count for pagination
+    # Get total count
     total = await devices_collection.count_documents(query)
     
-    # Get paginated devices
+    # If limit is 0 or not specified, return all devices (backwards compatible)
+    if limit <= 0:
+        devices = await devices_collection.find(query, {"_id": 0}).to_list(length=None)
+        return {"devices": devices}
+    
+    # Otherwise, apply pagination
+    limit = min(limit, 1000)  # Cap at 1000 max
+    skip = (page - 1) * limit
     devices = await devices_collection.find(query, {"_id": 0}).skip(skip).limit(limit).to_list(length=limit)
     
     return {
