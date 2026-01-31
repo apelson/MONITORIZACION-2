@@ -5035,11 +5035,11 @@ const Dashboard = () => {
       
       {/* Mobotix Info Dialog */}
       <Dialog open={mobotixDialogOpen} onOpenChange={setMobotixDialogOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Info className="w-5 h-5 text-purple-600" />
-              Información de Cámara
+              <Cctv className="w-5 h-5 text-cyan-600" />
+              Información de Cámara Mobotix
             </DialogTitle>
             <DialogDescription>
               {selectedDevice?.name} ({selectedDevice?.ip_address}:{selectedDevice?.port})
@@ -5051,51 +5051,139 @@ const Dashboard = () => {
               <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
               <span className="ml-2 text-muted-foreground">Consultando cámara...</span>
             </div>
-          ) : mobotixInfo?.error ? (
+          ) : mobotixInfo?.errors?.length > 0 && !mobotixInfo?.system?.model ? (
             <div className="p-4 bg-red-50 rounded-lg text-red-700 text-sm">
               <AlertCircle className="w-4 h-4 inline mr-2" />
-              {mobotixInfo.error}
+              No se pudo conectar con la cámara. Verifica que la API HTTP esté habilitada y las credenciales sean correctas.
+              <div className="mt-2 text-xs font-mono">{mobotixInfo.errors.join(", ")}</div>
             </div>
           ) : mobotixInfo ? (
             <div className="space-y-4">
-              <div className="p-3 bg-muted rounded-lg">
-                <p className="text-sm font-medium mb-1">Estado de API Mobotix</p>
-                <p className="text-xs text-muted-foreground">{mobotixInfo.device_status || "Sin respuesta"}</p>
+              {/* Status Cards */}
+              <div className="grid grid-cols-3 gap-3">
+                {/* Recording Status */}
+                <div className={`p-3 rounded-lg border-2 ${mobotixInfo.is_recording === true ? 'bg-red-50 border-red-200' : mobotixInfo.is_recording === false ? 'bg-gray-50 border-gray-200' : 'bg-yellow-50 border-yellow-200'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    {mobotixInfo.is_recording === true ? (
+                      <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                    ) : (
+                      <div className="w-3 h-3 bg-gray-400 rounded-full" />
+                    )}
+                    <span className="text-sm font-semibold">Grabación</span>
+                  </div>
+                  <p className={`text-xs font-medium ${mobotixInfo.is_recording === true ? 'text-red-700' : 'text-gray-600'}`}>
+                    {mobotixInfo.is_recording === true ? '🔴 GRABANDO' : mobotixInfo.is_recording === false ? '⚪ Inactiva' : '❓ Desconocido'}
+                  </p>
+                  {mobotixInfo.recording?.recording_mode && (
+                    <p className="text-xs text-muted-foreground mt-1">Modo: {mobotixInfo.recording.recording_mode}</p>
+                  )}
+                </div>
+                
+                {/* NTP Status */}
+                <div className={`p-3 rounded-lg border-2 ${mobotixInfo.ntp_configured ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Clock className="w-4 h-4" />
+                    <span className="text-sm font-semibold">NTP</span>
+                  </div>
+                  <p className={`text-xs font-medium ${mobotixInfo.ntp_configured ? 'text-green-700' : 'text-orange-700'}`}>
+                    {mobotixInfo.ntp_configured ? '✅ Configurado' : '⚠️ No configurado'}
+                  </p>
+                  {mobotixInfo.ntp_server && (
+                    <p className="text-xs text-muted-foreground mt-1 truncate" title={mobotixInfo.ntp_server}>{mobotixInfo.ntp_server}</p>
+                  )}
+                </div>
+                
+                {/* Error Status */}
+                <div className={`p-3 rounded-lg border-2 ${mobotixInfo.has_errors ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="text-sm font-semibold">Estado</span>
+                  </div>
+                  <p className={`text-xs font-medium ${mobotixInfo.has_errors ? 'text-red-700' : 'text-green-700'}`}>
+                    {mobotixInfo.has_errors ? '❌ Con errores' : '✅ Sin errores'}
+                  </p>
+                  {mobotixInfo.error_details?.length > 0 && (
+                    <p className="text-xs text-red-600 mt-1">{mobotixInfo.error_details[0]}</p>
+                  )}
+                </div>
               </div>
               
-              {mobotixInfo.configuration && Object.keys(mobotixInfo.configuration).length > 0 && (
-                <div>
-                  <p className="text-sm font-medium mb-2">Configuración Detectada</p>
-                  <div className="max-h-60 overflow-y-auto">
-                    <table className="w-full text-xs">
-                      <tbody>
-                        {Object.entries(mobotixInfo.configuration).slice(0, 30).map(([key, value]) => (
-                          <tr key={key} className="border-b">
-                            <td className="py-1 pr-2 font-mono text-muted-foreground">{key}</td>
-                            <td className="py-1 font-mono break-all">{value}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+              {/* System Info */}
+              {mobotixInfo.system && Object.keys(mobotixInfo.system).length > 0 && (
+                <div className="p-3 bg-slate-50 rounded-lg">
+                  <p className="text-sm font-semibold mb-2 flex items-center gap-2"><Server className="w-4 h-4" /> Sistema</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    {mobotixInfo.system.model && <><span className="text-muted-foreground">Modelo:</span><span className="font-medium">{mobotixInfo.system.model}</span></>}
+                    {mobotixInfo.system.serial_number && <><span className="text-muted-foreground">Serie:</span><span className="font-mono">{mobotixInfo.system.serial_number}</span></>}
+                    {mobotixInfo.system.software && <><span className="text-muted-foreground">Software:</span><span>{mobotixInfo.system.software}</span></>}
+                    {mobotixInfo.firmware_version && <><span className="text-muted-foreground">Firmware:</span><span>{mobotixInfo.firmware_version}</span></>}
+                    {mobotixInfo.system.uptime && <><span className="text-muted-foreground">Uptime:</span><span>{mobotixInfo.system.uptime}</span></>}
+                    {mobotixInfo.system.date_time && <><span className="text-muted-foreground">Fecha/Hora:</span><span>{mobotixInfo.system.date_time}</span></>}
                   </div>
                 </div>
               )}
               
+              {/* Network Info */}
+              {mobotixInfo.networking && Object.keys(mobotixInfo.networking).length > 0 && (
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <p className="text-sm font-semibold mb-2 flex items-center gap-2"><Network className="w-4 h-4" /> Red</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    {mobotixInfo.networking.camera_name && <><span className="text-muted-foreground">Nombre:</span><span className="font-medium">{mobotixInfo.networking.camera_name}</span></>}
+                    {mobotixInfo.networking.ip_address && <><span className="text-muted-foreground">IP:</span><span className="font-mono">{mobotixInfo.networking.ip_address}</span></>}
+                    {mobotixInfo.networking.network_mask && <><span className="text-muted-foreground">Máscara:</span><span>{mobotixInfo.networking.network_mask}</span></>}
+                    {mobotixInfo.networking.link_speed && <><span className="text-muted-foreground">Velocidad:</span><span>{mobotixInfo.networking.link_speed}</span></>}
+                  </div>
+                </div>
+              )}
+              
+              {/* Storage Info */}
+              {mobotixInfo.storage && Object.keys(mobotixInfo.storage).length > 0 && (
+                <div className="p-3 bg-purple-50 rounded-lg">
+                  <p className="text-sm font-semibold mb-2 flex items-center gap-2"><HardDrive className="w-4 h-4" /> Almacenamiento</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    {mobotixInfo.storage.type && <><span className="text-muted-foreground">Tipo:</span><span>{mobotixInfo.storage.type}</span></>}
+                    {mobotixInfo.storage.current_usage && <><span className="text-muted-foreground">Uso actual:</span><span className="font-medium">{mobotixInfo.storage.current_usage}</span></>}
+                    {mobotixInfo.storage.maximum_size && <><span className="text-muted-foreground">Tamaño máx:</span><span>{mobotixInfo.storage.maximum_size}</span></>}
+                    {mobotixInfo.storage.flash_wear && <><span className="text-muted-foreground">Desgaste Flash:</span><span>{mobotixInfo.storage.flash_wear}</span></>}
+                    {mobotixInfo.storage.sequences && <><span className="text-muted-foreground">Secuencias:</span><span>{mobotixInfo.storage.sequences}</span></>}
+                  </div>
+                </div>
+              )}
+              
+              {/* Image/Video Info */}
+              {mobotixInfo.image && Object.keys(mobotixInfo.image).length > 0 && (
+                <div className="p-3 bg-cyan-50 rounded-lg">
+                  <p className="text-sm font-semibold mb-2 flex items-center gap-2"><Camera className="w-4 h-4" /> Imagen/Video</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    {mobotixInfo.image.video_codec && <><span className="text-muted-foreground">Codec:</span><span>{mobotixInfo.image.video_codec}</span></>}
+                    {mobotixInfo.image.frame_rate && <><span className="text-muted-foreground">Frame Rate:</span><span className="font-medium">{mobotixInfo.image.frame_rate}</span></>}
+                    {mobotixInfo.image.image_quality && <><span className="text-muted-foreground">Calidad:</span><span>{mobotixInfo.image.image_quality}</span></>}
+                  </div>
+                </div>
+              )}
+              
+              {/* Sensors Info */}
+              {mobotixInfo.sensors && Object.keys(mobotixInfo.sensors).length > 0 && (
+                <div className="p-3 bg-amber-50 rounded-lg">
+                  <p className="text-sm font-semibold mb-2 flex items-center gap-2"><Thermometer className="w-4 h-4" /> Sensores</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    {mobotixInfo.sensors.temperature && <><span className="text-muted-foreground">Temperatura:</span><span className="font-medium">{mobotixInfo.sensors.temperature}</span></>}
+                    {mobotixInfo.sensors.illumination && <><span className="text-muted-foreground">Iluminación:</span><span>{mobotixInfo.sensors.illumination}</span></>}
+                  </div>
+                </div>
+              )}
+              
+              {/* API Errors */}
               {mobotixInfo.errors && mobotixInfo.errors.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium mb-2 text-amber-600">Endpoints no disponibles</p>
-                  <div className="text-xs text-muted-foreground space-y-1">
+                <div className="p-3 bg-orange-50 rounded-lg">
+                  <p className="text-sm font-medium mb-2 text-orange-700">⚠️ Endpoints no disponibles</p>
+                  <div className="text-xs text-orange-600 space-y-1">
                     {mobotixInfo.errors.map((err, i) => (
                       <p key={i} className="font-mono">{err}</p>
                     ))}
                   </div>
                 </div>
               )}
-              
-              <div className="p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
-                <p className="font-medium mb-1">Nota:</p>
-                <p>Esta función utiliza la API HTTP de Mobotix. Si la cámara no es Mobotix o no tiene la API habilitada, algunos datos podrían no estar disponibles.</p>
-              </div>
             </div>
           ) : null}
         </DialogContent>
