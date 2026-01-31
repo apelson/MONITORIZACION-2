@@ -4363,9 +4363,9 @@ const IncidentsPanel = ({ devices }) => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowResolveDialog(false)}{t('common.cancel')}</Button>
+            <Button variant="outline" onClick={() => setShowResolveDialog(false)}>{t('common.cancel')}</Button>
             <Button onClick={handleResolve} className="bg-green-600 hover:bg-green-700">
-              <CheckCircle className="w-4 h-4 mr-2" />Marcar como Resuelto
+              <CheckCircle className="w-4 h-4 mr-2" />{t('incidents.markResolved', 'Marcar como Resuelto')}
             </Button>
           </DialogFooter>
         </DialogContent>
