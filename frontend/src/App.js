@@ -1497,7 +1497,8 @@ const DeviceTypeFormDialog = ({ open, onOpenChange, deviceType, onSave }) => {
   );
 };
 
-const HistoryDialog = ({ open, onOpenChange, device, history }) => {
+const HistoryDialog = ({ open, onOpenChange, device, history, onClear }) => {
+  const { t } = useTranslation();
   if (!device) return null;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
