@@ -1799,6 +1799,7 @@ const UsersPanel = ({ users, onCreateUser, onEditUser, onDeleteUser, onResetPass
 );
 
 const AlertsPanel = ({ alerts, onCreateIncident }) => {
+  const { t } = useTranslation();
   const [showIncidentDialog, setShowIncidentDialog] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [incidentData, setIncidentData] = useState({ title: "", description: "", priority: "high" });
