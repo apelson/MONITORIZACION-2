@@ -1620,6 +1620,7 @@ const FailuresDialog = ({ open, onOpenChange, failures, onClear }) => {
 
 // ============ PANELS ============
 const OrganizationsPanel = ({ organizations, groups, devices, onCreateOrg, onEditOrg, onDeleteOrg, onCreateGroup, onEditGroup, onDeleteGroup, canEdit, onExport, onViewGroupDevices }) => {
+  const { t } = useTranslation();
   const [openOrgs, setOpenOrgs] = useState({});
   const toggleOrg = (id) => setOpenOrgs(prev => ({ ...prev, [id]: !prev[id] }));
 
