@@ -473,7 +473,7 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
         for key, pattern in patterns.items():
             match = re.search(pattern, html, re.IGNORECASE)
             if match:
-                data["system"][key] = match.group(1).strip()
+                data["system"][key] = decode_html(match.group(1).strip())
         
         # Networking section
         net_patterns = {
@@ -485,7 +485,7 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
         for key, pattern in net_patterns.items():
             match = re.search(pattern, html, re.IGNORECASE)
             if match:
-                data["networking"][key] = match.group(1).strip()
+                data["networking"][key] = decode_html(match.group(1).strip())
         
         # Storage section
         storage_patterns = {
@@ -498,7 +498,7 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
         for key, pattern in storage_patterns.items():
             match = re.search(pattern, html, re.IGNORECASE | re.DOTALL)
             if match:
-                data["storage"][key] = match.group(1).strip()
+                data["storage"][key] = decode_html(match.group(1).strip())
         
         # Sensors section
         sensor_patterns = {
@@ -508,7 +508,7 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
         for key, pattern in sensor_patterns.items():
             match = re.search(pattern, html, re.IGNORECASE)
             if match:
-                data["sensors"][key] = match.group(1).strip()
+                data["sensors"][key] = decode_html(match.group(1).strip())
         
         # Image section
         image_patterns = {
