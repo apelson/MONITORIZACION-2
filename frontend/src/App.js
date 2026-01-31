@@ -577,9 +577,10 @@ const FirmwareBadge = ({ device }) => {
   // Check if device is a Mobotix camera
   const isMobotix = device.brand?.toLowerCase().includes('mobotix');
   
-  // Get cached firmware or show placeholder
+  // Get cached firmware - show full version
   const firmwareVersion = device.firmware_version;
-  const shortVersion = firmwareVersion ? firmwareVersion.replace('MX-', '').split('-')[0] : null;
+  // Clean up the version for display - remove MX- prefix but keep full version
+  const displayVersion = firmwareVersion ? firmwareVersion.replace('MX-', '') : null;
   
   const fetchInfo = async () => {
     if (info || loading) return;
