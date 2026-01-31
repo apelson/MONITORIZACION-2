@@ -4624,7 +4624,7 @@ const Dashboard = () => {
       console.error(e); 
       setLoading(false);
     }
-  }, [authAxios, user?.role, previousDeviceStates]);
+  }, [authAxios, user?.role, previousDeviceStates, playAlertSound, previousAlertIds]);
 
   // Request notification permission on mount
   useEffect(() => {
