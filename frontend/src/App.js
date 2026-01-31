@@ -35,6 +35,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import InfrastructurePanel from "@/components/panels/InfrastructurePanel";
 
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
