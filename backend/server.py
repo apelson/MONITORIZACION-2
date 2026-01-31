@@ -410,10 +410,9 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
         "errors": []
     }
     
-    def make_request(url_path: str, timeout: int = 8):
+    def make_request(url_path: str, timeout: int = 5):
         try:
             full_url = f"{base_url}{url_path}"
-            # Create SSL context that ignores certificate errors (for self-signed certs)
             import ssl
             ctx = ssl.create_default_context()
             ctx.check_hostname = False
@@ -423,7 +422,7 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
             if camera_user and camera_password:
                 credentials = base64.b64encode(f"{camera_user}:{camera_password}".encode()).decode()
                 request.add_header("Authorization", f"Basic {credentials}")
-            request.add_header("User-Agent", "Mozilla/5.0 SiempriaMonitor/1.0")
+            request.add_header("User-Agent", "SiempriaMonitor/1.0")
             with urllib.request.urlopen(request, timeout=timeout, context=ctx) as response:
                 return response.read().decode('utf-8', errors='ignore')
         except urllib.error.HTTPError as e:
