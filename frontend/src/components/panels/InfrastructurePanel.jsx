@@ -50,6 +50,11 @@ const InfrastructurePanel = ({ authAxios }) => {
 
   // Fetch devices
   const fetchDevices = useCallback(async () => {
+    if (!authAxios) {
+      console.log('InfrastructurePanel: No authAxios available');
+      setLoading(false);
+      return;
+    }
     try {
       console.log('InfrastructurePanel: Fetching devices...');
       const [devicesRes, summaryRes] = await Promise.all([
