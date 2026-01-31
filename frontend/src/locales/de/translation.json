@@ -444,7 +444,8 @@
     "monitoring247": "Echtzeit-Überwachung 24/7",
     "instantAlerts": "Sofortige E-Mail-Alarme",
     "secureConnection": "Sichere verschlüsselte Verbindung",
-    "authorizedDistributor": "Autorisierter Händler"
+    "authorizedDistributor": "Autorisierter Mobotix Distributor für Spanien und Portugal",
+    "accessSaas": "Zum SaaS-Portal"
   },
   "publicDashboard": {
     "title": "Öffentliches Dashboard",

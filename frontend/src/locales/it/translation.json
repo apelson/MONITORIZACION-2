@@ -398,7 +398,8 @@
     "monitoring247": "Monitoraggio in tempo reale 24/7",
     "instantAlerts": "Avvisi email istantanei",
     "secureConnection": "Connessione sicura e crittografata",
-    "authorizedDistributor": "Distributore autorizzato"
+    "authorizedDistributor": "Distributore Mobotix autorizzato per Spagna e Portogallo",
+    "accessSaas": "Accedi al Portale SaaS"
   },
   "saas": {
     "welcome": "Benvenuto su",
