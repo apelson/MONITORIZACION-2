@@ -5089,7 +5089,13 @@ const Dashboard = () => {
                     {mobotixInfo.ntp_configured ? '✅ Configurado' : '⚠️ No configurado'}
                   </p>
                   {mobotixInfo.ntp_server && (
-                    <p className="text-xs text-muted-foreground mt-1 truncate" title={mobotixInfo.ntp_server}>{mobotixInfo.ntp_server}</p>
+                    <p className="text-xs text-muted-foreground mt-1 break-all" title={mobotixInfo.ntp_server}>{mobotixInfo.ntp_server}</p>
+                  )}
+                  {!mobotixInfo.ntp_server && mobotixInfo.time?.ntp_servers_found?.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1 break-all">{mobotixInfo.time.ntp_servers_found.join(", ")}</p>
+                  )}
+                  {mobotixInfo.time?.time_servers_protocol && (
+                    <p className="text-xs text-muted-foreground">Protocolo: {mobotixInfo.time.time_servers_protocol}</p>
                   )}
                 </div>
                 
