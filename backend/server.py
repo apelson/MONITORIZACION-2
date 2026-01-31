@@ -560,6 +560,7 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
 # ============ INCLUDE ROUTER & CORS ============
 
 app.include_router(api_router)
+app.include_router(download_app.router, tags=["download"])
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
