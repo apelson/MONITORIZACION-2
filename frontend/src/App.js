@@ -4363,6 +4363,7 @@ const LoadingSkeleton = () => (<div className="grid grid-cols-1 md:grid-cols-2 l
 
 // ============ DASHBOARD ============
 const Dashboard = () => {
+  const { t } = useTranslation();
   const { user, logout, authAxios } = useAuth();
   const [devices, setDevices] = useState([]);
   const [organizations, setOrganizations] = useState([]);
