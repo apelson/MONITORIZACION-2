@@ -3720,13 +3720,13 @@ const AccessLogsPanel = () => {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
             <CardContent className="p-4">
-              <p className="text-xs text-blue-600 font-medium">Total (7 días)</p>
+              <p className="text-xs text-blue-600 font-medium">{t('logs.totalEvents', 'Total (7 días)')}</p>
               <p className="text-2xl font-bold text-blue-900">{stats.total_logs}</p>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-green-50 to-green-100">
             <CardContent className="p-4">
-              <p className="text-xs text-green-600 font-medium">Usuarios Activos</p>
+              <p className="text-xs text-green-600 font-medium">{t('logs.activeUsers', 'Usuarios Activos')}</p>
               <p className="text-2xl font-bold text-green-900">{stats.active_users}</p>
             </CardContent>
           </Card>
@@ -3757,7 +3757,7 @@ const AccessLogsPanel = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-red-800 flex items-center gap-2 text-base">
               <AlertTriangle className="w-5 h-5" />
-              Alertas de Seguridad (últimas 24h)
+              {t('security.alertsLast24h', 'Alertas de Seguridad (últimas 24h)')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -3813,7 +3813,7 @@ const AccessLogsPanel = () => {
                 <Download className="w-4 h-4 mr-1" />CSV
               </Button>
               <Button variant="outline" size="sm" onClick={handleCleanup}>
-                <Trash2 className="w-4 h-4 mr-1" />Limpiar
+                <Trash2 className="w-4 h-4 mr-1" />{t('common.clear', 'Limpiar')}
               </Button>
             </div>
           </div>
@@ -3829,7 +3829,7 @@ const AccessLogsPanel = () => {
                 <SelectItem value="devices">Dispositivos</SelectItem>
                 <SelectItem value="cameras">Cámaras</SelectItem>
                 <SelectItem value="organizations">Organizaciones</SelectItem>
-                <SelectItem value="users">Usuarios</SelectItem>
+                <SelectItem value="users">{t('users.title', 'Usuarios')}</SelectItem>
                 <SelectItem value="system">Sistema</SelectItem>
               </SelectContent>
             </Select>
