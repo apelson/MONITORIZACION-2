@@ -2864,6 +2864,7 @@ const SecurityPanel = () => {
 };
 
 const ScheduledReportsPanel = ({ organizations }) => {
+  const { t } = useTranslation();
   const [config, setConfig] = useState({
     enabled: false,
     frequency: "weekly",
