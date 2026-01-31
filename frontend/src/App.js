@@ -2654,6 +2654,7 @@ const SettingsPanel = ({ settings, onSave }) => {
 
 // ============ SECURITY PANEL ============
 const SecurityPanel = () => {
+  const { t } = useTranslation();
   const [blockedIPs, setBlockedIPs] = useState([]);
   const [blacklist, setBlacklist] = useState([]);
   const [events, setEvents] = useState([]);
