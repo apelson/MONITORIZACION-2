@@ -351,7 +351,7 @@ async def get_device_datastores(device_id: str, user: dict = Depends(get_current
 async def get_device_disks(device_id: str, user: dict = Depends(get_current_user)):
     """Get disk info from a NAS device"""
     try:
-        device = db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
+        device = await db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
         if not device:
             raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
         
@@ -391,7 +391,7 @@ async def get_device_disks(device_id: str, user: dict = Depends(get_current_user
 async def get_device_surveillance(device_id: str, user: dict = Depends(get_current_user)):
     """Get surveillance info from a NAS device"""
     try:
-        device = db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
+        device = await db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
         if not device:
             raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
         
@@ -431,7 +431,7 @@ async def get_device_surveillance(device_id: str, user: dict = Depends(get_curre
 async def get_infrastructure_summary(user: dict = Depends(get_current_user)):
     """Get summary of all infrastructure"""
     try:
-        devices = list(db.infrastructure_devices.find({}))
+        devices = await db.infrastructure_devices.find({}).to_list(length=1000)
         
         summary = {
             "total_devices": len(devices),
