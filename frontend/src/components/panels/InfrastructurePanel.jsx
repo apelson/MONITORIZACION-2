@@ -55,21 +55,21 @@ const InfrastructurePanel = ({ authAxios }) => {
       setLoading(false);
       return;
     }
+    console.log('InfrastructurePanel: Starting fetch...');
     try {
-      console.log('InfrastructurePanel: Fetching devices...');
-      const [devicesRes, summaryRes] = await Promise.all([
-        authAxios.get('/infrastructure/devices'),
-        authAxios.get('/infrastructure/summary')
-      ]);
-      console.log('InfrastructurePanel: Devices fetched:', devicesRes.data);
+      const devicesRes = await authAxios.get('/infrastructure/devices');
+      console.log('InfrastructurePanel: Devices response:', devicesRes.status);
       setDevices(devicesRes.data.devices || []);
+      
+      const summaryRes = await authAxios.get('/infrastructure/summary');
+      console.log('InfrastructurePanel: Summary response:', summaryRes.status);
       setSummary(summaryRes.data);
     } catch (e) {
-      console.error('InfrastructurePanel: Error fetching devices:', e);
+      console.error('InfrastructurePanel: Error:', e.message);
       toast.error(t('infra.fetchError', 'Error al cargar dispositivos de infraestructura'));
-    } finally {
-      setLoading(false);
     }
+    console.log('InfrastructurePanel: Done loading');
+    setLoading(false);
   }, [authAxios, t]);
 
   useEffect(() => {
