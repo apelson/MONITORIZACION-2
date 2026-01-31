@@ -42,7 +42,8 @@
     "copy": "Kopieren",
     "paste": "Einfügen",
     "required": "Erforderlich",
-    "optional": "Optional"
+    "optional": "Optional",
+    "needHelp": "Brauchen Sie Hilfe?"
   },
   "auth": {
     "login": "Anmelden",
@@ -60,7 +61,8 @@
     "logoutSuccess": "Erfolgreich abgemeldet",
     "invalidCredentials": "Ungültige Anmeldedaten",
     "sessionExpired": "Ihre Sitzung ist abgelaufen",
-    "welcomeBack": "Willkommen zurück!"
+    "welcomeBack": "Willkommen zurück!",
+    "loginDescription": "Geben Sie Ihre Anmeldedaten ein"
   },
   "nav": {
     "dashboard": "Dashboard",
