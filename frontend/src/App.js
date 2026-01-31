@@ -4057,7 +4057,7 @@ const IncidentsPanel = ({ devices }) => {
       high: "bg-orange-100 text-orange-700",
       critical: "bg-red-100 text-red-700"
     };
-    const labels = { low: "Baja", medium: "Media", high: "Alta", critical: "Crítica" };
+    const labels = { low: t('incidents.priorityLow', 'Baja'), medium: t('incidents.priorityMedium', 'Media'), high: t('incidents.priorityHigh', 'Alta'), critical: t('incidents.priorityCritical', 'Crítica') };
     return <Badge className={styles[priority] || styles.medium}>{labels[priority] || priority}</Badge>;
   };
 
@@ -4116,7 +4116,7 @@ const IncidentsPanel = ({ devices }) => {
             </SelectContent>
           </Select>
           <Select value={filter.priority || "all"} onValueChange={(v) => setFilter({ ...filter, priority: v === "all" ? "" : v })}>
-            <SelectTrigger className="w-[150px]"><SelectValue placeholder="Prioridad" /></SelectTrigger>
+            <SelectTrigger className="w-[150px]"><SelectValue placeholder={t('incidents.priority', 'Prioridad')} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
               <SelectItem value="critical">Crítica</SelectItem>
