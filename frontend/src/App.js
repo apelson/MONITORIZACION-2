@@ -1243,7 +1243,7 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle>{organization ? "Editar Organización" : "Nueva Organización"}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{organization ? t('organizations.editOrganization', 'Editar Organización') : t('organizations.addOrganization', 'Nueva Organización')}</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2"><Label>Nombre *</Label><Input data-testid="org-name-input" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
@@ -1331,7 +1331,7 @@ const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) =
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle>{group ? "Editar Grupo" : "Nuevo Grupo"}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{group ? t('groups.editGroup', 'Editar Grupo') : t('groups.newGroup', 'Nuevo Grupo')}</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2"><Label>Nombre *</Label><Input data-testid="group-name-input" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
@@ -1387,7 +1387,7 @@ const UserFormDialog = ({ open, onOpenChange, user, organizations, groups, onSav
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
-        <DialogHeader><DialogTitle>{user ? "Editar Usuario" : "Nuevo Usuario"}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{user ? t('users.editUser', 'Editar Usuario') : t('users.newUser', 'Nuevo Usuario')}</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="space-y-4 py-4 overflow-y-auto flex-1">
             <div className="grid grid-cols-2 gap-4">
@@ -1473,7 +1473,7 @@ const DeviceTypeFormDialog = ({ open, onOpenChange, deviceType, onSave }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle>{deviceType ? "Editar Tipo" : "Nuevo Tipo de Dispositivo"}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{deviceType ? t('deviceTypes.editType', 'Editar Tipo') : t('deviceTypes.addType', 'Nuevo Tipo de Dispositivo')}</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2"><Label>Nombre *</Label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
