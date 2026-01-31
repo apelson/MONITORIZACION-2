@@ -1862,9 +1862,14 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><Bell className="w-5 h-5" />{t('nav.alerts', 'Alertas')}</CardTitle></CardHeader>
         <CardContent>
-          {alerts.length === 0 ? <div className="empty-state py-8"><Bell className="w-12 h-12 mb-4 opacity-20" /><p>No hay alertas</p></div> : (
+          {alerts.length === 0 ? <div className="empty-state py-8"><Bell className="w-12 h-12 mb-4 opacity-20" /><p>{t('alerts.noAlerts', 'No hay alertas')}</p></div> : (
             <ScrollArea className="h-[400px]">
-              <div className="space-y-3">{alerts.map(a => (
+              <div className="space-y-3">{alerts.map(a => {
+                // Translate alert message based on type
+                const alertMessage = a.alert_type === 'device_down' 
+                  ? t('alerts.deviceDisconnected', 'Dispositivo se ha desconectado')
+                  : t('alerts.deviceRecovered', 'Dispositivo se ha recuperado');
+                return (
                 <div key={a.id} className={`p-4 rounded-lg border ${a.alert_type === 'device_down' ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">{a.alert_type === 'device_down' ? <WifiOff className="w-4 h-4 text-red-600" /> : <Wifi className="w-4 h-4 text-green-600" />}<span className={`font-medium ${a.alert_type === 'device_down' ? 'text-red-700' : 'text-green-700'}`}>{a.device_name}</span></div>
@@ -1881,10 +1886,10 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
                       </Button>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">{a.message}</p>
-                  <p className="text-xs text-muted-foreground mt-2">{new Date(a.timestamp).toLocaleString('es-ES')}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{alertMessage}</p>
+                  <p className="text-xs text-muted-foreground mt-2">{new Date(a.timestamp).toLocaleString()}</p>
                 </div>
-              ))}</div>
+              );})}</div>
             </ScrollArea>
           )}
         </CardContent>
