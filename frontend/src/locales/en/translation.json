@@ -546,7 +546,11 @@
     "sent": "Sent",
     "deviceDisconnected": "Device has disconnected",
     "deviceRecovered": "Device has recovered",
-    "noAlerts": "No alerts"
+    "noAlerts": "No alerts",
+    "soundOn": "Alert sound enabled",
+    "soundOff": "Alert sound disabled",
+    "nasDisconnected": "NAS storage unavailable",
+    "recordingError": "Recording error detected"
   },
   "logs": {
     "authLogin": "Login",
