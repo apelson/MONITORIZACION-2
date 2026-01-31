@@ -613,11 +613,11 @@ const FirmwareBadge = ({ device }) => {
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <button 
-          className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-mono bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors cursor-pointer border border-blue-200"
+          className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors cursor-pointer border border-blue-200 whitespace-nowrap max-w-full"
           title="Ver información del firmware"
         >
-          <Cpu className="w-3 h-3" />
-          {shortVersion || 'Info'}
+          <Cpu className="w-3 h-3 flex-shrink-0" />
+          <span className="truncate">{displayVersion || 'Info'}</span>
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="start">
