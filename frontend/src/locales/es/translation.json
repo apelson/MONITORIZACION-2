@@ -45,7 +45,21 @@
     "optional": "Opcional",
     "needHelp": "¿Necesitas ayuda?",
     "saving": "Guardando...",
-    "deleting": "Eliminando..."
+    "deleting": "Eliminando...",
+    "creating": "Creando...",
+    "notes": "Notas",
+    "notesPlaceholder": "Notas internas, configuración...",
+    "color": "Color",
+    "logo": "Logo",
+    "preview": "Vista previa",
+    "testing": "Probando...",
+    "sending": "Enviando...",
+    "city": "Ciudad",
+    "country": "País/Región",
+    "selectCountry": "Seleccionar país",
+    "unspecified": "Sin especificar",
+    "dragToReorder": "Arrastrar para reordenar",
+    "downloadImage": "Descargar imagen"
   },
   "auth": {
     "login": "Iniciar Sesión",
@@ -80,7 +94,12 @@
     "about": "Acerca de",
     "structure": "Estructura",
     "types": "Tipos",
-    "alerts": "Alertas"
+    "alerts": "Alertas",
+    "security": "Seguridad",
+    "backup": "Backup",
+    "scheduledReports": "Informes",
+    "dailyReport": "Reporte Diario",
+    "logs": "Registros"
   },
   "devices": {
     "title": "Dispositivos",
@@ -125,11 +144,33 @@
     "illumination": "Iluminación",
     "cameras": "Cámaras Online",
     "alertWhatsApp": "Avisar por WhatsApp",
-    "cloneDescription": "Modifica el puerto y nombre para crear el nuevo dispositivo"
+    "cloneDescription": "Modifica el puerto y nombre para crear el nuevo dispositivo",
+    "notVerified": "Sin verificar",
+    "selectType": "Seleccionar tipo",
+    "selectGroup": "Sin grupo",
+    "brand": "Marca",
+    "brandPlaceholder": "Ej: Hikvision, Synology",
+    "modelPlaceholder": "Ej: DS-2CD2143G2",
+    "locationPlaceholder": "Ej: Oficina Madrid - Planta 2",
+    "viewFirmwareInfo": "Ver información del firmware",
+    "selectPath": "Seleccionar ruta",
+    "enableStatistics": "Estadísticas MxAnalytics",
+    "recentlyOffline": "Dispositivos que han perdido conexión recientemente",
+    "clickToFilter": "Haz clic en un tipo para filtrar dispositivos"
+  },
+  "organizations": {
+    "title": "Organizaciones",
+    "addOrganization": "Nueva Organización",
+    "editOrganization": "Editar Organización",
+    "deleteOrganization": "Eliminar Organización",
+    "organizationName": "Nombre de la Organización",
+    "noOrganizations": "No hay organizaciones",
+    "hierarchicalStructure": "Estructura jerárquica de tus dispositivos"
   },
   "groups": {
     "title": "Grupos",
     "addGroup": "Agregar Grupo",
+    "newGroup": "Nuevo Grupo",
     "editGroup": "Editar Grupo",
     "deleteGroup": "Eliminar Grupo",
     "groupName": "Nombre del Grupo",
@@ -141,7 +182,8 @@
     "groupDeleted": "Grupo eliminado correctamente",
     "confirmDelete": "¿Estás seguro de eliminar este grupo?",
     "allGroups": "Todos los Grupos",
-    "ungrouped": "Sin Grupo"
+    "ungrouped": "Sin Grupo",
+    "allowedGroups": "Grupos permitidos"
   },
   "incidents": {
     "title": "Incidencias",
@@ -170,11 +212,20 @@
     "incidentCreated": "Incidencia creada correctamente",
     "incidentUpdated": "Incidencia actualizada correctamente",
     "incidentDeleted": "Incidencia eliminada correctamente",
-    "relatedDevice": "Dispositivo Relacionado"
+    "relatedDevice": "Dispositivo Relacionado",
+    "markResolved": "Marcar como Resuelto",
+    "resolveIncident": "Resolver Incidencia",
+    "solutionApplied": "Solución aplicada",
+    "describeSolution": "Describe cómo se resolvió el problema...",
+    "additionalNotes": "Notas adicionales",
+    "sparePartsInfo": "Información adicional, repuestos usados, etc.",
+    "category": "Categoría",
+    "openIncidents": "Incidencias Abiertas"
   },
   "users": {
     "title": "Usuarios",
     "addUser": "Agregar Usuario",
+    "newUser": "Nuevo Usuario",
     "editUser": "Editar Usuario",
     "deleteUser": "Eliminar Usuario",
     "userName": "Nombre de Usuario",
@@ -195,7 +246,9 @@
     "currentPassword": "Contraseña Actual",
     "newPassword": "Nueva Contraseña",
     "roleManager": "Gestor",
-    "roleOperator": "Operador"
+    "roleOperator": "Operador",
+    "fullName": "Nombre completo",
+    "minChars": "Mínimo 6 caracteres"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -206,7 +259,8 @@
     "addRecipient": "Agregar Destinatario",
     "testEmail": "Enviar Email de Prueba",
     "emailSent": "Email enviado correctamente",
-    "noNotifications": "No hay notificaciones"
+    "noNotifications": "No hay notificaciones",
+    "alertEmail": "Email para alertas"
   },
   "camera": {
     "title": "Información de Cámara Mobotix",
@@ -240,7 +294,8 @@
     "frameRate": "Frame Rate",
     "quality": "Calidad",
     "sensors": "Sensores",
-    "endpointsNotAvailable": "Endpoints no disponibles"
+    "endpointsNotAvailable": "Endpoints no disponibles",
+    "hardware": "Hardware"
   },
   "reports": {
     "title": "Informes",
@@ -254,7 +309,17 @@
     "incidents": "Incidencias",
     "exportPDF": "Exportar PDF",
     "exportExcel": "Exportar Excel",
-    "noData": "No hay datos para mostrar"
+    "noData": "No hay datos para mostrar",
+    "scheduled": "Informes Programados",
+    "sendPeriodic": "Enviar reportes de estado periódicamente",
+    "frequency": "Frecuencia",
+    "daily": "Diario",
+    "weekly": "Semanal",
+    "monthly": "Mensual",
+    "dayOfWeek": "Día de la semana",
+    "dayOfMonth": "Día del mes",
+    "reportContent": "Contenido del reporte",
+    "viewPreview": "Ver preview"
   },
   "stats": {
     "totalDevices": "Total Dispositivos",
@@ -266,7 +331,13 @@
     "last24h": "Últimas 24h",
     "last7d": "Últimos 7 días",
     "last30d": "Últimos 30 días",
-    "title": "Estadísticas"
+    "title": "Estadísticas",
+    "enableStatsHint": "Para ver estadísticas, edita una cámara y activa \"Estadísticas MxAnalytics\".",
+    "entries": "Entradas",
+    "exits": "Salidas",
+    "entry": "Entrada",
+    "exit": "Salida",
+    "heatmap": "Mapa de calor"
   },
   "history": {
     "title": "Historial",
@@ -289,7 +360,78 @@
     "checkInterval": "Intervalo de Verificación",
     "timeout": "Tiempo de Espera",
     "retries": "Reintentos",
-    "saved": "Configuración guardada"
+    "saved": "Configuración guardada",
+    "smtp": "Servidor SMTP",
+    "smtpHost": "Servidor SMTP",
+    "smtpPort": "Puerto",
+    "smtpUser": "Usuario/Email",
+    "smtpPassword": "Contraseña",
+    "smtpUseSSL": "Usar SSL (puerto 465)",
+    "smtpConfig": "Configura el servidor de correo para alertas y notificaciones",
+    "advanced": "Configuración avanzada",
+    "testEmailBtn": "Probar Email"
+  },
+  "security": {
+    "title": "Seguridad",
+    "blockedIPs": "IPs Bloqueadas",
+    "blacklist": "Lista Negra",
+    "events": "Eventos de Seguridad",
+    "addToBlacklist": "Añadir a Lista Negra",
+    "ipAddress": "Dirección IP",
+    "reason": "Razón",
+    "reasonOptional": "Razón (opcional)",
+    "blockedManually": "Bloqueado manualmente",
+    "adding": "Añadiendo...",
+    "addBtn": "Añadir"
+  },
+  "backup": {
+    "title": "Backup y Restauración",
+    "autoBackups": "Backups automáticos almacenados en el servidor",
+    "downloadComplete": "Descarga una copia completa de todos tus datos",
+    "downloadJSON": "Descargar JSON",
+    "downloading": "Descargando...",
+    "restore": "Restaurar",
+    "restoring": "Restaurando...",
+    "selectFile": "Seleccionar archivo",
+    "createNow": "Crear ahora",
+    "creating": "Creando...",
+    "saveConfig": "Guardar configuración"
+  },
+  "pwa": {
+    "installTitle": "Instalar Siempria Monitor",
+    "installIOS": "Pulsa el botón compartir y 'Añadir a pantalla de inicio'",
+    "installAndroid": "Instala la app para acceso rápido y notificaciones",
+    "installBtn": "Instalar App"
+  },
+  "loading": {
+    "initSecurity": "Iniciando sistema de seguridad...",
+    "connecting": "Conectando con servidores...",
+    "verifying": "Verificando credenciales...",
+    "loadingDevices": "Cargando dispositivos de vigilancia...",
+    "ready": "Sistema listo"
+  },
+  "login": {
+    "title": "Network Monitor",
+    "subtitle": "Sistema de Vigilancia Profesional",
+    "monitoring247": "Monitoreo en tiempo real 24/7",
+    "instantAlerts": "Alertas instantáneas por email",
+    "secureConnection": "Conexión segura y encriptada",
+    "authorizedDistributor": "Distribuidor Autorizado"
+  },
+  "publicDashboard": {
+    "title": "Dashboard Público",
+    "enabled": "Habilitado",
+    "password": "Contraseña",
+    "passwordHint": "Dejar vacío para acceso libre",
+    "showImages": "Mostrar imágenes",
+    "showDetails": "Mostrar detalles (IP/puerto)",
+    "regenerateToken": "Regenerar token"
+  },
+  "deviceTypes": {
+    "title": "Tipos de Dispositivos",
+    "addType": "Nuevo Tipo de Dispositivo",
+    "editType": "Editar Tipo",
+    "icon": "Icono"
   },
   "saas": {
     "welcome": "Bienvenido a",
@@ -335,7 +477,10 @@
     "maxLength": "Máximo {{max}} caracteres",
     "passwordMismatch": "Las contraseñas no coinciden",
     "invalidIP": "Dirección IP inválida",
-    "invalidPort": "Puerto inválido"
+    "invalidPort": "Puerto inválido",
+    "completeFields": "Completa los campos",
+    "nameRequired": "Nombre requerido",
+    "nameAndOrgRequired": "Nombre y organización requeridos"
   },
   "errors": {
     "generic": "Ha ocurrido un error",
