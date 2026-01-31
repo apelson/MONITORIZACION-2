@@ -4862,7 +4862,7 @@ const Dashboard = () => {
                 </Select>
                 <Select value={filterTypeId || "all"} onValueChange={(v) => setFilterTypeId(v === "all" ? null : v)}>
                   <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('common.type', 'Tipo')} /></SelectTrigger>
-                  <SelectContent><SelectItem value="all">{t('filters.allTypes', 'Todos los tipos')}</SelectItem>{deviceTypes.map(t => { const Icon = getIcon(t.icon); return <SelectItem key={t.id} value={t.id}><div className="flex items-center gap-2"><Icon className="w-4 h-4" style={{ color: t.color }} />{t.name}</div></SelectItem>; })}</SelectContent>
+                  <SelectContent><SelectItem value="all">{t('filters.allTypes', 'Todos los tipos')}</SelectItem>{deviceTypes.map(dtype => { const Icon = getIcon(dtype.icon); return <SelectItem key={dtype.id} value={dtype.id}><div className="flex items-center gap-2"><Icon className="w-4 h-4" style={{ color: dtype.color }} />{dtype.name}</div></SelectItem>; })}</SelectContent>
                 </Select>
                 {/* NEW: Status filter */}
                 <Select value={filterStatus || "all"} onValueChange={(v) => setFilterStatus(v === "all" ? null : v)}>
