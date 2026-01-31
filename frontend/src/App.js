@@ -4327,8 +4327,8 @@ const IncidentsPanel = ({ devices }) => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowForm(false)}{t('common.cancel')}</Button>
-            <Button onClick={handleCreate}>Crear Incidencia</Button>
+            <Button variant="outline" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
+            <Button onClick={handleCreate}>{t('incidents.addIncident')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
