@@ -42,7 +42,9 @@
     "copy": "Копировать",
     "paste": "Вставить",
     "required": "Обязательно",
-    "optional": "Опционально"
+    "optional": "Опционально",
+    "saving": "Сохранение...",
+    "deleting": "Удаление..."
   },
   "auth": {
     "login": "Войти",
@@ -119,7 +121,9 @@
     "uptime": "Время работы",
     "temperature": "Температура",
     "illumination": "Освещение",
-    "cameras": "Камеры онлайн"
+    "cameras": "Камеры онлайн",
+    "alertWhatsApp": "Уведомить через WhatsApp",
+    "cloneDescription": "Измените порт и имя для создания нового устройства"
   },
   "groups": {
     "title": "Группы",
@@ -187,7 +191,9 @@
     "confirmDelete": "Вы уверены, что хотите удалить этого пользователя?",
     "changePassword": "Изменить пароль",
     "currentPassword": "Текущий пароль",
-    "newPassword": "Новый пароль"
+    "newPassword": "Новый пароль",
+    "roleManager": "Менеджер",
+    "roleOperator": "Оператор"
   },
   "notifications": {
     "title": "Уведомления",

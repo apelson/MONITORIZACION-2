@@ -43,7 +43,9 @@
     "paste": "Pegar",
     "required": "Requerido",
     "optional": "Opcional",
-    "needHelp": "¿Necesitas ayuda?"
+    "needHelp": "¿Necesitas ayuda?",
+    "saving": "Guardando...",
+    "deleting": "Eliminando..."
   },
   "auth": {
     "login": "Iniciar Sesión",
@@ -121,7 +123,9 @@
     "uptime": "Tiempo Activo",
     "temperature": "Temperatura",
     "illumination": "Iluminación",
-    "cameras": "Cámaras Online"
+    "cameras": "Cámaras Online",
+    "alertWhatsApp": "Avisar por WhatsApp",
+    "cloneDescription": "Modifica el puerto y nombre para crear el nuevo dispositivo"
   },
   "groups": {
     "title": "Grupos",
@@ -189,7 +193,9 @@
     "confirmDelete": "¿Estás seguro de eliminar este usuario?",
     "changePassword": "Cambiar Contraseña",
     "currentPassword": "Contraseña Actual",
-    "newPassword": "Nueva Contraseña"
+    "newPassword": "Nueva Contraseña",
+    "roleManager": "Gestor",
+    "roleOperator": "Operador"
   },
   "notifications": {
     "title": "Notificaciones",

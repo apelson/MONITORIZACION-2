@@ -43,7 +43,9 @@
     "paste": "Einfügen",
     "required": "Erforderlich",
     "optional": "Optional",
-    "needHelp": "Brauchen Sie Hilfe?"
+    "needHelp": "Brauchen Sie Hilfe?",
+    "saving": "Speichere...",
+    "deleting": "Lösche..."
   },
   "auth": {
     "login": "Anmelden",
@@ -121,7 +123,9 @@
     "uptime": "Betriebszeit",
     "temperature": "Temperatur",
     "illumination": "Beleuchtung",
-    "cameras": "Online-Kameras"
+    "cameras": "Online-Kameras",
+    "alertWhatsApp": "Per WhatsApp benachrichtigen",
+    "cloneDescription": "Port und Name ändern um neues Gerät zu erstellen"
   },
   "groups": {
     "title": "Gruppen",
@@ -189,7 +193,9 @@
     "confirmDelete": "Möchten Sie diesen Benutzer wirklich löschen?",
     "changePassword": "Passwort ändern",
     "currentPassword": "Aktuelles Passwort",
-    "newPassword": "Neues Passwort"
+    "newPassword": "Neues Passwort",
+    "roleManager": "Manager",
+    "roleOperator": "Operator"
   },
   "notifications": {
     "title": "Benachrichtigungen",

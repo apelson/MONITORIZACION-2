@@ -42,7 +42,9 @@
     "copy": "复制",
     "paste": "粘贴",
     "required": "必填",
-    "optional": "可选"
+    "optional": "可选",
+    "saving": "保存中...",
+    "deleting": "删除中..."
   },
   "auth": {
     "login": "登录",
@@ -119,7 +121,9 @@
     "uptime": "运行时间",
     "temperature": "温度",
     "illumination": "照度",
-    "cameras": "在线摄像头"
+    "cameras": "在线摄像头",
+    "alertWhatsApp": "通过WhatsApp通知",
+    "cloneDescription": "修改端口和名称以创建新设备"
   },
   "groups": {
     "title": "分组",
@@ -187,7 +191,9 @@
     "confirmDelete": "确定要删除此用户吗？",
     "changePassword": "更改密码",
     "currentPassword": "当前密码",
-    "newPassword": "新密码"
+    "newPassword": "新密码",
+    "roleManager": "经理",
+    "roleOperator": "操作员"
   },
   "notifications": {
     "title": "通知",

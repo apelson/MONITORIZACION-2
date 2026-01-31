@@ -42,7 +42,9 @@
     "copy": "Copier",
     "paste": "Coller",
     "required": "Requis",
-    "optional": "Optionnel"
+    "optional": "Optionnel",
+    "saving": "Sauvegarde...",
+    "deleting": "Suppression..."
   },
   "auth": {
     "login": "Connexion",
@@ -119,7 +121,9 @@
     "uptime": "Temps de fonctionnement",
     "temperature": "Température",
     "illumination": "Éclairage",
-    "cameras": "Caméras en ligne"
+    "cameras": "Caméras en ligne",
+    "alertWhatsApp": "Alerter via WhatsApp",
+    "cloneDescription": "Modifier le port et le nom pour créer un nouvel appareil"
   },
   "groups": {
     "title": "Groupes",
@@ -187,7 +191,9 @@
     "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet utilisateur?",
     "changePassword": "Changer le mot de passe",
     "currentPassword": "Mot de passe actuel",
-    "newPassword": "Nouveau mot de passe"
+    "newPassword": "Nouveau mot de passe",
+    "roleManager": "Gestionnaire",
+    "roleOperator": "Opérateur"
   },
   "notifications": {
     "title": "Notifications",
