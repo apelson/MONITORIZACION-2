@@ -146,7 +146,7 @@ async def create_infra_device(device: InfraDeviceCreate, user: dict = Depends(ge
             "updated_at": datetime.utcnow()
         }
         
-        result = db.infrastructure_devices.insert_one(new_device)
+        result = await db.infrastructure_devices.insert_one(new_device)
         new_device["_id"] = result.inserted_id
         
         return serialize_infra_device(new_device)
@@ -157,7 +157,7 @@ async def create_infra_device(device: InfraDeviceCreate, user: dict = Depends(ge
 async def get_infra_device(device_id: str, user: dict = Depends(get_current_user)):
     """Get a specific infrastructure device"""
     try:
-        device = db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
+        device = await db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
         if not device:
             raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
         return serialize_infra_device(device)
@@ -171,19 +171,19 @@ async def update_infra_device(device_id: str, update: InfraDeviceUpdate, user: d
         raise HTTPException(status_code=403, detail="Solo administradores pueden editar dispositivos de infraestructura")
     
     try:
-        device = db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
+        device = await db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
         if not device:
             raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
         
         update_data = {k: v for k, v in update.dict().items() if v is not None}
         update_data["updated_at"] = datetime.utcnow()
         
-        db.infrastructure_devices.update_one(
+        await db.infrastructure_devices.update_one(
             {"_id": ObjectId(device_id)},
             {"$set": update_data}
         )
         
-        device = db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
+        device = await db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
         return serialize_infra_device(device)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -195,7 +195,7 @@ async def delete_infra_device(device_id: str, user: dict = Depends(get_current_u
         raise HTTPException(status_code=403, detail="Solo administradores pueden eliminar dispositivos de infraestructura")
     
     try:
-        result = db.infrastructure_devices.delete_one({"_id": ObjectId(device_id)})
+        result = await db.infrastructure_devices.delete_one({"_id": ObjectId(device_id)})
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
         return {"message": "Dispositivo eliminado"}
