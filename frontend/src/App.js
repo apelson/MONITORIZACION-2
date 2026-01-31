@@ -4775,15 +4775,15 @@ const Dashboard = () => {
               <div className="hidden md:flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button data-testid="export-btn" variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Exportar</Button>
+                    <Button data-testid="export-btn" variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />{t('common.export', 'Exportar')}</Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem onClick={() => handleExport('excel')}><FileSpreadsheet className="w-4 h-4 mr-2" />Exportar todo a Excel</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleExport('pdf')}><FileIcon className="w-4 h-4 mr-2" />Exportar todo a PDF</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Button data-testid="refresh-all-btn" variant="outline" size="sm" onClick={handleRefreshAll} disabled={refreshing}><RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin-slow' : ''}`} />Verificar</Button>
-                {canEdit && <Button data-testid="add-device-btn" size="sm" onClick={() => { setSelectedDevice(null); setDeviceDialogOpen(true); }}><Plus className="w-4 h-4 mr-2" />Agregar</Button>}
+                <Button data-testid="refresh-all-btn" variant="outline" size="sm" onClick={handleRefreshAll} disabled={refreshing}><RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin-slow' : ''}`} />{t('devices.check', 'Verificar')}</Button>
+                {canEdit && <Button data-testid="add-device-btn" size="sm" onClick={() => { setSelectedDevice(null); setDeviceDialogOpen(true); }}><Plus className="w-4 h-4 mr-2" />{t('common.add', 'Agregar')}</Button>}
               </div>
               {/* Botones móvil (solo iconos) */}
               <div className="flex md:hidden items-center gap-1">
@@ -4886,8 +4886,8 @@ const Dashboard = () => {
                   <BarChart3 className="w-4 h-4 mr-1" />
                   Con Stats
                 </Button>
-                {(searchQuery || filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus || filterStats) && <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(""); setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); setFilterStats(false); }}>Limpiar filtros</Button>}
-                <span className="text-sm text-muted-foreground ml-auto">{filteredDevices.length} dispositivo(s)</span>
+                {(searchQuery || filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus || filterStats) && <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(""); setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); setFilterStats(false); }}>{t('filters.clear', 'Limpiar filtros')}</Button>}
+                <span className="text-sm text-muted-foreground ml-auto">{filteredDevices.length} {t('devices.deviceCount', 'dispositivo(s)')}</span>
               </div>
             )}
             
@@ -4914,7 +4914,7 @@ const Dashboard = () => {
             )}
 
             {loading ? <LoadingSkeleton /> : filteredDevices.length === 0 ? (
-              <div className="empty-state py-16"><Server className="w-16 h-16 mb-4 opacity-20" /><h3 className="text-lg font-medium mb-2">No hay dispositivos</h3>{canEdit && <Button onClick={() => setDeviceDialogOpen(true)}><Plus className="w-4 h-4 mr-2" />Agregar</Button>}</div>
+              <div className="empty-state py-16"><Server className="w-16 h-16 mb-4 opacity-20" /><h3 className="text-lg font-medium mb-2">{t('devices.noDevices', 'No hay dispositivos')}</h3>{canEdit && <Button onClick={() => setDeviceDialogOpen(true)}><Plus className="w-4 h-4 mr-2" />{t('common.add', 'Agregar')}</Button>}</div>
             ) : (
               <>
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
