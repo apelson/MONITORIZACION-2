@@ -3079,6 +3079,7 @@ const ScheduledReportsPanel = ({ organizations }) => {
 
 // ============ BACKUP PANEL ============
 const BackupPanel = () => {
+  const { t } = useTranslation();
   const [backups, setBackups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
