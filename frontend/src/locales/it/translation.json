@@ -456,11 +456,15 @@
     "title": "Structure"
   },
   "alerts": {
-    "noRecentFailures": "No recent failures",
+    "noRecentFailures": "Nessun guasto recente",
     "sent": "Inviato",
     "deviceDisconnected": "Dispositivo disconnesso",
     "deviceRecovered": "Dispositivo recuperato",
-    "noAlerts": "Nessun avviso"
+    "noAlerts": "Nessun avviso",
+    "soundOn": "Suono allarme attivato",
+    "soundOff": "Suono allarme disattivato",
+    "nasDisconnected": "Archiviazione NAS non disponibile",
+    "recordingError": "Errore di registrazione rilevato"
   },
   "logs": {
     "authLogin": "Login",

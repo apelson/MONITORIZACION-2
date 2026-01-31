@@ -457,11 +457,15 @@
     "title": "Structure"
   },
   "alerts": {
-    "noRecentFailures": "No recent failures",
+    "noRecentFailures": "Aucune panne récente",
     "sent": "Envoyé",
     "deviceDisconnected": "L'appareil s'est déconnecté",
     "deviceRecovered": "L'appareil s'est rétabli",
-    "noAlerts": "Aucune alerte"
+    "noAlerts": "Aucune alerte",
+    "soundOn": "Son d'alerte activé",
+    "soundOff": "Son d'alerte désactivé",
+    "nasDisconnected": "Stockage NAS indisponible",
+    "recordingError": "Erreur d'enregistrement détectée"
   },
   "logs": {
     "authLogin": "Login",

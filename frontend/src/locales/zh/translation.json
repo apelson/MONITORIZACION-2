@@ -456,11 +456,15 @@
     "title": "Structure"
   },
   "alerts": {
-    "noRecentFailures": "No recent failures",
+    "noRecentFailures": "无最近故障",
     "sent": "已发送",
     "deviceDisconnected": "设备已断开连接",
     "deviceRecovered": "设备已恢复",
-    "noAlerts": "无警报"
+    "noAlerts": "无警报",
+    "soundOn": "警报声音已开启",
+    "soundOff": "警报声音已关闭",
+    "nasDisconnected": "NAS存储不可用",
+    "recordingError": "检测到录制错误"
   },
   "logs": {
     "authLogin": "Login",

@@ -456,11 +456,15 @@
     "title": "Structure"
   },
   "alerts": {
-    "noRecentFailures": "No recent failures",
+    "noRecentFailures": "Нет недавних сбоев",
     "sent": "Отправлено",
     "deviceDisconnected": "Устройство отключилось",
     "deviceRecovered": "Устройство восстановлено",
-    "noAlerts": "Нет оповещений"
+    "noAlerts": "Нет оповещений",
+    "soundOn": "Звук оповещения включен",
+    "soundOff": "Звук оповещения выключен",
+    "nasDisconnected": "Хранилище NAS недоступно",
+    "recordingError": "Обнаружена ошибка записи"
   },
   "logs": {
     "authLogin": "Login",
