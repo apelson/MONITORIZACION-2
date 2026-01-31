@@ -3366,6 +3366,7 @@ const BackupPanel = () => {
 
 // ============ DAILY DOWNTIME REPORT PANEL ============
 const DailyReportPanel = () => {
+  const { t } = useTranslation();
   const [config, setConfig] = useState({
     enabled: false,
     time: "08:00",
