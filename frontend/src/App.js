@@ -1802,6 +1802,7 @@ const UsersPanel = ({ users, onCreateUser, onEditUser, onDeleteUser, onResetPass
     </CardContent>
   </Card>
 );
+};
 
 const AlertsPanel = ({ alerts, onCreateIncident }) => {
   const { t } = useTranslation();
