@@ -1938,6 +1938,7 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
 
 // ============ STATISTICS PANEL - REDESIGNED ============
 const StatisticsPanel = ({ devices, groups }) => {
+  const { t } = useTranslation();
   const { authAxios } = useAuth();
   const [camerasWithStats, setCamerasWithStats] = useState([]);
   const [selectedCamera, setSelectedCamera] = useState(null);
