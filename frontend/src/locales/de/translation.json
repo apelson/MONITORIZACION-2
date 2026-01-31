@@ -542,11 +542,15 @@
     "title": "Structure"
   },
   "alerts": {
-    "noRecentFailures": "No recent failures",
+    "noRecentFailures": "Keine aktuellen Ausfälle",
     "sent": "Gesendet",
     "deviceDisconnected": "Gerät wurde getrennt",
     "deviceRecovered": "Gerät hat sich erholt",
-    "noAlerts": "Keine Alarme"
+    "noAlerts": "Keine Alarme",
+    "soundOn": "Alarmton aktiviert",
+    "soundOff": "Alarmton deaktiviert",
+    "nasDisconnected": "NAS-Speicher nicht verfügbar",
+    "recordingError": "Aufnahmefehler erkannt"
   },
   "logs": {
     "authLogin": "Login",
