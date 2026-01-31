@@ -364,6 +364,7 @@ const RoleBadge = ({ role }) => {
 
 // ============ LOGIN ============
 const LoginPage = () => {
+  const { t } = useTranslation();
   const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -371,14 +372,19 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!username || !password) { toast.error("Completa todos los campos"); return; }
+    if (!username || !password) { toast.error(t('validation.required')); return; }
     setLoading(true);
-    try { await login(username, password); toast.success("Bienvenido"); } catch (e) { toast.error(e.response?.data?.detail || "Error"); }
+    try { await login(username, password); toast.success(t('auth.welcomeBack')); } catch (e) { toast.error(e.response?.data?.detail || t('errors.generic')); }
     setLoading(false);
   };
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+      {/* Language selector in top right */}
+      <div className="absolute top-4 right-4 z-50">
+        <LanguageSelector variant="outline" />
+      </div>
+      
       {/* Background grid */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0" style={{
