@@ -459,20 +459,20 @@ const LoginPage = () => {
               <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Lock className="w-8 h-8 text-white" />
               </div>
-              <CardTitle className="text-2xl font-semibold text-slate-800">Acceso al Sistema</CardTitle>
-              <CardDescription className="text-slate-500">Introduce tus credenciales para continuar</CardDescription>
+              <CardTitle className="text-2xl font-semibold text-slate-800">{t('auth.login')}</CardTitle>
+              <CardDescription className="text-slate-500">{t('auth.loginDescription', 'Introduce tus credenciales para continuar')}</CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
-                  <Label className="text-slate-700">Usuario</Label>
+                  <Label className="text-slate-700">{t('auth.username')}</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <Input data-testid="login-username" value={username} onChange={(e) => setUsername(e.target.value)} className="pl-10" placeholder="Tu nombre de usuario" />
+                    <Input data-testid="login-username" value={username} onChange={(e) => setUsername(e.target.value)} className="pl-10" placeholder={t('auth.username')} />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-700">Contraseña</Label>
+                  <Label className="text-slate-700">{t('auth.password')}</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <Input data-testid="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10" placeholder="••••••••" />
