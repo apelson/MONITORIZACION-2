@@ -157,7 +157,17 @@
     "enableStatistics": "Estadísticas MxAnalytics",
     "recentlyOffline": "Dispositivos que han perdido conexión recientemente",
     "clickToFilter": "Haz clic en un tipo para filtrar dispositivos",
-    "additionalInfo": "Información adicional"
+    "additionalInfo": "Información adicional",
+    "imagePath": "Ruta de imagen",
+    "pathMobotixRecord": "Mobotix (record)",
+    "pathMobotixCgi": "Mobotix (cgi-bin)",
+    "pathGeneric": "Genérico (/snap.jpg)",
+    "pathAxis": "Axis (/jpg/image.jpg)",
+    "pathHikvision": "Hikvision",
+    "pathCustom": "Personalizada...",
+    "pathHint": "Selecciona una ruta predefinida o escribe una personalizada",
+    "statsHint": "Habilita si la cámara tiene conteo de personas y mapa de calor (Mobotix C25/C26)",
+    "noType": "Sin tipo"
   },
   "organizations": {
     "title": "Organizaciones",
@@ -249,7 +259,9 @@
     "roleManager": "Gestor",
     "roleOperator": "Operador",
     "fullName": "Nombre completo",
-    "minChars": "Mínimo 6 caracteres"
+    "minChars": "Mínimo 6 caracteres",
+    "technicianNote": "El técnico ve todos los dispositivos (IP, puerto, historial) pero no puede editarlos.",
+    "groupsHint": "Sin selección = acceso a todos. Selecciona para restringir."
   },
   "notifications": {
     "title": "Notificaciones",
@@ -370,7 +382,8 @@
     "smtpUseSSL": "Usar SSL (puerto 465)",
     "smtpConfig": "Configura el servidor de correo para alertas y notificaciones",
     "advanced": "Configuración avanzada",
-    "testEmailBtn": "Probar Email"
+    "testEmailBtn": "Probar Email",
+    "saveConfig": "Guardar configuración"
   },
   "security": {
     "title": "Seguridad",
@@ -383,7 +396,9 @@
     "reasonOptional": "Razón (opcional)",
     "blockedManually": "Bloqueado manualmente",
     "adding": "Añadiendo...",
-    "addBtn": "Añadir"
+    "addBtn": "Añadir",
+    "hideDetails": "Ocultar detalles",
+    "showDetails": "Ver detalles"
   },
   "backup": {
     "title": "Backup y Restauración",
@@ -501,5 +516,42 @@
     "fr": "Français",
     "ru": "Русский",
     "zh": "中文"
+  },
+  "filters": {
+    "allOrgs": "Todas las org.",
+    "allGroups": "Todos los grupos",
+    "allTypes": "Todos los tipos"
+  },
+  "structure": {
+    "title": "Organizaciones y Grupos"
+  },
+  "alerts": {
+    "noRecentFailures": "No hay fallos recientes"
+  },
+  "logs": {
+    "authLogin": "Inicio sesión",
+    "authLogout": "Cierre sesión",
+    "authFailed": "Login fallido",
+    "deviceCreate": "Crear dispositivo",
+    "deviceUpdate": "Editar dispositivo",
+    "deviceDelete": "Eliminar dispositivo",
+    "cameraView": "Ver cámara",
+    "cameraImage": "Descargar imagen",
+    "cameraStats": "Ver estadísticas",
+    "orgCreate": "Crear organización",
+    "orgUpdate": "Editar organización",
+    "orgDelete": "Eliminar organización",
+    "groupCreate": "Crear grupo",
+    "groupUpdate": "Editar grupo",
+    "groupDelete": "Eliminar grupo",
+    "userCreate": "Crear usuario",
+    "userUpdate": "Editar usuario",
+    "userDelete": "Eliminar usuario",
+    "userPassword": "Cambiar contraseña",
+    "settingsUpdate": "Actualizar config",
+    "backupCreate": "Crear backup",
+    "backupRestore": "Restaurar backup",
+    "backupDownload": "Descargar backup",
+    "exportData": "Exportar datos"
   }
 }

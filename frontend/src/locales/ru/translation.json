@@ -157,7 +157,17 @@
     "enableStatistics": "Статистика MxAnalytics",
     "recentlyOffline": "Недавно отключенные устройства",
     "clickToFilter": "Haz clic en un tipo para filtrar dispositivos",
-    "additionalInfo": "Дополнительная информация"
+    "additionalInfo": "Дополнительная информация",
+    "imagePath": "Image path",
+    "pathMobotixRecord": "Mobotix (record)",
+    "pathMobotixCgi": "Mobotix (cgi-bin)",
+    "pathGeneric": "Generic",
+    "pathAxis": "Axis",
+    "pathHikvision": "Hikvision",
+    "pathCustom": "Custom...",
+    "pathHint": "Select a path",
+    "statsHint": "Enable for MxAnalytics",
+    "noType": "No type"
   },
   "organizations": {
     "title": "Организации",
@@ -249,7 +259,9 @@
     "roleManager": "Менеджер",
     "roleOperator": "Оператор",
     "fullName": "Полное имя",
-    "minChars": "Минимум 6 символов"
+    "minChars": "Минимум 6 символов",
+    "technicianNote": "Technician note",
+    "groupsHint": "Group access hint"
   },
   "camera": {
     "title": "Информация о камере Mobotix",
@@ -324,7 +336,8 @@
     "smtpUseSSL": "Использовать SSL (порт 465)",
     "smtpConfig": "Настройка почтового сервера для оповещений",
     "advanced": "Расширенные настройки",
-    "testEmailBtn": "Тест email"
+    "testEmailBtn": "Тест email",
+    "saveConfig": "Save"
   },
   "security": {
     "title": "Безопасность",
@@ -337,7 +350,9 @@
     "reasonOptional": "Причина (необязательно)",
     "blockedManually": "Заблокирован вручную",
     "adding": "Добавление...",
-    "addBtn": "Добавить"
+    "addBtn": "Добавить",
+    "hideDetails": "Hide",
+    "showDetails": "Show"
   },
   "backup": {
     "title": "Резервное копирование",
@@ -415,5 +430,42 @@
     "fr": "Français",
     "ru": "Русский",
     "zh": "中文"
+  },
+  "filters": {
+    "allOrgs": "All",
+    "allGroups": "All groups",
+    "allTypes": "All types"
+  },
+  "structure": {
+    "title": "Structure"
+  },
+  "alerts": {
+    "noRecentFailures": "No recent failures"
+  },
+  "logs": {
+    "authLogin": "Login",
+    "authLogout": "Logout",
+    "authFailed": "Failed",
+    "deviceCreate": "Create",
+    "deviceUpdate": "Update",
+    "deviceDelete": "Delete",
+    "cameraView": "View",
+    "cameraImage": "Download",
+    "cameraStats": "Stats",
+    "orgCreate": "Create org",
+    "orgUpdate": "Update org",
+    "orgDelete": "Delete org",
+    "groupCreate": "Create group",
+    "groupUpdate": "Update group",
+    "groupDelete": "Delete group",
+    "userCreate": "Create user",
+    "userUpdate": "Update user",
+    "userDelete": "Delete user",
+    "userPassword": "Password",
+    "settingsUpdate": "Settings",
+    "backupCreate": "Backup",
+    "backupRestore": "Restore",
+    "backupDownload": "Download",
+    "exportData": "Export"
   }
 }

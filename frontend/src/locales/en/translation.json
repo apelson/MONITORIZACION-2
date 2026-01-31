@@ -157,7 +157,17 @@
     "enableStatistics": "MxAnalytics Statistics",
     "recentlyOffline": "Devices that have recently lost connection",
     "clickToFilter": "Haz clic en un tipo para filtrar dispositivos",
-    "additionalInfo": "Additional information"
+    "additionalInfo": "Additional information",
+    "imagePath": "Image path",
+    "pathMobotixRecord": "Mobotix (record)",
+    "pathMobotixCgi": "Mobotix (cgi-bin)",
+    "pathGeneric": "Generic (/snap.jpg)",
+    "pathAxis": "Axis (/jpg/image.jpg)",
+    "pathHikvision": "Hikvision",
+    "pathCustom": "Custom...",
+    "pathHint": "Select a predefined path or enter a custom one",
+    "statsHint": "Enable if camera has people counting and heatmap (Mobotix C25/C26)",
+    "noType": "No type"
   },
   "organizations": {
     "title": "Organizations",
@@ -249,7 +259,9 @@
     "roleManager": "Manager",
     "roleOperator": "Operator",
     "fullName": "Full name",
-    "minChars": "Minimum 6 characters"
+    "minChars": "Minimum 6 characters",
+    "technicianNote": "Technician can view all devices (IP, port, history) but cannot edit them.",
+    "groupsHint": "No selection = access to all. Select to restrict."
   },
   "notifications": {
     "title": "Notifications",
@@ -370,7 +382,8 @@
     "smtpUseSSL": "Use SSL (port 465)",
     "smtpConfig": "Configure mail server for alerts and notifications",
     "advanced": "Advanced settings",
-    "testEmailBtn": "Test Email"
+    "testEmailBtn": "Test Email",
+    "saveConfig": "Save configuration"
   },
   "security": {
     "title": "Security",
@@ -383,7 +396,9 @@
     "reasonOptional": "Reason (optional)",
     "blockedManually": "Manually blocked",
     "adding": "Adding...",
-    "addBtn": "Add"
+    "addBtn": "Add",
+    "hideDetails": "Hide details",
+    "showDetails": "Show details"
   },
   "backup": {
     "title": "Backup & Restore",
@@ -501,5 +516,42 @@
     "fr": "Français",
     "ru": "Русский",
     "zh": "中文"
+  },
+  "filters": {
+    "allOrgs": "All organizations",
+    "allGroups": "All groups",
+    "allTypes": "All types"
+  },
+  "structure": {
+    "title": "Organizations and Groups"
+  },
+  "alerts": {
+    "noRecentFailures": "No recent failures"
+  },
+  "logs": {
+    "authLogin": "Login",
+    "authLogout": "Logout",
+    "authFailed": "Login failed",
+    "deviceCreate": "Create device",
+    "deviceUpdate": "Edit device",
+    "deviceDelete": "Delete device",
+    "cameraView": "View camera",
+    "cameraImage": "Download image",
+    "cameraStats": "View statistics",
+    "orgCreate": "Create organization",
+    "orgUpdate": "Edit organization",
+    "orgDelete": "Delete organization",
+    "groupCreate": "Create group",
+    "groupUpdate": "Edit group",
+    "groupDelete": "Delete group",
+    "userCreate": "Create user",
+    "userUpdate": "Edit user",
+    "userDelete": "Delete user",
+    "userPassword": "Change password",
+    "settingsUpdate": "Update settings",
+    "backupCreate": "Create backup",
+    "backupRestore": "Restore backup",
+    "backupDownload": "Download backup",
+    "exportData": "Export data"
   }
 }

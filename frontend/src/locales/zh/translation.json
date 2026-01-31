@@ -157,7 +157,17 @@
     "enableStatistics": "MxAnalytics统计",
     "recentlyOffline": "最近断开连接的设备",
     "clickToFilter": "Haz clic en un tipo para filtrar dispositivos",
-    "additionalInfo": "附加信息"
+    "additionalInfo": "附加信息",
+    "imagePath": "Image path",
+    "pathMobotixRecord": "Mobotix (record)",
+    "pathMobotixCgi": "Mobotix (cgi-bin)",
+    "pathGeneric": "Generic",
+    "pathAxis": "Axis",
+    "pathHikvision": "Hikvision",
+    "pathCustom": "Custom...",
+    "pathHint": "Select a path",
+    "statsHint": "Enable for MxAnalytics",
+    "noType": "No type"
   },
   "organizations": {
     "title": "组织",
@@ -249,7 +259,9 @@
     "roleManager": "经理",
     "roleOperator": "操作员",
     "fullName": "全名",
-    "minChars": "最少6个字符"
+    "minChars": "最少6个字符",
+    "technicianNote": "Technician note",
+    "groupsHint": "Group access hint"
   },
   "camera": {
     "title": "Mobotix摄像机信息",
@@ -324,7 +336,8 @@
     "smtpUseSSL": "使用SSL（端口465）",
     "smtpConfig": "配置邮件服务器以发送警报",
     "advanced": "高级设置",
-    "testEmailBtn": "测试邮件"
+    "testEmailBtn": "测试邮件",
+    "saveConfig": "Save"
   },
   "security": {
     "title": "安全",
@@ -337,7 +350,9 @@
     "reasonOptional": "原因（可选）",
     "blockedManually": "手动阻止",
     "adding": "添加中...",
-    "addBtn": "添加"
+    "addBtn": "添加",
+    "hideDetails": "Hide",
+    "showDetails": "Show"
   },
   "backup": {
     "title": "备份和恢复",
@@ -415,5 +430,42 @@
     "fr": "Français",
     "ru": "Русский",
     "zh": "中文"
+  },
+  "filters": {
+    "allOrgs": "All",
+    "allGroups": "All groups",
+    "allTypes": "All types"
+  },
+  "structure": {
+    "title": "Structure"
+  },
+  "alerts": {
+    "noRecentFailures": "No recent failures"
+  },
+  "logs": {
+    "authLogin": "Login",
+    "authLogout": "Logout",
+    "authFailed": "Failed",
+    "deviceCreate": "Create",
+    "deviceUpdate": "Update",
+    "deviceDelete": "Delete",
+    "cameraView": "View",
+    "cameraImage": "Download",
+    "cameraStats": "Stats",
+    "orgCreate": "Create org",
+    "orgUpdate": "Update org",
+    "orgDelete": "Delete org",
+    "groupCreate": "Create group",
+    "groupUpdate": "Update group",
+    "groupDelete": "Delete group",
+    "userCreate": "Create user",
+    "userUpdate": "Update user",
+    "userDelete": "Delete user",
+    "userPassword": "Password",
+    "settingsUpdate": "Settings",
+    "backupCreate": "Backup",
+    "backupRestore": "Restore",
+    "backupDownload": "Download",
+    "exportData": "Export"
   }
 }

@@ -157,7 +157,17 @@
     "enableStatistics": "MxAnalytics Statistiken",
     "recentlyOffline": "Geräte mit kürzlichem Verbindungsverlust",
     "clickToFilter": "Haz clic en un tipo para filtrar dispositivos",
-    "additionalInfo": "Zusätzliche Informationen"
+    "additionalInfo": "Zusätzliche Informationen",
+    "imagePath": "Image path",
+    "pathMobotixRecord": "Mobotix (record)",
+    "pathMobotixCgi": "Mobotix (cgi-bin)",
+    "pathGeneric": "Generic",
+    "pathAxis": "Axis",
+    "pathHikvision": "Hikvision",
+    "pathCustom": "Custom...",
+    "pathHint": "Select a path",
+    "statsHint": "Enable for MxAnalytics",
+    "noType": "No type"
   },
   "organizations": {
     "title": "Organisationen",
@@ -249,7 +259,9 @@
     "roleManager": "Manager",
     "roleOperator": "Operator",
     "fullName": "Vollständiger Name",
-    "minChars": "Mindestens 6 Zeichen"
+    "minChars": "Mindestens 6 Zeichen",
+    "technicianNote": "Technician note",
+    "groupsHint": "Group access hint"
   },
   "notifications": {
     "title": "Benachrichtigungen",
@@ -370,7 +382,8 @@
     "smtpUseSSL": "SSL verwenden (Port 465)",
     "smtpConfig": "Mailserver für Alarme und Benachrichtigungen konfigurieren",
     "advanced": "Erweiterte Einstellungen",
-    "testEmailBtn": "E-Mail testen"
+    "testEmailBtn": "E-Mail testen",
+    "saveConfig": "Save"
   },
   "security": {
     "title": "Sicherheit",
@@ -383,7 +396,9 @@
     "reasonOptional": "Grund (optional)",
     "blockedManually": "Manuell blockiert",
     "adding": "Hinzufügen...",
-    "addBtn": "Hinzufügen"
+    "addBtn": "Hinzufügen",
+    "hideDetails": "Hide",
+    "showDetails": "Show"
   },
   "backup": {
     "title": "Backup & Wiederherstellung",
@@ -501,5 +516,42 @@
     "fr": "Français",
     "ru": "Русский",
     "zh": "中文"
+  },
+  "filters": {
+    "allOrgs": "All",
+    "allGroups": "All groups",
+    "allTypes": "All types"
+  },
+  "structure": {
+    "title": "Structure"
+  },
+  "alerts": {
+    "noRecentFailures": "No recent failures"
+  },
+  "logs": {
+    "authLogin": "Login",
+    "authLogout": "Logout",
+    "authFailed": "Failed",
+    "deviceCreate": "Create",
+    "deviceUpdate": "Update",
+    "deviceDelete": "Delete",
+    "cameraView": "View",
+    "cameraImage": "Download",
+    "cameraStats": "Stats",
+    "orgCreate": "Create org",
+    "orgUpdate": "Update org",
+    "orgDelete": "Delete org",
+    "groupCreate": "Create group",
+    "groupUpdate": "Update group",
+    "groupDelete": "Delete group",
+    "userCreate": "Create user",
+    "userUpdate": "Update user",
+    "userDelete": "Delete user",
+    "userPassword": "Password",
+    "settingsUpdate": "Settings",
+    "backupCreate": "Backup",
+    "backupRestore": "Restore",
+    "backupDownload": "Download",
+    "exportData": "Export"
   }
 }
