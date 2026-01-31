@@ -638,3 +638,12 @@ async def download_app_js():
             content = f.read()
         return PlainTextResponse(content, media_type="text/plain")
     return PlainTextResponse("File not found", status_code=404)
+
+@app.get("/api/download/server-py")
+async def download_server_py():
+    file_path = "/app/backend/server.py"
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            content = f.read()
+        return PlainTextResponse(content, media_type="text/plain")
+    return PlainTextResponse("File not found", status_code=404)
