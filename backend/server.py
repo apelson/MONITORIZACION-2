@@ -436,6 +436,14 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
     def parse_camerainfo_html(html: str) -> dict:
         """Parse the /control/camerainfo HTML response to extract structured data"""
         import re
+        import html as html_module
+        
+        def decode_html(text: str) -> str:
+            """Decode HTML entities like &deg; to proper characters"""
+            if text:
+                return html_module.unescape(text)
+            return text
+        
         data = {
             "system": {},
             "networking": {},
