@@ -2407,6 +2407,7 @@ const StatisticsPanel = ({ devices, groups }) => {
 };
 
 const PublicDashboardConfig = ({ organization }) => {
+  const { t } = useTranslation();
   const [config, setConfig] = useState({
     enabled: false,
     password: "",
