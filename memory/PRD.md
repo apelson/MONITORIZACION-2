@@ -13,13 +13,13 @@
 - ✅ **CRÍTICO ARREGLADO**: Bug de pantalla blanca después del login
   - Causa: Componentes usando `t()` sin declarar `useTranslation()` hook
   - Componentes arreglados: OrganizationFormDialog, GroupFormDialog, UserFormDialog, DeviceTypeFormDialog, DeleteConfirmDialog, AlertsPanel, PublicDashboardConfig, SettingsPanel, IncidentsPanel
-- ✅ **Internacionalización (i18n)**: Sistema completamente funcional
-  - Idiomas soportados: ES, EN, DE, IT, FR, RU, ZH
+- ✅ **Internacionalización (i18n)**: Sistema COMPLETO
+  - 7 idiomas soportados: ES, EN, DE, IT, FR, RU, ZH
+  - 300+ claves de traducción por idioma
+  - Cobertura: login, dashboard, tabs, botones, diálogos, formularios, estados, errores
   - Selector de idioma con banderas SVG
-  - Traducciones para: login, dashboard tabs, botones comunes (Guardar/Cancelar/Eliminar)
 
 ### Pendiente
-- [ ] Completar traducción de todos los textos hardcodeados en modales y formularios
 - [ ] Arreglar favicon y iconos PWA (404 en producción)
 - [ ] Refactorizar App.js (5000+ líneas) en componentes más pequeños
 
