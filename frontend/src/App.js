@@ -4127,7 +4127,7 @@ const IncidentsPanel = ({ devices }) => {
           </Select>
         </div>
         <Button onClick={() => setShowForm(true)}>
-          <Plus className="w-4 h-4 mr-2" />Nueva Incidencia
+          <Plus className="w-4 h-4 mr-2" />{t('incidents.addIncident', 'Nueva Incidencia')}
         </Button>
       </div>
 
@@ -4138,7 +4138,7 @@ const IncidentsPanel = ({ devices }) => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ClipboardList className="w-5 h-5" />
-              Lista de Incidencias
+              {t('incidents.list', 'Lista de Incidencias')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -4183,7 +4183,7 @@ const IncidentsPanel = ({ devices }) => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5" />
-              Detalle de Incidencia
+              {t('incidents.detail', 'Detalle de Incidencia')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -4226,7 +4226,7 @@ const IncidentsPanel = ({ devices }) => {
                   <div className="flex gap-2">
                     {selectedIncident.status === "open" && (
                       <Button size="sm" variant="outline" onClick={() => handleStatusChange(selectedIncident.id, "in_progress")}>
-                        Marcar En Progreso
+                        {t('incidents.markInProgress', 'Marcar En Progreso')}
                       </Button>
                     )}
                     <Button size="sm" onClick={() => setShowResolveDialog(true)} className="bg-green-600 hover:bg-green-700">
@@ -4268,7 +4268,7 @@ const IncidentsPanel = ({ devices }) => {
               </div>
             ) : (
               <p className="text-center text-muted-foreground py-12">
-                Selecciona una incidencia para ver los detalles
+                {t('incidents.selectToView', 'Selecciona una incidencia para ver los detalles')}
               </p>
             )}
           </CardContent>
@@ -4279,7 +4279,7 @@ const IncidentsPanel = ({ devices }) => {
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nueva Incidencia</DialogTitle>
+            <DialogTitle>{t('incidents.addIncident', 'Nueva Incidencia')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
