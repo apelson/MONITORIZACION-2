@@ -291,7 +291,7 @@ async def check_all_infra_devices(user: dict = Depends(get_current_user)):
 async def get_device_vms(device_id: str, user: dict = Depends(get_current_user)):
     """Get VMs from an ESXi device"""
     try:
-        device = db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
+        device = await db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
         if not device:
             raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
         
@@ -321,7 +321,7 @@ async def get_device_vms(device_id: str, user: dict = Depends(get_current_user))
 async def get_device_datastores(device_id: str, user: dict = Depends(get_current_user)):
     """Get datastores from an ESXi device"""
     try:
-        device = db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
+        device = await db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
         if not device:
             raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
         
