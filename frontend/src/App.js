@@ -1453,6 +1453,7 @@ const UserFormDialog = ({ open, onOpenChange, user, organizations, groups, onSav
 };
 
 const DeviceTypeFormDialog = ({ open, onOpenChange, deviceType, onSave }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({ name: "", icon: "server", color: "#6b7280" });
   const [saving, setSaving] = useState(false);
   const icons = ["camera", "hard-drive", "network", "router", "server", "monitor", "printer", "wifi", "shield", "box", "layers"];
