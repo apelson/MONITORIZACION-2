@@ -3944,6 +3944,7 @@ const AccessLogsPanel = () => {
 
 // ============ INCIDENTS PANEL ============
 const IncidentsPanel = ({ devices }) => {
+  const { t } = useTranslation();
   const [incidents, setIncidents] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
