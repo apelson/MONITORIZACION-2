@@ -1158,8 +1158,8 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
             <div className="col-span-2 space-y-2"><Label>Notas</Label><Textarea placeholder="Notas internas, configuración..." value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} rows={3} /></div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button data-testid="save-device-btn" type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button>
+            <Button data-testid="save-device-btn" type="submit" disabled={saving}>{saving ? {saving ? t('common.saving', 'Guardando...') : t('common.save')}}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -1301,7 +1301,7 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
               <div className="flex gap-2 flex-wrap">{colors.map((c) => <button key={c} type="button" onClick={() => setFormData({ ...formData, color: c })} className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${formData.color === c ? 'border-foreground scale-110' : 'border-transparent'}`} style={{ backgroundColor: c }} />)}</div>
             </div>
           </div>
-          <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button><Button type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button></DialogFooter>
+          <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button type="submit" disabled={saving}>{saving ? {saving ? t('common.saving', 'Guardando...') : t('common.save')}}</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -1342,7 +1342,7 @@ const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) =
               <div className="flex gap-2 flex-wrap">{colors.map((c) => <button key={c} type="button" onClick={() => setFormData({ ...formData, color: c })} className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${formData.color === c ? 'border-foreground scale-110' : 'border-transparent'}`} style={{ backgroundColor: c }} />)}</div>
             </div>
           </div>
-          <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button><Button data-testid="save-group-btn" type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button></DialogFooter>
+          <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button data-testid="save-group-btn" type="submit" disabled={saving}>{saving ? {saving ? t('common.saving', 'Guardando...') : t('common.save')}}</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -1440,7 +1440,7 @@ const UserFormDialog = ({ open, onOpenChange, user, organizations, groups, onSav
               </div>
             )}
           </div>
-          <DialogFooter className="flex-shrink-0"><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button><Button data-testid="save-user-btn" type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button></DialogFooter>
+          <DialogFooter className="flex-shrink-0"><Button type="button" variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button data-testid="save-user-btn" type="submit" disabled={saving}>{saving ? {saving ? t('common.saving', 'Guardando...') : t('common.save')}}</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -1484,7 +1484,7 @@ const DeviceTypeFormDialog = ({ open, onOpenChange, deviceType, onSave }) => {
               <span className="font-medium">{formData.name || "Vista previa"}</span>
             </div>
           </div>
-          <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button><Button type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button></DialogFooter>
+          <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button type="submit" disabled={saving}>{saving ? {saving ? t('common.saving', 'Guardando...') : t('common.save')}}</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -1524,7 +1524,7 @@ const DeleteConfirmDialog = ({ open, onOpenChange, title, message, onConfirm }) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="flex items-center gap-2 text-destructive"><AlertCircle className="w-5 h-5" />{title}</DialogTitle><DialogDescription>{message}</DialogDescription></DialogHeader>
-        <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button><Button data-testid="confirm-delete-btn" variant="destructive" onClick={handleDelete} disabled={deleting}>{deleting ? "Eliminando..." : "Eliminar"}</Button></DialogFooter>
+        <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button data-testid="confirm-delete-btn" variant="destructive" onClick={handleDelete} disabled={deleting}>{deleting ? {deleting ? t('common.deleting', 'Eliminando...') : t('common.delete')}}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -1911,7 +1911,7 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowIncidentDialog(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setShowIncidentDialog(false)}{t('common.cancel')}</Button>
             <Button onClick={handleSubmitIncident} disabled={creating}>
               {creating ? "Creando..." : "Crear Incidencia"}
             </Button>
@@ -2510,7 +2510,7 @@ const PublicDashboardConfig = ({ organization }) => {
       )}
 
       <Button size="sm" onClick={handleSave} disabled={saving}>
-        {saving ? "Guardando..." : "Guardar"}
+        {saving ? {saving ? t('common.saving', 'Guardando...') : t('common.save')}}
       </Button>
     </div>
   );
@@ -2625,7 +2625,7 @@ const SettingsPanel = ({ settings, onSave }) => {
           </Collapsible>
           
           <div className="flex gap-2 pt-4">
-            <Button data-testid="save-settings-btn" type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button>
+            <Button data-testid="save-settings-btn" type="submit" disabled={saving}>{saving ? {saving ? t('common.saving', 'Guardando...') : t('common.save')}}</Button>
             <Button type="button" variant="outline" onClick={handleTest} disabled={testing || !settings?.smtp_user}><Send className="w-4 h-4 mr-2" />{testing ? "Enviando..." : "Probar Email"}</Button>
           </div>
         </form>
@@ -4325,7 +4325,7 @@ const IncidentsPanel = ({ devices }) => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowForm(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setShowForm(false)}{t('common.cancel')}</Button>
             <Button onClick={handleCreate}>Crear Incidencia</Button>
           </DialogFooter>
         </DialogContent>
@@ -4361,7 +4361,7 @@ const IncidentsPanel = ({ devices }) => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowResolveDialog(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setShowResolveDialog(false)}{t('common.cancel')}</Button>
             <Button onClick={handleResolve} className="bg-green-600 hover:bg-green-700">
               <CheckCircle className="w-4 h-4 mr-2" />Marcar como Resuelto
             </Button>
@@ -5045,7 +5045,7 @@ const Dashboard = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPasswordDialogOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setPasswordDialogOpen(false)}{t('common.cancel')}</Button>
             <Button onClick={handleSetPassword}>Guardar</Button>
           </DialogFooter>
         </DialogContent>
@@ -5261,7 +5261,7 @@ const Dashboard = () => {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIncidentFromDeviceOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setIncidentFromDeviceOpen(false)}{t('common.cancel')}</Button>
             <Button onClick={handleSubmitIncidentFromDevice} disabled={creatingIncident}>
               {creatingIncident ? "Creando..." : "Crear Incidencia"}
             </Button>
