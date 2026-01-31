@@ -445,6 +445,7 @@
     "instantAlerts": "Alertas instantáneas por email",
     "secureConnection": "Conexión segura y encriptada",
     "authorizedDistributor": "Distribuidor Autorizado Mobotix para España y Portugal",
+    "authorizedDistributorShort": "Distribuidor Autorizado",
     "accessSaas": "Acceder al Portal SaaS"
   },
   "publicDashboard": {
