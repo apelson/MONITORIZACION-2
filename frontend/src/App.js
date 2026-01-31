@@ -1778,7 +1778,7 @@ const UsersPanel = ({ users, onCreateUser, onEditUser, onDeleteUser, onResetPass
   <Card>
     <CardHeader className="flex flex-row items-center justify-between">
       <div><CardTitle className="flex items-center gap-2"><Users className="w-5 h-5" />{t('users.title', 'Usuarios')}</CardTitle></div>
-      <Button data-testid="add-user-btn" size="sm" onClick={() => onCreateUser()}><Plus className="w-4 h-4 mr-2" />Nuevo</Button>
+      <Button data-testid="add-user-btn" size="sm" onClick={() => onCreateUser()}><Plus className="w-4 h-4 mr-2" />{t('common.add', 'Nuevo')}</Button>
     </CardHeader>
     <CardContent>
       {users.length === 0 ? <div className="empty-state py-8"><Users className="w-12 h-12 mb-4 opacity-20" /><p>No hay usuarios</p></div> : (
