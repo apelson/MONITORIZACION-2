@@ -1913,9 +1913,9 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowIncidentDialog(false)}{t('common.cancel')}</Button>
+            <Button variant="outline" onClick={() => setShowIncidentDialog(false)}>{t('common.cancel')}</Button>
             <Button onClick={handleSubmitIncident} disabled={creating}>
-              {creating ? "Creando..." : "Crear Incidencia"}
+              {creating ? t('common.creating', 'Creando...') : t('incidents.addIncident')}
             </Button>
           </DialogFooter>
         </DialogContent>
