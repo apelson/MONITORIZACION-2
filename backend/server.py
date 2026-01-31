@@ -600,10 +600,27 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
         else:
             info["is_recording"] = None  # Unknown
         
-        # Determine NTP status
-        ntp = parsed.get("time", {}).get("ntp_server") or parsed.get("time", {}).get("time_server")
-        info["ntp_server"] = ntp
-        info["ntp_configured"] = bool(ntp and ntp.strip() and ntp.lower() not in ["none", "not configured", "-"])
+        # Determine NTP status - check multiple sources
+        time_data = parsed.get("time", {})
+        ntp = time_data.get("ntp_server") or time_data.get("time_server")
+        ntp_servers_found = time_data.get("ntp_servers_found", [])
+        ntp_configured_servers = time_data.get("ntp_configured_servers", [])
+        time_protocol = time_data.get("time_servers_protocol", "")
+        
+        # Build list of all NTP servers found
+        all_ntp_servers = []
+        if ntp:
+            all_ntp_servers.append(ntp)
+        all_ntp_servers.extend(ntp_servers_found)
+        all_ntp_servers.extend(ntp_configured_servers)
+        all_ntp_servers = list(set([s for s in all_ntp_servers if s and s.strip() and s.lower() not in ["none", "-", ""]]))
+        
+        # Check if NTP is configured
+        ntp_configured = bool(all_ntp_servers) or time_protocol.upper() == "NTP"
+        
+        info["ntp_server"] = ", ".join(all_ntp_servers) if all_ntp_servers else None
+        info["ntp_configured"] = ntp_configured
+        info["time"] = time_data  # Include full time data for frontend
         
         # Determine if there are errors
         alarms = parsed.get("alarms", {})
