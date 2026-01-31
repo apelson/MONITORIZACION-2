@@ -1085,7 +1085,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
                   Configuración de Cámara
                 </div>
                 <div className="space-y-2">
-                  <Label>Protocolo</Label>
+                  <Label>{t('devices.protocol', 'Protocolo')}</Label>
                   <Select value={formData.camera_protocol} onValueChange={(v) => setFormData({ ...formData, camera_protocol: v })}>
                     <SelectTrigger data-testid="camera-protocol-select"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -1095,25 +1095,25 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Usuario cámara</Label>
+                  <Label>{t('devices.cameraUser', 'Usuario cámara')}</Label>
                   <Input placeholder="admin" value={formData.camera_user} onChange={(e) => setFormData({ ...formData, camera_user: e.target.value })} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Contraseña cámara</Label>
+                  <Label>{t('devices.cameraPassword', 'Contraseña cámara')}</Label>
                   <Input type="password" placeholder="••••••••" value={formData.camera_password} onChange={(e) => setFormData({ ...formData, camera_password: e.target.value })} />
                 </div>
                 <div className="col-span-2 space-y-2">
-                  <Label>Ruta de imagen</Label>
+                  <Label>{t('devices.imagePath', 'Ruta de imagen')}</Label>
                   <div className="flex gap-2">
                     <Select value={formData.camera_path || "custom"} onValueChange={(v) => setFormData({ ...formData, camera_path: v === "custom" ? "" : v })}>
                       <SelectTrigger className="w-[200px]"><SelectValue placeholder="Seleccionar ruta" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="/record/current.jpg">Mobotix (record)</SelectItem>
-                        <SelectItem value="/cgi-bin/image.jpg">Mobotix (cgi-bin)</SelectItem>
-                        <SelectItem value="/snap.jpg">Genérico (/snap.jpg)</SelectItem>
-                        <SelectItem value="/jpg/image.jpg">Axis (/jpg/image.jpg)</SelectItem>
-                        <SelectItem value="/Streaming/channels/1/picture">Hikvision</SelectItem>
-                        <SelectItem value="custom">Personalizada...</SelectItem>
+                        <SelectItem value="/record/current.jpg">{t('devices.pathMobotixRecord', 'Mobotix (record)')}</SelectItem>
+                        <SelectItem value="/cgi-bin/image.jpg">{t('devices.pathMobotixCgi', 'Mobotix (cgi-bin)')}</SelectItem>
+                        <SelectItem value="/snap.jpg">{t('devices.pathGeneric', 'Genérico (/snap.jpg)')}</SelectItem>
+                        <SelectItem value="/jpg/image.jpg">{t('devices.pathAxis', 'Axis (/jpg/image.jpg)')}</SelectItem>
+                        <SelectItem value="/Streaming/channels/1/picture">{t('devices.pathHikvision', 'Hikvision')}</SelectItem>
+                        <SelectItem value="custom">{t('devices.pathCustom', 'Personalizada...')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <Input 
@@ -1123,7 +1123,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
                       onChange={(e) => setFormData({ ...formData, camera_path: e.target.value })} 
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">Selecciona una ruta predefinida o escribe una personalizada</p>
+                  <p className="text-xs text-muted-foreground">{t('devices.pathHint', 'Selecciona una ruta predefinida o escribe una personalizada')}</p>
                 </div>
                 {previewUrl && (
                   <div className="col-span-2 p-3 bg-muted rounded-lg">
@@ -1139,8 +1139,8 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
                     onCheckedChange={(checked) => setFormData({ ...formData, has_statistics: checked })}
                   />
                   <div className="flex-1">
-                    <Label htmlFor="has-statistics" className="cursor-pointer font-medium text-cyan-700">Estadísticas MxAnalytics</Label>
-                    <p className="text-xs text-cyan-600">Habilita si la cámara tiene conteo de personas y mapa de calor (Mobotix C25/C26)</p>
+                    <Label htmlFor="has-statistics" className="cursor-pointer font-medium text-cyan-700">{t('devices.enableStatistics', 'Estadísticas MxAnalytics')}</Label>
+                    <p className="text-xs text-cyan-600">{t('devices.statsHint', 'Habilita si la cámara tiene conteo de personas y mapa de calor (Mobotix C25/C26)')}</p>
                   </div>
                   <Activity className="w-5 h-5 text-cyan-500" />
                 </div>
