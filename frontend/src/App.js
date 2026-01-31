@@ -1880,7 +1880,7 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ClipboardList className="w-5 h-5" />
-              Crear Incidencia desde Alerta
+              {t('incidents.createFromAlert', 'Crear Incidencia desde Alerta')}
             </DialogTitle>
             <DialogDescription>
               Se creará una incidencia vinculada al dispositivo {selectedAlert?.device_name}
@@ -2112,7 +2112,7 @@ const StatisticsPanel = ({ devices, groups }) => {
               <Card className="border-dashed">
                 <CardContent className="py-20 text-center">
                   <Camera className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-30" />
-                  <p className="text-lg font-medium text-muted-foreground">Selecciona una cámara</p>
+                  <p className="text-lg font-medium text-muted-foreground">{t('stats.selectCamera', 'Selecciona una cámara')}</p>
                   <p className="text-sm text-muted-foreground">para ver sus estadísticas de conteo</p>
                 </CardContent>
               </Card>
@@ -2233,7 +2233,7 @@ const StatisticsPanel = ({ devices, groups }) => {
                             <CardContent className="py-4 text-center">
                               <Users className="w-6 h-6 mx-auto mb-2 text-blue-600" />
                               <p className="text-3xl font-bold text-blue-700">{totals.total.toLocaleString()}</p>
-                              <p className="text-sm text-blue-600">Total Personas</p>
+                              <p className="text-sm text-blue-600">{t('stats.totalPeople', 'Total Personas')}</p>
                             </CardContent>
                           </Card>
                           {recordInfo && (
@@ -2281,7 +2281,7 @@ const StatisticsPanel = ({ devices, groups }) => {
                         {/* Data Table - Collapsible */}
                         <Card>
                           <CardHeader className="pb-2">
-                            <CardTitle className="text-base">Detalle por Hora</CardTitle>
+                            <CardTitle className="text-base">{t('stats.hourlyDetail', 'Detalle por Hora')}</CardTitle>
                           </CardHeader>
                           <CardContent>
                             <ScrollArea className="h-[300px]">
@@ -3530,7 +3530,7 @@ const DailyReportPanel = () => {
               </div>
               <div className="bg-white p-3 rounded-lg">
                 <p className="text-2xl font-bold text-gray-600">{preview.summary.total_devices}</p>
-                <p className="text-xs text-muted-foreground">Total</p>
+                <p className="text-xs text-muted-foreground">{t('common.total', 'Total')}</p>
               </div>
             </div>
           )}
