@@ -1,4 +1,5 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { Toaster, toast } from 'sonner';
 import { 
@@ -8,6 +9,7 @@ import {
   Menu, LogOut, Settings, Home, PlusCircle, Trash2, Edit,
   TrendingUp, Activity, Server, Wifi, WifiOff, RefreshCw
 } from 'lucide-react';
+import { LanguageSelector } from './components/LanguageSelector';
 
 const API = process.env.REACT_APP_BACKEND_URL ? `${process.env.REACT_APP_BACKEND_URL}/api/saas` : '/api/saas';
 
