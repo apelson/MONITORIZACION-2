@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, createContext, useContext, memo, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import "@/App.css";
 import axios from "axios";
 import { Toaster, toast } from "sonner";
@@ -32,6 +33,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { LanguageSelector } from "@/components/LanguageSelector";
+
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
