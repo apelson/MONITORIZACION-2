@@ -3565,6 +3565,7 @@ const DailyReportPanel = () => {
 
 // ============ ACCESS LOGS PANEL ============
 const AccessLogsPanel = () => {
+  const { t } = useTranslation();
   const [logs, setLogs] = useState([]);
   const [stats, setStats] = useState(null);
   const [security, setSecurity] = useState(null);
