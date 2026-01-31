@@ -1731,23 +1731,24 @@ const OrganizationsPanel = ({ organizations, groups, devices, onCreateOrg, onEdi
 };
 
 const DeviceTypesPanel = ({ deviceTypes, onCreateType, onEditType, onDeleteType, canEdit, onFilterByType, devices }) => {
+  const { t } = useTranslation();
   // Count devices per type
   const getDeviceCount = (typeId) => devices?.filter(d => d.device_type_id === typeId).length || 0;
   
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <div><CardTitle className="flex items-center gap-2"><Tag className="w-5 h-5" />Tipos de Dispositivos</CardTitle><CardDescription>Haz clic en un tipo para filtrar dispositivos</CardDescription></div>
-        {canEdit && <Button size="sm" onClick={() => onCreateType()}><Plus className="w-4 h-4 mr-2" />Nuevo Tipo</Button>}
+        <div><CardTitle className="flex items-center gap-2"><Tag className="w-5 h-5" />{t('deviceTypes.title', 'Tipos de Dispositivos')}</CardTitle><CardDescription>{t('devices.clickToFilter', 'Haz clic en un tipo para filtrar dispositivos')}</CardDescription></div>
+        {canEdit && <Button size="sm" onClick={() => onCreateType()}><Plus className="w-4 h-4 mr-2" />{t('deviceTypes.addType', 'Nuevo Tipo')}</Button>}
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          {deviceTypes.map(t => {
-            const Icon = getIcon(t.icon);
-            const count = getDeviceCount(t.id);
+          {deviceTypes.map(dtype => {
+            const Icon = getIcon(dtype.icon);
+            const count = getDeviceCount(dtype.id);
             return (
               <div 
-                key={t.id} 
+                key={dtype.id} 
                 className="p-4 rounded-lg border bg-card hover:shadow-md hover:border-cyan-300 transition-all cursor-pointer group"
                 onClick={() => onFilterByType(t.id)}
               >
