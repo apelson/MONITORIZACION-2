@@ -8,7 +8,8 @@ from datetime import datetime
 from bson import ObjectId
 
 from services.infrastructure_service import InfrastructureService, ESXiService, QNAPService, SynologyService
-from routes.auth import get_current_user, get_db
+from services.auth_service import get_current_user
+from config import db
 
 router = APIRouter(prefix="/infrastructure", tags=["infrastructure"])
 
