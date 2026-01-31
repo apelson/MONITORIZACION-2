@@ -533,7 +533,8 @@
     "allOrgs": "Todas las org.",
     "allGroups": "Todos los grupos",
     "allTypes": "Todos los tipos",
-    "clear": "Limpiar filtros"
+    "clear": "Limpiar filtros",
+    "withStats": "Con Stats"
   },
   "structure": {
     "title": "Organizaciones y Grupos"

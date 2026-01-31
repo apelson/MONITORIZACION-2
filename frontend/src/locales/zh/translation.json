@@ -447,7 +447,8 @@
     "allOrgs": "All",
     "allGroups": "All groups",
     "allTypes": "All types",
-    "clear": "清除筛选"
+    "clear": "清除筛选",
+    "withStats": "有统计"
   },
   "structure": {
     "title": "Structure"

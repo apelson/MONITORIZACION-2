@@ -447,7 +447,8 @@
     "allOrgs": "All",
     "allGroups": "All groups",
     "allTypes": "All types",
-    "clear": "Pulisci filtri"
+    "clear": "Pulisci filtri",
+    "withStats": "Con Statistiche"
   },
   "structure": {
     "title": "Structure"

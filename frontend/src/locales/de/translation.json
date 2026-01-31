@@ -533,7 +533,8 @@
     "allOrgs": "All",
     "allGroups": "All groups",
     "allTypes": "All types",
-    "clear": "Filter löschen"
+    "clear": "Filter löschen",
+    "withStats": "Mit Statistiken"
   },
   "structure": {
     "title": "Structure"

@@ -447,7 +447,8 @@
     "allOrgs": "All",
     "allGroups": "All groups",
     "allTypes": "All types",
-    "clear": "Очистить фильтры"
+    "clear": "Очистить фильтры",
+    "withStats": "Со Статистикой"
   },
   "structure": {
     "title": "Structure"

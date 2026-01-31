@@ -448,7 +448,8 @@
     "allOrgs": "All",
     "allGroups": "All groups",
     "allTypes": "All types",
-    "clear": "Effacer les filtres"
+    "clear": "Effacer les filtres",
+    "withStats": "Avec Stats"
   },
   "structure": {
     "title": "Structure"
