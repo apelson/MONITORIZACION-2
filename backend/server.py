@@ -380,7 +380,9 @@ async def export_excel(organization_id: Optional[str] = None, current_user: dict
 
 @api_router.get("/devices/{device_id}/mobotix-info")
 async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_current_user)):
-    """Get Mobotix camera information using HTTP API"""
+    """Get Mobotix camera information using HTTP API - Optimized with parallel requests"""
+    import re
+    
     device = await devices_collection.find_one({"id": device_id}, {"_id": 0})
     if not device:
         raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
