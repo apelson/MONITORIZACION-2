@@ -706,3 +706,31 @@ async def download_server_py():
             content = f.read()
         return PlainTextResponse(content, media_type="text/plain")
     return PlainTextResponse("File not found", status_code=404)
+
+@app.get("/api/download/file/{file_path:path}")
+async def download_any_file(file_path: str):
+    """Download any file from /app/frontend/src/"""
+    full_path = f"/app/frontend/src/{file_path}"
+    if os.path.exists(full_path):
+        with open(full_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        return PlainTextResponse(content, media_type="text/plain; charset=utf-8")
+    return PlainTextResponse("File not found", status_code=404)
+
+@app.get("/api/download/saas-app")
+async def download_saas_app():
+    file_path = "/app/frontend/src/SaaSApp.jsx"
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            content = f.read()
+        return PlainTextResponse(content, media_type="text/plain")
+    return PlainTextResponse("File not found", status_code=404)
+
+@app.get("/api/download/index-js")
+async def download_index_js():
+    file_path = "/app/frontend/src/index.js"
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            content = f.read()
+        return PlainTextResponse(content, media_type="text/plain")
+    return PlainTextResponse("File not found", status_code=404)
