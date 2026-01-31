@@ -724,6 +724,7 @@ const FirmwareBadge = ({ device }) => {
 
 // ============ SERVER CARD ============
 const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete, onClone, onViewHistory, onMobotixInfo, onCreateIncident, canEdit }) => {
+  const { t } = useTranslation();
   const [isChecking, setIsChecking] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageData, setImageData] = useState(null);
