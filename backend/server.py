@@ -711,12 +711,21 @@ async def download_server_py():
 
 @app.get("/api/download/file/{file_path:path}")
 async def download_any_file(file_path: str):
-    """Download any file from /app/frontend/src/"""
-    full_path = f"/app/frontend/src/{file_path}"
-    if os.path.exists(full_path):
-        with open(full_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        return PlainTextResponse(content, media_type="text/plain; charset=utf-8")
+    """Download any file from /app/"""
+    # Try frontend first, then backend
+    paths_to_try = [
+        f"/app/frontend/src/{file_path}",
+        f"/app/{file_path}"
+    ]
+    
+    for full_path in paths_to_try:
+        if os.path.exists(full_path):
+            try:
+                with open(full_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                return PlainTextResponse(content, media_type="text/plain; charset=utf-8")
+            except:
+                pass
     return PlainTextResponse("File not found", status_code=404)
 
 @app.get("/api/download/saas-app")
