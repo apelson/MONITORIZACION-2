@@ -1777,7 +1777,7 @@ const DeviceTypesPanel = ({ deviceTypes, onCreateType, onEditType, onDeleteType,
 const UsersPanel = ({ users, onCreateUser, onEditUser, onDeleteUser, onResetPassword }) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between">
-      <div><CardTitle className="flex items-center gap-2"><Users className="w-5 h-5" />Usuarios</CardTitle></div>
+      <div><CardTitle className="flex items-center gap-2"><Users className="w-5 h-5" />{t('users.title', 'Usuarios')}</CardTitle></div>
       <Button data-testid="add-user-btn" size="sm" onClick={() => onCreateUser()}><Plus className="w-4 h-4 mr-2" />Nuevo</Button>
     </CardHeader>
     <CardContent>
@@ -1844,7 +1844,7 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
   return (
     <>
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><Bell className="w-5 h-5" />Alertas</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Bell className="w-5 h-5" />{t('nav.alerts', 'Alertas')}</CardTitle></CardHeader>
         <CardContent>
           {alerts.length === 0 ? <div className="empty-state py-8"><Bell className="w-12 h-12 mb-4 opacity-20" /><p>No hay alertas</p></div> : (
             <ScrollArea className="h-[400px]">
@@ -1853,7 +1853,7 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">{a.alert_type === 'device_down' ? <WifiOff className="w-4 h-4 text-red-600" /> : <Wifi className="w-4 h-4 text-green-600" />}<span className={`font-medium ${a.alert_type === 'device_down' ? 'text-red-700' : 'text-green-700'}`}>{a.device_name}</span></div>
                     <div className="flex items-center gap-2">
-                      {a.email_sent && <Badge variant="outline" className="text-xs"><Mail className="w-3 h-3 mr-1" />Enviado</Badge>}
+                      {a.email_sent && <Badge variant="outline" className="text-xs"><Mail className="w-3 h-3 mr-1" />{t('alerts.sent', 'Enviado')}</Badge>}
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -1861,7 +1861,7 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
                         onClick={() => handleCreateFromAlert(a)}
                       >
                         <ClipboardList className="w-3 h-3 mr-1" />
-                        Crear Incidencia
+                        {t('incidents.addIncident', 'Crear Incidencia')}
                       </Button>
                     </div>
                   </div>
