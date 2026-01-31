@@ -1750,20 +1750,20 @@ const DeviceTypesPanel = ({ deviceTypes, onCreateType, onEditType, onDeleteType,
               <div 
                 key={dtype.id} 
                 className="p-4 rounded-lg border bg-card hover:shadow-md hover:border-cyan-300 transition-all cursor-pointer group"
-                onClick={() => onFilterByType(t.id)}
+                onClick={() => onFilterByType(dtype.id)}
               >
-                <div className="w-12 h-12 mx-auto rounded-lg flex items-center justify-center mb-2 group-hover:scale-110 transition-transform" style={{ backgroundColor: `${t.color}20` }}>
-                  <Icon className="w-6 h-6" style={{ color: t.color }} />
+                <div className="w-12 h-12 mx-auto rounded-lg flex items-center justify-center mb-2 group-hover:scale-110 transition-transform" style={{ backgroundColor: `${dtype.color}20` }}>
+                  <Icon className="w-6 h-6" style={{ color: dtype.color }} />
                 </div>
-                <h4 className="font-medium text-sm text-center">{t.name}</h4>
-                <p className="text-xs text-center text-muted-foreground mt-1">{count} dispositivo{count !== 1 ? 's' : ''}</p>
-                {canEdit && !t.is_default && (
+                <h4 className="font-medium text-sm text-center">{dtype.name}</h4>
+                <p className="text-xs text-center text-muted-foreground mt-1">{count} {t('nav.devices', 'dispositivo')}{count !== 1 ? 's' : ''}</p>
+                {canEdit && !dtype.is_default && (
                   <div className="flex justify-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onEditType(t); }}><Edit className="w-3 h-3" /></Button>
-                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onDeleteType(t); }} className="text-destructive"><Trash2 className="w-3 h-3" /></Button>
+                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onEditType(dtype); }}><Edit className="w-3 h-3" /></Button>
+                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onDeleteType(dtype); }} className="text-destructive"><Trash2 className="w-3 h-3" /></Button>
                   </div>
                 )}
-                {t.is_default && <p className="text-xs text-muted-foreground mt-1 text-center">Predefinido</p>}
+                {dtype.is_default && <p className="text-xs text-muted-foreground mt-1 text-center">{t('deviceTypes.default', 'Predefinido')}</p>}
               </div>
             );
           })}
