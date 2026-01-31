@@ -516,8 +516,19 @@ const LoginPage = () => {
           
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-slate-700/30 text-center text-slate-500 text-xs space-y-1">
-            <p>© {new Date().getFullYear()} Siempria - Todos los derechos reservados</p>
-            <p>Distribuidor Autorizado Mobotix para España y Portugal</p>
+            <p>© {new Date().getFullYear()} Siempria - {t('saas.copyright', 'Todos los derechos reservados')}</p>
+            <p>{t('login.authorizedDistributor', 'Distribuidor Autorizado Mobotix para España y Portugal')}</p>
+          </div>
+          
+          {/* SaaS Portal Link */}
+          <div className="mt-6 text-center">
+            <a 
+              href="/saas" 
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 border border-cyan-500/30 hover:border-cyan-500/50 text-cyan-400 hover:text-cyan-300 transition-all text-sm"
+            >
+              <Globe className="w-4 h-4" />
+              {t('login.accessSaas', 'Acceder al Portal SaaS')}
+            </a>
           </div>
         </div>
       </div>
