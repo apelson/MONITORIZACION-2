@@ -169,6 +169,7 @@ const LandingPage = ({ onShowAuth }) => {
             <a href="https://www.siempria.com/contacto/" target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-white transition">Contacto</a>
           </nav>
           <div className="flex items-center gap-3">
+            <LanguageSelector variant="ghost" />
             <button onClick={() => onShowAuth('login')} className="px-4 py-2 text-slate-300 hover:text-white transition">
               Iniciar Sesión
             </button>
