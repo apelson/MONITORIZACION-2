@@ -1401,22 +1401,22 @@ const UserFormDialog = ({ open, onOpenChange, user, organizations, groups, onSav
                 <Select value={formData.role} onValueChange={(v) => setFormData({ ...formData, role: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="admin"><div className="flex items-center gap-2"><Shield className="w-4 h-4" />Admin</div></SelectItem>
-                    <SelectItem value="manager"><div className="flex items-center gap-2"><Edit className="w-4 h-4" />Gestor</div></SelectItem>
-                    <SelectItem value="technician"><div className="flex items-center gap-2"><Wrench className="w-4 h-4" />Técnico</div></SelectItem>
-                    <SelectItem value="operator"><div className="flex items-center gap-2"><Camera className="w-4 h-4" />Operador</div></SelectItem>
-                    <SelectItem value="viewer"><div className="flex items-center gap-2"><Eye className="w-4 h-4" />Visor</div></SelectItem>
+                    <SelectItem value="admin"><div className="flex items-center gap-2"><Shield className="w-4 h-4" />{t('users.roleAdmin', 'Admin')}</div></SelectItem>
+                    <SelectItem value="manager"><div className="flex items-center gap-2"><Edit className="w-4 h-4" />{t('users.roleManager', 'Gestor')}</div></SelectItem>
+                    <SelectItem value="technician"><div className="flex items-center gap-2"><Wrench className="w-4 h-4" />{t('users.roleTechnician', 'Técnico')}</div></SelectItem>
+                    <SelectItem value="operator"><div className="flex items-center gap-2"><Camera className="w-4 h-4" />{t('users.roleOperator', 'Operador')}</div></SelectItem>
+                    <SelectItem value="viewer"><div className="flex items-center gap-2"><Eye className="w-4 h-4" />{t('users.roleViewer', 'Visor')}</div></SelectItem>
                   </SelectContent>
                 </Select>
                 {formData.role === "technician" && (
-                  <p className="text-xs text-amber-600 mt-1">El técnico ve todos los dispositivos (IP, puerto, historial) pero no puede editarlos.</p>
+                  <p className="text-xs text-amber-600 mt-1">{t('users.technicianNote', 'El técnico ve todos los dispositivos (IP, puerto, historial) pero no puede editarlos.')}</p>
                 )}
               </div>
             </div>
             {formData.role !== "admin" && formData.role !== "technician" && (
               <div className="space-y-2">
-                <Label>Grupos permitidos</Label>
-                <p className="text-xs text-muted-foreground mb-2">Sin selección = acceso a todos. Selecciona para restringir.</p>
+                <Label>{t('groups.allowedGroups', 'Grupos permitidos')}</Label>
+                <p className="text-xs text-muted-foreground mb-2">{t('users.groupsHint', 'Sin selección = acceso a todos. Selecciona para restringir.')}</p>
                 <div className="max-h-48 overflow-y-auto border rounded-lg p-3 space-y-3">
                   {groupsByOrg.map(({ org, groups: orgGroups }) => (
                     <div key={org.id}>
@@ -1440,7 +1440,7 @@ const UserFormDialog = ({ open, onOpenChange, user, organizations, groups, onSav
                       </div>
                     </div>
                   ))}
-                  {groupsByOrg.length === 0 && <span className="text-xs text-muted-foreground">No hay grupos creados</span>}
+                  {groupsByOrg.length === 0 && <span className="text-xs text-muted-foreground">{t('groups.noGroups', 'No hay grupos creados')}</span>}
                 </div>
               </div>
             )}
