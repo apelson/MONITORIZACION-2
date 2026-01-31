@@ -1570,11 +1570,11 @@ const FailuresDialog = ({ open, onOpenChange, failures, onClear }) => {
             <AlertCircle className="w-5 h-5" />
             Resumen de Fallos ({failures.length})
           </DialogTitle>
-          <DialogDescription>Dispositivos que han perdido conexión recientemente</DialogDescription>
+          <DialogDescription>{t('devices.recentlyOffline', 'Dispositivos que han perdido conexión recientemente')}</DialogDescription>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto space-y-2 py-4">
           {failures.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No hay fallos recientes</p>
+            <p className="text-center text-muted-foreground py-8">{t('alerts.noRecentFailures', 'No hay fallos recientes')}</p>
           ) : (
             failures.map((f, i) => (
               <div key={`${f.id}-${i}`} className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -1609,8 +1609,8 @@ const FailuresDialog = ({ open, onOpenChange, failures, onClear }) => {
               Enviar todo por WhatsApp
             </a>
           )}
-          <Button variant="outline" onClick={onClear}>Limpiar historial</Button>
-          <Button onClick={() => onOpenChange(false)}>Cerrar</Button>
+          <Button variant="outline" onClick={onClear}>{t('history.clearHistory', 'Limpiar historial')}</Button>
+          <Button onClick={() => onOpenChange(false)}>{t('common.close', 'Cerrar')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -1625,14 +1625,14 @@ const OrganizationsPanel = ({ organizations, groups, devices, onCreateOrg, onEdi
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div><h2 className="text-lg font-semibold">Organizaciones y Grupos</h2><p className="text-sm text-muted-foreground">Estructura jerárquica de tus dispositivos</p></div>
+        <div><h2 className="text-lg font-semibold">{t('structure.title', 'Organizaciones y Grupos')}</h2><p className="text-sm text-muted-foreground">{t('organizations.hierarchicalStructure', 'Estructura jerárquica de tus dispositivos')}</p></div>
         <div className="flex items-center gap-2">
-          {canEdit && <Button data-testid="add-org-btn" size="sm" onClick={() => onCreateOrg()}><Plus className="w-4 h-4 mr-2" />Nueva Organización</Button>}
+          {canEdit && <Button data-testid="add-org-btn" size="sm" onClick={() => onCreateOrg()}><Plus className="w-4 h-4 mr-2" />{t('organizations.addOrganization', 'Nueva Organización')}</Button>}
         </div>
       </div>
 
       {organizations.length === 0 ? (
-        <Card><CardContent className="py-12 text-center"><Building2 className="w-12 h-12 mx-auto mb-4 opacity-20" /><p className="text-muted-foreground">No hay organizaciones</p>{canEdit && <Button className="mt-4" onClick={() => onCreateOrg()}><Plus className="w-4 h-4 mr-2" />Crear Organización</Button>}</CardContent></Card>
+        <Card><CardContent className="py-12 text-center"><Building2 className="w-12 h-12 mx-auto mb-4 opacity-20" /><p className="text-muted-foreground">{t('organizations.noOrganizations', 'No hay organizaciones')}</p>{canEdit && <Button className="mt-4" onClick={() => onCreateOrg()}><Plus className="w-4 h-4 mr-2" />{t('organizations.addOrganization', 'Crear Organización')}</Button>}</CardContent></Card>
       ) : (
         <div className="space-y-3">
           {organizations.map(org => {
