@@ -1014,20 +1014,20 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isCloning && <Copy className="w-5 h-5 text-blue-600" />}
-            {isCloning ? "Clonar Dispositivo" : device?.id ? "Editar Dispositivo" : "Agregar Dispositivo"}
+            {isCloning ? t('devices.cloneDevice') : device?.id ? t('devices.editDevice') : t('devices.addDevice')}
           </DialogTitle>
           {isCloning && (
-            <p className="text-sm text-muted-foreground">Modifica el puerto y nombre para crear el nuevo dispositivo</p>
+            <p className="text-sm text-muted-foreground">{t('devices.cloneDescription', 'Modifica el puerto y nombre para crear el nuevo dispositivo')}</p>
           )}
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4 py-4">
-            <div className="col-span-2 space-y-2"><Label>Nombre *</Label><Input data-testid="device-name-input" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
-            <div className="space-y-2"><Label>IP *</Label><Input data-testid="device-ip-input" className="font-mono" value={formData.ip_address} onChange={(e) => setFormData({ ...formData, ip_address: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Puerto *</Label><Input data-testid="device-port-input" type="number" className="font-mono" value={formData.port} onChange={(e) => setFormData({ ...formData, port: parseInt(e.target.value) || 80 })} /></div>
+            <div className="col-span-2 space-y-2"><Label>{t('common.name')} *</Label><Input data-testid="device-name-input" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
+            <div className="space-y-2"><Label>{t('devices.ipAddress')} *</Label><Input data-testid="device-ip-input" className="font-mono" value={formData.ip_address} onChange={(e) => setFormData({ ...formData, ip_address: e.target.value })} /></div>
+            <div className="space-y-2"><Label>{t('devices.port')} *</Label><Input data-testid="device-port-input" type="number" className="font-mono" value={formData.port} onChange={(e) => setFormData({ ...formData, port: parseInt(e.target.value) || 80 })} /></div>
             
             <div className="space-y-2">
-              <Label>Tipo de Dispositivo</Label>
+              <Label>{t('devices.deviceType')}</Label>
               <Select value={formData.device_type_id || "none"} onValueChange={(v) => {
                 const newTypeId = v === "none" ? "" : v;
                 const selectedType = deviceTypes.find(t => t.id === newTypeId);
