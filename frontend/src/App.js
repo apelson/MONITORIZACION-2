@@ -1344,7 +1344,7 @@ const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) =
               <div className="flex gap-2 flex-wrap">{colors.map((c) => <button key={c} type="button" onClick={() => setFormData({ ...formData, color: c })} className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${formData.color === c ? 'border-foreground scale-110' : 'border-transparent'}`} style={{ backgroundColor: c }} />)}</div>
             </div>
           </div>
-          <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button data-testid="save-group-btn" type="submit" disabled={saving}>{saving ? {saving ? t('common.saving', 'Guardando...') : t('common.save')}}</Button></DialogFooter>
+          <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button data-testid="save-group-btn" type="submit" disabled={saving}>{saving ? t('common.saving', 'Guardando...') : t('common.save')}</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -1442,7 +1442,7 @@ const UserFormDialog = ({ open, onOpenChange, user, organizations, groups, onSav
               </div>
             )}
           </div>
-          <DialogFooter className="flex-shrink-0"><Button type="button" variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button data-testid="save-user-btn" type="submit" disabled={saving}>{saving ? {saving ? t('common.saving', 'Guardando...') : t('common.save')}}</Button></DialogFooter>
+          <DialogFooter className="flex-shrink-0"><Button type="button" variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button data-testid="save-user-btn" type="submit" disabled={saving}>{saving ? t('common.saving', 'Guardando...') : t('common.save')}</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -1486,7 +1486,7 @@ const DeviceTypeFormDialog = ({ open, onOpenChange, deviceType, onSave }) => {
               <span className="font-medium">{formData.name || "Vista previa"}</span>
             </div>
           </div>
-          <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button type="submit" disabled={saving}>{saving ? {saving ? t('common.saving', 'Guardando...') : t('common.save')}}</Button></DialogFooter>
+          <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button type="submit" disabled={saving}>{saving ? t('common.saving', 'Guardando...') : t('common.save')}</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -1526,7 +1526,7 @@ const DeleteConfirmDialog = ({ open, onOpenChange, title, message, onConfirm }) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="flex items-center gap-2 text-destructive"><AlertCircle className="w-5 h-5" />{title}</DialogTitle><DialogDescription>{message}</DialogDescription></DialogHeader>
-        <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button data-testid="confirm-delete-btn" variant="destructive" onClick={handleDelete} disabled={deleting}>{deleting ? {deleting ? t('common.deleting', 'Eliminando...') : t('common.delete')}}</Button></DialogFooter>
+        <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button data-testid="confirm-delete-btn" variant="destructive" onClick={handleDelete} disabled={deleting}>{deleting ? t('common.deleting', 'Eliminando...') : t('common.delete')}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -2512,7 +2512,7 @@ const PublicDashboardConfig = ({ organization }) => {
       )}
 
       <Button size="sm" onClick={handleSave} disabled={saving}>
-        {saving ? {saving ? t('common.saving', 'Guardando...') : t('common.save')}}
+        {saving ? t('common.saving', 'Guardando...') : t('common.save')}
       </Button>
     </div>
   );
@@ -2627,7 +2627,7 @@ const SettingsPanel = ({ settings, onSave }) => {
           </Collapsible>
           
           <div className="flex gap-2 pt-4">
-            <Button data-testid="save-settings-btn" type="submit" disabled={saving}>{saving ? {saving ? t('common.saving', 'Guardando...') : t('common.save')}}</Button>
+            <Button data-testid="save-settings-btn" type="submit" disabled={saving}>{saving ? t('common.saving', 'Guardando...') : t('common.save')}</Button>
             <Button type="button" variant="outline" onClick={handleTest} disabled={testing || !settings?.smtp_user}><Send className="w-4 h-4 mr-2" />{testing ? "Enviando..." : "Probar Email"}</Button>
           </div>
         </form>
