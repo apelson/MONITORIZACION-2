@@ -42,7 +42,8 @@
     "copy": "Copiar",
     "paste": "Pegar",
     "required": "Requerido",
-    "optional": "Opcional"
+    "optional": "Opcional",
+    "needHelp": "¿Necesitas ayuda?"
   },
   "auth": {
     "login": "Iniciar Sesión",
@@ -60,7 +61,8 @@
     "logoutSuccess": "Sesión cerrada correctamente",
     "invalidCredentials": "Credenciales inválidas",
     "sessionExpired": "Tu sesión ha expirado",
-    "welcomeBack": "¡Bienvenido de nuevo!"
+    "welcomeBack": "¡Bienvenido de nuevo!",
+    "loginDescription": "Introduce tus credenciales para continuar"
   },
   "nav": {
     "dashboard": "Panel de Control",
