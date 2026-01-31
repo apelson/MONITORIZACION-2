@@ -347,17 +347,24 @@ const StatusDot = ({ status }) => {
 };
 
 const StatusBadge = ({ status }) => {
-  const cfg = { online: { label: "Online", cls: "badge-online" }, offline: { label: "Offline", cls: "badge-offline" }, checking: { label: "Verificando...", cls: "badge-checking" }, unknown: { label: "Desconocido", cls: "bg-muted text-muted-foreground" } }[status] || { label: "?", cls: "bg-muted" };
+  const { t } = useTranslation();
+  const cfg = { 
+    online: { label: t('devices.online'), cls: "badge-online" }, 
+    offline: { label: t('devices.offline'), cls: "badge-offline" }, 
+    checking: { label: t('devices.checking'), cls: "badge-checking" }, 
+    unknown: { label: t('devices.unknown'), cls: "bg-muted text-muted-foreground" } 
+  }[status] || { label: "?", cls: "bg-muted" };
   return <Badge variant="outline" className={`${cfg.cls} text-xs font-medium px-2 py-0.5`}>{cfg.label}</Badge>;
 };
 
 const RoleBadge = ({ role }) => {
+  const { t } = useTranslation();
   const cfg = { 
-    admin: { label: "Admin", cls: "bg-red-100 text-red-700 border-red-200" }, 
-    manager: { label: "Gestor", cls: "bg-blue-100 text-blue-700 border-blue-200" }, 
-    viewer: { label: "Visor", cls: "bg-gray-100 text-gray-700 border-gray-200" },
-    operator: { label: "Operador", cls: "bg-purple-100 text-purple-700 border-purple-200" },
-    technician: { label: "Técnico", cls: "bg-amber-100 text-amber-700 border-amber-200" }
+    admin: { label: t('users.roleAdmin'), cls: "bg-red-100 text-red-700 border-red-200" }, 
+    manager: { label: t('users.roleManager', 'Gestor'), cls: "bg-blue-100 text-blue-700 border-blue-200" }, 
+    viewer: { label: t('users.roleViewer'), cls: "bg-gray-100 text-gray-700 border-gray-200" },
+    operator: { label: t('users.roleOperator', 'Operador'), cls: "bg-purple-100 text-purple-700 border-purple-200" },
+    technician: { label: t('users.roleTechnician'), cls: "bg-amber-100 text-amber-700 border-amber-200" }
   }[role] || { label: role, cls: "bg-gray-100" };
   return <Badge variant="outline" className={`${cfg.cls} text-xs`}>{cfg.label}</Badge>;
 };
