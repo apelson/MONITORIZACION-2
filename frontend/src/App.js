@@ -1442,7 +1442,7 @@ const UserFormDialog = ({ open, onOpenChange, user, organizations, groups, onSav
               </div>
             )}
           </div>
-          <DialogFooter className="flex-shrink-0"><Button type="button" variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button data-testid="save-user-btn" type="submit" disabled={saving}>{saving ? t('common.saving', 'Guardando...') : t('common.save')}</Button></DialogFooter>
+          <DialogFooter className="flex-shrink-0"><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button><Button data-testid="save-user-btn" type="submit" disabled={saving}>{saving ? t('common.saving', 'Guardando...') : t('common.save')}</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
