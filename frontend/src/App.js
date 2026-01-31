@@ -1486,7 +1486,7 @@ const DeviceTypeFormDialog = ({ open, onOpenChange, deviceType, onSave }) => {
               <span className="font-medium">{formData.name || "Vista previa"}</span>
             </div>
           </div>
-          <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button type="submit" disabled={saving}>{saving ? t('common.saving', 'Guardando...') : t('common.save')}</Button></DialogFooter>
+          <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button><Button type="submit" disabled={saving}>{saving ? t('common.saving', 'Guardando...') : t('common.save')}</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
