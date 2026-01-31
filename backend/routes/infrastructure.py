@@ -111,7 +111,7 @@ async def test_connection(request: TestConnectionRequest, user: dict = Depends(g
 async def get_infra_devices(user: dict = Depends(get_current_user)):
     """Get all infrastructure devices"""
     try:
-        devices = list(db.infrastructure_devices.find({}))
+        devices = await db.infrastructure_devices.find({}).to_list(length=1000)
         return {
             "devices": [serialize_infra_device(d) for d in devices]
         }
