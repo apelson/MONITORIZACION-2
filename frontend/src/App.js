@@ -1476,8 +1476,8 @@ const DeviceTypeFormDialog = ({ open, onOpenChange, deviceType, onSave }) => {
         <DialogHeader><DialogTitle>{deviceType ? t('deviceTypes.editType', 'Editar Tipo') : t('deviceTypes.addType', 'Nuevo Tipo de Dispositivo')}</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
-            <div className="space-y-2"><Label>Nombre *</Label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Icono</Label>
+            <div className="space-y-2"><Label>{t('common.name', 'Nombre')} *</Label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
+            <div className="space-y-2"><Label>{t('deviceTypes.icon', 'Icono')}</Label>
               <div className="flex gap-2 flex-wrap">{icons.map((i) => { const Icon = getIcon(i); return <button key={i} type="button" onClick={() => setFormData({ ...formData, icon: i })} className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center transition-all ${formData.icon === i ? 'border-foreground bg-muted' : 'border-transparent hover:bg-muted/50'}`}><Icon className="w-5 h-5" /></button>; })}</div>
             </div>
             <div className="space-y-2"><Label>{t('common.color', 'Color')}</Label>
@@ -1503,12 +1503,12 @@ const HistoryDialog = ({ open, onOpenChange, device, history }) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><History className="w-5 h-5" />Historial - {device.name}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2"><History className="w-5 h-5" />{t('history.title', 'Historial')} - {device.name}</DialogTitle>
           <DialogDescription className="font-mono text-xs">{device.ip_address}:{device.port}</DialogDescription>
         </DialogHeader>
-        {device.notes && <div className="p-3 bg-muted rounded-lg text-sm"><FileText className="w-4 h-4 inline mr-2" /><strong>Notas:</strong> {device.notes}</div>}
+        {device.notes && <div className="p-3 bg-muted rounded-lg text-sm"><FileText className="w-4 h-4 inline mr-2" /><strong>{t('common.notes', 'Notas')}:</strong> {device.notes}</div>}
         <ScrollArea className="h-[350px] pr-4">
-          {history.length === 0 ? <div className="empty-state py-12"><Activity className="w-12 h-12 mb-4 opacity-20" /><p>No hay historial</p></div> : (
+          {history.length === 0 ? <div className="empty-state py-12"><Activity className="w-12 h-12 mb-4 opacity-20" /><p>{t('history.noHistory', 'No hay historial')}</p></div> : (
             <div className="space-y-2">{history.map((e, i) => (
               <div key={e.id || i} className="flex items-center gap-4 p-3 rounded-lg bg-muted/50">
                 <StatusDot status={e.status} />
