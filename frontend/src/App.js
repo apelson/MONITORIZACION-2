@@ -4767,12 +4767,13 @@ const Dashboard = () => {
                   <Plus className="w-4 h-4" />
                 </Button>}
               </div>
+              <LanguageSelector />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" className="gap-2"><div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center"><User className="w-4 h-4" /></div><span className="hidden md:inline">{user?.username}</span><ChevronDown className="w-4 h-4" /></Button></DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <div className="px-2 py-1.5"><p className="text-sm font-medium">{user?.full_name || user?.username}</p><p className="text-xs text-muted-foreground">{user?.email}</p></div>
                   <DropdownMenuSeparator /><DropdownMenuItem><RoleBadge role={user?.role} /></DropdownMenuItem>
-                  <DropdownMenuSeparator /><DropdownMenuItem onClick={logout} className="text-destructive gap-2"><LogOut className="w-4 h-4" />Cerrar Sesión</DropdownMenuItem>
+                  <DropdownMenuSeparator /><DropdownMenuItem onClick={logout} className="text-destructive gap-2"><LogOut className="w-4 h-4" />{t('auth.logout')}</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
