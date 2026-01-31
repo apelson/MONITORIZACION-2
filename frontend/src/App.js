@@ -4832,7 +4832,7 @@ const Dashboard = () => {
                 <div className="relative">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
-                    placeholder="Buscar por nombre, IP..." 
+                    placeholder={t('common.search', 'Buscar por nombre, IP...')}
                     className="w-[200px] pl-8"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -4848,30 +4848,30 @@ const Dashboard = () => {
                 </div>
                 {uniqueCountries.length > 0 && (
                   <Select value={filterCountry || "all"} onValueChange={(v) => { setFilterCountry(v === "all" ? null : v); setFilterOrgId(null); setFilterGroupId(null); }}>
-                    <SelectTrigger className="w-[150px]"><SelectValue placeholder="País" /></SelectTrigger>
-                    <SelectContent><SelectItem value="all">🌍 Todos</SelectItem>{uniqueCountries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                    <SelectTrigger className="w-[150px]"><SelectValue placeholder={t('common.country', 'País')} /></SelectTrigger>
+                    <SelectContent><SelectItem value="all">🌍 {t('common.all', 'Todos')}</SelectItem>{uniqueCountries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                   </Select>
                 )}
                 <Select value={filterOrgId || "all"} onValueChange={(v) => { setFilterOrgId(v === "all" ? null : v); setFilterGroupId(null); }}>
-                  <SelectTrigger className="w-[180px]"><SelectValue placeholder="Organización" /></SelectTrigger>
-                  <SelectContent><SelectItem value="all">Todas las org.</SelectItem>{(filterCountry ? organizations.filter(o => o.country === filterCountry) : organizations).sort((a,b) => a.name.localeCompare(b.name, 'es')).map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
+                  <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('organizations.title', 'Organización')} /></SelectTrigger>
+                  <SelectContent><SelectItem value="all">{t('filters.allOrgs', 'Todas las org.')}</SelectItem>{(filterCountry ? organizations.filter(o => o.country === filterCountry) : organizations).sort((a,b) => a.name.localeCompare(b.name, 'es')).map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
                 </Select>
                 <Select value={filterGroupId || "all"} onValueChange={(v) => setFilterGroupId(v === "all" ? null : v)}>
-                  <SelectTrigger className="w-[180px]"><SelectValue placeholder="Grupo" /></SelectTrigger>
-                  <SelectContent><SelectItem value="all">Todos los grupos</SelectItem>{(filterOrgId ? sortedGroups.filter(g => g.organization_id === filterOrgId) : sortedGroups).map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
+                  <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('groups.title', 'Grupo')} /></SelectTrigger>
+                  <SelectContent><SelectItem value="all">{t('filters.allGroups', 'Todos los grupos')}</SelectItem>{(filterOrgId ? sortedGroups.filter(g => g.organization_id === filterOrgId) : sortedGroups).map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
                 </Select>
                 <Select value={filterTypeId || "all"} onValueChange={(v) => setFilterTypeId(v === "all" ? null : v)}>
-                  <SelectTrigger className="w-[180px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
-                  <SelectContent><SelectItem value="all">Todos los tipos</SelectItem>{deviceTypes.map(t => { const Icon = getIcon(t.icon); return <SelectItem key={t.id} value={t.id}><div className="flex items-center gap-2"><Icon className="w-4 h-4" style={{ color: t.color }} />{t.name}</div></SelectItem>; })}</SelectContent>
+                  <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('common.type', 'Tipo')} /></SelectTrigger>
+                  <SelectContent><SelectItem value="all">{t('filters.allTypes', 'Todos los tipos')}</SelectItem>{deviceTypes.map(t => { const Icon = getIcon(t.icon); return <SelectItem key={t.id} value={t.id}><div className="flex items-center gap-2"><Icon className="w-4 h-4" style={{ color: t.color }} />{t.name}</div></SelectItem>; })}</SelectContent>
                 </Select>
                 {/* NEW: Status filter */}
                 <Select value={filterStatus || "all"} onValueChange={(v) => setFilterStatus(v === "all" ? null : v)}>
-                  <SelectTrigger className="w-[140px]"><SelectValue placeholder="Estado" /></SelectTrigger>
+                  <SelectTrigger className="w-[140px]"><SelectValue placeholder={t('common.status', 'Estado')} /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="online"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" />Online</div></SelectItem>
-                    <SelectItem value="offline"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500" />Offline</div></SelectItem>
-                    <SelectItem value="unknown"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-400" />Desconocido</div></SelectItem>
+                    <SelectItem value="all">{t('common.all', 'Todos')}</SelectItem>
+                    <SelectItem value="online"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" />{t('devices.online', 'Online')}</div></SelectItem>
+                    <SelectItem value="offline"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500" />{t('devices.offline', 'Offline')}</div></SelectItem>
+                    <SelectItem value="unknown"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-400" />{t('devices.unknown', 'Desconocido')}</div></SelectItem>
                   </SelectContent>
                 </Select>
                 {/* NEW: Filter by statistics */}
