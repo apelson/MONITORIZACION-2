@@ -4884,7 +4884,7 @@ const Dashboard = () => {
                   className={filterStats ? "bg-purple-600 hover:bg-purple-700" : ""}
                 >
                   <BarChart3 className="w-4 h-4 mr-1" />
-                  Con Stats
+                  {t('filters.withStats', 'Con Stats')}
                 </Button>
                 {(searchQuery || filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus || filterStats) && <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(""); setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); setFilterStats(false); }}>{t('filters.clear', 'Limpiar filtros')}</Button>}
                 <span className="text-sm text-muted-foreground ml-auto">{filteredDevices.length} {t('devices.deviceCount', 'dispositivo(s)')}</span>
