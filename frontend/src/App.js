@@ -1048,7 +1048,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
               }}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar tipo" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Sin tipo</SelectItem>
+                <SelectItem value="none">{t('devices.noType', 'Sin tipo')}</SelectItem>
                   {deviceTypes.map((t) => { const Icon = getIcon(t.icon); return <SelectItem key={t.id} value={t.id}><div className="flex items-center gap-2"><Icon className="w-4 h-4" style={{ color: t.color }} />{t.name}</div></SelectItem>; })}
                 </SelectContent>
               </Select>
@@ -3057,7 +3057,7 @@ const ScheduledReportsPanel = ({ organizations }) => {
         {/* Actions */}
         <div className="flex gap-2 pt-4 border-t">
           <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Guardando..." : "Guardar configuración"}
+            {saving ? t('common.saving', 'Guardando...') : t('settings.saveConfig', 'Guardar configuración')}
           </Button>
           <Button variant="outline" onClick={handleSendNow} disabled={sending || !config.enabled}>
             <Send className="w-4 h-4 mr-2" />
@@ -3292,7 +3292,7 @@ const BackupPanel = () => {
               variant="outline"
             >
               <Plus className="w-4 h-4 mr-1" />
-              {creating ? "Creando..." : "Crear ahora"}
+              {creating ? t('common.creating', 'Creando...') : t('backup.createNow', 'Crear ahora')}
             </Button>
           </div>
 
@@ -3509,7 +3509,7 @@ const DailyReportPanel = () => {
             <p className="font-medium text-sm">Vista previa del informe</p>
             <Button variant="outline" size="sm" onClick={loadPreview} disabled={loadingPreview}>
               <Eye className="w-4 h-4 mr-1" />
-              {loadingPreview ? "Cargando..." : "Ver preview"}
+              {loadingPreview ? t('common.loading', 'Cargando...') : t('reports.viewPreview', 'Ver preview')}
             </Button>
           </div>
           {preview && (
@@ -3537,7 +3537,7 @@ const DailyReportPanel = () => {
         {/* Actions */}
         <div className="flex gap-2 pt-4 border-t">
           <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Guardando..." : "Guardar configuración"}
+            {saving ? t('common.saving', 'Guardando...') : t('settings.saveConfig', 'Guardar configuración')}
           </Button>
           <Button 
             variant="outline" 
@@ -3765,7 +3765,7 @@ const AccessLogsPanel = () => {
               onClick={() => setShowSecurity(!showSecurity)}
               className="text-red-700"
             >
-              {showSecurity ? "Ocultar detalles" : "Ver detalles"}
+              {showSecurity ? t('security.hideDetails', 'Ocultar detalles') : t('security.showDetails', 'Ver detalles')}
             </Button>
             {showSecurity && (
               <div className="mt-3 space-y-3">
