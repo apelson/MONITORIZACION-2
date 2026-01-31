@@ -4593,13 +4593,26 @@ const Dashboard = () => {
         setRecentFailures(prev => [...newFailures, ...prev].slice(0, 50));
         // Auto-show popup if there are new failures
         setFailuresDialogOpen(true);
+        // Play alert sound for device failures
+        playAlertSound();
       }
+      
+      // Check for new alerts and play sound
+      const newAlerts = alertRes.data.alerts || [];
+      const newAlertIds = new Set(newAlerts.map(a => a.id));
+      const hasNewDeviceDownAlerts = newAlerts.some(a => 
+        a.alert_type === 'device_down' && !previousAlertIds.has(a.id)
+      );
+      if (hasNewDeviceDownAlerts && previousAlertIds.size > 0) {
+        playAlertSound();
+      }
+      setPreviousAlertIds(newAlertIds);
       
       setDevices(newDevices);
       setOrganizations(orgRes.data.organizations || []);
       setGroups(grpRes.data.groups || []);
       setDeviceTypes(typeRes.data.device_types || []);
-      setAlerts(alertRes.data.alerts || []);
+      setAlerts(newAlerts);
       // Only fetch admin data if user is admin
       if (user?.role === "admin") {
         const [usrRes, setRes] = await Promise.all([authAxios.get("/users"), authAxios.get("/settings")]);
