@@ -457,7 +457,10 @@
   },
   "alerts": {
     "noRecentFailures": "No recent failures",
-    "sent": "Envoyé"
+    "sent": "Envoyé",
+    "deviceDisconnected": "L'appareil s'est déconnecté",
+    "deviceRecovered": "L'appareil s'est rétabli",
+    "noAlerts": "Aucune alerte"
   },
   "logs": {
     "authLogin": "Login",

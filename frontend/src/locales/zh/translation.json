@@ -456,7 +456,10 @@
   },
   "alerts": {
     "noRecentFailures": "No recent failures",
-    "sent": "已发送"
+    "sent": "已发送",
+    "deviceDisconnected": "设备已断开连接",
+    "deviceRecovered": "设备已恢复",
+    "noAlerts": "无警报"
   },
   "logs": {
     "authLogin": "Login",

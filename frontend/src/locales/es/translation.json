@@ -542,7 +542,10 @@
   },
   "alerts": {
     "noRecentFailures": "No hay fallos recientes",
-    "sent": "Enviado"
+    "sent": "Enviado",
+    "deviceDisconnected": "Dispositivo se ha desconectado",
+    "deviceRecovered": "Dispositivo se ha recuperado",
+    "noAlerts": "No hay alertas"
   },
   "logs": {
     "authLogin": "Inicio sesión",

@@ -456,7 +456,10 @@
   },
   "alerts": {
     "noRecentFailures": "No recent failures",
-    "sent": "Отправлено"
+    "sent": "Отправлено",
+    "deviceDisconnected": "Устройство отключилось",
+    "deviceRecovered": "Устройство восстановлено",
+    "noAlerts": "Нет оповещений"
   },
   "logs": {
     "authLogin": "Login",
