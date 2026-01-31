@@ -399,6 +399,7 @@
     "instantAlerts": "即时电子邮件警报",
     "secureConnection": "安全加密连接",
     "authorizedDistributor": "西班牙和葡萄牙授权Mobotix分销商",
+    "authorizedDistributorShort": "授权经销商",
     "accessSaas": "访问SaaS门户"
   },
   "saas": {

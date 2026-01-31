@@ -399,6 +399,7 @@
     "instantAlerts": "Avvisi email istantanei",
     "secureConnection": "Connessione sicura e crittografata",
     "authorizedDistributor": "Distributore Mobotix autorizzato per Spagna e Portogallo",
+    "authorizedDistributorShort": "Distributore Autorizzato",
     "accessSaas": "Accedi al Portale SaaS"
   },
   "saas": {

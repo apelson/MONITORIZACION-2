@@ -399,6 +399,7 @@
     "instantAlerts": "Мгновенные email-оповещения",
     "secureConnection": "Безопасное зашифрованное соединение",
     "authorizedDistributor": "Авторизованный дистрибьютор Mobotix для Испании и Португалии",
+    "authorizedDistributorShort": "Авторизованный дистрибьютор",
     "accessSaas": "Перейти на SaaS-портал"
   },
   "saas": {
