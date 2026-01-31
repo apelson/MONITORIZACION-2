@@ -27,12 +27,12 @@
     "name": "Name",
     "description": "Beschreibung",
     "date": "Datum",
-    "time": "Zeit",
+    "time": "Uhrzeit",
     "type": "Typ",
     "options": "Optionen",
     "settings": "Einstellungen",
     "details": "Details",
-    "view": "Ansehen",
+    "view": "Anzeigen",
     "download": "Herunterladen",
     "upload": "Hochladen",
     "export": "Exportieren",
@@ -44,8 +44,22 @@
     "required": "Erforderlich",
     "optional": "Optional",
     "needHelp": "Brauchen Sie Hilfe?",
-    "saving": "Speichere...",
-    "deleting": "Lösche..."
+    "saving": "Speichern...",
+    "deleting": "Löschen...",
+    "creating": "Erstellen...",
+    "notes": "Notizen",
+    "notesPlaceholder": "Interne Notizen, Konfiguration...",
+    "color": "Farbe",
+    "logo": "Logo",
+    "preview": "Vorschau",
+    "testing": "Testen...",
+    "sending": "Senden...",
+    "city": "Stadt",
+    "country": "Land/Region",
+    "selectCountry": "Land auswählen",
+    "unspecified": "Nicht angegeben",
+    "dragToReorder": "Ziehen zum Neuordnen",
+    "downloadImage": "Bild herunterladen"
   },
   "auth": {
     "login": "Anmelden",
@@ -80,7 +94,12 @@
     "about": "Über",
     "structure": "Struktur",
     "types": "Typen",
-    "alerts": "Alarme"
+    "alerts": "Alarme",
+    "security": "Sicherheit",
+    "backup": "Backup",
+    "scheduledReports": "Berichte",
+    "dailyReport": "Tagesbericht",
+    "logs": "Protokolle"
   },
   "devices": {
     "title": "Geräte",
@@ -101,7 +120,7 @@
     "lastCheck": "Letzte Prüfung",
     "responseTime": "Antwortzeit",
     "check": "Prüfen",
-    "checking": "Prüfe...",
+    "checking": "Prüfen...",
     "checkAll": "Alle prüfen",
     "openInBrowser": "Im Browser öffnen",
     "viewHistory": "Verlauf anzeigen",
@@ -124,24 +143,47 @@
     "temperature": "Temperatur",
     "illumination": "Beleuchtung",
     "cameras": "Online-Kameras",
-    "alertWhatsApp": "Per WhatsApp benachrichtigen",
-    "cloneDescription": "Port und Name ändern um neues Gerät zu erstellen"
+    "alertWhatsApp": "Per WhatsApp warnen",
+    "cloneDescription": "Port und Name ändern um neues Gerät zu erstellen",
+    "notVerified": "Nicht geprüft",
+    "selectType": "Typ auswählen",
+    "selectGroup": "Keine Gruppe",
+    "brand": "Marke",
+    "brandPlaceholder": "Z.B.: Hikvision, Synology",
+    "modelPlaceholder": "Z.B.: DS-2CD2143G2",
+    "locationPlaceholder": "Z.B.: Büro Madrid - Etage 2",
+    "viewFirmwareInfo": "Firmware-Informationen anzeigen",
+    "selectPath": "Pfad auswählen",
+    "enableStatistics": "MxAnalytics Statistiken",
+    "recentlyOffline": "Geräte mit kürzlichem Verbindungsverlust",
+    "clickToFilter": "Auf einen Typ klicken um Geräte zu filtern"
+  },
+  "organizations": {
+    "title": "Organisationen",
+    "addOrganization": "Neue Organisation",
+    "editOrganization": "Organisation bearbeiten",
+    "deleteOrganization": "Organisation löschen",
+    "organizationName": "Organisationsname",
+    "noOrganizations": "Keine Organisationen",
+    "hierarchicalStructure": "Hierarchische Struktur Ihrer Geräte"
   },
   "groups": {
     "title": "Gruppen",
     "addGroup": "Gruppe hinzufügen",
+    "newGroup": "Neue Gruppe",
     "editGroup": "Gruppe bearbeiten",
     "deleteGroup": "Gruppe löschen",
     "groupName": "Gruppenname",
     "groupDescription": "Gruppenbeschreibung",
-    "devicesInGroup": "Geräte in der Gruppe",
+    "devicesInGroup": "Geräte in Gruppe",
     "noGroups": "Keine Gruppen",
     "groupCreated": "Gruppe erfolgreich erstellt",
     "groupUpdated": "Gruppe erfolgreich aktualisiert",
     "groupDeleted": "Gruppe erfolgreich gelöscht",
     "confirmDelete": "Möchten Sie diese Gruppe wirklich löschen?",
     "allGroups": "Alle Gruppen",
-    "ungrouped": "Ohne Gruppe"
+    "ungrouped": "Ohne Gruppe",
+    "allowedGroups": "Erlaubte Gruppen"
   },
   "incidents": {
     "title": "Vorfälle",
@@ -170,11 +212,20 @@
     "incidentCreated": "Vorfall erfolgreich erstellt",
     "incidentUpdated": "Vorfall erfolgreich aktualisiert",
     "incidentDeleted": "Vorfall erfolgreich gelöscht",
-    "relatedDevice": "Zugehöriges Gerät"
+    "relatedDevice": "Zugehöriges Gerät",
+    "markResolved": "Als gelöst markieren",
+    "resolveIncident": "Vorfall lösen",
+    "solutionApplied": "Angewandte Lösung",
+    "describeSolution": "Beschreiben Sie die Problemlösung...",
+    "additionalNotes": "Zusätzliche Notizen",
+    "sparePartsInfo": "Zusätzliche Infos, verwendete Ersatzteile, etc.",
+    "category": "Kategorie",
+    "openIncidents": "Offene Vorfälle"
   },
   "users": {
     "title": "Benutzer",
     "addUser": "Benutzer hinzufügen",
+    "newUser": "Neuer Benutzer",
     "editUser": "Benutzer bearbeiten",
     "deleteUser": "Benutzer löschen",
     "userName": "Benutzername",
@@ -195,7 +246,9 @@
     "currentPassword": "Aktuelles Passwort",
     "newPassword": "Neues Passwort",
     "roleManager": "Manager",
-    "roleOperator": "Operator"
+    "roleOperator": "Operator",
+    "fullName": "Vollständiger Name",
+    "minChars": "Mindestens 6 Zeichen"
   },
   "notifications": {
     "title": "Benachrichtigungen",
@@ -206,12 +259,13 @@
     "addRecipient": "Empfänger hinzufügen",
     "testEmail": "Test-E-Mail senden",
     "emailSent": "E-Mail erfolgreich gesendet",
-    "noNotifications": "Keine Benachrichtigungen"
+    "noNotifications": "Keine Benachrichtigungen",
+    "alertEmail": "Alarm-E-Mail"
   },
   "camera": {
     "title": "Mobotix Kamera-Informationen",
-    "querying": "Kamera wird abgefragt...",
-    "connectionError": "Verbindung zur Kamera nicht möglich. Überprüfen Sie, ob die HTTP-API aktiviert ist und die Anmeldedaten korrekt sind.",
+    "querying": "Kamera abfragen...",
+    "connectionError": "Verbindung zur Kamera nicht möglich. Überprüfen Sie die HTTP-API und Anmeldedaten.",
     "recording": "Aufnahme",
     "recordingActive": "AUFNAHME",
     "recordingInactive": "Inaktiv",
@@ -240,7 +294,8 @@
     "frameRate": "Bildrate",
     "quality": "Qualität",
     "sensors": "Sensoren",
-    "endpointsNotAvailable": "Endpunkte nicht verfügbar"
+    "endpointsNotAvailable": "Endpunkte nicht verfügbar",
+    "hardware": "Hardware"
   },
   "reports": {
     "title": "Berichte",
@@ -254,10 +309,20 @@
     "incidents": "Vorfälle",
     "exportPDF": "PDF exportieren",
     "exportExcel": "Excel exportieren",
-    "noData": "Keine Daten vorhanden"
+    "noData": "Keine Daten verfügbar",
+    "scheduled": "Geplante Berichte",
+    "sendPeriodic": "Periodische Statusberichte senden",
+    "frequency": "Häufigkeit",
+    "daily": "Täglich",
+    "weekly": "Wöchentlich",
+    "monthly": "Monatlich",
+    "dayOfWeek": "Wochentag",
+    "dayOfMonth": "Tag des Monats",
+    "reportContent": "Berichtsinhalt",
+    "viewPreview": "Vorschau anzeigen"
   },
   "stats": {
-    "totalDevices": "Gesamtgeräte",
+    "totalDevices": "Geräte gesamt",
     "onlineDevices": "Online",
     "offlineDevices": "Offline",
     "avgResponseTime": "Durchschn. Antwortzeit",
@@ -266,7 +331,13 @@
     "last24h": "Letzte 24h",
     "last7d": "Letzte 7 Tage",
     "last30d": "Letzte 30 Tage",
-    "title": "Statistiken"
+    "title": "Statistiken",
+    "enableStatsHint": "Um Statistiken zu sehen, bearbeiten Sie eine Kamera und aktivieren Sie \"MxAnalytics Statistiken\".",
+    "entries": "Eingänge",
+    "exits": "Ausgänge",
+    "entry": "Eingang",
+    "exit": "Ausgang",
+    "heatmap": "Heatmap"
   },
   "history": {
     "title": "Verlauf",
@@ -280,16 +351,87 @@
   "settings": {
     "title": "Einstellungen",
     "general": "Allgemein",
-    "appearance": "Erscheinungsbild",
+    "appearance": "Darstellung",
     "language": "Sprache",
     "theme": "Design",
     "themeLight": "Hell",
     "themeDark": "Dunkel",
     "themeSystem": "System",
     "checkInterval": "Prüfintervall",
-    "timeout": "Zeitüberschreitung",
+    "timeout": "Timeout",
     "retries": "Wiederholungen",
-    "saved": "Einstellungen gespeichert"
+    "saved": "Einstellungen gespeichert",
+    "smtp": "SMTP-Server",
+    "smtpHost": "SMTP-Server",
+    "smtpPort": "Port",
+    "smtpUser": "Benutzer/E-Mail",
+    "smtpPassword": "Passwort",
+    "smtpUseSSL": "SSL verwenden (Port 465)",
+    "smtpConfig": "Mailserver für Alarme und Benachrichtigungen konfigurieren",
+    "advanced": "Erweiterte Einstellungen",
+    "testEmailBtn": "E-Mail testen"
+  },
+  "security": {
+    "title": "Sicherheit",
+    "blockedIPs": "Blockierte IPs",
+    "blacklist": "Schwarze Liste",
+    "events": "Sicherheitsereignisse",
+    "addToBlacklist": "Zur Schwarzen Liste hinzufügen",
+    "ipAddress": "IP-Adresse",
+    "reason": "Grund",
+    "reasonOptional": "Grund (optional)",
+    "blockedManually": "Manuell blockiert",
+    "adding": "Hinzufügen...",
+    "addBtn": "Hinzufügen"
+  },
+  "backup": {
+    "title": "Backup & Wiederherstellung",
+    "autoBackups": "Automatische Backups auf dem Server gespeichert",
+    "downloadComplete": "Vollständige Kopie aller Daten herunterladen",
+    "downloadJSON": "JSON herunterladen",
+    "downloading": "Herunterladen...",
+    "restore": "Wiederherstellen",
+    "restoring": "Wiederherstellen...",
+    "selectFile": "Datei auswählen",
+    "createNow": "Jetzt erstellen",
+    "creating": "Erstellen...",
+    "saveConfig": "Konfiguration speichern"
+  },
+  "pwa": {
+    "installTitle": "Siempria Monitor installieren",
+    "installIOS": "Tippen Sie auf Teilen und 'Zum Home-Bildschirm'",
+    "installAndroid": "App installieren für schnellen Zugriff und Benachrichtigungen",
+    "installBtn": "App installieren"
+  },
+  "loading": {
+    "initSecurity": "Sicherheitssystem initialisieren...",
+    "connecting": "Mit Servern verbinden...",
+    "verifying": "Anmeldedaten überprüfen...",
+    "loadingDevices": "Überwachungsgeräte laden...",
+    "ready": "System bereit"
+  },
+  "login": {
+    "title": "Network Monitor",
+    "subtitle": "Professionelles Überwachungssystem",
+    "monitoring247": "Echtzeit-Überwachung 24/7",
+    "instantAlerts": "Sofortige E-Mail-Alarme",
+    "secureConnection": "Sichere verschlüsselte Verbindung",
+    "authorizedDistributor": "Autorisierter Händler"
+  },
+  "publicDashboard": {
+    "title": "Öffentliches Dashboard",
+    "enabled": "Aktiviert",
+    "password": "Passwort",
+    "passwordHint": "Leer lassen für freien Zugang",
+    "showImages": "Bilder anzeigen",
+    "showDetails": "Details anzeigen (IP/Port)",
+    "regenerateToken": "Token neu generieren"
+  },
+  "deviceTypes": {
+    "title": "Gerätetypen",
+    "addType": "Neuer Gerätetyp",
+    "editType": "Typ bearbeiten",
+    "icon": "Symbol"
   },
   "saas": {
     "welcome": "Willkommen bei",
@@ -306,18 +448,18 @@
     "feature1Title": "24/7 Überwachung",
     "feature1Desc": "Überwachen Sie Ihre Geräte rund um die Uhr",
     "feature2Title": "Intelligente Alarme",
-    "feature2Desc": "Erhalten Sie sofortige Benachrichtigungen bei Ausfällen",
+    "feature2Desc": "Sofortige Benachrichtigungen bei Ausfällen",
     "feature3Title": "Detaillierte Berichte",
-    "feature3Desc": "Vollständige Analyse der Infrastrukturleistung",
+    "feature3Desc": "Vollständige Analyse Ihrer Infrastrukturleistung",
     "feature4Title": "Multi-Standort",
     "feature4Desc": "Verwalten Sie mehrere Standorte von einem Dashboard",
-    "tenantDashboard": "Mandanten-Dashboard",
+    "tenantDashboard": "Tenant-Dashboard",
     "createTenant": "Unternehmen erstellen",
     "tenantName": "Unternehmensname",
     "tenantCreated": "Unternehmen erfolgreich erstellt",
     "upgradePlan": "Plan upgraden",
     "currentPlan": "Aktueller Plan",
-    "basic": "Basis",
+    "basic": "Basic",
     "professional": "Professional",
     "unlimited": "Unbegrenzt",
     "devicesLimit": "Geräte",
@@ -325,7 +467,7 @@
     "monthlyPrice": "/Monat",
     "yearlyPrice": "/Jahr",
     "selectPlan": "Plan auswählen",
-    "popularPlan": "Am beliebtesten",
+    "popularPlan": "Beliebtester",
     "copyright": "Alle Rechte vorbehalten"
   },
   "validation": {
@@ -335,7 +477,10 @@
     "maxLength": "Maximal {{max}} Zeichen",
     "passwordMismatch": "Passwörter stimmen nicht überein",
     "invalidIP": "Ungültige IP-Adresse",
-    "invalidPort": "Ungültiger Port"
+    "invalidPort": "Ungültiger Port",
+    "completeFields": "Alle Felder ausfüllen",
+    "nameRequired": "Name erforderlich",
+    "nameAndOrgRequired": "Name und Organisation erforderlich"
   },
   "errors": {
     "generic": "Ein Fehler ist aufgetreten",
