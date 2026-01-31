@@ -4794,16 +4794,16 @@ const Dashboard = () => {
           <TabsList className="mb-6 flex-wrap h-auto gap-1">
             <TabsTrigger data-testid="tab-devices" value="devices" className="gap-2">
               {isOperator ? <Camera className="w-4 h-4" /> : <Server className="w-4 h-4" />}
-              {isOperator ? "Cámaras Online" : "Dispositivos"}
+              {isOperator ? t('devices.cameras', 'Cámaras Online') : t('nav.devices')}
             </TabsTrigger>
-            {!isOperator && !isTechnician && <TabsTrigger data-testid="tab-statistics" value="statistics" className="gap-2"><BarChart3 className="w-4 h-4" />Estadísticas</TabsTrigger>}
-            {!isOperator && <TabsTrigger data-testid="tab-structure" value="structure" className="gap-2"><Building2 className="w-4 h-4" />Estructura</TabsTrigger>}
-            {!isOperator && <TabsTrigger data-testid="tab-types" value="types" className="gap-2"><Tag className="w-4 h-4" />Tipos</TabsTrigger>}
-            {!isOperator && <TabsTrigger data-testid="tab-alerts" value="alerts" className="gap-2"><Bell className="w-4 h-4" />Alertas{alerts.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-1.5">{alerts.length}</Badge>}</TabsTrigger>}
-            {isAdmin && <TabsTrigger data-testid="tab-users" value="users" className="gap-2"><Users className="w-4 h-4" />Usuarios</TabsTrigger>}
+            {!isOperator && !isTechnician && <TabsTrigger data-testid="tab-statistics" value="statistics" className="gap-2"><BarChart3 className="w-4 h-4" />{t('stats.title', 'Estadísticas')}</TabsTrigger>}
+            {!isOperator && <TabsTrigger data-testid="tab-structure" value="structure" className="gap-2"><Building2 className="w-4 h-4" />{t('nav.structure', 'Estructura')}</TabsTrigger>}
+            {!isOperator && <TabsTrigger data-testid="tab-types" value="types" className="gap-2"><Tag className="w-4 h-4" />{t('nav.types', 'Tipos')}</TabsTrigger>}
+            {!isOperator && <TabsTrigger data-testid="tab-alerts" value="alerts" className="gap-2"><Bell className="w-4 h-4" />{t('nav.alerts', 'Alertas')}{alerts.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-1.5">{alerts.length}</Badge>}</TabsTrigger>}
+            {isAdmin && <TabsTrigger data-testid="tab-users" value="users" className="gap-2"><Users className="w-4 h-4" />{t('nav.users')}</TabsTrigger>}
             {isAdmin && <TabsTrigger data-testid="tab-logs" value="logs" className="gap-2"><FileSearch className="w-4 h-4" />Logs</TabsTrigger>}
-            {(isAdmin || isTechnician) && <TabsTrigger data-testid="tab-incidents" value="incidents" className="gap-2"><ClipboardList className="w-4 h-4" />Incidencias</TabsTrigger>}
-            {isAdmin && <TabsTrigger data-testid="tab-settings" value="settings" className="gap-2"><Settings className="w-4 h-4" />Config</TabsTrigger>}
+            {(isAdmin || isTechnician) && <TabsTrigger data-testid="tab-incidents" value="incidents" className="gap-2"><ClipboardList className="w-4 h-4" />{t('nav.incidents')}</TabsTrigger>}
+            {isAdmin && <TabsTrigger data-testid="tab-settings" value="settings" className="gap-2"><Settings className="w-4 h-4" />{t('nav.settings')}</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="devices">
