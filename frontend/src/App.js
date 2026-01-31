@@ -5047,8 +5047,8 @@ const Dashboard = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPasswordDialogOpen(false)}{t('common.cancel')}</Button>
-            <Button onClick={handleSetPassword}>Guardar</Button>
+            <Button variant="outline" onClick={() => setPasswordDialogOpen(false)}>{t('common.cancel')}</Button>
+            <Button onClick={handleSetPassword}>{t('common.save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
