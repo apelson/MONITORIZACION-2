@@ -1046,7 +1046,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
                   setFormData({ ...formData, device_type_id: newTypeId });
                 }
               }}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar tipo" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t('devices.selectType', 'Seleccionar tipo')} /></SelectTrigger>
                 <SelectContent>
                 <SelectItem value="none">{t('devices.noType', 'Sin tipo')}</SelectItem>
                   {deviceTypes.map((t) => { const Icon = getIcon(t.icon); return <SelectItem key={t.id} value={t.id}><div className="flex items-center gap-2"><Icon className="w-4 h-4" style={{ color: t.color }} />{t.name}</div></SelectItem>; })}
@@ -1106,7 +1106,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
                   <Label>{t('devices.imagePath', 'Ruta de imagen')}</Label>
                   <div className="flex gap-2">
                     <Select value={formData.camera_path || "custom"} onValueChange={(v) => setFormData({ ...formData, camera_path: v === "custom" ? "" : v })}>
-                      <SelectTrigger className="w-[200px]"><SelectValue placeholder="Seleccionar ruta" /></SelectTrigger>
+                      <SelectTrigger className="w-[200px]"><SelectValue placeholder={t('devices.selectPath', 'Seleccionar ruta')} /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="/record/current.jpg">{t('devices.pathMobotixRecord', 'Mobotix (record)')}</SelectItem>
                         <SelectItem value="/cgi-bin/image.jpg">{t('devices.pathMobotixCgi', 'Mobotix (cgi-bin)')}</SelectItem>
@@ -1253,7 +1253,7 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
               <div className="space-y-2">
                 <Label>{t('common.country', 'País/Región')}</Label>
                 <Select value={formData.country || "none"} onValueChange={(v) => setFormData({ ...formData, country: v === "none" ? "" : v })}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar país" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t('common.selectCountry', 'Seleccionar país')} /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">{t('common.unspecified', 'Sin especificar')}</SelectItem>
                     {countries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
@@ -1337,7 +1337,7 @@ const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) =
             <div className="space-y-2"><Label>{t('common.name', 'Nombre')} *</Label><Input data-testid="group-name-input" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
             <div className="space-y-2"><Label>{t('organizations.title', 'Organización')} *</Label>
               <Select value={formData.organization_id} onValueChange={(v) => setFormData({ ...formData, organization_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t('common.select', 'Seleccionar')} /></SelectTrigger>
                 <SelectContent>{organizations.map((o) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
@@ -3274,7 +3274,7 @@ const BackupPanel = () => {
               className="border-amber-600 text-amber-700 hover:bg-amber-100"
             >
               <Upload className="w-4 h-4 mr-2" />
-              {restoring ? "Restaurando..." : "Seleccionar archivo"}
+              {restoring ? t('backup.restoring', 'Restaurando...') : t('backup.selectFile', 'Seleccionar archivo')}
             </Button>
             <span className="text-xs text-amber-600">JSON o ZIP</span>
           </div>
@@ -4327,7 +4327,7 @@ const IncidentsPanel = ({ devices }) => {
             <div className="space-y-2">
               <label className="text-sm font-medium">Dispositivo relacionado (opcional)</label>
               <Select value={formData.device_id || "none"} onValueChange={(v) => setFormData({ ...formData, device_id: v === "none" ? "" : v })}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t('common.select', 'Seleccionar...')} /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Ninguno</SelectItem>
                   {devices.map(d => (
