@@ -4067,7 +4067,7 @@ const IncidentsPanel = ({ devices }) => {
       in_progress: "bg-yellow-100 text-yellow-700",
       resolved: "bg-green-100 text-green-700"
     };
-    const labels = { open: "Abierta", in_progress: "En Progreso", resolved: "Resuelta" };
+    const labels = { open: t('incidents.statusOpen', 'Abierta'), in_progress: t('incidents.statusInProgress', 'En Progreso'), resolved: t('incidents.statusResolved', 'Resuelta') };
     return <Badge className={styles[status] || styles.open}>{labels[status] || status}</Badge>;
   };
 
@@ -4079,25 +4079,25 @@ const IncidentsPanel = ({ devices }) => {
           <Card className="bg-gradient-to-br from-red-50 to-red-100">
             <CardContent className="p-4 text-center">
               <p className="text-3xl font-bold text-red-700">{stats.open}</p>
-              <p className="text-sm text-red-600">Abiertas</p>
+              <p className="text-sm text-red-600">{t('incidents.statusOpen', 'Abiertas')}</p>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100">
             <CardContent className="p-4 text-center">
               <p className="text-3xl font-bold text-yellow-700">{stats.in_progress}</p>
-              <p className="text-sm text-yellow-600">En Progreso</p>
+              <p className="text-sm text-yellow-600">{t('incidents.statusInProgress', 'En Progreso')}</p>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-green-50 to-green-100">
             <CardContent className="p-4 text-center">
               <p className="text-3xl font-bold text-green-700">{stats.resolved}</p>
-              <p className="text-sm text-green-600">Resueltas</p>
+              <p className="text-sm text-green-600">{t('incidents.statusResolved', 'Resueltas')}</p>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
             <CardContent className="p-4 text-center">
               <p className="text-3xl font-bold text-blue-700">{stats.total}</p>
-              <p className="text-sm text-blue-600">Total</p>
+              <p className="text-sm text-blue-600">{t('common.total', 'Total')}</p>
             </CardContent>
           </Card>
         </div>
@@ -4110,9 +4110,9 @@ const IncidentsPanel = ({ devices }) => {
             <SelectTrigger className="w-[150px]"><SelectValue placeholder="Estado" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="open">Abiertas</SelectItem>
-              <SelectItem value="in_progress">En Progreso</SelectItem>
-              <SelectItem value="resolved">Resueltas</SelectItem>
+              <SelectItem value="open">{t('incidents.statusOpen', 'Abiertas')}</SelectItem>
+              <SelectItem value="in_progress">{t('incidents.statusInProgress', 'En Progreso')}</SelectItem>
+              <SelectItem value="resolved">{t('incidents.statusResolved', 'Resueltas')}</SelectItem>
             </SelectContent>
           </Select>
           <Select value={filter.priority || "all"} onValueChange={(v) => setFilter({ ...filter, priority: v === "all" ? "" : v })}>
