@@ -59,7 +59,9 @@
     "selectCountry": "Seleccionar país",
     "unspecified": "Sin especificar",
     "dragToReorder": "Arrastrar para reordenar",
-    "downloadImage": "Descargar imagen"
+    "downloadImage": "Descargar imagen",
+    "total": "Total",
+    "clear": "Limpiar"
   },
   "auth": {
     "login": "Iniciar Sesión",
@@ -167,7 +169,8 @@
     "pathCustom": "Personalizada...",
     "pathHint": "Selecciona una ruta predefinida o escribe una personalizada",
     "statsHint": "Habilita si la cámara tiene conteo de personas y mapa de calor (Mobotix C25/C26)",
-    "noType": "Sin tipo"
+    "noType": "Sin tipo",
+    "deviceCount": "dispositivo(s)"
   },
   "organizations": {
     "title": "Organizaciones",
@@ -231,7 +234,12 @@
     "additionalNotes": "Notas adicionales",
     "sparePartsInfo": "Información adicional, repuestos usados, etc.",
     "category": "Categoría",
-    "openIncidents": "Incidencias Abiertas"
+    "openIncidents": "Incidencias Abiertas",
+    "createFromAlert": "Crear Incidencia desde Alerta",
+    "list": "Lista de Incidencias",
+    "detail": "Detalle de Incidencia",
+    "markInProgress": "Marcar En Progreso",
+    "selectToView": "Selecciona una incidencia para ver los detalles"
   },
   "users": {
     "title": "Usuarios",
@@ -350,7 +358,10 @@
     "exits": "Salidas",
     "entry": "Entrada",
     "exit": "Salida",
-    "heatmap": "Mapa de calor"
+    "heatmap": "Mapa de calor",
+    "selectCamera": "Selecciona una cámara",
+    "totalPeople": "Total Personas",
+    "hourlyDetail": "Detalle por Hora"
   },
   "history": {
     "title": "Historial",
@@ -398,7 +409,8 @@
     "adding": "Añadiendo...",
     "addBtn": "Añadir",
     "hideDetails": "Ocultar detalles",
-    "showDetails": "Ver detalles"
+    "showDetails": "Ver detalles",
+    "alertsLast24h": "Alertas de Seguridad (últimas 24h)"
   },
   "backup": {
     "title": "Backup y Restauración",
@@ -520,13 +532,15 @@
   "filters": {
     "allOrgs": "Todas las org.",
     "allGroups": "Todos los grupos",
-    "allTypes": "Todos los tipos"
+    "allTypes": "Todos los tipos",
+    "clear": "Limpiar filtros"
   },
   "structure": {
     "title": "Organizaciones y Grupos"
   },
   "alerts": {
-    "noRecentFailures": "No hay fallos recientes"
+    "noRecentFailures": "No hay fallos recientes",
+    "sent": "Enviado"
   },
   "logs": {
     "authLogin": "Inicio sesión",
@@ -552,6 +566,8 @@
     "backupCreate": "Crear backup",
     "backupRestore": "Restaurar backup",
     "backupDownload": "Descargar backup",
-    "exportData": "Exportar datos"
+    "exportData": "Exportar datos",
+    "totalEvents": "Total (7 días)",
+    "activeUsers": "Usuarios Activos"
   }
 }

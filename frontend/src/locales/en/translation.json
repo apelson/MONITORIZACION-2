@@ -59,7 +59,9 @@
     "selectCountry": "Select country",
     "unspecified": "Unspecified",
     "dragToReorder": "Drag to reorder",
-    "downloadImage": "Download image"
+    "downloadImage": "Download image",
+    "total": "Total",
+    "clear": "Clear"
   },
   "auth": {
     "login": "Sign In",
@@ -167,7 +169,8 @@
     "pathCustom": "Custom...",
     "pathHint": "Select a predefined path or enter a custom one",
     "statsHint": "Enable if camera has people counting and heatmap (Mobotix C25/C26)",
-    "noType": "No type"
+    "noType": "No type",
+    "deviceCount": "device(s)"
   },
   "organizations": {
     "title": "Organizations",
@@ -231,7 +234,12 @@
     "additionalNotes": "Additional notes",
     "sparePartsInfo": "Additional info, spare parts used, etc.",
     "category": "Category",
-    "openIncidents": "Open Incidents"
+    "openIncidents": "Open Incidents",
+    "createFromAlert": "Create Incident from Alert",
+    "list": "Incident List",
+    "detail": "Incident Detail",
+    "markInProgress": "Mark In Progress",
+    "selectToView": "Select an incident to view details"
   },
   "users": {
     "title": "Users",
@@ -350,7 +358,10 @@
     "exits": "Exits",
     "entry": "Entry",
     "exit": "Exit",
-    "heatmap": "Heatmap"
+    "heatmap": "Heatmap",
+    "selectCamera": "Select a camera",
+    "totalPeople": "Total People",
+    "hourlyDetail": "Hourly Detail"
   },
   "history": {
     "title": "History",
@@ -398,7 +409,8 @@
     "adding": "Adding...",
     "addBtn": "Add",
     "hideDetails": "Hide details",
-    "showDetails": "Show details"
+    "showDetails": "Show details",
+    "alertsLast24h": "Security Alerts (last 24h)"
   },
   "backup": {
     "title": "Backup & Restore",
@@ -520,13 +532,15 @@
   "filters": {
     "allOrgs": "All organizations",
     "allGroups": "All groups",
-    "allTypes": "All types"
+    "allTypes": "All types",
+    "clear": "Clear filters"
   },
   "structure": {
     "title": "Organizations and Groups"
   },
   "alerts": {
-    "noRecentFailures": "No recent failures"
+    "noRecentFailures": "No recent failures",
+    "sent": "Sent"
   },
   "logs": {
     "authLogin": "Login",
@@ -552,6 +566,8 @@
     "backupCreate": "Create backup",
     "backupRestore": "Restore backup",
     "backupDownload": "Download backup",
-    "exportData": "Export data"
+    "exportData": "Export data",
+    "totalEvents": "Total (7 days)",
+    "activeUsers": "Active Users"
   }
 }

@@ -59,7 +59,9 @@
     "selectCountry": "Land auswählen",
     "unspecified": "Nicht angegeben",
     "dragToReorder": "Ziehen zum Neuordnen",
-    "downloadImage": "Bild herunterladen"
+    "downloadImage": "Bild herunterladen",
+    "total": "Gesamt",
+    "clear": "Löschen"
   },
   "auth": {
     "login": "Anmelden",
@@ -167,7 +169,8 @@
     "pathCustom": "Custom...",
     "pathHint": "Select a path",
     "statsHint": "Enable for MxAnalytics",
-    "noType": "No type"
+    "noType": "No type",
+    "deviceCount": "Gerät(e)"
   },
   "organizations": {
     "title": "Organisationen",
@@ -231,7 +234,12 @@
     "additionalNotes": "Zusätzliche Notizen",
     "sparePartsInfo": "Zusätzliche Infos, verwendete Ersatzteile, etc.",
     "category": "Kategorie",
-    "openIncidents": "Offene Vorfälle"
+    "openIncidents": "Offene Vorfälle",
+    "createFromAlert": "Vorfall aus Alarm erstellen",
+    "list": "Vorfallsliste",
+    "detail": "Vorfallsdetail",
+    "markInProgress": "Als In Bearbeitung markieren",
+    "selectToView": "Wählen Sie einen Vorfall um Details zu sehen"
   },
   "users": {
     "title": "Benutzer",
@@ -350,7 +358,10 @@
     "exits": "Ausgänge",
     "entry": "Eingang",
     "exit": "Ausgang",
-    "heatmap": "Heatmap"
+    "heatmap": "Heatmap",
+    "selectCamera": "Kamera auswählen",
+    "totalPeople": "Personen Gesamt",
+    "hourlyDetail": "Stündliches Detail"
   },
   "history": {
     "title": "Verlauf",
@@ -398,7 +409,8 @@
     "adding": "Hinzufügen...",
     "addBtn": "Hinzufügen",
     "hideDetails": "Hide",
-    "showDetails": "Show"
+    "showDetails": "Show",
+    "alertsLast24h": "Sicherheitswarnungen (letzte 24h)"
   },
   "backup": {
     "title": "Backup & Wiederherstellung",
@@ -520,13 +532,15 @@
   "filters": {
     "allOrgs": "All",
     "allGroups": "All groups",
-    "allTypes": "All types"
+    "allTypes": "All types",
+    "clear": "Filter löschen"
   },
   "structure": {
     "title": "Structure"
   },
   "alerts": {
-    "noRecentFailures": "No recent failures"
+    "noRecentFailures": "No recent failures",
+    "sent": "Gesendet"
   },
   "logs": {
     "authLogin": "Login",
@@ -552,6 +566,8 @@
     "backupCreate": "Backup",
     "backupRestore": "Restore",
     "backupDownload": "Download",
-    "exportData": "Export"
+    "exportData": "Export",
+    "totalEvents": "Gesamt (7 Tage)",
+    "activeUsers": "Aktive Benutzer"
   }
 }

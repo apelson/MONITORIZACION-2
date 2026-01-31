@@ -59,7 +59,9 @@
     "selectCountry": "Выберите страну",
     "unspecified": "Не указано",
     "dragToReorder": "Перетащите для изменения порядка",
-    "downloadImage": "Скачать изображение"
+    "downloadImage": "Скачать изображение",
+    "total": "Итого",
+    "clear": "Очистить"
   },
   "auth": {
     "login": "Войти",
@@ -167,7 +169,8 @@
     "pathCustom": "Custom...",
     "pathHint": "Select a path",
     "statsHint": "Enable for MxAnalytics",
-    "noType": "No type"
+    "noType": "No type",
+    "deviceCount": "устройство(а)"
   },
   "organizations": {
     "title": "Организации",
@@ -231,7 +234,12 @@
     "additionalNotes": "Дополнительные заметки",
     "sparePartsInfo": "Дополнительная информация, использованные запчасти и т.д.",
     "category": "Категория",
-    "openIncidents": "Открытые инциденты"
+    "openIncidents": "Открытые инциденты",
+    "createFromAlert": "Создать инцидент из оповещения",
+    "list": "Список Инцидентов",
+    "detail": "Детали Инцидента",
+    "markInProgress": "Отметить как В работе",
+    "selectToView": "Выберите инцидент для просмотра деталей"
   },
   "users": {
     "title": "Пользователи",
@@ -313,7 +321,10 @@
     "exits": "Выходы",
     "entry": "Вход",
     "exit": "Выход",
-    "heatmap": "Тепловая карта"
+    "heatmap": "Тепловая карта",
+    "selectCamera": "Выберите камеру",
+    "totalPeople": "Всего Людей",
+    "hourlyDetail": "Почасовые Данные"
   },
   "settings": {
     "title": "Настройки",
@@ -352,7 +363,8 @@
     "adding": "Добавление...",
     "addBtn": "Добавить",
     "hideDetails": "Hide",
-    "showDetails": "Show"
+    "showDetails": "Show",
+    "alertsLast24h": "Оповещения Безопасности (последние 24ч)"
   },
   "backup": {
     "title": "Резервное копирование",
@@ -434,13 +446,15 @@
   "filters": {
     "allOrgs": "All",
     "allGroups": "All groups",
-    "allTypes": "All types"
+    "allTypes": "All types",
+    "clear": "Очистить фильтры"
   },
   "structure": {
     "title": "Structure"
   },
   "alerts": {
-    "noRecentFailures": "No recent failures"
+    "noRecentFailures": "No recent failures",
+    "sent": "Отправлено"
   },
   "logs": {
     "authLogin": "Login",
@@ -466,6 +480,8 @@
     "backupCreate": "Backup",
     "backupRestore": "Restore",
     "backupDownload": "Download",
-    "exportData": "Export"
+    "exportData": "Export",
+    "totalEvents": "Всего (7 дней)",
+    "activeUsers": "Активные Пользователи"
   }
 }

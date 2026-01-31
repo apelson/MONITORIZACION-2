@@ -59,7 +59,9 @@
     "selectCountry": "选择国家",
     "unspecified": "未指定",
     "dragToReorder": "拖动重新排序",
-    "downloadImage": "下载图片"
+    "downloadImage": "下载图片",
+    "total": "总计",
+    "clear": "清除"
   },
   "auth": {
     "login": "登录",
@@ -167,7 +169,8 @@
     "pathCustom": "Custom...",
     "pathHint": "Select a path",
     "statsHint": "Enable for MxAnalytics",
-    "noType": "No type"
+    "noType": "No type",
+    "deviceCount": "个设备"
   },
   "organizations": {
     "title": "组织",
@@ -231,7 +234,12 @@
     "additionalNotes": "附加备注",
     "sparePartsInfo": "附加信息、使用的备件等",
     "category": "类别",
-    "openIncidents": "开放事件"
+    "openIncidents": "开放事件",
+    "createFromAlert": "从警报创建事件",
+    "list": "事件列表",
+    "detail": "事件详情",
+    "markInProgress": "标记为进行中",
+    "selectToView": "选择一个事件查看详情"
   },
   "users": {
     "title": "用户",
@@ -313,7 +321,10 @@
     "exits": "退出",
     "entry": "进入",
     "exit": "退出",
-    "heatmap": "热力图"
+    "heatmap": "热力图",
+    "selectCamera": "选择摄像机",
+    "totalPeople": "总人数",
+    "hourlyDetail": "每小时详情"
   },
   "settings": {
     "title": "设置",
@@ -352,7 +363,8 @@
     "adding": "添加中...",
     "addBtn": "添加",
     "hideDetails": "Hide",
-    "showDetails": "Show"
+    "showDetails": "Show",
+    "alertsLast24h": "安全警报 (最近24小时)"
   },
   "backup": {
     "title": "备份和恢复",
@@ -434,13 +446,15 @@
   "filters": {
     "allOrgs": "All",
     "allGroups": "All groups",
-    "allTypes": "All types"
+    "allTypes": "All types",
+    "clear": "清除筛选"
   },
   "structure": {
     "title": "Structure"
   },
   "alerts": {
-    "noRecentFailures": "No recent failures"
+    "noRecentFailures": "No recent failures",
+    "sent": "已发送"
   },
   "logs": {
     "authLogin": "Login",
@@ -466,6 +480,8 @@
     "backupCreate": "Backup",
     "backupRestore": "Restore",
     "backupDownload": "Download",
-    "exportData": "Export"
+    "exportData": "Export",
+    "totalEvents": "总计 (7天)",
+    "activeUsers": "活跃用户"
   }
 }

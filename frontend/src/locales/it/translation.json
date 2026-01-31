@@ -59,7 +59,9 @@
     "selectCountry": "Seleziona paese",
     "unspecified": "Non specificato",
     "dragToReorder": "Trascina per riordinare",
-    "downloadImage": "Scarica immagine"
+    "downloadImage": "Scarica immagine",
+    "total": "Totale",
+    "clear": "Pulisci"
   },
   "auth": {
     "login": "Accedi",
@@ -167,7 +169,8 @@
     "pathCustom": "Custom...",
     "pathHint": "Select a path",
     "statsHint": "Enable for MxAnalytics",
-    "noType": "No type"
+    "noType": "No type",
+    "deviceCount": "dispositivo/i"
   },
   "organizations": {
     "title": "Organizzazioni",
@@ -231,7 +234,12 @@
     "additionalNotes": "Note aggiuntive",
     "sparePartsInfo": "Info aggiuntive, parti di ricambio usate, ecc.",
     "category": "Categoria",
-    "openIncidents": "Incidenti aperti"
+    "openIncidents": "Incidenti aperti",
+    "createFromAlert": "Crea Incidente da Allarme",
+    "list": "Lista Incidenti",
+    "detail": "Dettaglio Incidente",
+    "markInProgress": "Segna In Corso",
+    "selectToView": "Seleziona un incidente per vedere i dettagli"
   },
   "users": {
     "title": "Utenti",
@@ -313,7 +321,10 @@
     "exits": "Uscite",
     "entry": "Ingresso",
     "exit": "Uscita",
-    "heatmap": "Mappa termica"
+    "heatmap": "Mappa termica",
+    "selectCamera": "Seleziona una telecamera",
+    "totalPeople": "Totale Persone",
+    "hourlyDetail": "Dettaglio Orario"
   },
   "settings": {
     "title": "Impostazioni",
@@ -352,7 +363,8 @@
     "adding": "Aggiunta...",
     "addBtn": "Aggiungi",
     "hideDetails": "Hide",
-    "showDetails": "Show"
+    "showDetails": "Show",
+    "alertsLast24h": "Avvisi di Sicurezza (ultime 24h)"
   },
   "backup": {
     "title": "Backup e Ripristino",
@@ -434,13 +446,15 @@
   "filters": {
     "allOrgs": "All",
     "allGroups": "All groups",
-    "allTypes": "All types"
+    "allTypes": "All types",
+    "clear": "Pulisci filtri"
   },
   "structure": {
     "title": "Structure"
   },
   "alerts": {
-    "noRecentFailures": "No recent failures"
+    "noRecentFailures": "No recent failures",
+    "sent": "Inviato"
   },
   "logs": {
     "authLogin": "Login",
@@ -466,6 +480,8 @@
     "backupCreate": "Backup",
     "backupRestore": "Restore",
     "backupDownload": "Download",
-    "exportData": "Export"
+    "exportData": "Export",
+    "totalEvents": "Totale (7 giorni)",
+    "activeUsers": "Utenti Attivi"
   }
 }
