@@ -1303,7 +1303,7 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
               <div className="flex gap-2 flex-wrap">{colors.map((c) => <button key={c} type="button" onClick={() => setFormData({ ...formData, color: c })} className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${formData.color === c ? 'border-foreground scale-110' : 'border-transparent'}`} style={{ backgroundColor: c }} />)}</div>
             </div>
           </div>
-          <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button type="submit" disabled={saving}>{saving ? {saving ? t('common.saving', 'Guardando...') : t('common.save')}}</Button></DialogFooter>
+          <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button><Button type="submit" disabled={saving}>{saving ? t('common.saving', 'Guardando...') : t('common.save')}</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
