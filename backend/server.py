@@ -541,11 +541,23 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
             "ntp_server": r'<td>NTP Server</td>\s*<td[^>]*>([^<]+)</td>',
             "time_zone": r'<td>Time Zone</td>\s*<td[^>]*>([^<]+)</td>',
             "time_source": r'<td>Time Source</td>\s*<td[^>]*>([^<]+)</td>',
+            "time_servers_protocol": r'<td>Time Servers</td>\s*<td[^>]*>([^<]+)</td>',
         }
         for key, pattern in time_patterns.items():
             match = re.search(pattern, html, re.IGNORECASE)
             if match:
                 data["time"][key] = decode_html(match.group(1).strip())
+        
+        # Look for NTP pool servers (like 0.pool.ntp.org, 1.pool.ntp.org)
+        ntp_pool_matches = re.findall(r'(\d+\.pool\.ntp\.org|ntp\d*\.[a-zA-Z0-9.-]+|time\.[a-zA-Z0-9.-]+)', html, re.IGNORECASE)
+        if ntp_pool_matches:
+            data["time"]["ntp_servers_found"] = list(set(ntp_pool_matches))
+        
+        # Also look for any IP addresses that might be NTP servers in time-related context
+        # Search for time server IPs in input fields
+        ntp_input_matches = re.findall(r'name=["\']?(?:ntp|time)[^"\']*["\']?\s+value=["\']?([^"\'>\s]+)', html, re.IGNORECASE)
+        if ntp_input_matches:
+            data["time"]["ntp_configured_servers"] = [s for s in ntp_input_matches if s and s.strip()]
         
         # Error/Alarm section
         data["alarms"] = {}
