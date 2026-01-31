@@ -518,11 +518,38 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
         rec_patterns = {
             "recording_mode": r'<td>Recording Mode</td>\s*<td[^>]*>([^<]+)</td>',
             "event_frame_rate": r'<td>Event Frame Rate</td>\s*<td[^>]*>([^<]+)</td>',
+            "recording_status": r'<td>Recording</td>\s*<td[^>]*>([^<]+)</td>',
+            "storage_state": r'<td>Storage State</td>\s*<td[^>]*>([^<]+)</td>',
         }
         for key, pattern in rec_patterns.items():
             match = re.search(pattern, html, re.IGNORECASE)
             if match:
                 data["recording"][key] = match.group(1).strip()
+        
+        # Time/NTP section
+        data["time"] = {}
+        time_patterns = {
+            "time_server": r'<td>Time Server</td>\s*<td[^>]*>([^<]+)</td>',
+            "ntp_server": r'<td>NTP Server</td>\s*<td[^>]*>([^<]+)</td>',
+            "time_zone": r'<td>Time Zone</td>\s*<td[^>]*>([^<]+)</td>',
+            "time_source": r'<td>Time Source</td>\s*<td[^>]*>([^<]+)</td>',
+        }
+        for key, pattern in time_patterns.items():
+            match = re.search(pattern, html, re.IGNORECASE)
+            if match:
+                data["time"][key] = match.group(1).strip()
+        
+        # Error/Alarm section
+        data["alarms"] = {}
+        alarm_patterns = {
+            "active_alarms": r'<td>Active Alarms</td>\s*<td[^>]*>([^<]+)</td>',
+            "error_messages": r'<td>Error Messages</td>\s*<td[^>]*>([^<]+)</td>',
+            "system_messages": r'<td>System Messages</td>\s*<td[^>]*>([^<]+)</td>',
+        }
+        for key, pattern in alarm_patterns.items():
+            match = re.search(pattern, html, re.IGNORECASE)
+            if match:
+                data["alarms"][key] = match.group(1).strip()
         
         return data
     
@@ -540,6 +567,37 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
         info["image"] = parsed["image"]
         info["recording"] = parsed["recording"]
         info["firmware_version"] = parsed["firmware_version"]
+        info["time"] = parsed.get("time", {})
+        info["alarms"] = parsed.get("alarms", {})
+        
+        # Determine recording status
+        rec_mode = parsed["recording"].get("recording_mode", "").lower()
+        rec_status = parsed["recording"].get("recording_status", "").lower()
+        if "continuous" in rec_mode or "armed" in rec_mode or "recording" in rec_status or "active" in rec_status:
+            info["is_recording"] = True
+        elif "off" in rec_mode or "none" in rec_mode or "idle" in rec_status:
+            info["is_recording"] = False
+        else:
+            info["is_recording"] = None  # Unknown
+        
+        # Determine NTP status
+        ntp = parsed.get("time", {}).get("ntp_server") or parsed.get("time", {}).get("time_server")
+        info["ntp_server"] = ntp
+        info["ntp_configured"] = bool(ntp and ntp.strip() and ntp.lower() not in ["none", "not configured", "-"])
+        
+        # Determine if there are errors
+        alarms = parsed.get("alarms", {})
+        active = alarms.get("active_alarms", "")
+        errors = alarms.get("error_messages", "")
+        info["has_errors"] = bool(
+            (active and active.lower() not in ["none", "0", "-", ""]) or
+            (errors and errors.lower() not in ["none", "0", "-", ""])
+        )
+        info["error_details"] = []
+        if active and active.lower() not in ["none", "0", "-", ""]:
+            info["error_details"].append(f"Alarmas: {active}")
+        if errors and errors.lower() not in ["none", "0", "-", ""]:
+            info["error_details"].append(f"Errores: {errors}")
         
         # Update device with firmware version if found
         if parsed["firmware_version"]:
