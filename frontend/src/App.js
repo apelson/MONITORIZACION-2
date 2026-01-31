@@ -1526,7 +1526,7 @@ const DeleteConfirmDialog = ({ open, onOpenChange, title, message, onConfirm }) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="flex items-center gap-2 text-destructive"><AlertCircle className="w-5 h-5" />{title}</DialogTitle><DialogDescription>{message}</DialogDescription></DialogHeader>
-        <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}{t('common.cancel')}</Button><Button data-testid="confirm-delete-btn" variant="destructive" onClick={handleDelete} disabled={deleting}>{deleting ? t('common.deleting', 'Eliminando...') : t('common.delete')}</Button></DialogFooter>
+        <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button><Button data-testid="confirm-delete-btn" variant="destructive" onClick={handleDelete} disabled={deleting}>{deleting ? t('common.deleting', 'Eliminando...') : t('common.delete')}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );
