@@ -4883,6 +4883,15 @@ const Dashboard = () => {
                 </Button>}
               </div>
               <LanguageSelector />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={toggleAlertSound}
+                className="p-2"
+                title={soundEnabled ? t('alerts.soundOn', 'Sonido de alertas activado') : t('alerts.soundOff', 'Sonido de alertas desactivado')}
+              >
+                {soundEnabled ? <Volume2 className="w-4 h-4 text-green-600" /> : <VolumeX className="w-4 h-4 text-muted-foreground" />}
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" className="gap-2"><div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center"><User className="w-4 h-4" /></div><span className="hidden md:inline">{user?.username}</span><ChevronDown className="w-4 h-4" /></Button></DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
