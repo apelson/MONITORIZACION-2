@@ -1524,6 +1524,7 @@ const HistoryDialog = ({ open, onOpenChange, device, history }) => {
 };
 
 const DeleteConfirmDialog = ({ open, onOpenChange, title, message, onConfirm }) => {
+  const { t } = useTranslation();
   const [deleting, setDeleting] = useState(false);
   const handleDelete = async () => { setDeleting(true); await onConfirm(); setDeleting(false); onOpenChange(false); };
   return (
