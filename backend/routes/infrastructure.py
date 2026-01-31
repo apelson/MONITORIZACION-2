@@ -108,7 +108,7 @@ async def test_connection(request: TestConnectionRequest, user: dict = Depends(g
         }
 
 @router.get("/devices")
-async def get_infra_devices(user: dict = Depends(get_current_user), db=Depends(get_db)):
+async def get_infra_devices(user: dict = Depends(get_current_user)):
     """Get all infrastructure devices"""
     try:
         devices = list(db.infrastructure_devices.find({}))
@@ -119,7 +119,7 @@ async def get_infra_devices(user: dict = Depends(get_current_user), db=Depends(g
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/devices")
-async def create_infra_device(device: InfraDeviceCreate, user: dict = Depends(get_current_user), db=Depends(get_db)):
+async def create_infra_device(device: InfraDeviceCreate, user: dict = Depends(get_current_user)):
     """Create a new infrastructure device"""
     if user.get("role") not in ["admin"]:
         raise HTTPException(status_code=403, detail="Solo administradores pueden crear dispositivos de infraestructura")
@@ -154,7 +154,7 @@ async def create_infra_device(device: InfraDeviceCreate, user: dict = Depends(ge
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/devices/{device_id}")
-async def get_infra_device(device_id: str, user: dict = Depends(get_current_user), db=Depends(get_db)):
+async def get_infra_device(device_id: str, user: dict = Depends(get_current_user)):
     """Get a specific infrastructure device"""
     try:
         device = db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
@@ -165,7 +165,7 @@ async def get_infra_device(device_id: str, user: dict = Depends(get_current_user
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/devices/{device_id}")
-async def update_infra_device(device_id: str, update: InfraDeviceUpdate, user: dict = Depends(get_current_user), db=Depends(get_db)):
+async def update_infra_device(device_id: str, update: InfraDeviceUpdate, user: dict = Depends(get_current_user)):
     """Update an infrastructure device"""
     if user.get("role") not in ["admin"]:
         raise HTTPException(status_code=403, detail="Solo administradores pueden editar dispositivos de infraestructura")
@@ -189,7 +189,7 @@ async def update_infra_device(device_id: str, update: InfraDeviceUpdate, user: d
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/devices/{device_id}")
-async def delete_infra_device(device_id: str, user: dict = Depends(get_current_user), db=Depends(get_db)):
+async def delete_infra_device(device_id: str, user: dict = Depends(get_current_user)):
     """Delete an infrastructure device"""
     if user.get("role") not in ["admin"]:
         raise HTTPException(status_code=403, detail="Solo administradores pueden eliminar dispositivos de infraestructura")
@@ -203,7 +203,7 @@ async def delete_infra_device(device_id: str, user: dict = Depends(get_current_u
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/devices/{device_id}/check")
-async def check_infra_device(device_id: str, user: dict = Depends(get_current_user), db=Depends(get_db)):
+async def check_infra_device(device_id: str, user: dict = Depends(get_current_user)):
     """Check status of an infrastructure device"""
     try:
         device = db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
@@ -241,7 +241,7 @@ async def check_infra_device(device_id: str, user: dict = Depends(get_current_us
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/devices/check-all")
-async def check_all_infra_devices(user: dict = Depends(get_current_user), db=Depends(get_db)):
+async def check_all_infra_devices(user: dict = Depends(get_current_user)):
     """Check status of all infrastructure devices"""
     try:
         devices = list(db.infrastructure_devices.find({"enabled": True}))
@@ -288,7 +288,7 @@ async def check_all_infra_devices(user: dict = Depends(get_current_user), db=Dep
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/devices/{device_id}/vms")
-async def get_device_vms(device_id: str, user: dict = Depends(get_current_user), db=Depends(get_db)):
+async def get_device_vms(device_id: str, user: dict = Depends(get_current_user)):
     """Get VMs from an ESXi device"""
     try:
         device = db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
@@ -318,7 +318,7 @@ async def get_device_vms(device_id: str, user: dict = Depends(get_current_user),
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/devices/{device_id}/datastores")
-async def get_device_datastores(device_id: str, user: dict = Depends(get_current_user), db=Depends(get_db)):
+async def get_device_datastores(device_id: str, user: dict = Depends(get_current_user)):
     """Get datastores from an ESXi device"""
     try:
         device = db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
@@ -348,7 +348,7 @@ async def get_device_datastores(device_id: str, user: dict = Depends(get_current
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/devices/{device_id}/disks")
-async def get_device_disks(device_id: str, user: dict = Depends(get_current_user), db=Depends(get_db)):
+async def get_device_disks(device_id: str, user: dict = Depends(get_current_user)):
     """Get disk info from a NAS device"""
     try:
         device = db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
@@ -388,7 +388,7 @@ async def get_device_disks(device_id: str, user: dict = Depends(get_current_user
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/devices/{device_id}/surveillance")
-async def get_device_surveillance(device_id: str, user: dict = Depends(get_current_user), db=Depends(get_db)):
+async def get_device_surveillance(device_id: str, user: dict = Depends(get_current_user)):
     """Get surveillance info from a NAS device"""
     try:
         device = db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
@@ -428,7 +428,7 @@ async def get_device_surveillance(device_id: str, user: dict = Depends(get_curre
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/summary")
-async def get_infrastructure_summary(user: dict = Depends(get_current_user), db=Depends(get_db)):
+async def get_infrastructure_summary(user: dict = Depends(get_current_user)):
     """Get summary of all infrastructure"""
     try:
         devices = list(db.infrastructure_devices.find({}))
