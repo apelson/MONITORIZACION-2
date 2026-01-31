@@ -416,27 +416,27 @@ const LoginPage = () => {
           
           <img src={LOGO_URL} alt="Siempria" className="h-20 mx-auto mb-6 object-contain" style={{ filter: 'drop-shadow(0 0 20px rgba(0,163,217,0.3))' }} />
           
-          <h1 className="text-3xl font-light text-white mb-2">Network Monitor</h1>
-          <p className="text-cyan-400 mb-8">Sistema de Vigilancia Profesional</p>
+          <h1 className="text-3xl font-light text-white mb-2">{t('login.title', 'Network Monitor')}</h1>
+          <p className="text-cyan-400 mb-8">{t('login.subtitle', 'Sistema de Vigilancia Profesional')}</p>
           
           <div className="space-y-4 text-slate-400 text-sm">
             <div className="flex items-center justify-center gap-3">
               <Shield className="w-5 h-5 text-cyan-500" />
-              <span>Monitoreo en tiempo real 24/7</span>
+              <span>{t('login.monitoring247', 'Monitoreo en tiempo real 24/7')}</span>
             </div>
             <div className="flex items-center justify-center gap-3">
               <Bell className="w-5 h-5 text-cyan-500" />
-              <span>Alertas instantáneas por email</span>
+              <span>{t('login.instantAlerts', 'Alertas instantáneas por email')}</span>
             </div>
             <div className="flex items-center justify-center gap-3">
               <Lock className="w-5 h-5 text-cyan-500" />
-              <span>Conexión segura y encriptada</span>
+              <span>{t('login.secureConnection', 'Conexión segura y encriptada')}</span>
             </div>
           </div>
           
           {/* Partner logo */}
           <div className="mt-12 pt-8 border-t border-slate-700/50">
-            <p className="text-slate-500 text-xs mb-3">Distribuidor Autorizado</p>
+            <p className="text-slate-500 text-xs mb-3">{t('login.authorizedDistributorShort', 'Distribuidor Autorizado')}</p>
             <div className="bg-white rounded-lg px-4 py-2 inline-block">
               <img src={MOBOTIX_LOGO_URL} alt="Mobotix" className="h-8 object-contain" onError={(e) => { e.target.parentElement.innerHTML = '<span class="text-lg font-bold text-slate-800">MOBOTIX</span>'; }} />
             </div>
