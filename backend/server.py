@@ -520,7 +520,7 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
         for key, pattern in image_patterns.items():
             match = re.search(pattern, html, re.IGNORECASE)
             if match:
-                data["image"][key] = match.group(1).strip()
+                data["image"][key] = decode_html(match.group(1).strip())
         
         # Recording section
         rec_patterns = {
@@ -532,7 +532,7 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
         for key, pattern in rec_patterns.items():
             match = re.search(pattern, html, re.IGNORECASE)
             if match:
-                data["recording"][key] = match.group(1).strip()
+                data["recording"][key] = decode_html(match.group(1).strip())
         
         # Time/NTP section
         data["time"] = {}
@@ -545,7 +545,7 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
         for key, pattern in time_patterns.items():
             match = re.search(pattern, html, re.IGNORECASE)
             if match:
-                data["time"][key] = match.group(1).strip()
+                data["time"][key] = decode_html(match.group(1).strip())
         
         # Error/Alarm section
         data["alarms"] = {}
@@ -557,7 +557,7 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
         for key, pattern in alarm_patterns.items():
             match = re.search(pattern, html, re.IGNORECASE)
             if match:
-                data["alarms"][key] = match.group(1).strip()
+                data["alarms"][key] = decode_html(match.group(1).strip())
         
         return data
     
