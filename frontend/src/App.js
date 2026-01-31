@@ -5263,9 +5263,9 @@ const Dashboard = () => {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIncidentFromDeviceOpen(false)}{t('common.cancel')}</Button>
+            <Button variant="outline" onClick={() => setIncidentFromDeviceOpen(false)}>{t('common.cancel')}</Button>
             <Button onClick={handleSubmitIncidentFromDevice} disabled={creatingIncident}>
-              {creatingIncident ? "Creando..." : "Crear Incidencia"}
+              {creatingIncident ? t('common.creating', 'Creando...') : t('incidents.addIncident')}
             </Button>
           </DialogFooter>
         </DialogContent>
