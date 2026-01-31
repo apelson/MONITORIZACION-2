@@ -484,7 +484,7 @@ const LoginPage = () => {
                   ) : (
                     <>
                       <Shield className="w-5 h-5 mr-2" />
-                      Iniciar Sesión
+                      {t('auth.login')}
                     </>
                   )}
                 </Button>
@@ -494,7 +494,7 @@ const LoginPage = () => {
           
           {/* Contact info */}
           <div className="mt-8 text-center space-y-3">
-            <p className="text-slate-400 text-sm font-medium">¿Necesitas ayuda?</p>
+            <p className="text-slate-400 text-sm font-medium">{t('common.needHelp', '¿Necesitas ayuda?')}</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
               <a href="mailto:soporte@siempria.com" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors">
                 <Mail className="w-4 h-4" />
