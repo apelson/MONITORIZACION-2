@@ -1354,6 +1354,7 @@ const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) =
 };
 
 const UserFormDialog = ({ open, onOpenChange, user, organizations, groups, onSave }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({ username: "", email: "", password: "", role: "viewer", full_name: "", group_ids: [] });
   const [saving, setSaving] = useState(false);
 
