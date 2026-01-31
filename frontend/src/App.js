@@ -1775,7 +1775,9 @@ const DeviceTypesPanel = ({ deviceTypes, onCreateType, onEditType, onDeleteType,
   );
 };
 
-const UsersPanel = ({ users, onCreateUser, onEditUser, onDeleteUser, onResetPassword }) => (
+const UsersPanel = ({ users, onCreateUser, onEditUser, onDeleteUser, onResetPassword }) => {
+  const { t } = useTranslation();
+  return (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between">
       <div><CardTitle className="flex items-center gap-2"><Users className="w-5 h-5" />{t('users.title', 'Usuarios')}</CardTitle></div>
