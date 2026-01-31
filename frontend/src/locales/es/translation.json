@@ -546,7 +546,11 @@
     "sent": "Enviado",
     "deviceDisconnected": "Dispositivo se ha desconectado",
     "deviceRecovered": "Dispositivo se ha recuperado",
-    "noAlerts": "No hay alertas"
+    "noAlerts": "No hay alertas",
+    "soundOn": "Sonido de alertas activado",
+    "soundOff": "Sonido de alertas desactivado",
+    "nasDisconnected": "Almacenamiento NAS no disponible",
+    "recordingError": "Error de grabación detectado"
   },
   "logs": {
     "authLogin": "Inicio sesión",
