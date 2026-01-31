@@ -578,6 +578,18 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
     # First try /control/camerainfo which has all the info
     result = await loop.run_in_executor(None, make_request, "/control/camerainfo")
     
+    # Also try to get time/NTP configuration from admin page
+    time_config_result = await loop.run_in_executor(None, make_request, "/admin/time")
+    ntp_servers_from_admin = []
+    if time_config_result and not time_config_result.startswith(("HTTP_ERROR", "URL_ERROR", "ERROR")):
+        # Look for NTP server entries in the admin time page
+        import re
+        ntp_matches = re.findall(r'value=["\']?(\d+\.pool\.ntp\.org|[a-zA-Z0-9.-]+\.ntp\.[a-zA-Z]+|ntp\.[a-zA-Z0-9.-]+)', time_config_result, re.IGNORECASE)
+        ntp_servers_from_admin = list(set(ntp_matches))
+        # Also check for "NTP" protocol selection
+        if re.search(r'selected[^>]*>NTP<|value=["\']NTP["\'][^>]*selected|checked[^>]*NTP', time_config_result, re.IGNORECASE):
+            info["ntp_protocol_enabled"] = True
+    
     if not result.startswith(("HTTP_ERROR", "URL_ERROR", "ERROR")):
         parsed = parse_camerainfo_html(result)
         info["system"] = parsed["system"]
@@ -589,6 +601,13 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
         info["firmware_version"] = parsed["firmware_version"]
         info["time"] = parsed.get("time", {})
         info["alarms"] = parsed.get("alarms", {})
+        
+        # Add NTP servers found from admin page
+        if ntp_servers_from_admin:
+            if "ntp_servers_found" not in info["time"]:
+                info["time"]["ntp_servers_found"] = []
+            info["time"]["ntp_servers_found"].extend(ntp_servers_from_admin)
+            info["time"]["ntp_servers_found"] = list(set(info["time"]["ntp_servers_found"]))
         
         # Determine recording status
         rec_mode = parsed["recording"].get("recording_mode", "").lower()
