@@ -1334,14 +1334,14 @@ const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) =
         <DialogHeader><DialogTitle>{group ? t('groups.editGroup', 'Editar Grupo') : t('groups.newGroup', 'Nuevo Grupo')}</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
-            <div className="space-y-2"><Label>Nombre *</Label><Input data-testid="group-name-input" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Organización *</Label>
+            <div className="space-y-2"><Label>{t('common.name', 'Nombre')} *</Label><Input data-testid="group-name-input" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
+            <div className="space-y-2"><Label>{t('organizations.title', 'Organización')} *</Label>
               <Select value={formData.organization_id} onValueChange={(v) => setFormData({ ...formData, organization_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                 <SelectContent>{organizations.map((o) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="space-y-2"><Label>Descripción</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
+            <div className="space-y-2"><Label>{t('common.description', 'Descripción')}</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
             <div className="space-y-2"><Label>{t('common.color', 'Color')}</Label>
               <div className="flex gap-2 flex-wrap">{colors.map((c) => <button key={c} type="button" onClick={() => setFormData({ ...formData, color: c })} className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${formData.color === c ? 'border-foreground scale-110' : 'border-transparent'}`} style={{ backgroundColor: c }} />)}</div>
             </div>
@@ -1391,13 +1391,13 @@ const UserFormDialog = ({ open, onOpenChange, user, organizations, groups, onSav
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="space-y-4 py-4 overflow-y-auto flex-1">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Usuario *</Label><Input data-testid="user-username-input" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} disabled={!!user} /></div>
-              <div className="space-y-2"><Label>Email *</Label><Input data-testid="user-email-input" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} /></div>
+              <div className="space-y-2"><Label>{t('users.userName', 'Usuario')} *</Label><Input data-testid="user-username-input" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} disabled={!!user} /></div>
+              <div className="space-y-2"><Label>{t('users.userEmail', 'Email')} *</Label><Input data-testid="user-email-input" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} /></div>
             </div>
-            {!user && <div className="space-y-2"><Label>Contraseña *</Label><Input data-testid="user-password-input" type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} /></div>}
+            {!user && <div className="space-y-2"><Label>{t('auth.password', 'Contraseña')} *</Label><Input data-testid="user-password-input" type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} /></div>}
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Nombre completo</Label><Input value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Rol</Label>
+              <div className="space-y-2"><Label>{t('users.fullName', 'Nombre completo')}</Label><Input value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} /></div>
+              <div className="space-y-2"><Label>{t('users.userRole', 'Rol')}</Label>
                 <Select value={formData.role} onValueChange={(v) => setFormData({ ...formData, role: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
