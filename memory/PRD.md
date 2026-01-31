@@ -5,7 +5,23 @@
 - **Tipo**: Aplicación de monitorización de red y cámaras con modelo SaaS multi-tenant
 - **Dominio**: https://siempriapp.com
 - **Stack**: React + FastAPI + MongoDB
-- **Fecha última actualización**: 29 Enero 2026
+- **Fecha última actualización**: 31 Enero 2026
+
+## Changelog Reciente
+
+### 31 Enero 2026
+- ✅ **CRÍTICO ARREGLADO**: Bug de pantalla blanca después del login
+  - Causa: Componentes usando `t()` sin declarar `useTranslation()` hook
+  - Componentes arreglados: OrganizationFormDialog, GroupFormDialog, UserFormDialog, DeviceTypeFormDialog, DeleteConfirmDialog, AlertsPanel, PublicDashboardConfig, SettingsPanel, IncidentsPanel
+- ✅ **Internacionalización (i18n)**: Sistema completamente funcional
+  - Idiomas soportados: ES, EN, DE, IT, FR, RU, ZH
+  - Selector de idioma con banderas SVG
+  - Traducciones para: login, dashboard tabs, botones comunes (Guardar/Cancelar/Eliminar)
+
+### Pendiente
+- [ ] Completar traducción de todos los textos hardcodeados en modales y formularios
+- [ ] Arreglar favicon y iconos PWA (404 en producción)
+- [ ] Refactorizar App.js (5000+ líneas) en componentes más pequeños
 
 ## URLs de Acceso
 - **Landing SaaS**: https://siempriapp.com/saas
