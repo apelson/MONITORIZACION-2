@@ -1055,22 +1055,22 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
             </div>
 
             <div className="space-y-2">
-              <Label>Organización</Label>
+              <Label>{t('organizations.title', 'Organización')}</Label>
               <Select value={selectedOrgId || "none"} onValueChange={(v) => { setSelectedOrgId(v === "none" ? "" : v); setFormData({ ...formData, group_id: "" }); }}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t('common.select', 'Seleccionar')} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Todas</SelectItem>
+                  <SelectItem value="none">{t('common.all', 'Todas')}</SelectItem>
                   {organizations.map((o) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="col-span-2 space-y-2">
-              <Label>Grupo</Label>
+              <Label>{t('devices.group', 'Grupo')}</Label>
               <Select value={formData.group_id || "none"} onValueChange={(v) => setFormData({ ...formData, group_id: v === "none" ? "" : v })}>
-                <SelectTrigger data-testid="device-group-select"><SelectValue placeholder="Sin grupo" /></SelectTrigger>
+                <SelectTrigger data-testid="device-group-select"><SelectValue placeholder={t('devices.selectGroup', 'Sin grupo')} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Sin grupo</SelectItem>
+                  <SelectItem value="none">{t('devices.selectGroup', 'Sin grupo')}</SelectItem>
                   {filteredGroups.map((g) => <SelectItem key={g.id} value={g.id}><div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ backgroundColor: g.color }} />{g.name}</div></SelectItem>)}
                 </SelectContent>
               </Select>
@@ -1148,15 +1148,15 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
             )}
 
             <Separator className="col-span-2" />
-            <p className="col-span-2 text-sm font-medium text-muted-foreground">Información adicional</p>
+            <p className="col-span-2 text-sm font-medium text-muted-foreground">{t('devices.additionalInfo', 'Información adicional')}</p>
 
-            <div className="space-y-2"><Label>Marca</Label><Input placeholder="Ej: Hikvision, Synology" value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Modelo</Label><Input placeholder="Ej: DS-2CD2143G2" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} /></div>
-            <div className="col-span-2 space-y-2"><Label>Ubicación</Label><Input placeholder="Ej: Oficina Madrid - Planta 2" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} /></div>
+            <div className="space-y-2"><Label>{t('devices.brand', 'Marca')}</Label><Input placeholder={t('devices.brandPlaceholder', 'Ej: Hikvision, Synology')} value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} /></div>
+            <div className="space-y-2"><Label>{t('devices.model', 'Modelo')}</Label><Input placeholder={t('devices.modelPlaceholder', 'Ej: DS-2CD2143G2')} value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} /></div>
+            <div className="col-span-2 space-y-2"><Label>{t('devices.location', 'Ubicación')}</Label><Input placeholder={t('devices.locationPlaceholder', 'Ej: Oficina Madrid - Planta 2')} value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} /></div>
             
             {/* Image URL field removed for non-cameras - they only show icons */}
             
-            <div className="col-span-2 space-y-2"><Label>Descripción</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
+            <div className="col-span-2 space-y-2"><Label>{t('common.description', 'Descripción')}</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
             <div className="col-span-2 space-y-2"><Label>{t('common.notes', 'Notas')}</Label><Textarea placeholder={t('common.notesPlaceholder', 'Notas internas, configuración...')} value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} rows={3} /></div>
           </div>
           <DialogFooter>
