@@ -2526,6 +2526,7 @@ const PublicDashboardConfig = ({ organization }) => {
 };
 
 const SettingsPanel = ({ settings, onSave }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({ 
     smtp_host: "smtp.gmail.com",
     smtp_port: 465,
