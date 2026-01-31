@@ -574,18 +574,20 @@ async def get_mobotix_info(device_id: str, current_user: dict = Depends(get_curr
     
     loop = asyncio.get_event_loop()
     
-    # First try /control/camerainfo which has all the info
-    result = await loop.run_in_executor(None, make_request, "/control/camerainfo")
+    # Run both requests in PARALLEL for faster response
+    import concurrent.futures
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        future_camerainfo = executor.submit(make_request, "/control/camerainfo")
+        future_time = executor.submit(make_request, "/admin/time")
+        
+        result = future_camerainfo.result()
+        time_config_result = future_time.result()
     
-    # Also try to get time/NTP configuration from admin page
-    time_config_result = await loop.run_in_executor(None, make_request, "/admin/time")
+    # Process NTP from admin page
     ntp_servers_from_admin = []
     if time_config_result and not time_config_result.startswith(("HTTP_ERROR", "URL_ERROR", "ERROR")):
-        # Look for NTP server entries in the admin time page
-        import re
         ntp_matches = re.findall(r'value=["\']?(\d+\.pool\.ntp\.org|[a-zA-Z0-9.-]+\.ntp\.[a-zA-Z]+|ntp\.[a-zA-Z0-9.-]+)', time_config_result, re.IGNORECASE)
         ntp_servers_from_admin = list(set(ntp_matches))
-        # Also check for "NTP" protocol selection
         if re.search(r'selected[^>]*>NTP<|value=["\']NTP["\'][^>]*selected|checked[^>]*NTP', time_config_result, re.IGNORECASE):
             info["ntp_protocol_enabled"] = True
     
