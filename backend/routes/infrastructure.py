@@ -206,7 +206,7 @@ async def delete_infra_device(device_id: str, user: dict = Depends(get_current_u
 async def check_infra_device(device_id: str, user: dict = Depends(get_current_user)):
     """Check status of an infrastructure device"""
     try:
-        device = db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
+        device = await db.infrastructure_devices.find_one({"_id": ObjectId(device_id)})
         if not device:
             raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
         
@@ -221,7 +221,7 @@ async def check_infra_device(device_id: str, user: dict = Depends(get_current_us
         
         # Update device status
         status = "online" if result.get("connected") else "offline"
-        db.infrastructure_devices.update_one(
+        await db.infrastructure_devices.update_one(
             {"_id": ObjectId(device_id)},
             {
                 "$set": {
@@ -244,7 +244,7 @@ async def check_infra_device(device_id: str, user: dict = Depends(get_current_us
 async def check_all_infra_devices(user: dict = Depends(get_current_user)):
     """Check status of all infrastructure devices"""
     try:
-        devices = list(db.infrastructure_devices.find({"enabled": True}))
+        devices = await db.infrastructure_devices.find({"enabled": True}).to_list(length=1000)
         results = []
         
         for device in devices:
@@ -259,7 +259,7 @@ async def check_all_infra_devices(user: dict = Depends(get_current_user)):
                 )
                 
                 status = "online" if result.get("connected") else "offline"
-                db.infrastructure_devices.update_one(
+                await db.infrastructure_devices.update_one(
                     {"_id": device["_id"]},
                     {
                         "$set": {
