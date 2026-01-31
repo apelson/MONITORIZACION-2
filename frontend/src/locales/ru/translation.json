@@ -73,7 +73,10 @@
     "notifications": "Уведомления",
     "profile": "Профиль",
     "help": "Помощь",
-    "about": "О программе"
+    "about": "О программе",
+    "structure": "Структура",
+    "types": "Типы",
+    "alerts": "Оповещения"
   },
   "devices": {
     "title": "Устройства",
@@ -115,7 +118,8 @@
     "serialNumber": "Серийный номер",
     "uptime": "Время работы",
     "temperature": "Температура",
-    "illumination": "Освещение"
+    "illumination": "Освещение",
+    "cameras": "Камеры онлайн"
   },
   "groups": {
     "title": "Группы",
@@ -253,7 +257,8 @@
     "openIncidents": "Открытые инциденты",
     "last24h": "За 24 часа",
     "last7d": "За 7 дней",
-    "last30d": "За 30 дней"
+    "last30d": "За 30 дней",
+    "title": "Статистика"
   },
   "history": {
     "title": "История",

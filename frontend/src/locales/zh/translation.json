@@ -73,7 +73,10 @@
     "notifications": "通知",
     "profile": "个人资料",
     "help": "帮助",
-    "about": "关于"
+    "about": "关于",
+    "structure": "结构",
+    "types": "类型",
+    "alerts": "警报"
   },
   "devices": {
     "title": "设备",
@@ -115,7 +118,8 @@
     "serialNumber": "序列号",
     "uptime": "运行时间",
     "temperature": "温度",
-    "illumination": "照度"
+    "illumination": "照度",
+    "cameras": "在线摄像头"
   },
   "groups": {
     "title": "分组",
@@ -253,7 +257,8 @@
     "openIncidents": "未解决事件",
     "last24h": "过去24小时",
     "last7d": "过去7天",
-    "last30d": "过去30天"
+    "last30d": "过去30天",
+    "title": "统计"
   },
   "history": {
     "title": "历史",

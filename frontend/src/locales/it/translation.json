@@ -73,7 +73,10 @@
     "notifications": "Notifiche",
     "profile": "Profilo",
     "help": "Aiuto",
-    "about": "Informazioni"
+    "about": "Informazioni",
+    "structure": "Struttura",
+    "types": "Tipi",
+    "alerts": "Avvisi"
   },
   "devices": {
     "title": "Dispositivi",
@@ -115,7 +118,8 @@
     "serialNumber": "Numero di Serie",
     "uptime": "Tempo di Attività",
     "temperature": "Temperatura",
-    "illumination": "Illuminazione"
+    "illumination": "Illuminazione",
+    "cameras": "Telecamere Online"
   },
   "groups": {
     "title": "Gruppi",
@@ -253,7 +257,8 @@
     "openIncidents": "Incidenti Aperti",
     "last24h": "Ultime 24h",
     "last7d": "Ultimi 7 giorni",
-    "last30d": "Ultimi 30 giorni"
+    "last30d": "Ultimi 30 giorni",
+    "title": "Statistiche"
   },
   "history": {
     "title": "Cronologia",
