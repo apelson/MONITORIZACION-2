@@ -42,7 +42,8 @@
     "copy": "Copy",
     "paste": "Paste",
     "required": "Required",
-    "optional": "Optional"
+    "optional": "Optional",
+    "needHelp": "Need help?"
   },
   "auth": {
     "login": "Sign In",
@@ -60,7 +61,8 @@
     "logoutSuccess": "Signed out successfully",
     "invalidCredentials": "Invalid credentials",
     "sessionExpired": "Your session has expired",
-    "welcomeBack": "Welcome back!"
+    "welcomeBack": "Welcome back!",
+    "loginDescription": "Enter your credentials to continue"
   },
   "nav": {
     "dashboard": "Dashboard",
