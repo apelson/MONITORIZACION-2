@@ -4462,6 +4462,52 @@ const Dashboard = () => {
   const [failuresDialogOpen, setFailuresDialogOpen] = useState(false);
   const [recentFailures, setRecentFailures] = useState([]);
   const [previousDeviceStates, setPreviousDeviceStates] = useState({});
+  const [previousAlertIds, setPreviousAlertIds] = useState(new Set());
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('alertSoundEnabled');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  const audioRef = useRef(null);
+  
+  // Alert sound function
+  const playAlertSound = useCallback(() => {
+    if (!soundEnabled) return;
+    try {
+      // Create audio context for alert sound
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Alert sound pattern: 3 beeps
+      oscillator.frequency.value = 880; // A5 note
+      oscillator.type = 'sine';
+      gainNode.gain.value = 0.3;
+      
+      oscillator.start();
+      
+      // Beep pattern
+      setTimeout(() => { gainNode.gain.value = 0; }, 150);
+      setTimeout(() => { gainNode.gain.value = 0.3; }, 250);
+      setTimeout(() => { gainNode.gain.value = 0; }, 400);
+      setTimeout(() => { gainNode.gain.value = 0.3; }, 500);
+      setTimeout(() => { gainNode.gain.value = 0; oscillator.stop(); }, 650);
+    } catch (e) {
+      console.warn('Could not play alert sound:', e);
+    }
+  }, [soundEnabled]);
+
+  // Toggle sound and save preference
+  const toggleAlertSound = useCallback(() => {
+    setSoundEnabled(prev => {
+      const newValue = !prev;
+      localStorage.setItem('alertSoundEnabled', JSON.stringify(newValue));
+      return newValue;
+    });
+  }, []);
+
   // Incident from device
   const [incidentFromDeviceOpen, setIncidentFromDeviceOpen] = useState(false);
   const [incidentDeviceData, setIncidentDeviceData] = useState({ device: null, title: "", description: "", priority: "medium" });
