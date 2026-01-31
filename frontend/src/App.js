@@ -1542,6 +1542,7 @@ const DeleteConfirmDialog = ({ open, onOpenChange, title, message, onConfirm }) 
 const WHATSAPP_ALERT_NUMBER = "+34610557829";
 
 const FailuresDialog = ({ open, onOpenChange, failures, onClear }) => {
+  const { t } = useTranslation();
   // Generate WhatsApp message with all failures
   const getWhatsAppLink = () => {
     if (failures.length === 0) return null;
