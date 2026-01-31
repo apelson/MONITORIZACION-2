@@ -955,6 +955,7 @@ ServerCard.displayName = 'ServerCard';
 
 // ============ DIALOGS ============
 const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, deviceTypes, onSave }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_protocol: "http", camera_user: "", camera_password: "", camera_path: "", has_statistics: false });
   const [saving, setSaving] = useState(false);
   const [selectedOrgId, setSelectedOrgId] = useState("");
