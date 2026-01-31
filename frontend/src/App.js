@@ -1246,28 +1246,28 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
         <DialogHeader><DialogTitle>{organization ? t('organizations.editOrganization', 'Editar Organización') : t('organizations.addOrganization', 'Nueva Organización')}</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
-            <div className="space-y-2"><Label>Nombre *</Label><Input data-testid="org-name-input" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Descripción</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
+            <div className="space-y-2"><Label>{t('common.name', 'Nombre')} *</Label><Input data-testid="org-name-input" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
+            <div className="space-y-2"><Label>{t('common.description', 'Descripción')}</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
             
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>País/Región</Label>
+                <Label>{t('common.country', 'País/Región')}</Label>
                 <Select value={formData.country || "none"} onValueChange={(v) => setFormData({ ...formData, country: v === "none" ? "" : v })}>
                   <SelectTrigger><SelectValue placeholder="Seleccionar país" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Sin especificar</SelectItem>
+                    <SelectItem value="none">{t('common.unspecified', 'Sin especificar')}</SelectItem>
                     {countries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Ciudad</Label>
+                <Label>{t('common.city', 'Ciudad')}</Label>
                 <Input placeholder="Ciudad" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
               </div>
             </div>
             
             <div className="space-y-2">
-              <Label>Logo</Label>
+              <Label>{t('common.logo', 'Logo')}</Label>
               <div className="flex gap-2">
                 <Input 
                   placeholder="URL del logo o sube una imagen" 
@@ -1300,7 +1300,7 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
                 </div>
               )}
             </div>
-            <div className="space-y-2"><Label>Color</Label>
+            <div className="space-y-2"><Label>{t('common.color', 'Color')}</Label>
               <div className="flex gap-2 flex-wrap">{colors.map((c) => <button key={c} type="button" onClick={() => setFormData({ ...formData, color: c })} className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${formData.color === c ? 'border-foreground scale-110' : 'border-transparent'}`} style={{ backgroundColor: c }} />)}</div>
             </div>
           </div>
@@ -1342,7 +1342,7 @@ const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) =
               </Select>
             </div>
             <div className="space-y-2"><Label>Descripción</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Color</Label>
+            <div className="space-y-2"><Label>{t('common.color', 'Color')}</Label>
               <div className="flex gap-2 flex-wrap">{colors.map((c) => <button key={c} type="button" onClick={() => setFormData({ ...formData, color: c })} className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${formData.color === c ? 'border-foreground scale-110' : 'border-transparent'}`} style={{ backgroundColor: c }} />)}</div>
             </div>
           </div>
@@ -1480,7 +1480,7 @@ const DeviceTypeFormDialog = ({ open, onOpenChange, deviceType, onSave }) => {
             <div className="space-y-2"><Label>Icono</Label>
               <div className="flex gap-2 flex-wrap">{icons.map((i) => { const Icon = getIcon(i); return <button key={i} type="button" onClick={() => setFormData({ ...formData, icon: i })} className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center transition-all ${formData.icon === i ? 'border-foreground bg-muted' : 'border-transparent hover:bg-muted/50'}`}><Icon className="w-5 h-5" /></button>; })}</div>
             </div>
-            <div className="space-y-2"><Label>Color</Label>
+            <div className="space-y-2"><Label>{t('common.color', 'Color')}</Label>
               <div className="flex gap-2 flex-wrap">{colors.map((c) => <button key={c} type="button" onClick={() => setFormData({ ...formData, color: c })} className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${formData.color === c ? 'border-foreground scale-110' : 'border-transparent'}`} style={{ backgroundColor: c }} />)}</div>
             </div>
             <div className="p-4 bg-muted rounded-lg flex items-center gap-3">
