@@ -156,7 +156,8 @@
     "selectPath": "Seleccionar ruta",
     "enableStatistics": "Estadísticas MxAnalytics",
     "recentlyOffline": "Dispositivos que han perdido conexión recientemente",
-    "clickToFilter": "Haz clic en un tipo para filtrar dispositivos"
+    "clickToFilter": "Haz clic en un tipo para filtrar dispositivos",
+    "additionalInfo": "Información adicional"
   },
   "organizations": {
     "title": "Organizaciones",

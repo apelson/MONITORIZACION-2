@@ -156,7 +156,8 @@
     "selectPath": "Pfad auswählen",
     "enableStatistics": "MxAnalytics Statistiken",
     "recentlyOffline": "Geräte mit kürzlichem Verbindungsverlust",
-    "clickToFilter": "Auf einen Typ klicken um Geräte zu filtern"
+    "clickToFilter": "Haz clic en un tipo para filtrar dispositivos",
+    "additionalInfo": "Información adicional"
   },
   "organizations": {
     "title": "Organisationen",

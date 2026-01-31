@@ -156,7 +156,8 @@
     "selectPath": "选择路径",
     "enableStatistics": "MxAnalytics统计",
     "recentlyOffline": "最近断开连接的设备",
-    "clickToFilter": "点击类型进行筛选"
+    "clickToFilter": "Haz clic en un tipo para filtrar dispositivos",
+    "additionalInfo": "Información adicional"
   },
   "organizations": {
     "title": "组织",

@@ -156,7 +156,8 @@
     "selectPath": "Выберите путь",
     "enableStatistics": "Статистика MxAnalytics",
     "recentlyOffline": "Недавно отключенные устройства",
-    "clickToFilter": "Нажмите на тип для фильтрации"
+    "clickToFilter": "Haz clic en un tipo para filtrar dispositivos",
+    "additionalInfo": "Información adicional"
   },
   "organizations": {
     "title": "Организации",
