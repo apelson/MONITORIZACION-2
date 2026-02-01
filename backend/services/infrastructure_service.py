@@ -694,7 +694,9 @@ class SynologyService:
             "disks": [],
             "volumes": [],
             "surveillance": None,
+            "services": [],
             "utilization": None,
+            "network": None,
             "health": "unknown"
         }
         
@@ -705,7 +707,9 @@ class SynologyService:
             result["disks"] = self.get_disk_info()
             result["volumes"] = self.get_volume_info()
             result["surveillance"] = self.get_surveillance_info()
+            result["services"] = self.get_running_services()
             result["utilization"] = self.get_system_utilization()
+            result["network"] = self.get_network_info()
             
             # Determine overall health
             if result["system_info"]:
