@@ -655,7 +655,7 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
                               
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive" onClick={() => { setSelectedDevice(device); setDeleteDialogOpen(true); }}>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:bg-red-50 hover:text-red-600 transition-colors" onClick={() => { setSelectedDevice(device); setDeleteDialogOpen(true); }}>
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
                                 </TooltipTrigger>
