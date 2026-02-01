@@ -238,6 +238,50 @@
     box-shadow: 0 0 8px rgba(100, 116, 139, 0.4);
 }
 
+/* Navigation Tabs - Premium Hover Effects */
+[role="tablist"] button,
+[data-radix-collection-item] {
+    position: relative;
+    transition: all 0.25s ease;
+    overflow: hidden;
+}
+
+[role="tablist"] button::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0, 163, 217, 0.1) 0%, rgba(0, 212, 255, 0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    border-radius: inherit;
+}
+
+[role="tablist"] button:hover::before {
+    opacity: 1;
+}
+
+[role="tablist"] button:hover {
+    color: #00A3D9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 163, 217, 0.15);
+}
+
+[role="tablist"] button:hover svg {
+    transform: scale(1.15);
+    transition: transform 0.2s ease;
+}
+
+[role="tablist"] button[data-state="active"] {
+    background: linear-gradient(135deg, #00A3D9 0%, #0089b8 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 163, 217, 0.4);
+}
+
+[role="tablist"] button[data-state="active"]:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 163, 217, 0.5);
+}
+
 /* Server card - Modern clean look with Siempria accent */
 .server-card {
     background: white;
