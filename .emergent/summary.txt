@@ -1,298 +1,209 @@
 <analysis>**original_problem_statement:**
-The user's primary goal is to build and deploy Siempria Network Monitor, a full-stack network monitoring application pivoted into a multi-tenant SaaS platform named Siempriapp. The most recent work focused on several user-requested features: fixing a non-functional Access SaaS Portal button, making the firmware version badge adaptive, adding audible alerts, removing the Made with Emergent badge, and beginning the implementation of monitoring for VMware ESXi, QNAP, and Synology devices. A significant portion of the session was spent debugging deployment issues on the user's external Ubuntu server.
+The user's primary goal is to build and deploy Siempria Network Monitor, a full-stack network monitoring application pivoted into a multi-tenant SaaS platform named Siempriapp. The user wants to add monitoring for VMware ESXi, QNAP, and Synology devices, implement an alert for camera-to-NAS connection loss, and significantly improve the UI's professionalism to impress clients, starting with the main header.
+
+More recently, the user requested the following features:
+1.  Add an Abrir incidencia (Open Incident) button to infrastructure device cards.
+2.  Add hover effects to the main navigation tabs.
+3.  Fix a bug causing a white screen when viewing Synology device details.
+4.  Improve the application's loading speed.
+5.  Add a visual loading spinner to the infrastructure panel.
+
+A recurring major challenge has been deploying the application to the user's custom Ubuntu server environment. A failed deployment attempt during this session has left the production server in a broken state.
 
 **PRODUCT REQUIREMENTS:**
-- The application must be deployed and fully functional on the user's external Ubuntu server at .
-- Implement monitoring for VMware ESXi, QNAP, and Synology devices.
-- Implement an alert for when a camera loses connection to its NAS storage.
-- Add audible sounds for important alerts.
-- Ensure the UI is fully translated into Spanish, English, German, Italian, French, Russian, and Chinese.
-- The UI should not contain any Made with Emergent branding.
-- The firmware version badge must be large enough to show the full version string.
+- The application must be fully functional on the user's production server at .
+- Implement and fix monitoring for VMware ESXi (validation issues) and QNAP (disk detection issues).
+- Implement an alert that triggers (with sound) when a camera loses its connection to its NAS storage.
+- The application UI must be professional and impressive, featuring a new header, hover effects, and better loading indicators.
+- Restore the 393 devices that are present in the database but not showing up in the UI.
 
 **User's preferred language**: Spanish
 
 **what currently exists?**
-The application has a FastAPI backend and a React frontend built around a monolithic  file. Recent changes include:
-- A fix for the Access SaaS Portal button.
-- An adaptable firmware badge and a new audible alert system.
-- The removal of the Made with Emergent badge from .
-- A new backend service () and API endpoint () to support ESXi monitoring.
-- A new but incomplete frontend panel () for the infrastructure monitoring feature.
-- A corrected  setup, ensuring the configuration is properly loaded in .
-The project's main challenge is deploying these changes to the user's complex production environment, which has non-standard file paths and required manual dependency installation.
+The application consists of a FastAPI backend and a React frontend, which is largely a single monolithic  file.
+
+**In the preview environment:** The agent successfully implemented a new professional dark-themed header, added hover effects to navigation tabs, added an Open Incident button and a loading spinner to the infrastructure panel, and implemented backend fixes for ESXi monitoring.
+
+**On the user's production server:** The server is in a semi-functional but broken state after a catastrophic failed deployment. The agent attempted to provide  commands to update files, which corrupted them. A lengthy recovery process restored the application to a point where the user can log in, but no devices are displayed, and the UI is an old version. This is because the frontend () was restored from an old backup () and the backend  was replaced with a minimal placeholder to get the service running.
 
 **Last working item**:
-- Last item agent was working: The agent was in the final stages of a protracted and complex remote debugging session to deploy new features to the user's production server. After numerous failed attempts due to incorrect paths, missing directories, and missing npm <command>
-
-Usage:
-
-npm install        install all the dependencies in your project
-npm install <foo>  add the <foo> dependency to your project
-npm test           run this project's tests
-npm run <foo>      run the script named <foo>
-npm <command> -h   quick help on <command>
-npm -l             display usage info for all commands
-npm help <term>    search for help on <term>
-npm help npm       more involved overview
-
-All commands:
-
-    access, adduser, audit, bugs, cache, ci, completion,
-    config, dedupe, deprecate, diff, dist-tag, docs, doctor,
-    edit, exec, explain, explore, find-dupes, fund, get, help,
-    help-search, hook, init, install, install-ci-test,
-    install-test, link, ll, login, logout, ls, org, outdated,
-    owner, pack, ping, pkg, prefix, profile, prune, publish,
-    query, rebuild, repo, restart, root, run-script, sbom,
-    search, set, shrinkwrap, star, stars, start, stop, team,
-    test, token, uninstall, unpublish, unstar, update, version,
-    view, whoami
-
-Specify configs in the ini-formatted file:
-    /root/.npmrc
-or on the command line via: npm <command> --key=value
-
-More configuration info: npm help config
-Configuration fields: npm help 7 config
-
-npm@10.8.2 /usr/lib/node_modules/npm packages, the agent provided a final, comprehensive set of commands to create all necessary directories, download all modified files to the correct paths (), install all required dependencies (, , etc.), correctly build the frontend, and copy the final build artifacts to the production service directory ().
-- Status: USER VERIFICATION PENDING
-- Agent Testing Done: Y (Agent verified the final build command succeeded on the user's machine via terminal output.)
-- Which testing method agent to use? Manual testing by the user. The next agent must ask the user to clear their browser cache (Ctrl+Shift+R) and verify if the new features (Infrastructure tab, sound icon) and i18n fixes are visible on their production site.
+- Last item agent was working: The agent was in the middle of a critical debugging session on the user's production server. After restoring the services, the user can log in, but all subsequent API calls to fetch data (like devices, groups, etc.) are failing with  or  errors, resulting in an empty dashboard. The agent had just confirmed the user's role is correct and was about to investigate how the frontend handles and sends the authentication token after login.
+- Status: BLOCKED
+- Agent Testing Done: N
+- Which testing method agent to use? manual testing by curl
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: **Production Deployment and Verification (P0)**
-     - **Description:** The user has been unable to see the latest features in production due to a series of deployment failures. The root causes were identified as incorrect file paths for both the source code and the running services, missing server-side dependencies, and misconfigured frontend entry points (, ).
-     - **Attempted fixes:** The agent guided the user to install  and multiple yarn install v1.22.22
-[1/4] Resolving packages...
-success Already up-to-date.
-Done in 0.02s. packages, create missing directories, and corrected the  and  files. The final set of commands led to a successful frontend build.
+  - Issue 1: **Production Server Unusable Due to API Authorization Failures (P0)**
+     - **Description:** After logging into the production application, all API requests to fetch data fail with  or  errors. This results in an empty dashboard, rendering the application useless. The login API call itself returns a valid token, but this token is seemingly not being used correctly for subsequent requests.
+     - **Attempted fixes:** The agent has verified the backend is running, the database connection is correct, the user has the correct 'admin' role, and Nginx configuration seems fine. The issue persists after clearing browser cache and using incognito mode. The agent set  to be empty to use relative paths, but this did not solve the issue.
      - **Next debug checklist:**
-        1. Confirm with the user that they have executed the final set of commands from the previous session, including the  step and the  commands.
-        2. Instruct the user to perform a hard browser refresh (Ctrl+Shift+R or Ctrl+F5).
-        3. If changes are still not visible, ask for the output of  to confirm the  directive points to .
-        4. Ask for the output of -- No entries -- to confirm the backend restarted correctly with the new code.
-     - **Why fix this issue and what will be achieved with the fix?** This is the absolute highest priority. It blocks all progress and prevents the user from seeing any of the implemented features.
-     - **Status:** USER VERIFICATION PENDING
-     - **Is recurring issue?** Y
-     - **Should Test frontend/backend/both after fix?** Both (User needs to visually verify frontend, and the new Infrastructure tab relies on backend changes).
+        1.  Examine the frontend code in  on the user's server to understand how the authentication token is stored (e.g., ) and how it's attached to subsequent  requests (e.g., via an interceptor or default headers).
+        2.  Inspect the browser's developer tools (Network tab) on the user's machine to see if the  header is actually being sent with the failing API requests (e.g., ).
+        3.  If the header is missing, the issue is in the frontend JavaScript logic for setting up authenticated API calls. Fix the logic in .
+        4.  If the header *is* present, the issue is on the backend. Double-check the JWT decoding and role validation logic in .
+     - **Why fix this issue and what will be achieved with the fix?** This is a critical blocker. The user cannot use the application at all until this is fixed. Resolving it will restore basic functionality.
+     - **Status:** IN PROGRESS
+     - **Is recurring issue?** N
+     - **Should Test frontend/backend/both after fix?** Both
      - **Blocked on other issue:** None
 
-  - Issue 2: **Complete Internationalization (i18n) of All UI Components (P1)**
-     - **Description:** The initial request to make the entire application multilingual is still incomplete. While the login page is fixed, other sections like Structure, Types, Logs, and Settings likely contain hardcoded text.
-     - **Attempted fixes:** The login page and new sound-toggle feature have been internationalized.
-     - **Next debug checklist:**
-        1. After logging in, navigate to each tab and dialog in the application.
-        2. Systematically   for any remaining hardcoded, user-facing text strings.
-        3. Create new translation keys for all identified strings and update all seven  files.
-        4. Replace the hardcoded strings with the  function.
-     - **Why fix this issue and what will be achieved with the fix?** This will fulfill a primary product requirement for a fully multilingual and professional user experience.
-     - **Status:** IN PROGRESS
+  - Issue 2: **Production Server is Out of Sync and Partially Corrupt (P1)**
+     - **Description:** The production server is running old code. The frontend () is an old backup, and the backend () is a minimal placeholder. None of the recent features (new header, hover effects, ESXi fix, etc.) are present.
+     - **Attempted fixes:** A deployment was attempted via  which corrupted the files, leading to the current broken state.
+     - **Next debug checklist:** After Issue #1 is resolved, a full, clean deployment must be performed. The user must use the Download Code button from the Emergent UI, upload the complete codebase to their server, and then run the build and copy commands. The agent must provide clear, step-by-step instructions for this process.
+     - **Why fix this issue and what will be achieved with the fix?** To deliver all the features the agent has developed and the user has requested.
+     - **Status:** NOT STARTED
      - **Is recurring issue?** Y
-     - **Should Test frontend/backend/both after fix?** Frontend
+     - **Should Test frontend/backend/both after fix?** Both
      - **Blocked on other issue:** Issue 1
 
+  - Issue 3: **ESXi and QNAP Monitoring Not Working (P2)**
+     - **Description:** The user reports that ESXi devices fail to validate, and QNAP devices do not detect their disks.
+     - **Attempted fixes:** A fix was implemented in the preview environment but the corresponding file () on production is a non-functional placeholder.
+     - **Next debug checklist:** This will be fixed by the full deployment described in Issue #2. After deployment, the functionality must be tested.
+     - **Why fix this issue and what will be achieved with the fix?** This is a core feature requested by the user.
+     - **Status:** NOT STARTED
+     - **Is recurring issue?** Y
+     - **Should Test frontend/backend/both after fix?** Backend
+     - **Blocked on other issue:** Issue 1, Issue 2
+
 **In progress Task List**:
-  - Task 1: **Finalize Infrastructure Monitoring Implementation (P1)**
-     - **Description:** The backend API and frontend panel for infrastructure monitoring are partially implemented. The QNAP and Synology logic is missing, and the frontend UI needs to be built out beyond the initial skeleton.
-     - **Where to resume:**
-        1. **Backend:** In , implement the logic for QNAP and Synology monitoring. This will require researching and installing appropriate Python libraries.
-        2. **Frontend:** In , build the UI to display the data fetched from the API (VM status, NAS storage, etc.).
-        3. **Both:** Implement UI forms/dialogs and backend endpoints to allow users to add and manage credentials for their ESXi, QNAP, and Synology devices securely.
-     - **What will be achieved with this?** Fulfills the user's request for new infrastructure monitoring capabilities.
-     - **Status:** IN PROGRESS
-     - **Should Test frontend/backend/both after fix?** Both
-     - **Blocked on something:** Issue 1 (Production Deployment)
+ - None. All work is blocked by the production server outage.
 
 **Upcoming and Future Tasks**
 Upcoming Tasks:
-- **P1: Implement NAS Connection Alert:** Create a new alert that triggers (with sound) when a camera loses connection to its NAS storage. This requires checking the  object from the backend.
-- **P2: Frontend Refactor ()**: Break down the monolithic  into smaller, manageable components. This is a critical technical debt item that slows down all development and increases risk.
-- **P3: Fix Missing Favicon and PWA Icons**: Address the persistent  errors for application icons.
+- **P1: Full Production Deployment:** Deploy the complete, updated codebase (including the new header, infrastructure fixes, and other UI improvements) to the user's server once the authorization issue is resolved.
+- **P1: Implement NAS Connection Alert:** The backend logic is mostly complete. The frontend UI in  needs to be fully updated to correctly display and handle the new alert types.
+- **P2: Fix Synology view details bug:** Ensure the fix implemented in the preview environment is deployed and working.
+- **P2: Complete Internationalization (i18n):** Replace all remaining hardcoded text strings.
 
 Future Tasks:
+- Refactor the monolithic  into smaller components.
+- Fix missing favicon and PWA icons in production.
 - Finalize Stripe Integration.
 - Implement Subdomains per Client ().
 - Complete the Public Dashboards UI.
 - Start the Dahua P2P project.
 
 **Completed work in this session**
-- **Fixed Access SaaS Portal Button:** Corrected the link to ensure proper navigation to the SaaS portal.
-- **Fixed Login Page Internationalization:** Replaced hardcoded text on the login page with i18n keys and updated all translation files.
-- **Implemented Adaptable Firmware Badge:** Modified the UI to show the full firmware version string.
-- **Implemented Audible Alerts:** Added a sound toggle button and logic to play a sound for new critical alerts.
-- **Initiated Infrastructure Monitoring Feature:** Created the backend API and service for ESXi and a new frontend panel.
-- **Resolved Production Build & Deployment Issues:** Diagnosed and fixed numerous issues on the user's server, including incorrect file paths, missing dependencies, and misconfigured startup files (, ).
-- **Removed Emergent Badge:** Created a clean  file without the Made with Emergent badge.
+- **Implemented New Header Design:** Created a professional, dark-themed header with gradient effects, a status HUD, and improved styling for buttons and logos (in preview only).
+- **Implemented UI/UX Improvements:** Added hover effects for navigation tabs, an Open Incident button on infrastructure cards, and a loading spinner for the infrastructure panel (in preview only).
+- **Attempted ESXi Fix:** Modified the backend ESXi logic to better support standalone hosts (in preview only).
+- **Recovered Production Server:** After a failed deployment corrupted server files, the agent guided the user through a lengthy process to restore services to a state where login is possible, using file backups found on the server.
 
 **Earlier issues found/mentioned but not fixed**
    - **Issue 1: Favicon and PWA icons are missing in production (P3)**
-     - **Debug checklist:**
-        - Check the  configuration on the production server to ensure it serves static assets from the correct  directory.
-        - Verify that paths in  and  are correct and that the files exist in the build output.
+     - **Debug checklist:** Check  config and paths in .
      - **Why to solve this issue and what will be achieved with this?** Improves application branding and professionalism.
      - **Should Test frontend/backend/both after fix:** Frontend
      - **Is recurring issue?** Y
 
 **Known issue recurrence from previous fork**
-  - **Brittle Codebase ():** The monolithic  file continues to be a major liability, making development slow and risky.
-  - **User's Server Configuration Complexity:** The user's production environment is complex and non-standard. The agent had to discover that the application source is in  while the services run from . This distinction is critical for future deployments.
+  - **Deployment Failures:** The user's custom deployment process is extremely fragile. The agent's attempt to provide  download commands completely broke the production server, highlighting that this method is not viable. **The only safe path forward is for the user to download the code via the platform's Download Code button and upload it manually.**
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Remote Production Debugging:** The session was dominated by debugging the user's server via terminal output. This involved  services,  configuration, 
-Usage:   
-  pip <command> [options]
-
-Commands:
-  install                     Install packages.
-  lock                        Generate a lock file.
-  download                    Download packages.
-  uninstall                   Uninstall packages.
-  freeze                      Output installed packages in requirements format.
-  inspect                     Inspect the python environment.
-  list                        List installed packages.
-  show                        Show information about installed packages.
-  check                       Verify installed packages have compatible dependencies.
-  config                      Manage local and global configuration.
-  search                      Search PyPI for packages.
-  cache                       Inspect and manage pip's wheel cache.
-  index                       Inspect information available from package indexes.
-  wheel                       Build wheels from your requirements.
-  hash                        Compute hashes of package archives.
-  completion                  A helper command used for command completion.
-  debug                       Show information useful for debugging.
-  help                        Show help for commands.
-
-General Options:
-  -h, --help                  Show help.
-  --debug                     Let unhandled exceptions propagate outside the
-                              main subroutine, instead of logging them to
-                              stderr.
-  --isolated                  Run pip in an isolated mode, ignoring
-                              environment variables and user configuration.
-  --require-virtualenv        Allow pip to only run in a virtual environment;
-                              exit with an error otherwise.
-  --python <python>           Run pip with the specified Python interpreter.
-  -v, --verbose               Give more output. Option is additive, and can be
-                              used up to 3 times.
-  -V, --version               Show version and exit.
-  -q, --quiet                 Give less output. Option is additive, and can be
-                              used up to 3 times (corresponding to WARNING,
-                              ERROR, and CRITICAL logging levels).
-  --log <path>                Path to a verbose appending log.
-  --no-input                  Disable prompting for input.
-  --keyring-provider <keyring_provider>
-                              Enable the credential lookup via the keyring
-                              library if user input is allowed. Specify which
-                              mechanism to use [auto, disabled, import,
-                              subprocess]. (default: auto)
-  --proxy <proxy>             Specify a proxy in the form
-                              scheme://[user:passwd@]proxy.server:port.
-  --retries <retries>         Maximum attempts to establish a new HTTP
-                              connection. (default: 5)
-  --timeout <sec>             Set the socket timeout (default 15 seconds).
-  --exists-action <action>    Default action when a path already exists:
-                              (s)witch, (i)gnore, (w)ipe, (b)ackup, (a)bort.
-  --trusted-host <hostname>   Mark this host or host:port pair as trusted,
-                              even though it does not have valid or any HTTPS.
-  --cert <path>               Path to PEM-encoded CA certificate bundle. If
-                              provided, overrides the default. See 'SSL
-                              Certificate Verification' in pip documentation
-                              for more information.
-  --client-cert <path>        Path to SSL client certificate, a single file
-                              containing the private key and the certificate
-                              in PEM format.
-  --cache-dir <dir>           Store the cache data in <dir>.
-  --no-cache-dir              Disable the cache.
-  --disable-pip-version-check
-                              Don't periodically check PyPI to determine
-                              whether a new version of pip is available for
-                              download. Implied with --no-index.
-  --no-color                  Suppress colored output.
-  --use-feature <feature>     Enable new functionality, that may be backward
-                              incompatible.
-  --use-deprecated <feature>  Enable deprecated functionality, that will be
-                              removed in the future.
-  --resume-retries <resume_retries>
-                              Maximum attempts to resume or restart an
-                              incomplete download. (default: 5) vs. system packages, yarn install v1.22.22
-[1/4] Resolving packages...
-success Already up-to-date.
-Done in 0.03s. dependencies, and understanding non-standard file paths.
-- **Asyncio in FastAPI:** Fixed bugs related to improper handling of the  async database driver (using  instead of ).
-- **API-based Deployment:** The  endpoints in  were essential for providing corrected files to the user for deployment.
+- **Production Server Debugging:** Extensive use of , -- No entries --,  config inspection, Active Internet connections (w/o servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State      
+tcp        0      0 agent-env-0d37948a:8010 10.64.135.152:33852     ESTABLISHED
+tcp        0      0 agent-env-0d37948a:8010 10.64.135.152:33838     ESTABLISHED
+tcp        0      0 localhost:27017         localhost:44666         ESTABLISHED
+tcp        0      0 agent-env-0d37948:38180 gdadas05.lpa.idec:40002 FIN_WAIT2  
+tcp        0      0 localhost:44694         localhost:27017         ESTABLISHED
+tcp        0      0 localhost:8010          localhost:34506         ESTABLISHED
+tcp        0      0 localhost:34506         localhost:8010          ESTABLISHED
+tcp        0      0 agent-env-0d37948a:8010 10.64.135.152:33840     ESTABLISHED
+tcp        0      0 agent-env-0d37948a:8010 10.64.135.153:34730     ESTABLISHED
+tcp        0      0 agent-env-0d37948a:8010 10.64.133.123:35814     ESTABLISHED
+tcp        0      0 localhost:27017         localhost:44678         ESTABLISHED
+tcp        0      0 agent-env-0d37948a:8010 10.64.129.22:35808      ESTABLISHED
+tcp        0      0 agent-env-0d37948:39228 0.203.102.34.bc.g:https ESTABLISHED
+tcp        0      0 agent-env-0d37948:39224 0.203.102.34.bc.g:https ESTABLISHED
+tcp        0      0 localhost:44666         localhost:27017         ESTABLISHED
+tcp        0      0 localhost:27017         localhost:44694         ESTABLISHED
+tcp        0      0 agent-env-0d37948a:8010 10.64.133.123:35802     ESTABLISHED
+tcp        0      0 localhost:44678         localhost:27017         ESTABLISHED
+tcp        0      0 agent-env-0d37948:53596 34.143.72.2:https       ESTABLISHED
+Active UNIX domain sockets (w/o servers)
+Proto RefCnt Flags       Type       State         I-Node   Path
+unix  3      [ ]         STREAM     CONNECTED     12551066 
+unix  3      [ ]         STREAM     CONNECTED     12551566 
+unix  3      [ ]         STREAM     CONNECTED     12550895 
+unix  3      [ ]         STREAM     CONNECTED     12550894 
+unix  3      [ ]         STREAM     CONNECTED     12551931 
+unix  3      [ ]         STREAM     CONNECTED     12551938 
+unix  3      [ ]         STREAM     CONNECTED     12551937 
+unix  3      [ ]         STREAM     CONNECTED     12551932 
+unix  3      [ ]         STREAM     CONNECTED     12551943 
+unix  3      [ ]         STREAM     CONNECTED     12551936 
+unix  3      [ ]         STREAM     CONNECTED     12551939 
+unix  3      [ ]         STREAM     CONNECTED     12551942 
+unix  3      [ ]         STREAM     CONNECTED     12551065 
+unix  3      [ ]         STREAM     CONNECTED     12551565 , and  to diagnose a live, broken server.
+- **Deployment Catastrophe:** A key lesson was learned: -ing files from the preview environment's API is unreliable and can corrupt files. The Download Code feature is the only safe method.
 
 **key DB schema**
-  - **infrastructure_devices:** A new collection to store connection details for monitored infrastructure (ESXi, QNAP, Synology), including host, credentials (encrypted), and type.
+  - : Verified to contain 393 device documents.
+  - : Verified to contain the 'admin' user with the correct role.
 
 **changes in tech stack**
-  - **pyvmomi:** Added to the backend to support VMware ESXi integration.
-
-**All files of reference**
-- : The central file for all recent feature additions and bug fixes.
-- : Modified for a more generic file download endpoint and to include the new infrastructure router.
--  (New): API endpoints for the infrastructure feature.
--  (New): Service logic for the infrastructure feature.
--  (New): UI for the infrastructure feature.
--  & : Both were rewritten to fix i18n initialization and remove branding.
-- All files in : Updated with new keys for alerts and UI elements.
-
-**Areas that need refactoring**:
-- **:** The monolithic nature of this file is a critical issue. It urgently needs to be broken down into smaller, feature-specific components to improve maintainability and reduce the risk of regressions.
-
-**key api endpoints**
-- : Generic endpoint to serve any project file for deployment.
-- : Lists all configured infrastructure devices.
-- : Creates a new infrastructure device.
-
-**Critical Info for New Agent**
-- **Your absolute first priority is to confirm the production deployment.** Guide the user to check their live site after a hard refresh. Do not start any new coding until the user confirms the Infrastructure tab and sound icon are visible.
-- **The user's production server is complex.** The code is edited in , but it must be built and then copied to  where the  services run it. Remember this two-step process for all future deployments.
-- **Be prepared for hands-on remote debugging.** You will act as the user's hands on their server, providing exact  commands based on the terminal output they give you.
-- The Infrastructure feature is incomplete. The work was paused to fix the deployment. You will need to resume by implementing the QNAP/Synology logic and building out the frontend UI.
-
-**documents and test reports created in this job**
   - None.
 
+**All files of reference**
+-  (on user's server): An old backup version that is causing the UI/UX issues.
+-  (on user's server): Contains the token validation logic that is at the heart of the current P0 issue.
+-  (on user's server): Defines .
+- : Nginx config file.
+
+**Areas that need refactoring**:
+- **:** The monolithic nature of this file makes debugging and deployment extremely difficult and risky, as seen in this session.
+
+**key api endpoints**
+- : **Working.** Returns a token.
+- : **Failing with 401/403.** This is the main endpoint for populating the dashboard.
+- : **Failing with 401/403.**
+- : **Failing with 401/403.**
+
+**Critical Info for New Agent**
+- **DO NOT ATTEMPT TO DEPLOY FILES USING  or  from the preview URL.** This method has been proven to corrupt the user's server. Guide the user to use the Download Code button in the Emergent UI and upload the files manually.
+- Your immediate and only priority is to solve the **** errors on the production server. The application is completely unusable until this is fixed.
+- The root of the  problem lies in how the frontend is (or isn't) sending the auth token after a successful login. Start your investigation there.
+- Be aware that the code on the production server (, ) is old/broken. After you fix the auth issue, you will need to guide the user through a full, clean deployment of the latest code to deliver the new header and other features.
+- The user is extremely frustrated after a long and unsuccessful debugging session. Be direct, methodical, and focus on getting the production server working again.
+
+**documents and test reports created in this job**
+  - /app/memory/PRD.md
+
 **Last 10 User Messages and any pending HUMAN messages**
-1. User provides output of yarn run v1.22.22
-info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command. failing due to missing .
-2. User provides output of yarn run v1.22.22
-info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command. failing again, this time on .
-3. User provides output of yarn run v1.22.22
-info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command. failing a third time on a missing component path.
-4. User confirms yarn run v1.22.22
-info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command. finally succeeded after all dependencies were downloaded. Asks why changes are not visible.
-5. User provides image showing the UI is broken (missing translations, showing keys like auth.login).
-6. User provides terminal output showing  exists but has not been copied to the  folder.
-7. Agent instructs user to install .
-8. User provides terminal output showing they are still having issues with the Emergent badge and translations.
-9. Agent identifies  is missing the i18n import and  still contains the badge.
-10. Agent provides the final, corrected commands to rewrite both  and , rebuild the project, copy it to the production directory, and restart services. This is the last action taken.
+1.  **User:** The design doesn't look like the preview. I had 400 devices, they must be recoverable.
+2.  **Agent:** Confirms devices are in the DB and shifts focus to the frontend.
+3.  **User:** Confirms the  file for the frontend was empty and is now fixed. Login works in incognito, but devices are still missing.
+4.  **User:** Reports the connection is timing out again.
+5.  **Agent:** Confirms services are running and suspects a network/firewall issue.
+6.  **User:** what a mess, can we solve this once and for all, please, I want the devices to appear and the new design from the preview, please.
+7.  **Agent:** Tries to debug with  on the server, gets a syntax error in the python one-liner.
+8.  **User:** Provides logs showing devices are present, but the UI is wrong.
+9.  **User:** Reports the design is still not right.
+10. **User:** Provides logs showing the frontend is running, but the UI is wrong.
 
 **Project Health Check:**
-- **Broken:** The production environment is not reflecting the latest successfully built code. The deployment process is the main blocker.
+- **Broken:** The entire production application is non-functional for the user. Login works, but no data can be fetched due to authorization errors.
 
 **3rd Party Integrations**
 - **i18next / react-i18next:** For internationalization.
 - **pyvmomi:** For VMware ESXi integration.
-- **QNAP/Synology APIs:** To be integrated (requires investigation).
-- **Stripe:** Planned for future SaaS payments.
 
 **Testing status**
   - Testing agent used after significant changes: NO
   - Troubleshoot agent used after agent stuck in loop: NO
   - Test files created: []
-  - Known regressions: Production deployment is out of sync with the latest codebase.
+  - Known regressions: The entire application is in a regressed state on production.
 
 **Credentials to test flow:**
 - **Admin Login:**  / 
 
 **What agent forgot to execute**
-- The agent got stuck in a sequential one-fix-at-a-time debugging loop for the production server. A more efficient approach would have been to ask for all relevant config files (, service files, nginx config) at once to provide a single, comprehensive fix.
-- The user's request for a NAS connection alert was acknowledged but not implemented, as the agent was sidetracked by the larger infrastructure monitoring request and subsequent deployment issues.</analysis>
+- The agent failed to recognize the unreliability of its file download mechanism ( from preview API), which led to the corruption of the user's server and derailed the entire session. It should have immediately recommended the Download Code button as the primary method for transferring files.</analysis>
