@@ -72,48 +72,94 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
     notes: ''
   });
 
-  // Fetch devices on mount - optimized with single request
+  // Cleanup on unmount
   useEffect(() => {
-    let isMounted = true;
-    
+    isMounted.current = true;
+    return () => { isMounted.current = false; };
+  }, []);
+
+  // Fetch devices on mount - optimized with cache
+  useEffect(() => {
     const loadDevices = async () => {
       try {
+        // Check cache first
+        const cachedDevices = deviceCache.get('devices');
+        const cachedSummary = deviceCache.get('summary');
+        const cacheTime = deviceCache.get('timestamp');
+        
+        if (cachedDevices && cachedSummary && cacheTime && (Date.now() - cacheTime < CACHE_TTL)) {
+          setDevices(cachedDevices);
+          setSummary(cachedSummary);
+          setLoading(false);
+          return;
+        }
+        
         const [devRes, sumRes] = await Promise.all([
           authAxios.get('/infrastructure/devices'),
           authAxios.get('/infrastructure/summary')
         ]);
         
-        if (isMounted) {
-          setDevices(devRes.data.devices || []);
-          setSummary(sumRes.data);
+        if (isMounted.current) {
+          const devicesData = devRes.data.devices || [];
+          const summaryData = sumRes.data;
+          
+          // Update cache
+          deviceCache.set('devices', devicesData);
+          deviceCache.set('summary', summaryData);
+          deviceCache.set('timestamp', Date.now());
+          
+          setDevices(devicesData);
+          setSummary(summaryData);
         }
       } catch (err) {
         console.error('InfrastructurePanel: Load error', err);
-        if (isMounted) {
+        if (isMounted.current) {
           toast.error(t('infra.fetchError', 'Error al cargar dispositivos'));
         }
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted.current) setLoading(false);
       }
     };
     
     loadDevices();
-    return () => { isMounted = false; };
   }, [authAxios, t]);
   
-  // Manual refresh
+  // Manual refresh - clears cache
   const fetchDevices = useCallback(async () => {
     try {
       const [devRes, sumRes] = await Promise.all([
         authAxios.get('/infrastructure/devices'),
         authAxios.get('/infrastructure/summary')
       ]);
-      setDevices(devRes.data.devices || []);
-      setSummary(sumRes.data);
+      const devicesData = devRes.data.devices || [];
+      const summaryData = sumRes.data;
+      
+      // Update cache
+      deviceCache.set('devices', devicesData);
+      deviceCache.set('summary', summaryData);
+      deviceCache.set('timestamp', Date.now());
+      
+      setDevices(devicesData);
+      setSummary(summaryData);
     } catch (e) {
       toast.error(t('infra.fetchError', 'Error al cargar'));
     }
   }, [authAxios, t]);
+
+  // Handle create incident for device
+  const handleCreateIncident = (device) => {
+    if (onCreateIncident) {
+      onCreateIncident({
+        title: `Incidencia: ${device.name}`,
+        description: `Incidencia creada para dispositivo de infraestructura: ${device.name} (${device.device_type.toUpperCase()}) - ${device.host}:${device.port}`,
+        device_name: device.name,
+        device_type: device.device_type,
+        device_host: device.host
+      });
+    } else {
+      toast.info(t('infra.incidentCreated', 'Incidencia creada para') + ` ${device.name}`);
+    }
+  };
 
   // Refresh all devices
   const handleRefreshAll = async () => {
