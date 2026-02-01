@@ -31,36 +31,69 @@ class ESXiService:
     def connect(self) -> bool:
         """Establish connection to ESXi/vCenter"""
         try:
-            # Try vSphere REST API first (vCenter/ESXi 6.5+)
-            url = f"{self._get_base_url()}/rest/com/vmware/cis/session"
             self.session = requests.Session()
             self.session.verify = False
             
-            response = self.session.post(
-                url,
-                auth=(self.username, self.password),
-                timeout=10
-            )
-            
-            if response.status_code == 200:
-                self.session_id = response.json().get('value')
-                self.session.headers.update({'vmware-api-session-id': self.session_id})
-                return True
-            
-            # Fallback to older API
+            # Try vSphere 7.0.3+ REST API first
             url = f"{self._get_base_url()}/api/session"
             response = self.session.post(
                 url,
                 auth=(self.username, self.password),
-                timeout=10
+                timeout=15
             )
             
             if response.status_code in [200, 201]:
-                self.session_id = response.json() if response.text else response.headers.get('vmware-api-session-id')
-                if isinstance(self.session_id, str):
+                # vSphere 7.0.3+ returns session token directly
+                try:
+                    token = response.json()
+                    if isinstance(token, str):
+                        self.session_id = token
+                    else:
+                        self.session_id = response.headers.get('vmware-api-session-id')
+                except:
+                    self.session_id = response.text.strip('"')
+                
+                if self.session_id:
                     self.session.headers.update({'vmware-api-session-id': self.session_id})
+                    logger.info(f"ESXi connected via /api/session")
+                    return True
+            
+            # Fallback to vSphere 6.5-7.0.2 REST API
+            url = f"{self._get_base_url()}/rest/com/vmware/cis/session"
+            response = self.session.post(
+                url,
+                auth=(self.username, self.password),
+                timeout=15
+            )
+            
+            if response.status_code == 200:
+                try:
+                    data = response.json()
+                    self.session_id = data.get('value')
+                except:
+                    self.session_id = None
+                
+                if self.session_id:
+                    self.session.headers.update({'vmware-api-session-id': self.session_id})
+                    logger.info(f"ESXi connected via /rest/com/vmware/cis/session")
+                    return True
+            
+            # Try basic auth for standalone ESXi without vCenter
+            url = f"{self._get_base_url()}/sdk/vimServiceVersions.xml"
+            response = self.session.get(
+                url,
+                auth=(self.username, self.password),
+                timeout=10
+            )
+            
+            if response.status_code == 200 and 'vim' in response.text.lower():
+                # ESXi is reachable via SOAP/SDK, use basic auth for REST
+                self.session.auth = (self.username, self.password)
+                self.session_id = "basic_auth"
+                logger.info(f"ESXi connected via basic auth")
                 return True
                 
+            logger.error(f"ESXi connection failed: status {response.status_code}")
             return False
         except Exception as e:
             logger.error(f"ESXi connection error: {e}")
