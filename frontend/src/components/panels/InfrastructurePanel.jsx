@@ -101,7 +101,6 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios }) => {
   
   // Manual refresh
   const fetchDevices = useCallback(async () => {
-    if (!authAxios) return;
     try {
       const [devRes, sumRes] = await Promise.all([
         authAxios.get('/infrastructure/devices'),
