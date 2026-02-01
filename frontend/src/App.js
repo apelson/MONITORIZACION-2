@@ -12,7 +12,7 @@ import {
   Info, Globe, Calendar, Copy, Cctv, ExternalLink, GripVertical, Phone,
   BarChart3, TrendingUp, Flame, ArrowUpDown, Wrench, Trophy, PieChart, Upload,
   Archive, RotateCcw, CloudDownload, FolderArchive, FileSearch, AlertTriangle, Cpu, Thermometer, HardDrive as HardDriveIcon, X, Search, ClipboardList, CheckCircle, MessageSquare, Smartphone,
-  Volume2, VolumeX
+  Volume2, VolumeX, Database, VideoOff
 } from "lucide-react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from '@dnd-kit/sortable';
