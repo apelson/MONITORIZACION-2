@@ -492,7 +492,7 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios }) => {
                             {/* NAS Storage Info */}
                             {(device.device_type === 'qnap' || device.device_type === 'synology') && device.last_status?.connected && (
                               <div className="mt-2 pt-2 border-t bg-purple-50/50 -mx-4 px-4 pb-2 rounded-b">
-                                <div className="grid grid-cols-2 gap-2 text-center">
+                                <div className="grid grid-cols-3 gap-2 text-center">
                                   <div>
                                     <p className="text-lg font-bold">{device.last_status?.disks?.length || 0}</p>
                                     <p className="text-[10px] text-muted-foreground">Discos</p>
@@ -501,7 +501,25 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios }) => {
                                     <p className="text-lg font-bold">{device.last_status?.volumes?.length || 0}</p>
                                     <p className="text-[10px] text-muted-foreground">Volúmenes</p>
                                   </div>
+                                  <div>
+                                    <p className="text-lg font-bold text-green-600">{device.last_status?.services?.filter(s => s.status === 'running').length || 0}</p>
+                                    <p className="text-[10px] text-muted-foreground">Servicios</p>
+                                  </div>
                                 </div>
+                                {/* Services Preview */}
+                                {device.last_status?.services?.length > 0 && (
+                                  <div className="mt-2 space-y-1">
+                                    {device.last_status.services.slice(0, 2).map((svc, i) => (
+                                      <div key={i} className="flex items-center justify-between text-xs bg-white/70 px-2 py-1 rounded">
+                                        <span className="truncate max-w-[130px]">{svc.name}</span>
+                                        <Badge variant="default" className="text-[9px] px-1 py-0 bg-green-500">{svc.status}</Badge>
+                                      </div>
+                                    ))}
+                                    {device.last_status.services.length > 2 && (
+                                      <p className="text-[10px] text-center text-muted-foreground">+{device.last_status.services.length - 2} servicios más...</p>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
