@@ -4576,6 +4576,13 @@ const Dashboard = () => {
   const offlineCount = devices.filter(d => d.status === 'offline').length;
 
   const fetchAll = useCallback(async () => {
+    // Prevent concurrent calls
+    if (fetchingRef.current) {
+      console.log('⏩ Skipping fetchAll - already in progress');
+      return;
+    }
+    
+    fetchingRef.current = true;
     try {
       const [devRes, orgRes, grpRes, typeRes, alertRes] = await Promise.all([
         authAxios.get("/devices"), authAxios.get("/organizations"), authAxios.get("/groups"),
@@ -4649,6 +4656,8 @@ const Dashboard = () => {
     } catch (e) { 
       console.error(e); 
       setLoading(false);
+    } finally {
+      fetchingRef.current = false;
     }
   }, [authAxios, user?.role, previousDeviceStates, playAlertSound, previousAlertIds]);
 
