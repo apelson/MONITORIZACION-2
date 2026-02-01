@@ -289,6 +289,26 @@ async def get_device_history(device_id: str, limit: int = 100, current_user: dic
 async def get_alerts(limit: int = 50, current_user: dict = Depends(get_current_user)):
     return {"alerts": await alerts_collection.find({}, {"_id": 0}).sort("timestamp", -1).limit(limit).to_list(length=limit)}
 
+@router.post("/devices/{device_id}/check-nas")
+async def check_device_nas(device_id: str, storage_info: dict = None, current_user: dict = Depends(get_current_user)):
+    """Check if device (camera) has lost NAS connection"""
+    from services.device_service import check_camera_nas_connection
+    device = await devices_collection.find_one({"id": device_id}, {"_id": 0})
+    if not device:
+        raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
+    
+    # If storage info is provided, check NAS connection
+    if storage_info:
+        await check_camera_nas_connection(device_id, storage_info)
+    
+    # Return current NAS state
+    updated_device = await devices_collection.find_one({"id": device_id}, {"_id": 0})
+    return {
+        "device_id": device_id,
+        "nas_connected": updated_device.get("nas_connected"),
+        "message": "NAS check completed"
+    }
+
 @router.put("/devices/reorder")
 async def reorder_devices(data: dict, current_user: dict = Depends(require_role(["admin", "manager"]))):
     """Update device order (from drag and drop)"""
