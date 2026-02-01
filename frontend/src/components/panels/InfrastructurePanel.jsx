@@ -3,14 +3,14 @@
  * Monitors VMware ESXi, QNAP, and Synology devices
  * With quick actions, web links, and detailed VM/NAS info
  */
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { 
   Server, HardDrive, Database, Plus, RefreshCw, Trash2, Edit, 
   Wifi, WifiOff, Cpu, Monitor, Play, Square, Pause, Globe,
   AlertTriangle, CheckCircle, XCircle, Eye, Settings, Activity,
-  ExternalLink, Thermometer, MemoryStick, Clock, Zap, Info
+  ExternalLink, Thermometer, MemoryStick, Clock, Zap, Info, ClipboardList
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -29,7 +29,11 @@ import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const InfrastructurePanel = ({ authAxios: externalAuthAxios }) => {
+// Cache for device status to speed up loading
+const deviceCache = new Map();
+const CACHE_TTL = 60000; // 1 minute cache
+
+const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident }) => {
   const { t } = useTranslation();
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +47,7 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios }) => {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
   const [summary, setSummary] = useState(null);
+  const isMounted = useRef(true);
   
   // Create internal axios instance with auth
   const authAxios = useMemo(() => {
