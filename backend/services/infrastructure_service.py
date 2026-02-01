@@ -329,53 +329,158 @@ class QNAPService:
             return None
     
     def get_disk_info(self) -> List[Dict[str, Any]]:
-        """Get disk/volume information"""
+        """Get disk/volume information from QNAP"""
         if not self.session:
             if not self.connect():
                 return []
         
+        disks = []
         try:
-            url = f"{self._get_base_url()}/cgi-bin/management/manaRequest.cgi"
-            params = {
-                "subfunc": "smart_disk_health",
-                "sid": self.sid or ""
-            }
+            # Try multiple QNAP disk endpoints
+            disk_endpoints = [
+                # QTS 5.x endpoints
+                {"url": "/cgi-bin/disk/disk.cgi", "params": {"func": "get_disk_info", "sid": self.sid or ""}},
+                {"url": "/cgi-bin/disk/qsmart.cgi", "params": {"func": "get_smart_info", "sid": self.sid or ""}},
+                # QTS 4.x endpoints  
+                {"url": "/cgi-bin/management/manaRequest.cgi", "params": {"subfunc": "smart_disk_health", "sid": self.sid or ""}},
+                {"url": "/cgi-bin/management/manaRequest.cgi", "params": {"subfunc": "disk_info", "sid": self.sid or ""}},
+                # Generic disk endpoint
+                {"url": "/cgi-bin/storagesmart.cgi", "params": {"func": "get_smart", "sid": self.sid or ""}},
+            ]
             
-            response = self.session.get(url, params=params, timeout=10)
-            
-            if response.status_code == 200:
+            for endpoint in disk_endpoints:
                 try:
-                    return response.json().get('disks', [])
-                except:
-                    return []
+                    url = f"{self._get_base_url()}{endpoint['url']}"
+                    response = self.session.get(url, params=endpoint['params'], timeout=10)
+                    
+                    if response.status_code == 200:
+                        try:
+                            data = response.json()
+                            # Handle different response formats
+                            if isinstance(data, dict):
+                                if 'disks' in data:
+                                    disks = data['disks']
+                                    break
+                                elif 'disk_list' in data:
+                                    disks = data['disk_list']
+                                    break
+                                elif 'result' in data and isinstance(data['result'], list):
+                                    disks = data['result']
+                                    break
+                            elif isinstance(data, list):
+                                disks = data
+                                break
+                        except:
+                            # Try parsing XML response
+                            import re
+                            disk_matches = re.findall(r'<disk[^>]*>.*?</disk>', response.text, re.DOTALL)
+                            if disk_matches:
+                                for match in disk_matches:
+                                    disk_info = {}
+                                    name_match = re.search(r'<name>([^<]+)</name>', match)
+                                    status_match = re.search(r'<status>([^<]+)</status>', match)
+                                    size_match = re.search(r'<size>([^<]+)</size>', match)
+                                    temp_match = re.search(r'<temp>([^<]+)</temp>', match)
+                                    model_match = re.search(r'<model>([^<]+)</model>', match)
+                                    
+                                    if name_match:
+                                        disk_info['name'] = name_match.group(1)
+                                    if status_match:
+                                        disk_info['status'] = status_match.group(1)
+                                    if size_match:
+                                        disk_info['size'] = size_match.group(1)
+                                    if temp_match:
+                                        disk_info['temp'] = int(temp_match.group(1)) if temp_match.group(1).isdigit() else temp_match.group(1)
+                                    if model_match:
+                                        disk_info['model'] = model_match.group(1)
+                                    
+                                    if disk_info:
+                                        disks.append(disk_info)
+                                
+                                if disks:
+                                    break
+                except Exception as e:
+                    logger.debug(f"QNAP disk endpoint {endpoint['url']} failed: {e}")
+                    continue
             
-            return []
+            return disks
         except Exception as e:
             logger.error(f"Error getting QNAP disk info: {e}")
             return []
     
     def get_volume_info(self) -> List[Dict[str, Any]]:
-        """Get storage volume information"""
+        """Get storage volume information from QNAP"""
         if not self.session:
             if not self.connect():
                 return []
         
+        volumes = []
         try:
-            url = f"{self._get_base_url()}/cgi-bin/management/manaRequest.cgi"
-            params = {
-                "subfunc": "volume_info",
-                "sid": self.sid or ""
-            }
+            # Try multiple QNAP volume endpoints
+            volume_endpoints = [
+                # QTS 5.x endpoints
+                {"url": "/cgi-bin/storage/storage_pool.cgi", "params": {"func": "pool_list", "sid": self.sid or ""}},
+                {"url": "/cgi-bin/storage/volume.cgi", "params": {"func": "vol_list", "sid": self.sid or ""}},
+                # QTS 4.x endpoints
+                {"url": "/cgi-bin/management/manaRequest.cgi", "params": {"subfunc": "volume_info", "sid": self.sid or ""}},
+                {"url": "/cgi-bin/management/manaRequest.cgi", "params": {"subfunc": "storagepool_info", "sid": self.sid or ""}},
+            ]
             
-            response = self.session.get(url, params=params, timeout=10)
-            
-            if response.status_code == 200:
+            for endpoint in volume_endpoints:
                 try:
-                    return response.json().get('volumes', [])
-                except:
-                    return []
+                    url = f"{self._get_base_url()}{endpoint['url']}"
+                    response = self.session.get(url, params=endpoint['params'], timeout=10)
+                    
+                    if response.status_code == 200:
+                        try:
+                            data = response.json()
+                            if isinstance(data, dict):
+                                if 'volumes' in data:
+                                    volumes = data['volumes']
+                                    break
+                                elif 'pool_list' in data:
+                                    volumes = data['pool_list']
+                                    break
+                                elif 'vol_list' in data:
+                                    volumes = data['vol_list']
+                                    break
+                                elif 'result' in data:
+                                    volumes = data['result'] if isinstance(data['result'], list) else [data['result']]
+                                    break
+                            elif isinstance(data, list):
+                                volumes = data
+                                break
+                        except:
+                            # Try parsing XML
+                            import re
+                            vol_matches = re.findall(r'<volume[^>]*>.*?</volume>', response.text, re.DOTALL)
+                            if vol_matches:
+                                for match in vol_matches:
+                                    vol_info = {}
+                                    name_match = re.search(r'<name>([^<]+)</name>', match)
+                                    status_match = re.search(r'<status>([^<]+)</status>', match)
+                                    size_match = re.search(r'<total[^>]*>([^<]+)</total>', match)
+                                    used_match = re.search(r'<used[^>]*>([^<]+)</used>', match)
+                                    
+                                    if name_match:
+                                        vol_info['name'] = name_match.group(1)
+                                    if status_match:
+                                        vol_info['status'] = status_match.group(1)
+                                    if size_match:
+                                        vol_info['size'] = int(size_match.group(1)) if size_match.group(1).isdigit() else size_match.group(1)
+                                    if used_match:
+                                        vol_info['used'] = int(used_match.group(1)) if used_match.group(1).isdigit() else used_match.group(1)
+                                    
+                                    if vol_info:
+                                        volumes.append(vol_info)
+                                
+                                if volumes:
+                                    break
+                except Exception as e:
+                    logger.debug(f"QNAP volume endpoint {endpoint['url']} failed: {e}")
+                    continue
             
-            return []
+            return volumes
         except Exception as e:
             logger.error(f"Error getting QNAP volume info: {e}")
             return []
