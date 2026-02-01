@@ -79,8 +79,42 @@ const InfrastructurePanel = ({ authAxios }) => {
   }, [authAxios, t]);
 
   useEffect(() => {
-    fetchDevices();
-  }, [fetchDevices]);
+    let mounted = true;
+    
+    const loadData = async () => {
+      if (!authAxios) {
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        const [devicesRes, summaryRes] = await Promise.all([
+          authAxios.get('/infrastructure/devices'),
+          authAxios.get('/infrastructure/summary')
+        ]);
+        
+        if (mounted) {
+          setDevices(devicesRes.data.devices || []);
+          setSummary(summaryRes.data);
+        }
+      } catch (e) {
+        if (mounted && e.message !== 'canceled') {
+          console.error('InfrastructurePanel: Error:', e);
+          toast.error(t('infra.fetchError', 'Error al cargar dispositivos de infraestructura'));
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+    
+    loadData();
+    
+    return () => {
+      mounted = false;
+    };
+  }, [authAxios, t]);
 
   // Refresh all devices
   const handleRefreshAll = async () => {
