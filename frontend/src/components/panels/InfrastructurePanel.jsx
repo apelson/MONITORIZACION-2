@@ -379,14 +379,36 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
   };
 
+  // Custom loading spinner component
   if (loading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-24 w-full" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Skeleton className="h-48" />
-          <Skeleton className="h-48" />
-          <Skeleton className="h-48" />
+      <div className="flex flex-col items-center justify-center py-20">
+        {/* Animated Infrastructure Icon */}
+        <div className="relative">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 animate-pulse">
+            <Server className="w-10 h-10 text-white" />
+          </div>
+          {/* Orbiting dots */}
+          <div className="absolute inset-0 animate-spin" style={{ animationDuration: '3s' }}>
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
+          </div>
+          <div className="absolute inset-0 animate-spin" style={{ animationDuration: '3s', animationDelay: '1s' }}>
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-purple-500 shadow-lg shadow-purple-500/50" />
+          </div>
+          <div className="absolute inset-0 animate-spin" style={{ animationDuration: '3s', animationDelay: '2s' }}>
+            <div className="absolute top-1/2 -right-2 -translate-y-1/2 w-3 h-3 rounded-full bg-orange-500 shadow-lg shadow-orange-500/50" />
+          </div>
+        </div>
+        
+        {/* Loading text */}
+        <div className="mt-6 text-center">
+          <h3 className="text-lg font-semibold text-slate-700">{t('infra.loading', 'Cargando Infraestructura')}</h3>
+          <p className="text-sm text-slate-500 mt-1">{t('infra.loadingDesc', 'Conectando con dispositivos...')}</p>
+        </div>
+        
+        {/* Progress bar */}
+        <div className="mt-4 w-48 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full animate-loading-bar" />
         </div>
       </div>
     );
