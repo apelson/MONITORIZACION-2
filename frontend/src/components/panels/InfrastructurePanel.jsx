@@ -48,72 +48,58 @@ const InfrastructurePanel = ({ authAxios }) => {
     notes: ''
   });
 
-  // Fetch devices
-  const fetchDevices = useCallback(async () => {
-    if (!authAxios) {
-      console.log('InfrastructurePanel: No authAxios available, setting loading false');
-      setLoading(false);
-      return;
-    }
-    
-    try {
-      console.log('InfrastructurePanel: Fetching devices...');
-      const devicesRes = await authAxios.get('/infrastructure/devices');
-      console.log('InfrastructurePanel: Devices fetched:', devicesRes.data);
-      setDevices(devicesRes.data.devices || []);
-      
-      console.log('InfrastructurePanel: Fetching summary...');
-      const summaryRes = await authAxios.get('/infrastructure/summary');
-      console.log('InfrastructurePanel: Summary fetched:', summaryRes.data);
-      setSummary(summaryRes.data);
-    } catch (e) {
-      console.error('InfrastructurePanel: Fetch error:', e);
-      // Only show toast if it's a real error, not a cancelled request
-      if (e.message !== 'canceled') {
-        toast.error(t('infra.fetchError', 'Error al cargar dispositivos de infraestructura'));
-      }
-    } finally {
-      console.log('InfrastructurePanel: Setting loading false');
-      setLoading(false);
-    }
-  }, [authAxios, t]);
-
+  // Fetch devices - simplified loading
   useEffect(() => {
-    let mounted = true;
+    let isMounted = true;
     
-    const loadData = async () => {
+    const loadDevices = async () => {
       if (!authAxios) {
+        console.log('InfrastructurePanel: No authAxios');
         setLoading(false);
         return;
       }
       
+      console.log('InfrastructurePanel: Loading data...');
       try {
-        const [devicesRes, summaryRes] = await Promise.all([
+        const [devRes, sumRes] = await Promise.all([
           authAxios.get('/infrastructure/devices'),
           authAxios.get('/infrastructure/summary')
         ]);
         
-        if (mounted) {
-          setDevices(devicesRes.data.devices || []);
-          setSummary(summaryRes.data);
+        console.log('InfrastructurePanel: Data loaded', devRes.data, sumRes.data);
+        
+        if (isMounted) {
+          setDevices(devRes.data.devices || []);
+          setSummary(sumRes.data);
+          setLoading(false);
         }
-      } catch (e) {
-        if (mounted && e.message !== 'canceled') {
-          console.error('InfrastructurePanel: Error:', e);
-          toast.error(t('infra.fetchError', 'Error al cargar dispositivos de infraestructura'));
-        }
-      } finally {
-        if (mounted) {
+      } catch (err) {
+        console.error('InfrastructurePanel: Load error', err);
+        if (isMounted) {
+          toast.error(t('infra.fetchError', 'Error al cargar dispositivos'));
           setLoading(false);
         }
       }
     };
     
-    loadData();
+    loadDevices();
     
-    return () => {
-      mounted = false;
-    };
+    return () => { isMounted = false; };
+  }, [authAxios, t]);
+  
+  // Manual refresh
+  const fetchDevices = useCallback(async () => {
+    if (!authAxios) return;
+    try {
+      const [devRes, sumRes] = await Promise.all([
+        authAxios.get('/infrastructure/devices'),
+        authAxios.get('/infrastructure/summary')
+      ]);
+      setDevices(devRes.data.devices || []);
+      setSummary(sumRes.data);
+    } catch (e) {
+      toast.error(t('infra.fetchError', 'Error al cargar'));
+    }
   }, [authAxios, t]);
 
   // Refresh all devices
