@@ -487,6 +487,8 @@ class QNAPService:
             "disks": [],
             "volumes": [],
             "surveillance": None,
+            "services": [],
+            "utilization": None,
             "health": "unknown"
         }
         
@@ -496,6 +498,8 @@ class QNAPService:
             result["disks"] = self.get_disk_info()
             result["volumes"] = self.get_volume_info()
             result["surveillance"] = self.get_surveillance_info()
+            result["services"] = self.get_running_services()
+            result["utilization"] = self.get_utilization()
             
             # Determine overall health
             if result["system_info"]:
