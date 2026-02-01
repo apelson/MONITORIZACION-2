@@ -185,8 +185,8 @@
 
 /* Status dot */
 .status-dot {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     flex-shrink: 0;
 }
@@ -197,28 +197,45 @@
 }
 
 .status-dot-online {
-    background-color: #22c55e;
-    box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+    background: radial-gradient(circle at 30% 30%, #34d399, #10b981);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.6), 0 0 4px rgba(16, 185, 129, 0.8);
+    animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+    0%, 100% { 
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.6), 0 0 4px rgba(16, 185, 129, 0.8);
+    }
+    50% { 
+        box-shadow: 0 0 18px rgba(16, 185, 129, 0.8), 0 0 6px rgba(16, 185, 129, 1);
+    }
 }
 
 .status-dot-offline {
-    background-color: #ef4444;
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
-    animation: pulse-alert 1s infinite;
+    background: radial-gradient(circle at 30% 30%, #f87171, #ef4444);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.6), 0 0 4px rgba(239, 68, 68, 0.8);
+    animation: pulse-alert 1.5s infinite;
 }
 
 @keyframes pulse-alert {
-    0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
-    50% { opacity: 0.8; box-shadow: 0 0 15px rgba(239, 68, 68, 0.8); }
+    0%, 100% { 
+        box-shadow: 0 0 12px rgba(239, 68, 68, 0.6), 0 0 4px rgba(239, 68, 68, 0.8);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.9), 0 0 8px rgba(239, 68, 68, 1);
+        transform: scale(1.1);
+    }
 }
 
 .status-dot-checking {
-    background-color: #FF8C00;
-    box-shadow: 0 0 8px rgba(255, 140, 0, 0.5);
+    background: radial-gradient(circle at 30% 30%, #fbbf24, #f59e0b);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.5), 0 0 4px rgba(245, 158, 11, 0.7);
 }
 
 .status-dot-unknown {
-    background-color: #63666A;
+    background: radial-gradient(circle at 30% 30%, #94a3b8, #64748b);
+    box-shadow: 0 0 8px rgba(100, 116, 139, 0.4);
 }
 
 /* Server card - Modern clean look with Siempria accent */
