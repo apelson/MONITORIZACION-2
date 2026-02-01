@@ -4,75 +4,129 @@
     background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
-/* Header - Siempria Professional Style */
+/* Header - Premium Dark Professional Style (Siempria + Mobotix inspired) */
 .app-header {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    border-bottom: 1px solid rgba(0, 163, 217, 0.15);
+    background: linear-gradient(135deg, #0a0f1a 0%, #111827 50%, #0a0f1a 100%);
+    border-bottom: 1px solid rgba(0, 163, 217, 0.25);
     position: sticky;
     top: 0;
     z-index: 50;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), inset 0 -1px 0 rgba(255,255,255,0.05);
+}
+
+/* Subtle animated gradient line at bottom */
+.app-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, #00A3D9 25%, #00d4ff 50%, #00A3D9 75%, transparent 100%);
+    opacity: 0.7;
 }
 
 .app-header h1 {
-    color: #0f172a !important;
+    color: #ffffff !important;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 30px rgba(0, 163, 217, 0.3);
 }
 
 .app-header p {
     color: #64748b !important;
 }
 
-/* Status HUD Container - Premium Style */
+/* Logo glow effect */
+.header-logo {
+    filter: brightness(1.1);
+    transition: all 0.3s ease;
+}
+
+.header-logo:hover {
+    filter: brightness(1.2) drop-shadow(0 0 10px rgba(0, 163, 217, 0.5));
+}
+
+/* Brand title styling */
+.header-brand-title {
+    background: linear-gradient(135deg, #ffffff 0%, #00d4ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+}
+
+.header-brand-subtitle {
+    color: rgba(100, 116, 139, 0.9) !important;
+    letter-spacing: 0.15em;
+    font-size: 9px !important;
+    text-transform: uppercase;
+}
+
+/* Status HUD Container - Premium Dark Glass Style */
 .status-hud {
     display: flex;
     align-items: center;
-    gap: 16px;
-    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-    border: 1px solid #e2e8f0;
+    gap: 20px;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 163, 217, 0.2);
     border-radius: 50px;
-    padding: 8px 20px;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+    padding: 10px 24px;
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .status-hud-item {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     font-weight: 600;
     font-size: 14px;
 }
 
 .status-hud-item.online {
-    color: #059669;
+    color: #10b981;
 }
 
 .status-hud-item.online .status-count {
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 22px;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
 }
 
 .status-hud-item.offline {
-    color: #dc2626;
+    color: #ef4444;
 }
 
 .status-hud-item.offline .status-count {
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 22px;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+}
+
+.status-hud-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+    text-transform: uppercase;
 }
 
 .status-hud-divider {
     width: 1px;
-    height: 24px;
-    background: linear-gradient(180deg, transparent, #cbd5e1, transparent);
+    height: 32px;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 163, 217, 0.4) 50%, transparent 100%);
 }
 
-/* Action Toolbar - Clean Professional */
+/* Action Toolbar - Premium Dark Style */
 .action-toolbar {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 
 .action-toolbar button {
@@ -81,45 +135,52 @@
     transition: all 0.2s ease;
 }
 
-/* Primary Action Button - Siempria Blue */
+/* Primary Action Button - Glowing Cyan */
 .btn-primary-action {
-    background: linear-gradient(135deg, #00A3D9 0%, #0089b8 100%) !important;
+    background: linear-gradient(135deg, #00A3D9 0%, #0077b6 100%) !important;
     color: white !important;
-    border: none !important;
-    box-shadow: 0 4px 14px rgba(0, 163, 217, 0.35);
-    padding: 8px 16px !important;
+    border: 1px solid rgba(0, 212, 255, 0.3) !important;
+    box-shadow: 
+        0 4px 15px rgba(0, 163, 217, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    padding: 8px 18px !important;
     font-weight: 600 !important;
+    letter-spacing: 0.02em;
 }
 
 .btn-primary-action:hover {
-    box-shadow: 0 6px 20px rgba(0, 163, 217, 0.45);
-    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 25px rgba(0, 163, 217, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #00b8f0 0%, #0089cc 100%) !important;
 }
 
-/* Secondary Button Style */
+/* Secondary Button Style - Dark Glass */
 .btn-secondary-action {
-    background: white !important;
-    color: #334155 !important;
-    border: 1px solid #e2e8f0 !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    background: rgba(30, 41, 59, 0.8) !important;
+    color: #94a3b8 !important;
+    border: 1px solid rgba(100, 116, 139, 0.3) !important;
+    backdrop-filter: blur(8px);
 }
 
 .btn-secondary-action:hover {
-    background: #f8fafc !important;
-    border-color: #00A3D9 !important;
-    color: #00A3D9 !important;
+    background: rgba(51, 65, 85, 0.9) !important;
+    border-color: rgba(0, 163, 217, 0.5) !important;
+    color: #00d4ff !important;
 }
 
-/* Ghost Button Style */
+/* Ghost Button Style - Dark Theme */
 .btn-ghost-toolbar {
     background: transparent !important;
-    color: #475569 !important;
+    color: #94a3b8 !important;
     border: 1px solid transparent !important;
 }
 
 .btn-ghost-toolbar:hover {
-    background: #f1f5f9 !important;
-    color: #0f172a !important;
+    background: rgba(30, 41, 59, 0.6) !important;
+    color: #ffffff !important;
+    border-color: rgba(0, 163, 217, 0.2) !important;
 }
 
 /* Status dot */
