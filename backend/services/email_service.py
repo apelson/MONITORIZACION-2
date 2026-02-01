@@ -113,17 +113,38 @@ async def send_alert_email(device_name: str, device_ip: str, port: int, alert_ty
         logger.error(f"Error sending email: {e}")
         return False
 
-async def create_alert(device_id: str, device_name: str, device_ip: str, port: int, alert_type: str):
-    email_sent = await send_alert_email(device_name, device_ip, port, alert_type)
+async def create_alert(device_id: str, device_name: str, device_ip: str, port: int, alert_type: str, extra_info: dict = None):
+    """Create an alert and optionally send email notification"""
+    
+    # Determine alert message based on type
+    alert_messages = {
+        "device_down": f"Dispositivo se ha desconectado",
+        "device_up": f"Dispositivo se ha recuperado",
+        "nas_disconnected": f"Cámara ha perdido conexión con el NAS",
+        "nas_reconnected": f"Cámara ha recuperado conexión con el NAS",
+        "storage_full": f"Almacenamiento del dispositivo está lleno",
+        "storage_warning": f"Almacenamiento del dispositivo está casi lleno",
+        "recording_stopped": f"La grabación se ha detenido",
+        "recording_started": f"La grabación ha iniciado",
+    }
+    
+    message = alert_messages.get(alert_type, f"Alerta: {alert_type}")
+    
+    # Send email for critical alerts
+    email_sent = False
+    if alert_type in ["device_down", "nas_disconnected", "storage_full", "recording_stopped"]:
+        email_sent = await send_alert_email(device_name, device_ip, port, alert_type)
+    
     alert = {
         "id": str(uuid.uuid4()),
         "device_id": device_id,
         "device_name": device_name,
         "alert_type": alert_type,
-        "message": f"Dispositivo {'se ha desconectado' if alert_type == 'device_down' else 'se ha recuperado'}",
+        "message": message,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "email_sent": email_sent,
-        "acknowledged": False
+        "acknowledged": False,
+        "extra_info": extra_info or {}
     }
     await alerts_collection.insert_one(alert)
     return alert
