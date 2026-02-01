@@ -407,6 +407,76 @@ class QNAPService:
             logger.error(f"Error getting QNAP surveillance info: {e}")
             return None
     
+    def get_running_services(self) -> List[Dict[str, Any]]:
+        """Get list of running services on QNAP"""
+        if not self.session:
+            if not self.connect():
+                return []
+        
+        services = []
+        try:
+            # Try to get service status from management API
+            url = f"{self._get_base_url()}/cgi-bin/management/manaRequest.cgi"
+            params = {"subfunc": "app_status", "sid": self.sid or ""}
+            
+            response = self.session.get(url, params=params, timeout=10)
+            if response.status_code == 200:
+                try:
+                    data = response.json()
+                    if isinstance(data, dict) and 'apps' in data:
+                        services = data['apps']
+                except:
+                    pass
+            
+            # Also check common QNAP services
+            common_services = [
+                {"name": "QVR Pro", "port": 443, "path": "/qvrpro/"},
+                {"name": "File Station", "port": 443, "path": "/cgi-bin/filemanager/"},
+                {"name": "Photo Station", "port": 443, "path": "/photo/"},
+                {"name": "Music Station", "port": 443, "path": "/musicstation/"},
+                {"name": "Video Station", "port": 443, "path": "/video/"},
+                {"name": "Download Station", "port": 443, "path": "/downloadstation/"},
+            ]
+            
+            for svc in common_services:
+                try:
+                    check_url = f"{self._get_base_url()}{svc['path']}"
+                    resp = self.session.head(check_url, timeout=3, allow_redirects=True)
+                    if resp.status_code in [200, 301, 302, 401, 403]:
+                        services.append({
+                            "name": svc["name"],
+                            "status": "running",
+                            "port": svc["port"]
+                        })
+                except:
+                    pass
+            
+            return services
+        except Exception as e:
+            logger.error(f"Error getting QNAP services: {e}")
+            return []
+    
+    def get_utilization(self) -> Optional[Dict[str, Any]]:
+        """Get CPU, RAM utilization"""
+        if not self.session:
+            if not self.connect():
+                return None
+        
+        try:
+            url = f"{self._get_base_url()}/cgi-bin/management/manaRequest.cgi"
+            params = {"subfunc": "sys_resource", "sid": self.sid or ""}
+            
+            response = self.session.get(url, params=params, timeout=10)
+            if response.status_code == 200:
+                try:
+                    return response.json()
+                except:
+                    return None
+            return None
+        except Exception as e:
+            logger.error(f"Error getting QNAP utilization: {e}")
+            return None
+    
     def get_full_status(self) -> Dict[str, Any]:
         """Get complete QNAP NAS status"""
         result = {
