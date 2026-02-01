@@ -2,8 +2,9 @@
  * Infrastructure Panel Component
  * Monitors VMware ESXi, QNAP, and Synology devices
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 import { 
   Server, HardDrive, Database, Plus, RefreshCw, Trash2, Edit, 
   Wifi, WifiOff, Cpu, MemoryStick, Monitor, Play, Square, Pause,
@@ -23,7 +24,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { toast } from 'sonner';
 
-const InfrastructurePanel = ({ authAxios }) => {
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+const InfrastructurePanel = ({ authAxios: externalAuthAxios }) => {
   const { t } = useTranslation();
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +39,21 @@ const InfrastructurePanel = ({ authAxios }) => {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
   const [summary, setSummary] = useState(null);
+  
+  // Create internal axios instance with auth
+  const authAxios = useMemo(() => {
+    if (externalAuthAxios) return externalAuthAxios;
+    
+    const instance = axios.create({ baseURL: API });
+    instance.interceptors.request.use((config) => { 
+      const token = localStorage.getItem("token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`; 
+      }
+      return config; 
+    });
+    return instance;
+  }, [externalAuthAxios]);
   
   const [formData, setFormData] = useState({
     name: '',
