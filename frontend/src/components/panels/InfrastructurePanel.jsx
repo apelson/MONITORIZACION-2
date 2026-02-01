@@ -592,12 +592,12 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
                             )}
                           </div>
                           
-                          {/* Actions - Enhanced with tooltips */}
+                          {/* Actions - Enhanced with tooltips and incident button */}
                           <div className="flex justify-between items-center mt-3 pt-2 border-t">
                             <div className="flex gap-1">
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleViewDetails(device)}>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 transition-colors" onClick={() => handleViewDetails(device)}>
                                     <Eye className="w-4 h-4" />
                                   </Button>
                                 </TooltipTrigger>
@@ -609,7 +609,7 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
                                   <Button 
                                     variant="ghost" 
                                     size="sm" 
-                                    className="h-8 w-8 p-0" 
+                                    className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600 transition-colors" 
                                     onClick={() => handleCheckDevice(device.id)}
                                     disabled={checkingDevice === device.id}
                                   >
@@ -621,18 +621,32 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
                               
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleOpenWebInterface(device)}>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-purple-50 hover:text-purple-600 transition-colors" onClick={() => handleOpenWebInterface(device)}>
                                     <ExternalLink className="w-4 h-4" />
                                   </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>Abrir interfaz web</TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-8 w-8 p-0 hover:bg-orange-50 hover:text-orange-600 transition-colors" 
+                                    onClick={() => handleCreateIncident(device)}
+                                  >
+                                    <ClipboardList className="w-4 h-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>{t('infra.createIncident', 'Abrir incidencia')}</TooltipContent>
                               </Tooltip>
                             </div>
                             
                             <div className="flex gap-1">
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openDialog(device)}>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-yellow-50 hover:text-yellow-600 transition-colors" onClick={() => openDialog(device)}>
                                     <Edit className="w-4 h-4" />
                                   </Button>
                                 </TooltipTrigger>
