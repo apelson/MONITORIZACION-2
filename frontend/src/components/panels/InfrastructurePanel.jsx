@@ -31,7 +31,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // Cache for device status to speed up loading
 const deviceCache = new Map();
-const CACHE_TTL = 60000; // 1 minute cache
+const CACHE_TTL = 120000; // 2 minutes cache - synchronized with main app polling
 
 const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident }) => {
   const { t } = useTranslation();
