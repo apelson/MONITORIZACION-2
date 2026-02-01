@@ -77,38 +77,75 @@ async def send_alert_email(device_name: str, device_ip: str, port: int, alert_ty
         if not smtp_config:
             return False
         
-        subject = f"🚨 Alerta: {device_name} {'OFFLINE' if alert_type == 'device_down' else 'ONLINE'}"
+        # Define alert styles and messages
+        alert_configs = {
+            "device_down": {
+                "subject": f"🚨 Alerta: {device_name} OFFLINE",
+                "color": "#dc2626",
+                "bg": "#fee2e2",
+                "icon": "⚠️",
+                "title": "Dispositivo Offline"
+            },
+            "device_up": {
+                "subject": f"✅ Recuperado: {device_name} ONLINE",
+                "color": "#16a34a",
+                "bg": "#dcfce7",
+                "icon": "✅",
+                "title": "Dispositivo Online"
+            },
+            "nas_disconnected": {
+                "subject": f"🚨 Alerta: {device_name} - Conexión NAS perdida",
+                "color": "#dc2626",
+                "bg": "#fee2e2",
+                "icon": "💾",
+                "title": "Conexión NAS Perdida"
+            },
+            "nas_reconnected": {
+                "subject": f"✅ Recuperado: {device_name} - NAS reconectado",
+                "color": "#16a34a",
+                "bg": "#dcfce7",
+                "icon": "💾",
+                "title": "NAS Reconectado"
+            },
+            "storage_full": {
+                "subject": f"🚨 Alerta: {device_name} - Almacenamiento lleno",
+                "color": "#dc2626",
+                "bg": "#fee2e2",
+                "icon": "💾",
+                "title": "Almacenamiento Lleno"
+            },
+            "recording_stopped": {
+                "subject": f"🚨 Alerta: {device_name} - Grabación detenida",
+                "color": "#f97316",
+                "bg": "#ffedd5",
+                "icon": "🔴",
+                "title": "Grabación Detenida"
+            }
+        }
         
-        if alert_type == "device_down":
-            body = f"""
-            <html>
-            <body style="font-family: Arial, sans-serif;">
-                <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 20px; margin: 20px 0;">
-                    <h2 style="color: #dc2626; margin: 0;">⚠️ Dispositivo Offline</h2>
-                    <p style="font-size: 18px; margin: 10px 0;"><strong>{device_name}</strong></p>
-                    <p>IP: {device_ip}:{port}</p>
-                    <p>Hora: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC</p>
-                </div>
-                <p style="color: #666; font-size: 12px;">Siempria Network Monitor</p>
-            </body>
-            </html>
-            """
-        else:
-            body = f"""
-            <html>
-            <body style="font-family: Arial, sans-serif;">
-                <div style="background: #dcfce7; border-left: 4px solid #16a34a; padding: 20px; margin: 20px 0;">
-                    <h2 style="color: #16a34a; margin: 0;">✅ Dispositivo Online</h2>
-                    <p style="font-size: 18px; margin: 10px 0;"><strong>{device_name}</strong></p>
-                    <p>IP: {device_ip}:{port}</p>
-                    <p>Hora: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC</p>
-                </div>
-                <p style="color: #666; font-size: 12px;">Siempria Network Monitor</p>
-            </body>
-            </html>
-            """
+        config = alert_configs.get(alert_type, {
+            "subject": f"🔔 Alerta: {device_name}",
+            "color": "#6b7280",
+            "bg": "#f3f4f6",
+            "icon": "🔔",
+            "title": alert_type
+        })
         
-        return send_email_generic(smtp_config, smtp_config["alert_email"], subject, body)
+        body = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif;">
+            <div style="background: {config['bg']}; border-left: 4px solid {config['color']}; padding: 20px; margin: 20px 0;">
+                <h2 style="color: {config['color']}; margin: 0;">{config['icon']} {config['title']}</h2>
+                <p style="font-size: 18px; margin: 10px 0;"><strong>{device_name}</strong></p>
+                <p>IP: {device_ip}:{port}</p>
+                <p>Hora: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC</p>
+            </div>
+            <p style="color: #666; font-size: 12px;">Siempria Network Monitor</p>
+        </body>
+        </html>
+        """
+        
+        return send_email_generic(smtp_config, smtp_config["alert_email"], config["subject"], body)
     except Exception as e:
         logger.error(f"Error sending email: {e}")
         return False
