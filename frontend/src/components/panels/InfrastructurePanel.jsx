@@ -51,25 +51,31 @@ const InfrastructurePanel = ({ authAxios }) => {
   // Fetch devices
   const fetchDevices = useCallback(async () => {
     if (!authAxios) {
-      console.log('InfrastructurePanel: No authAxios available');
+      console.log('InfrastructurePanel: No authAxios available, setting loading false');
       setLoading(false);
       return;
     }
-    console.log('InfrastructurePanel: Starting fetch...');
+    
     try {
+      console.log('InfrastructurePanel: Fetching devices...');
       const devicesRes = await authAxios.get('/infrastructure/devices');
-      console.log('InfrastructurePanel: Devices response:', devicesRes.status);
+      console.log('InfrastructurePanel: Devices fetched:', devicesRes.data);
       setDevices(devicesRes.data.devices || []);
       
+      console.log('InfrastructurePanel: Fetching summary...');
       const summaryRes = await authAxios.get('/infrastructure/summary');
-      console.log('InfrastructurePanel: Summary response:', summaryRes.status);
+      console.log('InfrastructurePanel: Summary fetched:', summaryRes.data);
       setSummary(summaryRes.data);
     } catch (e) {
-      console.error('InfrastructurePanel: Error:', e.message);
-      toast.error(t('infra.fetchError', 'Error al cargar dispositivos de infraestructura'));
+      console.error('InfrastructurePanel: Fetch error:', e);
+      // Only show toast if it's a real error, not a cancelled request
+      if (e.message !== 'canceled') {
+        toast.error(t('infra.fetchError', 'Error al cargar dispositivos de infraestructura'));
+      }
+    } finally {
+      console.log('InfrastructurePanel: Setting loading false');
+      setLoading(false);
     }
-    console.log('InfrastructurePanel: Done loading');
-    setLoading(false);
   }, [authAxios, t]);
 
   useEffect(() => {
