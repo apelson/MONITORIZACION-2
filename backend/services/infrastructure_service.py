@@ -159,23 +159,42 @@ class ESXiService:
             if not self.connect():
                 return []
         
+        vms = []
         try:
-            endpoints = ["/api/vcenter/vm", "/rest/vcenter/vm"]
+            # Try vSphere 7.0.3+ API first
+            endpoints = [
+                "/api/vcenter/vm",
+                "/rest/vcenter/vm",
+            ]
             
             for endpoint in endpoints:
                 try:
                     response = self.session.get(
                         f"{self._get_base_url()}{endpoint}",
-                        timeout=15
+                        timeout=20
                     )
+                    logger.debug(f"ESXi VM endpoint {endpoint}: status {response.status_code}")
+                    
                     if response.status_code == 200:
                         data = response.json()
-                        vms = data.get('value', data) if isinstance(data, dict) else data
-                        return vms if isinstance(vms, list) else []
-                except:
+                        if isinstance(data, dict):
+                            vms = data.get('value', data.get('result', []))
+                        else:
+                            vms = data
+                        
+                        if isinstance(vms, list) and len(vms) > 0:
+                            logger.info(f"ESXi found {len(vms)} VMs via {endpoint}")
+                            return vms
+                    elif response.status_code == 401:
+                        logger.warning(f"ESXi auth failed on {endpoint}")
+                        # Try to reconnect
+                        if self.connect():
+                            continue
+                except Exception as e:
+                    logger.debug(f"ESXi endpoint {endpoint} error: {e}")
                     continue
             
-            return []
+            return vms
         except Exception as e:
             logger.error(f"Error getting VMs: {e}")
             return []
@@ -193,12 +212,13 @@ class ESXiService:
                 try:
                     response = self.session.get(
                         f"{self._get_base_url()}{endpoint}",
-                        timeout=10
+                        timeout=15
                     )
                     if response.status_code == 200:
                         data = response.json()
                         return data.get('value', data)
-                except:
+                except Exception as e:
+                    logger.debug(f"VM details endpoint {endpoint} error: {e}")
                     continue
             
             return None
@@ -212,6 +232,7 @@ class ESXiService:
             if not self.connect():
                 return []
         
+        datastores = []
         try:
             endpoints = ["/api/vcenter/datastore", "/rest/vcenter/datastore"]
             
@@ -219,15 +240,25 @@ class ESXiService:
                 try:
                     response = self.session.get(
                         f"{self._get_base_url()}{endpoint}",
-                        timeout=10
+                        timeout=15
                     )
+                    logger.debug(f"ESXi datastore endpoint {endpoint}: status {response.status_code}")
+                    
                     if response.status_code == 200:
                         data = response.json()
-                        return data.get('value', data) if isinstance(data, dict) else data
-                except:
+                        if isinstance(data, dict):
+                            datastores = data.get('value', data.get('result', []))
+                        else:
+                            datastores = data
+                        
+                        if isinstance(datastores, list) and len(datastores) > 0:
+                            logger.info(f"ESXi found {len(datastores)} datastores via {endpoint}")
+                            return datastores
+                except Exception as e:
+                    logger.debug(f"Datastore endpoint {endpoint} error: {e}")
                     continue
             
-            return []
+            return datastores
         except Exception as e:
             logger.error(f"Error getting datastores: {e}")
             return []
