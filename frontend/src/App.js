@@ -4858,36 +4858,44 @@ const Dashboard = () => {
       <Toaster position="top-right" richColors />
       <PWAInstallPrompt />
 
-      {/* Header */}
+      {/* Header - Premium Professional Design */}
       <header className="app-header">
-        <div className="container mx-auto max-w-7xl px-4 md:px-6 py-3">
+        <div className="container mx-auto max-w-7xl px-4 md:px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Logo Section */}
-            <div className="flex items-center gap-4">
-              <img src={LOGO_URL} alt="Siempria" className="hidden md:block h-10 object-contain" />
+            {/* Logo Section - Left */}
+            <div className="flex items-center gap-5">
+              <img src={LOGO_URL} alt="Siempria" className="hidden md:block h-11 object-contain header-logo" />
               <div className="hidden md:block">
-                <h1 className="text-lg font-bold tracking-tight" style={{fontFamily: "'JetBrains Mono', monospace"}}>NETWORK MONITOR</h1>
-                <p className="text-[10px] uppercase tracking-widest text-slate-400">Sistema de Monitorización</p>
+                <h1 className="text-base font-bold tracking-wider header-brand-title" style={{fontFamily: "'JetBrains Mono', monospace"}}>
+                  SIEMPRIA MONITOR
+                </h1>
+                <p className="header-brand-subtitle">Network Monitoring System</p>
               </div>
+              {/* Mobile logo */}
+              <img src={LOGO_URL} alt="Siempria" className="md:hidden h-9 object-contain header-logo" />
             </div>
             
-            {/* Center: Status HUD */}
+            {/* Center: Status HUD - Prominent Display */}
             <div className="status-hud">
               <div className="status-hud-item online">
                 <div className="status-dot status-dot-online" />
-                <span>{onlineCount}</span>
-                <span className="text-xs text-slate-400 hidden sm:inline">ONLINE</span>
+                <div className="flex flex-col items-center">
+                  <span className="status-count">{onlineCount}</span>
+                  <span className="status-hud-label hidden sm:block">ONLINE</span>
+                </div>
               </div>
               <div className="status-hud-divider" />
               <button 
                 onClick={() => setFailuresDialogOpen(true)} 
-                className="status-hud-item offline hover:bg-red-500/10 px-2 py-1 rounded-full transition-colors"
+                className="status-hud-item offline hover:bg-red-500/10 px-3 py-2 rounded-full transition-all"
                 title="Ver resumen de fallos"
               >
                 <div className="status-dot status-dot-offline" />
-                <span>{offlineCount}</span>
-                <span className="text-xs text-slate-400 hidden sm:inline">OFFLINE</span>
-                {recentFailures.length > 0 && <Bell className="w-3.5 h-3.5 text-red-500 animate-pulse ml-1" />}
+                <div className="flex flex-col items-center">
+                  <span className="status-count">{offlineCount}</span>
+                  <span className="status-hud-label hidden sm:block">OFFLINE</span>
+                </div>
+                {recentFailures.length > 0 && <Bell className="w-4 h-4 text-red-400 animate-pulse ml-2" />}
               </button>
             </div>
 
@@ -4943,28 +4951,28 @@ const Dashboard = () => {
                 )}
               </div>
               
-              {/* Utilities */}
-              <div className="flex items-center gap-1 border-l border-slate-700 pl-3 ml-1">
+              {/* Utilities - Separator with glow */}
+              <div className="flex items-center gap-2 border-l border-slate-700/50 pl-4 ml-2">
                 <LanguageSelector />
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={toggleAlertSound}
-                  className="p-2 text-slate-400 hover:text-white"
+                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all"
                   title={soundEnabled ? t('alerts.soundOn', 'Sonido activado') : t('alerts.soundOff', 'Sonido desactivado')}
                 >
-                  {soundEnabled ? <Volume2 className="w-4 h-4 text-green-500" /> : <VolumeX className="w-4 h-4" />}
+                  {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-400" /> : <VolumeX className="w-4 h-4" />}
                 </Button>
               </div>
               
-              {/* User Menu */}
+              {/* User Menu - Premium Style */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2 text-slate-300 hover:text-white">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-sm font-medium">
+                  <Button variant="ghost" size="sm" className="gap-2 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-cyan-500/20">
                       {user?.username?.charAt(0).toUpperCase()}
                     </div>
-                    <span className="hidden md:inline text-sm">{user?.username}</span>
+                    <span className="hidden md:inline text-sm font-medium">{user?.username}</span>
                     <ChevronDown className="w-4 h-4 opacity-50" />
                   </Button>
                 </DropdownMenuTrigger>
