@@ -1,25 +1,102 @@
 /* App container */
 .app-container {
     min-height: 100vh;
-    background-color: #f5f7fa;
+    background-color: #0f172a;
 }
 
-/* Header - Siempria Corporate Colors */
+/* Header - Command Center Style */
 .app-header {
-    border-bottom: 1px solid #e2e8f0;
-    background: linear-gradient(135deg, #00A3D9 0%, #0089b8 100%);
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     position: sticky;
     top: 0;
-    z-index: 10;
-    box-shadow: 0 2px 10px rgba(0, 163, 217, 0.2);
+    z-index: 50;
 }
 
 .app-header h1 {
     color: white !important;
+    font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
+    letter-spacing: -0.02em;
 }
 
 .app-header p {
-    color: rgba(255, 255, 255, 0.85) !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Status HUD Container */
+.status-hud {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 9999px;
+    padding: 6px 16px;
+}
+
+.status-hud-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.status-hud-item.online {
+    color: #22c55e;
+}
+
+.status-hud-item.offline {
+    color: #ef4444;
+}
+
+.status-hud-divider {
+    width: 1px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Action Toolbar */
+.action-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(30, 41, 59, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.action-toolbar button {
+    border-radius: 6px !important;
+}
+
+/* Primary Action Button (Add) */
+.btn-primary-action {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.3);
+    transition: all 0.2s ease;
+}
+
+.btn-primary-action:hover {
+    box-shadow: 0 0 30px rgba(14, 165, 233, 0.5);
+    transform: translateY(-1px);
+}
+
+/* Ghost Button Style */
+.btn-ghost-toolbar {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    border: none !important;
+}
+
+.btn-ghost-toolbar:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
 }
 
 /* Status dot */
@@ -28,7 +105,6 @@
     height: 10px;
     border-radius: 50%;
     flex-shrink: 0;
-    animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
