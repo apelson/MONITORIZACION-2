@@ -1829,10 +1829,26 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
 
   const handleCreateFromAlert = (alert) => {
     setSelectedAlert(alert);
+    const alertTitles = {
+      'device_down': '🔴 Caída',
+      'device_up': '🟢 Recuperación',
+      'nas_disconnected': '💾 NAS Desconectado',
+      'nas_reconnected': '💾 NAS Reconectado',
+      'storage_full': '💾 Almacenamiento Lleno',
+      'recording_stopped': '🔴 Grabación Detenida'
+    };
+    const alertPriorities = {
+      'device_down': 'high',
+      'nas_disconnected': 'high',
+      'storage_full': 'high',
+      'recording_stopped': 'medium',
+      'device_up': 'low',
+      'nas_reconnected': 'low'
+    };
     setIncidentData({
-      title: `${alert.alert_type === 'device_down' ? '🔴 Caída' : '🟢 Recuperación'}: ${alert.device_name}`,
+      title: `${alertTitles[alert.alert_type] || '⚠️ Alerta'}: ${alert.device_name}`,
       description: `${alert.message}\n\nFecha del evento: ${new Date(alert.timestamp).toLocaleString('es-ES')}\nIP: ${alert.device_ip || 'N/A'}`,
-      priority: alert.alert_type === 'device_down' ? 'high' : 'low'
+      priority: alertPriorities[alert.alert_type] || 'medium'
     });
     setShowIncidentDialog(true);
   };
