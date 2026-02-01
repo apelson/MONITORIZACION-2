@@ -960,6 +960,36 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios }) => {
                         </Card>
                       )}
 
+                      {/* Services */}
+                      {deviceDetails.services && deviceDetails.services.length > 0 && (
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-base flex items-center gap-2">
+                              <Settings className="w-4 h-4" />
+                              {t('infra.services', 'Servicios')} ({deviceDetails.services.length})
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {deviceDetails.services.map((svc, i) => (
+                                <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                                  <div className="flex items-center gap-2">
+                                    <div className={`w-2 h-2 rounded-full ${svc.status === 'running' || svc.status === 'enabled' ? 'bg-green-500' : 'bg-gray-400'}`} />
+                                    <div>
+                                      <p className="text-sm font-medium">{svc.name}</p>
+                                      {svc.version && <p className="text-xs text-muted-foreground">v{svc.version}</p>}
+                                    </div>
+                                  </div>
+                                  <Badge variant={svc.status === 'running' ? 'default' : 'secondary'} className="text-xs">
+                                    {svc.status}
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
                       {/* Utilization */}
                       {deviceDetails.utilization && (
                         <Card>
