@@ -81,7 +81,7 @@ async def check_camera_nas_connection(device_id: str, storage_info: dict):
     
     # Only create alerts on state change
     if prev_nas_state is not None and current_nas_connected is not None:
-        if prev_nas_state == True and current_nas_connected == False:
+        if prev_nas_state is True and current_nas_connected is False:
             # NAS disconnected - create alert
             await create_alert(
                 device_id, 
@@ -91,7 +91,7 @@ async def check_camera_nas_connection(device_id: str, storage_info: dict):
                 "nas_disconnected",
                 {"storage_state": storage_state}
             )
-        elif prev_nas_state == False and current_nas_connected == True:
+        elif prev_nas_state is False and current_nas_connected is True:
             # NAS reconnected - create recovery alert
             await create_alert(
                 device_id, 
