@@ -66,13 +66,21 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios }) => {
     notes: ''
   });
 
-  // Fetch devices on mount
+  // Fetch devices on mount with timeout
   useEffect(() => {
     let isMounted = true;
     
     const loadDevices = async () => {
       console.log('InfrastructurePanel: Loading devices...');
       const token = localStorage.getItem("token");
+      
+      // Set a timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        if (isMounted && loading) {
+          console.log('InfrastructurePanel: Request timeout');
+          setLoading(false);
+        }
+      }, 10000);
       
       try {
         const headers = {
@@ -85,6 +93,7 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios }) => {
           fetch(`${API}/infrastructure/summary`, { headers }).then(r => r.json())
         ]);
         
+        clearTimeout(timeout);
         console.log('InfrastructurePanel: Data loaded', devRes, sumRes);
         
         if (isMounted) {
@@ -93,6 +102,7 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios }) => {
           setLoading(false);
         }
       } catch (err) {
+        clearTimeout(timeout);
         console.error('InfrastructurePanel: Load error', err);
         if (isMounted) {
           toast.error(t('infra.fetchError', 'Error al cargar dispositivos'));
