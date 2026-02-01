@@ -4660,7 +4660,7 @@ const Dashboard = () => {
 
   useEffect(() => { 
     fetchAll(); 
-    const interval = setInterval(fetchAll, 60000); // Check every 60 seconds for better performance 
+    const interval = setInterval(fetchAll, 120000); // Check every 120 seconds (2 minutes) - optimized for performance 
     return () => clearInterval(interval); 
   }, [fetchAll]);
 
