@@ -643,6 +643,42 @@ class SynologyService:
             logger.error(f"Error getting Synology surveillance info: {e}")
             return None
     
+    def get_running_services(self) -> List[Dict[str, Any]]:
+        """Get list of running packages/services on Synology"""
+        services = []
+        try:
+            # Get installed packages
+            packages = self._api_request("SYNO.Core.Package", "list", version=1)
+            if packages and 'packages' in packages:
+                for pkg in packages['packages']:
+                    if pkg.get('status') == 'running':
+                        services.append({
+                            "name": pkg.get('dname', pkg.get('id', 'Unknown')),
+                            "id": pkg.get('id'),
+                            "version": pkg.get('version'),
+                            "status": "running"
+                        })
+            
+            # Get core services status
+            core_services = self._api_request("SYNO.Core.Service", "get", version=1)
+            if core_services and isinstance(core_services, dict):
+                for svc_name, svc_info in core_services.items():
+                    if isinstance(svc_info, dict) and svc_info.get('enabled'):
+                        services.append({
+                            "name": svc_name,
+                            "status": "enabled",
+                            "enabled": True
+                        })
+            
+            return services
+        except Exception as e:
+            logger.error(f"Error getting Synology services: {e}")
+            return []
+    
+    def get_network_info(self) -> Optional[Dict[str, Any]]:
+        """Get network interface information"""
+        return self._api_request("SYNO.Core.Network", "get", version=1)
+    
     def get_system_utilization(self) -> Optional[Dict[str, Any]]:
         """Get CPU, RAM, Network utilization"""
         return self._api_request("SYNO.Core.System.Utilization", "get", version=1)
