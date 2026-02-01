@@ -4862,66 +4862,123 @@ const Dashboard = () => {
       <header className="app-header">
         <div className="container mx-auto max-w-7xl px-4 md:px-6 py-3">
           <div className="flex items-center justify-between">
+            {/* Logo Section */}
             <div className="flex items-center gap-4">
-              {/* Logo vertical para desktop */}
-              <img src={LOGO_URL} alt="Siempria" className="hidden md:block h-12 object-contain" />
+              <img src={LOGO_URL} alt="Siempria" className="hidden md:block h-10 object-contain" />
               <div className="hidden md:block">
-                <h1 className="text-xl font-bold tracking-tight">Network Monitor</h1>
-                <p className="text-xs text-muted-foreground">Sistema de monitorización</p>
+                <h1 className="text-lg font-bold tracking-tight" style={{fontFamily: "'JetBrains Mono', monospace"}}>NETWORK MONITOR</h1>
+                <p className="text-[10px] uppercase tracking-widest text-slate-400">Sistema de Monitorización</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 md:gap-3">
-              {/* Status counts - visible en móvil con iconos pequeños */}
-              <div className="flex items-center gap-3 mr-2">
-                <div className="flex items-center gap-1.5">
-                  <div className="status-dot status-dot-online" />
-                  <span className="text-sm font-medium">{onlineCount}</span>
-                </div>
-                <button onClick={() => setFailuresDialogOpen(true)} className="flex items-center gap-1.5 hover:bg-red-50/20 px-1.5 py-1 rounded transition-colors" title="Ver resumen de fallos">
-                  <div className="status-dot status-dot-offline" />
-                  <span className="text-sm font-medium">{offlineCount}</span>
-                  {recentFailures.length > 0 && <Bell className="w-3.5 h-3.5 text-red-500 animate-pulse" />}
-                </button>
+            
+            {/* Center: Status HUD */}
+            <div className="status-hud">
+              <div className="status-hud-item online">
+                <div className="status-dot status-dot-online" />
+                <span>{onlineCount}</span>
+                <span className="text-xs text-slate-400 hidden sm:inline">ONLINE</span>
               </div>
-              {/* Botones desktop */}
-              <div className="hidden md:flex items-center gap-2">
+              <div className="status-hud-divider" />
+              <button 
+                onClick={() => setFailuresDialogOpen(true)} 
+                className="status-hud-item offline hover:bg-red-500/10 px-2 py-1 rounded-full transition-colors"
+                title="Ver resumen de fallos"
+              >
+                <div className="status-dot status-dot-offline" />
+                <span>{offlineCount}</span>
+                <span className="text-xs text-slate-400 hidden sm:inline">OFFLINE</span>
+                {recentFailures.length > 0 && <Bell className="w-3.5 h-3.5 text-red-500 animate-pulse ml-1" />}
+              </button>
+            </div>
+
+            {/* Right: Actions */}
+            <div className="flex items-center gap-3">
+              {/* Action Toolbar - Desktop */}
+              <div className="hidden md:flex action-toolbar">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button data-testid="export-btn" variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />{t('common.export', 'Exportar')}</Button>
+                    <Button data-testid="export-btn" variant="ghost" size="sm" className="btn-ghost-toolbar gap-2">
+                      <Download className="w-4 h-4" />
+                      <span className="hidden lg:inline">{t('common.export', 'Exportar')}</span>
+                    </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => handleExport('excel')}><FileSpreadsheet className="w-4 h-4 mr-2" />Exportar todo a Excel</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleExport('pdf')}><FileIcon className="w-4 h-4 mr-2" />Exportar todo a PDF</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('excel')}><FileSpreadsheet className="w-4 h-4 mr-2" />Exportar a Excel</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('pdf')}><FileIcon className="w-4 h-4 mr-2" />Exportar a PDF</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Button data-testid="refresh-all-btn" variant="outline" size="sm" onClick={handleRefreshAll} disabled={refreshing}><RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin-slow' : ''}`} />{t('devices.check', 'Verificar')}</Button>
-                {canEdit && <Button data-testid="add-device-btn" size="sm" onClick={() => { setSelectedDevice(null); setDeviceDialogOpen(true); }}><Plus className="w-4 h-4 mr-2" />{t('common.add', 'Agregar')}</Button>}
-              </div>
-              {/* Botones móvil (solo iconos) */}
-              <div className="flex md:hidden items-center gap-1">
-                <Button variant="ghost" size="sm" onClick={handleRefreshAll} disabled={refreshing} className="p-2">
-                  <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin-slow' : ''}`} />
+                <Button 
+                  data-testid="refresh-all-btn" 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleRefreshAll} 
+                  disabled={refreshing}
+                  className="btn-ghost-toolbar gap-2"
+                >
+                  <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                  <span className="hidden lg:inline">{t('devices.check', 'Verificar')}</span>
                 </Button>
-                {canEdit && <Button size="sm" onClick={() => { setSelectedDevice(null); setDeviceDialogOpen(true); }} className="p-2">
-                  <Plus className="w-4 h-4" />
-                </Button>}
+                {canEdit && (
+                  <Button 
+                    data-testid="add-device-btn" 
+                    size="sm" 
+                    onClick={() => { setSelectedDevice(null); setDeviceDialogOpen(true); }}
+                    className="btn-primary-action gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden lg:inline">{t('common.add', 'Agregar')}</span>
+                  </Button>
+                )}
               </div>
-              <LanguageSelector />
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={toggleAlertSound}
-                className="p-2"
-                title={soundEnabled ? t('alerts.soundOn', 'Sonido de alertas activado') : t('alerts.soundOff', 'Sonido de alertas desactivado')}
-              >
-                {soundEnabled ? <Volume2 className="w-4 h-4 text-green-600" /> : <VolumeX className="w-4 h-4 text-muted-foreground" />}
-              </Button>
+              
+              {/* Mobile Actions */}
+              <div className="flex md:hidden items-center gap-1">
+                <Button variant="ghost" size="sm" onClick={handleRefreshAll} disabled={refreshing} className="p-2 text-slate-400 hover:text-white">
+                  <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                </Button>
+                {canEdit && (
+                  <Button size="sm" onClick={() => { setSelectedDevice(null); setDeviceDialogOpen(true); }} className="btn-primary-action p-2">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+              
+              {/* Utilities */}
+              <div className="flex items-center gap-1 border-l border-slate-700 pl-3 ml-1">
+                <LanguageSelector />
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={toggleAlertSound}
+                  className="p-2 text-slate-400 hover:text-white"
+                  title={soundEnabled ? t('alerts.soundOn', 'Sonido activado') : t('alerts.soundOff', 'Sonido desactivado')}
+                >
+                  {soundEnabled ? <Volume2 className="w-4 h-4 text-green-500" /> : <VolumeX className="w-4 h-4" />}
+                </Button>
+              </div>
+              
+              {/* User Menu */}
               <DropdownMenu>
-                <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" className="gap-2"><div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center"><User className="w-4 h-4" /></div><span className="hidden md:inline">{user?.username}</span><ChevronDown className="w-4 h-4" /></Button></DropdownMenuTrigger>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-2 text-slate-300 hover:text-white">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-sm font-medium">
+                      {user?.username?.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="hidden md:inline text-sm">{user?.username}</span>
+                    <ChevronDown className="w-4 h-4 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <div className="px-2 py-1.5"><p className="text-sm font-medium">{user?.full_name || user?.username}</p><p className="text-xs text-muted-foreground">{user?.email}</p></div>
-                  <DropdownMenuSeparator /><DropdownMenuItem><RoleBadge role={user?.role} /></DropdownMenuItem>
-                  <DropdownMenuSeparator /><DropdownMenuItem onClick={logout} className="text-destructive gap-2"><LogOut className="w-4 h-4" />{t('auth.logout')}</DropdownMenuItem>
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-medium">{user?.full_name || user?.username}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem><RoleBadge role={user?.role} /></DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} className="text-destructive gap-2">
+                    <LogOut className="w-4 h-4" />{t('auth.logout')}
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
