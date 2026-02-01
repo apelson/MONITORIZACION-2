@@ -72,17 +72,24 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios }) => {
     
     const loadDevices = async () => {
       console.log('InfrastructurePanel: Loading devices...');
+      const token = localStorage.getItem("token");
+      
       try {
+        const headers = {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        };
+        
         const [devRes, sumRes] = await Promise.all([
-          authAxios.get('/infrastructure/devices'),
-          authAxios.get('/infrastructure/summary')
+          fetch(`${API}/infrastructure/devices`, { headers }).then(r => r.json()),
+          fetch(`${API}/infrastructure/summary`, { headers }).then(r => r.json())
         ]);
         
-        console.log('InfrastructurePanel: Data loaded', devRes.data, sumRes.data);
+        console.log('InfrastructurePanel: Data loaded', devRes, sumRes);
         
         if (isMounted) {
-          setDevices(devRes.data.devices || []);
-          setSummary(sumRes.data);
+          setDevices(devRes.devices || []);
+          setSummary(sumRes);
           setLoading(false);
         }
       } catch (err) {
@@ -97,7 +104,7 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios }) => {
     loadDevices();
     
     return () => { isMounted = false; };
-  }, [authAxios, t]);
+  }, [t]);
   
   // Manual refresh
   const fetchDevices = useCallback(async () => {
