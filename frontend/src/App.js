@@ -4493,6 +4493,7 @@ const Dashboard = () => {
     return saved !== null ? JSON.parse(saved) : true;
   });
   const audioRef = useRef(null);
+  const fetchingRef = useRef(false); // Prevent concurrent API calls
   
   // Alert sound function
   const playAlertSound = useCallback(() => {
