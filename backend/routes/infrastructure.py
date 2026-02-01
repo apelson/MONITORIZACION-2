@@ -107,6 +107,99 @@ async def test_connection(request: TestConnectionRequest, user: dict = Depends(g
             "details": None
         }
 
+@router.post("/debug-connection")
+async def debug_connection(request: TestConnectionRequest, user: dict = Depends(get_current_user)):
+    """Debug connection with detailed logs"""
+    import requests
+    import urllib3
+    urllib3.disable_warnings()
+    
+    results = {
+        "device_type": request.device_type,
+        "host": request.host,
+        "port": request.port or get_default_port(request.device_type, request.use_ssl),
+        "use_ssl": request.use_ssl,
+        "tests": []
+    }
+    
+    protocol = "https" if request.use_ssl else "http"
+    port = results["port"]
+    base_url = f"{protocol}://{request.host}:{port}"
+    
+    if request.device_type == "esxi":
+        # Test ESXi endpoints
+        endpoints = [
+            {"url": "/api/session", "method": "POST", "desc": "vSphere 7.0.3+ session"},
+            {"url": "/rest/com/vmware/cis/session", "method": "POST", "desc": "vSphere 6.5-7.0.2 session"},
+            {"url": "/sdk/vimServiceVersions.xml", "method": "GET", "desc": "ESXi SDK check"},
+        ]
+        
+        for ep in endpoints:
+            test = {"endpoint": ep["url"], "description": ep["desc"]}
+            try:
+                if ep["method"] == "POST":
+                    resp = requests.post(f"{base_url}{ep['url']}", auth=(request.username, request.password), verify=False, timeout=10)
+                else:
+                    resp = requests.get(f"{base_url}{ep['url']}", auth=(request.username, request.password), verify=False, timeout=10)
+                
+                test["status_code"] = resp.status_code
+                test["success"] = resp.status_code in [200, 201]
+                test["response_preview"] = resp.text[:200] if resp.text else ""
+            except Exception as e:
+                test["error"] = str(e)
+                test["success"] = False
+            
+            results["tests"].append(test)
+    
+    elif request.device_type == "qnap":
+        # Test QNAP endpoints
+        endpoints = [
+            {"url": "/cgi-bin/authLogin.cgi", "params": {"user": request.username, "pwd": request.password}, "desc": "QNAP Auth"},
+            {"url": "/cgi-bin/disk/disk.cgi", "params": {"func": "get_disk_info"}, "desc": "QNAP Disk Info (QTS 5.x)"},
+            {"url": "/cgi-bin/management/manaRequest.cgi", "params": {"subfunc": "smart_disk_health"}, "desc": "QNAP Disk (QTS 4.x)"},
+        ]
+        
+        session = requests.Session()
+        session.verify = False
+        
+        for ep in endpoints:
+            test = {"endpoint": ep["url"], "description": ep["desc"]}
+            try:
+                resp = session.get(f"{base_url}{ep['url']}", params=ep.get("params", {}), timeout=10)
+                test["status_code"] = resp.status_code
+                test["success"] = resp.status_code == 200
+                test["response_preview"] = resp.text[:300] if resp.text else ""
+            except Exception as e:
+                test["error"] = str(e)
+                test["success"] = False
+            
+            results["tests"].append(test)
+    
+    elif request.device_type == "synology":
+        # Test Synology endpoints
+        endpoints = [
+            {"url": "/webapi/auth.cgi", "params": {"api": "SYNO.API.Auth", "version": "6", "method": "login", "account": request.username, "passwd": request.password, "format": "sid"}, "desc": "Synology Auth"},
+            {"url": "/webapi/entry.cgi", "params": {"api": "SYNO.Core.System", "version": "1", "method": "info"}, "desc": "Synology System Info"},
+        ]
+        
+        session = requests.Session()
+        session.verify = False
+        
+        for ep in endpoints:
+            test = {"endpoint": ep["url"], "description": ep["desc"]}
+            try:
+                resp = session.get(f"{base_url}{ep['url']}", params=ep.get("params", {}), timeout=10)
+                test["status_code"] = resp.status_code
+                test["success"] = resp.status_code == 200
+                test["response_preview"] = resp.text[:300] if resp.text else ""
+            except Exception as e:
+                test["error"] = str(e)
+                test["success"] = False
+            
+            results["tests"].append(test)
+    
+    return results
+
 @router.get("/devices")
 async def get_infra_devices(user: dict = Depends(get_current_user)):
     """Get all infrastructure devices"""
