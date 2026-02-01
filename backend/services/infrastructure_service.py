@@ -161,7 +161,7 @@ class ESXiService:
         
         vms = []
         try:
-            # Try vSphere 7.0.3+ API first
+            # Try vSphere 7.0.3+ API first (vCenter only)
             endpoints = [
                 "/api/vcenter/vm",
                 "/rest/vcenter/vm",
@@ -187,12 +187,74 @@ class ESXiService:
                             return vms
                     elif response.status_code == 401:
                         logger.warning(f"ESXi auth failed on {endpoint}")
-                        # Try to reconnect
                         if self.connect():
                             continue
                 except Exception as e:
                     logger.debug(f"ESXi endpoint {endpoint} error: {e}")
                     continue
+            
+            # For standalone ESXi (no vCenter), try MOB/SOAP-based approach via vim-cmd proxy
+            # ESXi has limited REST API - try to get VM list from hostd
+            try:
+                # Try the ESXi MOB API - Get registered VMs
+                mob_url = f"{self._get_base_url()}/mob/?moid=ha-folder-vm&doPath=childEntity"
+                response = self.session.get(mob_url, timeout=15, auth=(self.username, self.password))
+                
+                if response.status_code == 200 and 'VirtualMachine' in response.text:
+                    # Parse VM IDs from MOB response
+                    import re
+                    vm_ids = re.findall(r'vm-(\d+)', response.text)
+                    logger.info(f"ESXi MOB found {len(vm_ids)} VMs")
+                    
+                    for vm_id in vm_ids[:20]:  # Limit to 20 VMs
+                        try:
+                            vm_mob_url = f"{self._get_base_url()}/mob/?moid=vm-{vm_id}"
+                            vm_resp = self.session.get(vm_mob_url, timeout=10, auth=(self.username, self.password))
+                            
+                            if vm_resp.status_code == 200:
+                                vm_text = vm_resp.text
+                                # Extract VM name
+                                name_match = re.search(r'config\.name.*?<td[^>]*>([^<]+)</td>', vm_text, re.DOTALL)
+                                power_match = re.search(r'runtime\.powerState.*?<td[^>]*>([^<]+)</td>', vm_text, re.DOTALL)
+                                cpu_match = re.search(r'config\.hardware\.numCPU.*?<td[^>]*>(\d+)</td>', vm_text, re.DOTALL)
+                                mem_match = re.search(r'config\.hardware\.memoryMB.*?<td[^>]*>(\d+)</td>', vm_text, re.DOTALL)
+                                guest_match = re.search(r'config\.guestFullName.*?<td[^>]*>([^<]+)</td>', vm_text, re.DOTALL)
+                                
+                                vm_info = {
+                                    'vm': f'vm-{vm_id}',
+                                    'name': name_match.group(1).strip() if name_match else f'VM-{vm_id}',
+                                    'power_state': power_match.group(1).strip().upper() if power_match else 'UNKNOWN',
+                                    'cpu_count': int(cpu_match.group(1)) if cpu_match else None,
+                                    'memory_size_MiB': int(mem_match.group(1)) if mem_match else None,
+                                    'guest_OS': guest_match.group(1).strip() if guest_match else None
+                                }
+                                
+                                # Normalize power state
+                                if 'on' in vm_info['power_state'].lower():
+                                    vm_info['power_state'] = 'POWERED_ON'
+                                elif 'off' in vm_info['power_state'].lower():
+                                    vm_info['power_state'] = 'POWERED_OFF'
+                                elif 'suspend' in vm_info['power_state'].lower():
+                                    vm_info['power_state'] = 'SUSPENDED'
+                                
+                                vms.append(vm_info)
+                        except Exception as e:
+                            logger.debug(f"Error getting VM vm-{vm_id} details: {e}")
+                            continue
+                    
+                    if vms:
+                        return vms
+            except Exception as e:
+                logger.debug(f"ESXi MOB approach failed: {e}")
+            
+            # Try SOAP/vim-cmd style endpoint
+            try:
+                soap_url = f"{self._get_base_url()}/sdk/vimService.wsdl"
+                response = self.session.get(soap_url, timeout=10)
+                if response.status_code == 200:
+                    logger.info("ESXi SOAP available but requires pyvmomi for VM enumeration")
+            except:
+                pass
             
             return vms
         except Exception as e:
@@ -257,6 +319,45 @@ class ESXiService:
                 except Exception as e:
                     logger.debug(f"Datastore endpoint {endpoint} error: {e}")
                     continue
+            
+            # For standalone ESXi, try MOB
+            try:
+                mob_url = f"{self._get_base_url()}/mob/?moid=ha-folder-datastore&doPath=childEntity"
+                response = self.session.get(mob_url, timeout=15, auth=(self.username, self.password))
+                
+                if response.status_code == 200 and 'Datastore' in response.text:
+                    import re
+                    ds_ids = re.findall(r'datastore-(\d+)', response.text)
+                    logger.info(f"ESXi MOB found {len(ds_ids)} datastores")
+                    
+                    for ds_id in ds_ids[:10]:
+                        try:
+                            ds_mob_url = f"{self._get_base_url()}/mob/?moid=datastore-{ds_id}"
+                            ds_resp = self.session.get(ds_mob_url, timeout=10, auth=(self.username, self.password))
+                            
+                            if ds_resp.status_code == 200:
+                                ds_text = ds_resp.text
+                                name_match = re.search(r'summary\.name.*?<td[^>]*>([^<]+)</td>', ds_text, re.DOTALL)
+                                type_match = re.search(r'summary\.type.*?<td[^>]*>([^<]+)</td>', ds_text, re.DOTALL)
+                                capacity_match = re.search(r'summary\.capacity.*?<td[^>]*>(\d+)</td>', ds_text, re.DOTALL)
+                                free_match = re.search(r'summary\.freeSpace.*?<td[^>]*>(\d+)</td>', ds_text, re.DOTALL)
+                                
+                                ds_info = {
+                                    'datastore': f'datastore-{ds_id}',
+                                    'name': name_match.group(1).strip() if name_match else f'Datastore-{ds_id}',
+                                    'type': type_match.group(1).strip() if type_match else 'VMFS',
+                                    'capacity': int(capacity_match.group(1)) if capacity_match else None,
+                                    'free_space': int(free_match.group(1)) if free_match else None
+                                }
+                                datastores.append(ds_info)
+                        except Exception as e:
+                            logger.debug(f"Error getting datastore-{ds_id} details: {e}")
+                            continue
+                    
+                    if datastores:
+                        return datastores
+            except Exception as e:
+                logger.debug(f"ESXi MOB datastore approach failed: {e}")
             
             return datastores
         except Exception as e:
