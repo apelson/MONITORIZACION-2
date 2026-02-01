@@ -54,6 +54,61 @@ async def check_single_device(device_id: str, background_alert: bool = True):
     updated = await devices_collection.find_one({"id": device_id}, {"_id": 0})
     return updated
 
+async def check_camera_nas_connection(device_id: str, storage_info: dict):
+    """Check if a camera has lost NAS connection and create alert if needed"""
+    device = await devices_collection.find_one({"id": device_id})
+    if not device:
+        return
+    
+    # Get previous NAS state
+    prev_nas_state = device.get("nas_connected", None)
+    
+    # Determine current NAS state from storage info
+    current_nas_connected = True
+    storage_state = storage_info.get("storage_state", "").lower() if storage_info else ""
+    
+    # Check for various disconnection indicators
+    if storage_info:
+        if "not" in storage_state or "error" in storage_state or "fail" in storage_state or "offline" in storage_state:
+            current_nas_connected = False
+        # Also check if storage is empty but should have data
+        if not storage_info.get("current_usage") and not storage_info.get("sequences"):
+            # If no storage data at all, might be disconnected
+            if storage_state == "" or storage_state == "unknown":
+                current_nas_connected = None  # Unknown state
+    else:
+        current_nas_connected = None  # No storage info available
+    
+    # Only create alerts on state change
+    if prev_nas_state is not None and current_nas_connected is not None:
+        if prev_nas_state == True and current_nas_connected == False:
+            # NAS disconnected - create alert
+            await create_alert(
+                device_id, 
+                device["name"], 
+                device["ip_address"], 
+                device["port"], 
+                "nas_disconnected",
+                {"storage_state": storage_state}
+            )
+        elif prev_nas_state == False and current_nas_connected == True:
+            # NAS reconnected - create recovery alert
+            await create_alert(
+                device_id, 
+                device["name"], 
+                device["ip_address"], 
+                device["port"], 
+                "nas_reconnected",
+                {"storage_state": storage_state}
+            )
+    
+    # Update device with current NAS state
+    if current_nas_connected is not None:
+        await devices_collection.update_one(
+            {"id": device_id},
+            {"$set": {"nas_connected": current_nas_connected}}
+        )
+
 async def check_all_devices():
     logger.info("Starting scheduled device check...")
     devices = await devices_collection.find({}, {"_id": 0}).to_list(length=None)
