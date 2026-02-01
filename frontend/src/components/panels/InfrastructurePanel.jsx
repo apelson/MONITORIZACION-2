@@ -262,10 +262,16 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
     }
   };
 
-  // View device details
+  // View device details - with error handling to prevent white screen
   const handleViewDetails = async (device) => {
+    if (!device) return;
+    
     setSelectedDevice(device);
-    setDeviceDetails(device.last_status || null);
+    // Ensure we have a valid object for details
+    const initialDetails = device.last_status && typeof device.last_status === 'object' 
+      ? device.last_status 
+      : { connected: device.status === 'online', host: device.host };
+    setDeviceDetails(initialDetails);
     setDetailsOpen(true);
     
     // If no cached details or offline, fetch fresh
@@ -273,15 +279,26 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
       setDetailsLoading(true);
       try {
         const res = await authAxios.post(`/infrastructure/devices/${device.id}/check`);
-        setDeviceDetails(res.data.details);
-        // Update device in list
-        setDevices(prev => prev.map(d => 
-          d.id === device.id ? { ...d, status: res.data.status, last_status: res.data.details } : d
-        ));
+        if (isMounted.current) {
+          // Ensure response has valid details object
+          const details = res.data.details && typeof res.data.details === 'object'
+            ? res.data.details
+            : { connected: res.data.status === 'online', host: device.host };
+          setDeviceDetails(details);
+          // Update device in list
+          setDevices(prev => prev.map(d => 
+            d.id === device.id ? { ...d, status: res.data.status, last_status: details } : d
+          ));
+        }
       } catch (e) {
-        toast.error(t('infra.detailsError', 'Error al obtener detalles'));
+        console.error('Error fetching device details:', e);
+        if (isMounted.current) {
+          toast.error(t('infra.detailsError', 'Error al obtener detalles'));
+          // Keep showing basic info even on error
+          setDeviceDetails({ connected: false, host: device.host, error: e.message });
+        }
       }
-      setDetailsLoading(false);
+      if (isMounted.current) setDetailsLoading(false);
     }
   };
 
