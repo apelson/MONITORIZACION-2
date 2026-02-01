@@ -66,18 +66,12 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios }) => {
     notes: ''
   });
 
-  // Fetch devices - simplified loading
+  // Fetch devices on mount
   useEffect(() => {
     let isMounted = true;
     
     const loadDevices = async () => {
-      if (!authAxios) {
-        console.log('InfrastructurePanel: No authAxios');
-        setLoading(false);
-        return;
-      }
-      
-      console.log('InfrastructurePanel: Loading data...');
+      console.log('InfrastructurePanel: Loading devices...');
       try {
         const [devRes, sumRes] = await Promise.all([
           authAxios.get('/infrastructure/devices'),
