@@ -1884,14 +1884,21 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
           {alerts.length === 0 ? <div className="empty-state py-8"><Bell className="w-12 h-12 mb-4 opacity-20" /><p>{t('alerts.noAlerts', 'No hay alertas')}</p></div> : (
             <ScrollArea className="h-[400px]">
               <div className="space-y-3">{alerts.map(a => {
-                // Translate alert message based on type
-                const alertMessage = a.alert_type === 'device_down' 
-                  ? t('alerts.deviceDisconnected', 'Dispositivo se ha desconectado')
-                  : t('alerts.deviceRecovered', 'Dispositivo se ha recuperado');
+                // Alert styling config based on type
+                const alertStyles = {
+                  'device_down': { bg: 'bg-red-50 border-red-200', icon: WifiOff, iconColor: 'text-red-600', textColor: 'text-red-700', msg: t('alerts.deviceDisconnected', 'Dispositivo se ha desconectado') },
+                  'device_up': { bg: 'bg-green-50 border-green-200', icon: Wifi, iconColor: 'text-green-600', textColor: 'text-green-700', msg: t('alerts.deviceRecovered', 'Dispositivo se ha recuperado') },
+                  'nas_disconnected': { bg: 'bg-orange-50 border-orange-200', icon: Database, iconColor: 'text-orange-600', textColor: 'text-orange-700', msg: t('alerts.nasDisconnected', 'Conexión NAS perdida') },
+                  'nas_reconnected': { bg: 'bg-blue-50 border-blue-200', icon: Database, iconColor: 'text-blue-600', textColor: 'text-blue-700', msg: 'NAS reconectado' },
+                  'storage_full': { bg: 'bg-red-50 border-red-200', icon: HardDrive, iconColor: 'text-red-600', textColor: 'text-red-700', msg: 'Almacenamiento lleno' },
+                  'recording_stopped': { bg: 'bg-orange-50 border-orange-200', icon: VideoOff, iconColor: 'text-orange-600', textColor: 'text-orange-700', msg: 'Grabación detenida' }
+                };
+                const style = alertStyles[a.alert_type] || { bg: 'bg-gray-50 border-gray-200', icon: AlertTriangle, iconColor: 'text-gray-600', textColor: 'text-gray-700', msg: a.message };
+                const IconComponent = style.icon;
                 return (
-                <div key={a.id} className={`p-4 rounded-lg border ${a.alert_type === 'device_down' ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
+                <div key={a.id} className={`p-4 rounded-lg border ${style.bg}`}>
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">{a.alert_type === 'device_down' ? <WifiOff className="w-4 h-4 text-red-600" /> : <Wifi className="w-4 h-4 text-green-600" />}<span className={`font-medium ${a.alert_type === 'device_down' ? 'text-red-700' : 'text-green-700'}`}>{a.device_name}</span></div>
+                    <div className="flex items-center gap-2"><IconComponent className={`w-4 h-4 ${style.iconColor}`} /><span className={`font-medium ${style.textColor}`}>{a.device_name}</span></div>
                     <div className="flex items-center gap-2">
                       {a.email_sent && <Badge variant="outline" className="text-xs"><Mail className="w-3 h-3 mr-1" />{t('alerts.sent', 'Enviado')}</Badge>}
                       <Button 
@@ -1905,7 +1912,7 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
                       </Button>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">{alertMessage}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{style.msg}</p>
                   <p className="text-xs text-muted-foreground mt-2">{new Date(a.timestamp).toLocaleString()}</p>
                 </div>
               );})}</div>
