@@ -30,7 +30,18 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 
 ## What's Been Implemented
 
-### Session: 2026-02-01
+### Session: 2026-02-01 (Latest)
+- ✅ **NEW Professional Header Design** - Dark elegant theme inspired by siempria.com/mobotix.com
+  - Dark gradient background with cyan accent line
+  - Glowing logo and status indicators
+  - Glass-effect status HUD with animated counters
+  - Premium user avatar and action buttons
+- ✅ **ESXi VM Detection Fix** - Added MOB (Managed Object Browser) support for standalone ESXi hosts
+  - Now fetches VMs and datastores from ESXi without vCenter
+  - Parses VM power state, CPU, memory, guest OS
+  - Parses datastore capacity and free space
+
+### Session: 2026-02-01 (Earlier)
 - ✅ NAS Services Detection (QNAP/Synology)
 - ✅ NAS Connection Alerts for cameras
 - ✅ Enhanced Infrastructure Panel with tooltips
@@ -49,17 +60,20 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 ## Prioritized Backlog
 
 ### P0 - Critical
+- [x] Professional Header Design ✅
 - [ ] Deploy latest changes to production server
 
 ### P1 - High Priority
+- [ ] Test ESXi VM detection with user's real ESXi host (192.168.1.97)
+- [ ] Test QNAP disk detection with user's real QNAP (192.168.1.3)
 - [ ] Complete i18n for all UI sections
-- [ ] Test NAS services with real QNAP/Synology devices
 - [ ] Implement actual NAS connection monitoring for cameras
 
 ### P2 - Medium Priority
 - [ ] Refactor App.js into smaller components
 - [ ] Fix favicon/PWA icons in production
 - [ ] Add more NAS-specific metrics
+- [ ] Implement Synology monitoring
 
 ### P3 - Future
 - [ ] Stripe payment integration
@@ -76,12 +90,19 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 - **Running services**: `/opt/siempria-monitor/`
 - **Domain**: siempriapp.com
 
+## Files Modified This Session
+- `/app/frontend/src/App.css` - New professional dark header styles
+- `/app/frontend/src/App.js` - Updated header JSX structure
+- `/app/backend/services/infrastructure_service.py` - ESXi MOB support for VMs/datastores
+
 ## Credentials
 - Admin: `admin` / `Spw@16071977`
+- ESXi Debug: `root` / `Spw@16071977` @ `192.168.1.97`
+- QNAP Debug: `administrador` / `Spw@16071977` @ `192.168.1.3`
 
 ## Third-Party Integrations
 - i18next/react-i18next (internationalization)
-- pyvmomi (VMware ESXi)
+- pyvmomi (VMware ESXi - future)
 - QNAP QTS API
 - Synology DSM API
 - Stripe (planned)
