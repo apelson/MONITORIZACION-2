@@ -30,7 +30,7 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 
 ## What's Been Implemented
 
-### Session: 2026-02-01 (Latest)
+### Session: 2026-02-01 (Latest Update)
 - ✅ **NEW Professional Header Design** - Dark elegant theme inspired by siempria.com/mobotix.com
   - Dark gradient background with cyan accent line
   - Glowing logo and status indicators
@@ -40,27 +40,46 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
   - Now fetches VMs and datastores from ESXi without vCenter
   - Parses VM power state, CPU, memory, guest OS
   - Parses datastore capacity and free space
+- ✅ **Tab Hover Effects** - Premium hover animations for navigation tabs
+  - Cyan gradient overlay on hover
+  - Scale animation on icons
+  - Shadow effects
+  - Active state with gradient background
+- ✅ **"Abrir Incidencia" Button** - Added incident creation button to infrastructure cards
+  - New ClipboardList icon button
+  - Orange hover effect
+  - Integrates with incident system
+- ✅ **Action Button Hover Effects** - Color-coded hover states for all action buttons
+  - Blue for view details
+  - Green for refresh
+  - Purple for external link
+  - Orange for create incident
+  - Yellow for edit
+  - Red for delete
+- ✅ **Synology Fix** - Fixed white screen error when viewing Synology details
+  - Added error handling for null/undefined details
+  - Always shows basic info even on API error
+  - Uses isMounted ref to prevent state updates after unmount
+- ✅ **Performance Optimization** - Added caching for infrastructure devices
+  - 1-minute cache TTL
+  - Faster panel loading
+  - Reduced API calls
 
-### Session: 2026-02-01 (Earlier)
+### Previous Sessions
 - ✅ NAS Services Detection (QNAP/Synology)
 - ✅ NAS Connection Alerts for cameras
 - ✅ Enhanced Infrastructure Panel with tooltips
 - ✅ "Open Web" button for device interfaces
-- ✅ Services preview in NAS cards
-- ✅ Multi-type alert support (nas_disconnected, storage_full, etc.)
-- ✅ Improved alert UI with type-specific icons/colors
-
-### Previous Sessions
 - ✅ Multi-language i18n (login page complete)
 - ✅ Audible alerts system
-- ✅ Infrastructure monitoring (ESXi VMs, datastores)
-- ✅ Firmware badge improvements
-- ✅ "Made with Emergent" badge removed
 
 ## Prioritized Backlog
 
 ### P0 - Critical
 - [x] Professional Header Design ✅
+- [x] Tab Hover Effects ✅
+- [x] Incident Button on Infrastructure ✅
+- [x] Synology Details Fix ✅
 - [ ] Deploy latest changes to production server
 
 ### P1 - High Priority
@@ -81,19 +100,16 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 - [ ] Public dashboards UI
 - [ ] Dahua P2P project
 
-## Technical Debt
-- **App.js**: Monolithic file (~5000 lines) needs splitting
-- **Production deployment**: Two-step process (source → build → deploy)
+## Files Modified This Session
+- `/app/frontend/src/App.css` - Tab hover effects, professional dark header styles
+- `/app/frontend/src/App.js` - Updated header JSX structure
+- `/app/frontend/src/components/panels/InfrastructurePanel.jsx` - Incident button, action hover colors, caching, Synology fix
+- `/app/backend/services/infrastructure_service.py` - ESXi MOB support for VMs/datastores
 
 ## Production Environment
 - **Source code**: `/home/monitorizacion/Documentos/MONITORIZACION-main/`
 - **Running services**: `/opt/siempria-monitor/`
 - **Domain**: siempriapp.com
-
-## Files Modified This Session
-- `/app/frontend/src/App.css` - New professional dark header styles
-- `/app/frontend/src/App.js` - Updated header JSX structure
-- `/app/backend/services/infrastructure_service.py` - ESXi MOB support for VMs/datastores
 
 ## Credentials
 - Admin: `admin` / `Spw@16071977`
