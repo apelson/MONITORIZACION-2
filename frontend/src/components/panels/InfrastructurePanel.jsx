@@ -769,7 +769,7 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios }) => {
               {t('common.confirm', 'Confirmar')}
             </DialogTitle>
             <DialogDescription>
-              {t('infra.deleteConfirm', '¿Estás seguro de eliminar')} "{selectedDevice?.name}"?
+              {t('infra.deleteConfirm', '¿Estás seguro de eliminar')} &quot;{selectedDevice?.name}&quot;?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
