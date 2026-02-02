@@ -530,9 +530,63 @@ const LoginPage = () => {
                     </>
                   )}
                 </Button>
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline transition-colors"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </button>
+                </div>
               </form>
             </CardContent>
           </Card>
+
+          {/* Forgot Password Dialog */}
+          <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Mail className="w-5 h-5" />
+                  Recuperar Contraseña
+                </DialogTitle>
+                <DialogDescription>
+                  Ingresa tu email y te enviaremos instrucciones para restablecer tu contraseña
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handlePasswordReset} className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    placeholder="tu@email.com"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setShowForgotPassword(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={resetting}>
+                    {resetting ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Enviar
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
           
           {/* Contact info */}
           <div className="mt-8 text-center space-y-3">
