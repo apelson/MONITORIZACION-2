@@ -348,6 +348,7 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
       case 'esxi': return 'VMware ESXi';
       case 'qnap': return 'QNAP NAS';
       case 'synology': return 'Synology NAS';
+      case 'openvpn': return 'OpenVPN';
       default: return type;
     }
   };
