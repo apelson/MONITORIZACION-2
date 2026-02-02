@@ -521,9 +521,15 @@ const LoginPage = () => {
                   <Label className="text-slate-700">{t('auth.password')}</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <Input data-testid="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10" placeholder="••••••••" />
+                    <Input data-testid="login-password" type="password" value={password} onChange={(e) => { setPassword(e.target.value); setLoginError(""); }} className="pl-10" placeholder="••••••••" />
                   </div>
                 </div>
+                {loginError && (
+                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 flex items-center gap-2 text-red-700 text-sm" data-testid="login-error">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>{loginError}</span>
+                  </div>
+                )}
                 <Button data-testid="login-submit" type="submit" className="w-full h-12 text-base bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700" disabled={loading}>
                   {loading ? (
                     <RefreshCw className="w-5 h-5 animate-spin" />
