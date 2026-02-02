@@ -988,19 +988,19 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
                               {deviceDetails.system_info.model && (
                                 <div>
                                   <p className="text-muted-foreground">Modelo</p>
-                                  <p className="font-medium">{deviceDetails.system_info.model}</p>
+                                  <p className="font-medium">{safeRender(deviceDetails.system_info.model)}</p>
                                 </div>
                               )}
                               {deviceDetails.system_info.version && (
                                 <div>
                                   <p className="text-muted-foreground">Versión</p>
-                                  <p className="font-medium">{deviceDetails.system_info.version}</p>
+                                  <p className="font-medium">{safeRender(deviceDetails.system_info.version)}</p>
                                 </div>
                               )}
                               {deviceDetails.system_info.uptime && (
                                 <div>
                                   <p className="text-muted-foreground">Tiempo encendido</p>
-                                  <p className="font-medium">{deviceDetails.system_info.uptime}</p>
+                                  <p className="font-medium">{safeRender(deviceDetails.system_info.uptime)}</p>
                                 </div>
                               )}
                             </div>
