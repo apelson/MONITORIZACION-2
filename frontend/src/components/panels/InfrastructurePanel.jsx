@@ -553,6 +553,7 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
                               <div className={`p-2 rounded-lg ${
                                 device.device_type === 'esxi' ? 'bg-blue-100 text-blue-600' :
                                 device.device_type === 'qnap' ? 'bg-purple-100 text-purple-600' :
+                                device.device_type === 'openvpn' ? 'bg-green-100 text-green-600' :
                                 'bg-green-100 text-green-600'
                               }`}>
                                 {getDeviceIcon(device.device_type)}
