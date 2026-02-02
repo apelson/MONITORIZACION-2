@@ -35,12 +35,24 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
     │   ├── services/     # NEW: NotificationService
     │   └── components/   # UI components
     │       ├── auth/     # NEW: LoginPage
+    │       ├── common/   # NEW: StatusBadges, LoadingComponents
     │       └── settings/ # NEW: NotificationSettings
 ```
 
 ## What's Been Implemented
 
-### Session: 2026-02-02 (Latest Update - Part 2)
+### Session: 2026-02-02 (Latest Update - Part 3)
+- ✅ **NotificationSettings Integrated into Settings Panel**
+  - Visible in Settings tab after SMTP configuration
+  - Browser notifications: Enable/test button
+  - Sound alerts: Toggle + test button
+  - Clear instructions for blocked notifications
+- ✅ **Common Components Created**
+  - `/components/common/StatusBadges.jsx` - StatusDot, StatusBadge, RoleBadge, etc.
+  - `/components/common/LoadingComponents.jsx` - LoadingScreen, LoadingSkeleton
+  - `/components/common/index.js` - Clean exports
+
+### Session: 2026-02-02 (Part 2 - Refactoring & Features)
 - ✅ **Code Refactoring Started**
   - Created `/contexts/AuthContext.jsx` - Auth state management
   - Created `/components/auth/LoginPage.jsx` - Standalone login component
