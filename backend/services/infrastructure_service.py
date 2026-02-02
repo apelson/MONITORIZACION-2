@@ -1439,6 +1439,12 @@ class InfrastructureService:
         return service.get_full_status()
     
     @staticmethod
+    def check_openvpn(host: str, username: str, password: str, port: int = 1194, management_port: int = 7505, use_ssl: bool = False) -> Dict[str, Any]:
+        """Check OpenVPN server status"""
+        service = OpenVPNService(host, username, password, port, management_port, use_ssl)
+        return service.get_full_status()
+    
+    @staticmethod
     def check_device(device_type: str, host: str, username: str, password: str, port: int = None, use_ssl: bool = True) -> Dict[str, Any]:
         """Check any infrastructure device"""
         if device_type.lower() == "esxi":
@@ -1447,5 +1453,7 @@ class InfrastructureService:
             return InfrastructureService.check_qnap(host, username, password, port or 443, use_ssl)
         elif device_type.lower() == "synology":
             return InfrastructureService.check_synology(host, username, password, port or 5001, use_ssl)
+        elif device_type.lower() == "openvpn":
+            return InfrastructureService.check_openvpn(host, username, password, port or 1194, 7505, use_ssl)
         else:
             return {"error": f"Unknown device type: {device_type}", "connected": False}
