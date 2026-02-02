@@ -171,3 +171,78 @@ async def change_password(data: ChangePassword, request: Request, current_user: 
     )
     
     return {"message": "Contraseña actualizada"}
+
+
+@router.post("/forgot-password")
+async def forgot_password(data: dict):
+    """Send password reset email"""
+    email = data.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="Email requerido")
+    
+    # Find user by email
+    user = await users_collection.find_one({"email": email})
+    if not user:
+        # Don't reveal if user exists or not for security
+        return {"message": "Si el email existe, recibirás instrucciones para recuperar tu contraseña"}
+    
+    # Generate reset token
+    import secrets
+    reset_token = secrets.token_urlsafe(32)
+    reset_expires = datetime.now(timezone.utc).timestamp() + 3600  # 1 hour
+    
+    # Store reset token in user document
+    await users_collection.update_one(
+        {"id": user["id"]},
+        {"$set": {
+            "reset_token": reset_token,
+            "reset_expires": reset_expires
+        }}
+    )
+    
+    # Send email with reset link
+    try:
+        from services.email_service import send_password_reset_email
+        await send_password_reset_email(
+            to_email=email,
+            username=user["username"],
+            reset_token=reset_token
+        )
+    except Exception as e:
+        print(f"Error sending reset email: {e}")
+        # Don't reveal error to user
+    
+    return {"message": "Si el email existe, recibirás instrucciones para recuperar tu contraseña"}
+
+
+@router.post("/reset-password")
+async def reset_password(data: dict):
+    """Reset password with token"""
+    token = data.get("token")
+    new_password = data.get("new_password")
+    
+    if not token or not new_password:
+        raise HTTPException(status_code=400, detail="Token y contraseña requeridos")
+    
+    # Find user with valid token
+    user = await users_collection.find_one({
+        "reset_token": token,
+        "reset_expires": {"$gt": datetime.now(timezone.utc).timestamp()}
+    })
+    
+    if not user:
+        raise HTTPException(status_code=400, detail="Token inválido o expirado")
+    
+    # Update password and clear reset token
+    await users_collection.update_one(
+        {"id": user["id"]},
+        {"$set": {
+            "password_hash": get_password_hash(new_password)
+        }, "$unset": {
+            "reset_token": "",
+            "reset_expires": ""
+        }}
+    )
+    
+    return {"message": "Contraseña actualizada correctamente"}
+
