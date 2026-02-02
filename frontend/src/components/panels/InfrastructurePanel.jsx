@@ -772,6 +772,7 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
                     <SelectItem value="esxi">VMware ESXi / vCenter</SelectItem>
                     <SelectItem value="qnap">QNAP NAS</SelectItem>
                     <SelectItem value="synology">Synology NAS</SelectItem>
+                    <SelectItem value="openvpn">OpenVPN Server</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
