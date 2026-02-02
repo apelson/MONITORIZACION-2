@@ -1062,23 +1062,30 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
                           </CardHeader>
                           <CardContent>
                             <div className="space-y-2">
-                              {deviceDetails.volumes.map((vol, i) => (
-                                <div key={i} className="p-3 rounded-lg bg-muted/50">
-                                  <div className="flex justify-between items-center mb-2">
-                                    <span className="font-medium">{vol.name || vol.id || `Volumen ${i + 1}`}</span>
-                                    {vol.status && <Badge variant={vol.status === 'normal' ? 'default' : 'destructive'}>{vol.status}</Badge>}
-                                  </div>
-                                  {vol.size && vol.used && (
-                                    <div className="space-y-1">
-                                      <div className="flex justify-between text-xs text-muted-foreground">
-                                        <span>Usado: {formatBytes(vol.used)}</span>
-                                        <span>Total: {formatBytes(vol.size)}</span>
-                                      </div>
-                                      <Progress value={(vol.used / vol.size) * 100} className="h-2" />
+                              {deviceDetails.volumes.map((vol, i) => {
+                                // Safely extract numeric values for calculations
+                                const volSize = typeof vol.size === 'object' ? (vol.size?.value || 0) : (parseFloat(vol.size) || 0);
+                                const volUsed = typeof vol.used === 'object' ? (vol.used?.value || 0) : (parseFloat(vol.used) || 0);
+                                const usagePercent = volSize > 0 ? (volUsed / volSize) * 100 : 0;
+                                
+                                return (
+                                  <div key={i} className="p-3 rounded-lg bg-muted/50">
+                                    <div className="flex justify-between items-center mb-2">
+                                      <span className="font-medium">{safeRender(vol.name) || safeRender(vol.id) || `Volumen ${i + 1}`}</span>
+                                      {vol.status && <Badge variant={safeRender(vol.status) === 'normal' ? 'default' : 'destructive'}>{safeRender(vol.status)}</Badge>}
                                     </div>
-                                  )}
-                                </div>
-                              ))}
+                                    {(vol.size || vol.used) && (
+                                      <div className="space-y-1">
+                                        <div className="flex justify-between text-xs text-muted-foreground">
+                                          <span>Usado: {formatBytes(vol.used)}</span>
+                                          <span>Total: {formatBytes(vol.size)}</span>
+                                        </div>
+                                        {usagePercent > 0 && <Progress value={usagePercent} className="h-2" />}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           </CardContent>
                         </Card>
