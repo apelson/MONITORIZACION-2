@@ -2710,6 +2710,7 @@ const SettingsPanel = ({ settings, onSave }) => {
             <Button type="button" variant="outline" onClick={handleTest} disabled={testing || !settings?.smtp_user}><Send className="w-4 h-4 mr-2" />{testing ? "Enviando..." : "Probar Email"}</Button>
           </div>
         </form>
+        )}
       </CardContent>
     </Card>
   );
