@@ -369,14 +369,51 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
     return '443';
   };
 
-  // Format bytes to human readable
+  // Format bytes to human readable - handles objects and strings
   const formatBytes = (bytes, decimals = 2) => {
-    if (!bytes) return '0 B';
+    // Handle null/undefined
+    if (bytes === null || bytes === undefined) return '0 B';
+    
+    // Handle objects (Synology/QNAP sometimes return {value: x, unit: 'GB'})
+    if (typeof bytes === 'object') {
+      if (bytes.value !== undefined) {
+        const unit = bytes.unit || '';
+        return `${bytes.value} ${unit}`;
+      }
+      return 'N/A';
+    }
+    
+    // Handle strings (e.g., "500 GB")
+    if (typeof bytes === 'string') {
+      // If already formatted, return as-is
+      if (bytes.includes('B') || bytes.includes('b')) return bytes;
+      // Try to parse as number
+      const parsed = parseFloat(bytes);
+      if (isNaN(parsed)) return bytes;
+      bytes = parsed;
+    }
+    
+    // Handle 0 or invalid
+    if (!bytes || bytes <= 0) return '0 B';
+    
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+  };
+  
+  // Safe render helper - prevents React Error #31 (rendering objects)
+  const safeRender = (value, fallback = 'N/A') => {
+    if (value === null || value === undefined) return fallback;
+    if (typeof value === 'object') {
+      // Try to extract meaningful value from object
+      if (value.value !== undefined) return String(value.value);
+      if (value.name !== undefined) return String(value.name);
+      if (value.status !== undefined) return String(value.status);
+      return fallback;
+    }
+    return String(value);
   };
 
   // Custom loading spinner component
