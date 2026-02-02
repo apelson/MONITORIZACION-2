@@ -2599,6 +2599,7 @@ const SettingsPanel = ({ settings, onSave }) => {
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { authAxios } = useAuth();
 
   useEffect(() => { 
@@ -2615,6 +2616,7 @@ const SettingsPanel = ({ settings, onSave }) => {
       if (settings.smtp_host && settings.smtp_host !== "smtp.gmail.com") {
         setShowAdvanced(true);
       }
+      setLoading(false);
     }
   }, [settings]);
 
