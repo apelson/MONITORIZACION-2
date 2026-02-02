@@ -1016,8 +1016,12 @@ class SynologyService:
             result["connected"] = True
             result["system_info"] = self.get_system_info()
             result["storage"] = self.get_storage_info()
-            result["disks"] = self.get_disk_info()
-            result["volumes"] = self.get_volume_info()
+            
+            # Extract disks and volumes from storage if available
+            if result["storage"]:
+                result["disks"] = result["storage"].get("disks", [])
+                result["volumes"] = result["storage"].get("volumes", [])
+            
             result["surveillance"] = self.get_surveillance_info()
             result["services"] = self.get_running_services()
             result["utilization"] = self.get_system_utilization()
@@ -1026,9 +1030,10 @@ class SynologyService:
             # Determine overall health
             if result["system_info"]:
                 result["health"] = "healthy"
-                # Check disk health
+                # Check disk health from storage data
                 for disk in result["disks"]:
-                    if disk.get("status") not in ["normal", "healthy"]:
+                    disk_status = disk.get("status", "").lower()
+                    if disk_status not in ["normal", "healthy", ""]:
                         result["health"] = "warning"
                         break
             
