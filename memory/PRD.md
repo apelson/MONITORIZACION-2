@@ -15,39 +15,53 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 - NAS connection alerts for cameras
 - Audible alerts for critical events
 - Email notifications via SMTP
+- Push/Web notifications for real-time alerts
+- Stripe payment integration for subscriptions
 
 ## Architecture
 ```
 /app/
-├── backend/         # FastAPI
-│   ├── server.py    # Main server
-│   ├── routes/      # API endpoints
-│   └── services/    # Business logic
-└── frontend/        # React
-    ├── src/App.js   # Main component (needs refactor)
-    └── components/  # UI components
+├── backend/              # FastAPI
+│   ├── server.py         # Main server
+│   ├── routes/           # API endpoints
+│   │   ├── billing.py    # Stripe payments
+│   │   └── payments.py   # Payment routes
+│   └── services/         # Business logic
+└── frontend/             # React
+    ├── src/
+    │   ├── App.js        # Main component (5800 lines - refactor in progress)
+    │   ├── contexts/     # NEW: AuthContext
+    │   ├── hooks/        # NEW: useNotifications
+    │   ├── services/     # NEW: NotificationService
+    │   └── components/   # UI components
+    │       ├── auth/     # NEW: LoginPage
+    │       └── settings/ # NEW: NotificationSettings
 ```
 
 ## What's Been Implemented
 
-### Session: 2026-02-02 (Latest Update)
-- ✅ **Login Error Feedback Fix (P1)** - Added visual error message in login form
-  - Red error box with AlertCircle icon appears below password field
-  - Shows "Credenciales inválidas" or custom error message from backend
-  - Error clears when user starts typing again
+### Session: 2026-02-02 (Latest Update - Part 2)
+- ✅ **Code Refactoring Started**
+  - Created `/contexts/AuthContext.jsx` - Auth state management
+  - Created `/components/auth/LoginPage.jsx` - Standalone login component
+  - Created `/services/NotificationService.js` - Push notification service
+  - Created `/hooks/useNotifications.js` - Notification hook
+  - Created `/components/settings/NotificationSettings.jsx` - Notification config UI
+- ✅ **Stripe Integration Verified**
+  - `/routes/billing.py` - Already functional with plans: Basic (29€), Pro (79€), Enterprise (299€)
+  - Checkout flow, webhooks, and status polling implemented
+  - Uses emergentintegrations library
+- ✅ **i18n Translations** - Already complete (648 lines in ES, similar for EN, DE, FR, IT, RU, ZH)
+- ✅ **Alerts Historical View** - Already implemented in AlertsPanel
+  - Pie chart for alerts by type
+  - Bar chart for alert trends over time
+  - Time range filter (week/month/year)
+
+### Session: 2026-02-02 (Part 1 - Bug Fixes)
+- ✅ **Login Error Feedback Fix (P1)** - Visual error message in login form
 - ✅ **Infrastructure Panel Safe Rendering Fix (P0)** - Prevents React Error #31
-  - Added `safeRender` helper function to safely render potentially complex objects
-  - Updated `formatBytes` to handle object values (Synology/QNAP return {value, unit})
-  - Fixed volumes, disks, services, and system_info sections
-  - Prevents blank screen when viewing device details
-- ✅ **ESXi SSH Fallback** - Added paramiko-based SSH fallback for VM detection
-  - Uses `vim-cmd vmsvc/getallvms` command when MOB API is disabled (503 error)
-  - Extracts VM name, power state, CPU count, memory, and guest OS
-  - Installed `paramiko` library in backend environment
-- ✅ **Loading Indicator for Infrastructure Tab** - Already present, confirmed working
-  - Animated server icon with orbiting dots
-  - Progress bar with gradient animation
-  - Shows "Cargando Infraestructura - Conectando con dispositivos..."
+- ✅ **ESXi SSH Fallback** - paramiko-based fallback for VM detection
+- ✅ **Loading Indicator for Infrastructure Tab** - Confirmed working
 
 ### Session: 2026-02-01
 - ✅ **NEW Professional Header Design** - Dark elegant theme inspired by siempria.com/mobotix.com
