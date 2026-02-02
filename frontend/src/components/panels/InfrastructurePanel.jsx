@@ -530,7 +530,7 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
             <TabsTrigger value="openvpn">OpenVPN ({devices.filter(d => d.device_type === 'openvpn').length})</TabsTrigger>
           </TabsList>
 
-          {['all', 'esxi', 'qnap', 'synology'].map(tab => (
+          {['all', 'esxi', 'qnap', 'synology', 'openvpn'].map(tab => (
             <TabsContent key={tab} value={tab}>
               {devices.length === 0 ? (
                 <div className="text-center py-12">
