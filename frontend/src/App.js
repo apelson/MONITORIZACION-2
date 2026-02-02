@@ -381,10 +381,13 @@ const LoginPage = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetting, setResetting] = useState(false);
+  const [loginError, setLoginError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoginError("");
     if (!username || !password) { 
+      setLoginError(t('validation.required', 'Por favor completa todos los campos'));
       toast.error(t('validation.required', 'Por favor completa todos los campos')); 
       return; 
     }
@@ -394,7 +397,8 @@ const LoginPage = () => {
       toast.success(t('auth.welcomeBack', '¡Bienvenido de nuevo!')); 
     } catch (e) { 
       console.error('Login error:', e);
-      const errorMsg = e.response?.data?.detail || e.message || 'Usuario o contraseña incorrectos';
+      const errorMsg = e.response?.data?.detail || t('auth.invalidCredentials', 'Usuario o contraseña incorrectos');
+      setLoginError(errorMsg);
       toast.error(errorMsg, { duration: 4000 });
     } finally {
       setLoading(false);
