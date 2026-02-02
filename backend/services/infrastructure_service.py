@@ -426,29 +426,71 @@ class QNAPService:
             self.session = requests.Session()
             self.session.verify = False
             
-            # QNAP QTS API login
-            url = f"{self._get_base_url()}/cgi-bin/authLogin.cgi"
-            params = {
-                "user": self.username,
-                "pwd": self.password
-            }
+            # Try multiple QNAP authentication methods
+            auth_methods = [
+                # Method 1: Standard authLogin.cgi with params
+                {
+                    "url": f"{self._get_base_url()}/cgi-bin/authLogin.cgi",
+                    "params": {"user": self.username, "pwd": self.password}
+                },
+                # Method 2: Direct URL with credentials
+                {
+                    "url": f"{self._get_base_url()}/cgi-bin/authLogin.cgi?user={self.username}&pwd={self.password}",
+                    "params": {}
+                },
+                # Method 3: Basic auth for newer QTS
+                {
+                    "url": f"{self._get_base_url()}/cgi-bin/authLogin.cgi",
+                    "params": {},
+                    "auth": (self.username, self.password)
+                }
+            ]
             
-            response = self.session.get(url, params=params, timeout=10)
+            import re
+            for method in auth_methods:
+                try:
+                    if "auth" in method:
+                        response = self.session.get(
+                            method["url"], 
+                            params=method["params"],
+                            auth=method["auth"],
+                            timeout=10
+                        )
+                    else:
+                        response = self.session.get(
+                            method["url"], 
+                            params=method["params"],
+                            timeout=10
+                        )
+                    
+                    if response.status_code == 200:
+                        # Check for successful auth in response
+                        auth_passed = re.search(r'<authPassed><!\[CDATA\[([^\]]+)\]\]></authPassed>', response.text)
+                        
+                        if auth_passed and auth_passed.group(1) == '1':
+                            # Successfully authenticated - extract SID
+                            sid_match = re.search(r'<authSid><!\[CDATA\[([^\]]+)\]\]></authSid>', response.text)
+                            if sid_match:
+                                self.sid = sid_match.group(1)
+                                logger.info(f"QNAP authenticated successfully with SID")
+                                return True
+                        
+                        # For some QTS versions, just having SID is enough
+                        sid_match = re.search(r'<authSid><!\[CDATA\[([^\]]+)\]\]></authSid>', response.text)
+                        if sid_match and sid_match.group(1):
+                            self.sid = sid_match.group(1)
+                            # Verify SID works by calling a simple endpoint
+                            test_url = f"{self._get_base_url()}/cgi-bin/management/manaRequest.cgi"
+                            test_resp = self.session.get(test_url, params={"subfunc": "sysinfo", "sid": self.sid}, timeout=5)
+                            if test_resp.status_code == 200:
+                                logger.info(f"QNAP authenticated with SID (method {auth_methods.index(method)+1})")
+                                return True
+                        
+                except Exception as e:
+                    logger.debug(f"QNAP auth method failed: {e}")
+                    continue
             
-            if response.status_code == 200:
-                # Parse XML response for SID
-                import re
-                sid_match = re.search(r'<authSid><!\[CDATA\[([^\]]+)\]\]></authSid>', response.text)
-                if sid_match:
-                    self.sid = sid_match.group(1)
-                    return True
-                
-                # Try JSON API
-                url = f"{self._get_base_url()}/cgi-bin/authLogin.cgi?user={self.username}&pwd={self.password}"
-                response = self.session.get(url, timeout=10)
-                if 'authSid' in response.text or response.status_code == 200:
-                    return True
-            
+            logger.error(f"QNAP authentication failed - all methods exhausted")
             return False
         except Exception as e:
             logger.error(f"QNAP connection error: {e}")
