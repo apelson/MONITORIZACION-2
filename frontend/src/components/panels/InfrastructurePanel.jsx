@@ -1019,33 +1019,38 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
                           </CardHeader>
                           <CardContent>
                             <div className="space-y-2">
-                              {deviceDetails.disks.map((disk, i) => (
-                                <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                                  <div className="flex items-center gap-3">
-                                    <HardDrive className="w-5 h-5 text-muted-foreground" />
-                                    <div>
-                                      <p className="font-medium">{disk.name || disk.id || `Disco ${i + 1}`}</p>
-                                      {disk.model && <p className="text-xs text-muted-foreground">{disk.model}</p>}
+                              {deviceDetails.disks.map((disk, i) => {
+                                const diskTemp = typeof disk.temp === 'object' ? (disk.temp?.value || null) : disk.temp;
+                                const diskStatus = safeRender(disk.status, 'OK');
+                                
+                                return (
+                                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                                    <div className="flex items-center gap-3">
+                                      <HardDrive className="w-5 h-5 text-muted-foreground" />
+                                      <div>
+                                        <p className="font-medium">{safeRender(disk.name) || safeRender(disk.id) || `Disco ${i + 1}`}</p>
+                                        {disk.model && <p className="text-xs text-muted-foreground">{safeRender(disk.model)}</p>}
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      {disk.size && <Badge variant="outline">{formatBytes(disk.size)}</Badge>}
+                                      {diskTemp && (
+                                        <Tooltip>
+                                          <TooltipTrigger>
+                                            <Badge variant={Number(diskTemp) > 50 ? 'destructive' : 'outline'}>
+                                              <Thermometer className="w-3 h-3 mr-1" />{diskTemp}°C
+                                            </Badge>
+                                          </TooltipTrigger>
+                                          <TooltipContent>Temperatura</TooltipContent>
+                                        </Tooltip>
+                                      )}
+                                      <Badge variant={diskStatus === 'normal' || diskStatus === 'healthy' ? 'default' : 'destructive'}>
+                                        {diskStatus}
+                                      </Badge>
                                     </div>
                                   </div>
-                                  <div className="flex items-center gap-2">
-                                    {disk.size && <Badge variant="outline">{formatBytes(disk.size)}</Badge>}
-                                    {disk.temp && (
-                                      <Tooltip>
-                                        <TooltipTrigger>
-                                          <Badge variant={disk.temp > 50 ? 'destructive' : 'outline'}>
-                                            <Thermometer className="w-3 h-3 mr-1" />{disk.temp}°C
-                                          </Badge>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Temperatura</TooltipContent>
-                                      </Tooltip>
-                                    )}
-                                    <Badge variant={disk.status === 'normal' || disk.status === 'healthy' ? 'default' : 'destructive'}>
-                                      {disk.status || 'OK'}
-                                    </Badge>
-                                  </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           </CardContent>
                         </Card>
