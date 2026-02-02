@@ -1,6 +1,6 @@
 /**
  * Infrastructure Panel Component - Enhanced Version
- * Monitors VMware ESXi, QNAP, and Synology devices
+ * Monitors VMware ESXi, QNAP, Synology devices and OpenVPN servers
  * With quick actions, web links, and detailed VM/NAS info
  */
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -10,7 +10,8 @@ import {
   Server, HardDrive, Database, Plus, RefreshCw, Trash2, Edit, 
   Wifi, WifiOff, Cpu, Monitor, Play, Square, Pause, Globe,
   AlertTriangle, CheckCircle, XCircle, Eye, Settings, Activity,
-  ExternalLink, Thermometer, MemoryStick, Clock, Zap, Info, ClipboardList
+  ExternalLink, Thermometer, MemoryStick, Clock, Zap, Info, ClipboardList,
+  Shield, Users
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
