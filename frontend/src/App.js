@@ -2654,6 +2654,14 @@ const SettingsPanel = ({ settings, onSave }) => {
         <CardDescription>Configura el servidor de correo para alertas y notificaciones</CardDescription>
       </CardHeader>
       <CardContent>
+        {loading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ) : (
         <form onSubmit={handleSave} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
