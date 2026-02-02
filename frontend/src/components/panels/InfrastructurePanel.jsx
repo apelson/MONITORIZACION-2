@@ -368,6 +368,7 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
     if (type === 'esxi') return '443';
     if (type === 'qnap') return ssl ? '443' : '8080';
     if (type === 'synology') return ssl ? '5001' : '5000';
+    if (type === 'openvpn') return '1194';
     return '443';
   };
 
