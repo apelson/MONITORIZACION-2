@@ -30,40 +30,33 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 
 ## What's Been Implemented
 
-### Session: 2026-02-01 (Latest Update)
+### Session: 2026-02-02 (Latest Update)
+- ✅ **Login Error Feedback Fix (P1)** - Added visual error message in login form
+  - Red error box with AlertCircle icon appears below password field
+  - Shows "Credenciales inválidas" or custom error message from backend
+  - Error clears when user starts typing again
+- ✅ **Infrastructure Panel Safe Rendering Fix (P0)** - Prevents React Error #31
+  - Added `safeRender` helper function to safely render potentially complex objects
+  - Updated `formatBytes` to handle object values (Synology/QNAP return {value, unit})
+  - Fixed volumes, disks, services, and system_info sections
+  - Prevents blank screen when viewing device details
+- ✅ **ESXi SSH Fallback** - Added paramiko-based SSH fallback for VM detection
+  - Uses `vim-cmd vmsvc/getallvms` command when MOB API is disabled (503 error)
+  - Extracts VM name, power state, CPU count, memory, and guest OS
+  - Installed `paramiko` library in backend environment
+- ✅ **Loading Indicator for Infrastructure Tab** - Already present, confirmed working
+  - Animated server icon with orbiting dots
+  - Progress bar with gradient animation
+  - Shows "Cargando Infraestructura - Conectando con dispositivos..."
+
+### Session: 2026-02-01
 - ✅ **NEW Professional Header Design** - Dark elegant theme inspired by siempria.com/mobotix.com
-  - Dark gradient background with cyan accent line
-  - Glowing logo and status indicators
-  - Glass-effect status HUD with animated counters
-  - Premium user avatar and action buttons
-- ✅ **ESXi VM Detection Fix** - Added MOB (Managed Object Browser) support for standalone ESXi hosts
-  - Now fetches VMs and datastores from ESXi without vCenter
-  - Parses VM power state, CPU, memory, guest OS
-  - Parses datastore capacity and free space
+- ✅ **ESXi VM Detection Fix** - Added MOB (Managed Object Browser) support
 - ✅ **Tab Hover Effects** - Premium hover animations for navigation tabs
-  - Cyan gradient overlay on hover
-  - Scale animation on icons
-  - Shadow effects
-  - Active state with gradient background
-- ✅ **"Abrir Incidencia" Button** - Added incident creation button to infrastructure cards
-  - New ClipboardList icon button
-  - Orange hover effect
-  - Integrates with incident system
-- ✅ **Action Button Hover Effects** - Color-coded hover states for all action buttons
-  - Blue for view details
-  - Green for refresh
-  - Purple for external link
-  - Orange for create incident
-  - Yellow for edit
-  - Red for delete
+- ✅ **"Abrir Incidencia" Button** - Added incident creation button
+- ✅ **Action Button Hover Effects** - Color-coded hover states
 - ✅ **Synology Fix** - Fixed white screen error when viewing Synology details
-  - Added error handling for null/undefined details
-  - Always shows basic info even on API error
-  - Uses isMounted ref to prevent state updates after unmount
 - ✅ **Performance Optimization** - Added caching for infrastructure devices
-  - 1-minute cache TTL
-  - Faster panel loading
-  - Reduced API calls
 
 ### Previous Sessions
 - ✅ NAS Services Detection (QNAP/Synology)
@@ -75,24 +68,28 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 
 ## Prioritized Backlog
 
-### P0 - Critical
+### P0 - Critical (Completed)
 - [x] Professional Header Design ✅
 - [x] Tab Hover Effects ✅
 - [x] Incident Button on Infrastructure ✅
 - [x] Synology Details Fix ✅
-- [ ] Deploy latest changes to production server
+- [x] Login Error Feedback Fix ✅
+- [x] Infrastructure Panel Safe Rendering ✅
 
 ### P1 - High Priority
-- [ ] Test ESXi VM detection with user's real ESXi host (192.168.1.97)
+- [ ] Deploy latest changes to production server
+- [ ] Test ESXi VM detection with user's real ESXi host (192.168.1.97) - SSH fallback ready
 - [ ] Test QNAP disk detection with user's real QNAP (192.168.1.3)
 - [ ] Complete i18n for all UI sections
 - [ ] Implement actual NAS connection monitoring for cameras
+- [ ] Implement "Forgot Password" feature (UI ready, backend endpoint exists)
 
 ### P2 - Medium Priority
 - [ ] Refactor App.js into smaller components
 - [ ] Fix favicon/PWA icons in production
 - [ ] Add more NAS-specific metrics
-- [ ] Implement Synology monitoring
+- [ ] Historical view with charts for Alerts panel
+- [ ] Optimize duplicate API calls
 
 ### P3 - Future
 - [ ] Stripe payment integration
@@ -100,11 +97,11 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 - [ ] Public dashboards UI
 - [ ] Dahua P2P project
 
-## Files Modified This Session
-- `/app/frontend/src/App.css` - Tab hover effects, professional dark header styles
-- `/app/frontend/src/App.js` - Updated header JSX structure
-- `/app/frontend/src/components/panels/InfrastructurePanel.jsx` - Incident button, action hover colors, caching, Synology fix
-- `/app/backend/services/infrastructure_service.py` - ESXi MOB support for VMs/datastores
+## Files Modified This Session (2026-02-02)
+- `/app/frontend/src/App.js` - Added loginError state and visual error display in login form
+- `/app/frontend/src/components/panels/InfrastructurePanel.jsx` - Added safeRender helper, fixed formatBytes for objects
+- `/app/backend/services/infrastructure_service.py` - Added SSH fallback using paramiko for ESXi VM detection
+- `/app/backend/requirements.txt` - Added paramiko library
 
 ## Production Environment
 - **Source code**: `/home/monitorizacion/Documentos/MONITORIZACION-main/`
@@ -118,7 +115,7 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 
 ## Third-Party Integrations
 - i18next/react-i18next (internationalization)
-- pyvmomi (VMware ESXi - future)
+- paramiko (SSH for ESXi fallback) - NEW
 - QNAP QTS API
 - Synology DSM API
 - Stripe (planned)
