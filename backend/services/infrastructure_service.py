@@ -215,7 +215,6 @@ class ESXiService:
                 
                 if response.status_code == 200 and 'VirtualMachine' in response.text:
                     # Parse VM IDs from MOB response
-                    import re
                     vm_ids = re.findall(r'vm-(\d+)', response.text)
                     logger.info(f"ESXi MOB found {len(vm_ids)} VM IDs: {vm_ids[:5]}")
                     
@@ -260,29 +259,146 @@ class ESXiService:
                         logger.info(f"ESXi MOB successfully extracted {len(vms)} VMs")
                         return vms
                 else:
-                    logger.warning(f"ESXi MOB returned status {response.status_code}, 'VirtualMachine' in response: {'VirtualMachine' in response.text}")
+                    logger.warning(f"ESXi MOB returned status {response.status_code}, 'VirtualMachine' in response: {'VirtualMachine' in response.text if response.status_code == 200 else 'N/A'}")
             except Exception as e:
                 logger.warning(f"ESXi MOB approach failed: {e}")
+            
+            # SSH Fallback - for standalone ESXi when MOB is disabled
+            if HAS_PARAMIKO:
+                logger.info("ESXi: Attempting SSH fallback for VM listing")
+                try:
+                    vms = self._get_vms_via_ssh()
+                    if vms:
+                        logger.info(f"ESXi SSH successfully extracted {len(vms)} VMs")
+                        return vms
+                except Exception as e:
+                    logger.warning(f"ESXi SSH approach failed: {e}")
+            else:
+                logger.warning("ESXi: Paramiko not installed, SSH fallback unavailable")
             
             logger.warning(f"ESXi: No VMs found using any method. ESXi may have no VMs or limited API access.")
             return vms
         except Exception as e:
             logger.error(f"Error getting VMs: {e}")
             return []
+    
+    def _get_vms_via_ssh(self) -> List[Dict[str, Any]]:
+        """Fallback method to get VMs via SSH using vim-cmd"""
+        if not HAS_PARAMIKO:
+            return []
+        
+        vms = []
+        ssh = None
+        try:
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             
-            # Try SOAP/vim-cmd style endpoint
-            try:
-                soap_url = f"{self._get_base_url()}/sdk/vimService.wsdl"
-                response = self.session.get(soap_url, timeout=10)
-                if response.status_code == 200:
-                    logger.info("ESXi SOAP available but requires pyvmomi for VM enumeration")
-            except:
-                pass
+            logger.info(f"ESXi SSH: Connecting to {self.host} as {self.username}")
+            ssh.connect(
+                hostname=self.host,
+                port=22,
+                username=self.username,
+                password=self.password,
+                timeout=15,
+                allow_agent=False,
+                look_for_keys=False
+            )
+            
+            # Get list of all VMs using vim-cmd
+            stdin, stdout, stderr = ssh.exec_command('vim-cmd vmsvc/getallvms', timeout=30)
+            output = stdout.read().decode('utf-8', errors='ignore')
+            err = stderr.read().decode('utf-8', errors='ignore')
+            
+            if err:
+                logger.warning(f"ESXi SSH vim-cmd stderr: {err}")
+            
+            logger.debug(f"ESXi SSH vim-cmd output:\n{output[:500]}")
+            
+            # Parse vim-cmd output
+            # Format: Vmid    Name                       File                           Guest OS         Version   Annotation
+            lines = output.strip().split('\n')
+            for line in lines[1:]:  # Skip header line
+                if not line.strip():
+                    continue
+                
+                # Split by multiple spaces and extract fields
+                parts = line.split()
+                if len(parts) >= 4:
+                    try:
+                        vmid = parts[0]
+                        # The name can contain spaces, so we need to parse more carefully
+                        # Find the .vmx file path which indicates end of name
+                        vmx_match = re.search(r'\[([^\]]+)\]\s+([^\s]+\.vmx)', line)
+                        if vmx_match:
+                            vmx_idx = line.find(vmx_match.group(0))
+                            name = line[len(vmid):vmx_idx].strip()
+                            
+                            # Get power state for this VM
+                            try:
+                                stdin2, stdout2, stderr2 = ssh.exec_command(f'vim-cmd vmsvc/power.getstate {vmid}', timeout=10)
+                                power_output = stdout2.read().decode('utf-8', errors='ignore')
+                                if 'Powered on' in power_output:
+                                    power_state = 'POWERED_ON'
+                                elif 'Powered off' in power_output:
+                                    power_state = 'POWERED_OFF'
+                                elif 'Suspended' in power_output:
+                                    power_state = 'SUSPENDED'
+                                else:
+                                    power_state = 'UNKNOWN'
+                            except:
+                                power_state = 'UNKNOWN'
+                            
+                            # Get VM summary for CPU/memory
+                            cpu_count = None
+                            memory_mb = None
+                            guest_os = None
+                            try:
+                                stdin3, stdout3, stderr3 = ssh.exec_command(f'vim-cmd vmsvc/get.summary {vmid}', timeout=10)
+                                summary_output = stdout3.read().decode('utf-8', errors='ignore')
+                                
+                                cpu_match = re.search(r'numCpu\s*=\s*(\d+)', summary_output)
+                                mem_match = re.search(r'memorySizeMB\s*=\s*(\d+)', summary_output)
+                                guest_match = re.search(r'guestFullName\s*=\s*"([^"]+)"', summary_output)
+                                
+                                if cpu_match:
+                                    cpu_count = int(cpu_match.group(1))
+                                if mem_match:
+                                    memory_mb = int(mem_match.group(1))
+                                if guest_match:
+                                    guest_os = guest_match.group(1)
+                            except:
+                                pass
+                            
+                            vm_info = {
+                                'vm': f'vm-{vmid}',
+                                'name': name,
+                                'power_state': power_state,
+                                'cpu_count': cpu_count,
+                                'memory_size_MiB': memory_mb,
+                                'guest_OS': guest_os
+                            }
+                            vms.append(vm_info)
+                            logger.debug(f"ESXi SSH extracted VM: {name} ({power_state})")
+                    except Exception as e:
+                        logger.debug(f"Error parsing VM line '{line}': {e}")
+                        continue
             
             return vms
-        except Exception as e:
-            logger.error(f"Error getting VMs: {e}")
+        except paramiko.AuthenticationException:
+            logger.error("ESXi SSH: Authentication failed")
             return []
+        except paramiko.SSHException as e:
+            logger.error(f"ESXi SSH: SSH error - {e}")
+            return []
+        except Exception as e:
+            logger.error(f"ESXi SSH: Error - {e}")
+            return []
+        finally:
+            if ssh:
+                try:
+                    ssh.close()
+                except:
+                    pass
     
     def get_vm_details(self, vm_id: str) -> Optional[Dict[str, Any]]:
         """Get detailed info for a specific VM"""
