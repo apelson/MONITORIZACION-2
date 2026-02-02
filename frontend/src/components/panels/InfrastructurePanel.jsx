@@ -527,6 +527,7 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
             <TabsTrigger value="esxi">ESXi ({devices.filter(d => d.device_type === 'esxi').length})</TabsTrigger>
             <TabsTrigger value="qnap">QNAP ({devices.filter(d => d.device_type === 'qnap').length})</TabsTrigger>
             <TabsTrigger value="synology">Synology ({devices.filter(d => d.device_type === 'synology').length})</TabsTrigger>
+            <TabsTrigger value="openvpn">OpenVPN ({devices.filter(d => d.device_type === 'openvpn').length})</TabsTrigger>
           </TabsList>
 
           {['all', 'esxi', 'qnap', 'synology'].map(tab => (
