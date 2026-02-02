@@ -2107,6 +2107,8 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
           )}
         </CardContent>
       </Card>
+        )}
+      </div>
 
       {/* Create Incident from Alert Dialog */}
       <Dialog open={showIncidentDialog} onOpenChange={setShowIncidentDialog}>
