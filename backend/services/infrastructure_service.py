@@ -7,6 +7,14 @@ import requests
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 import logging
+import re
+
+# SSH support for ESXi fallback
+try:
+    import paramiko
+    HAS_PARAMIKO = True
+except ImportError:
+    HAS_PARAMIKO = False
 
 # Disable SSL warnings for self-signed certificates
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
