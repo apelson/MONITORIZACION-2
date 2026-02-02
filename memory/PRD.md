@@ -1,7 +1,7 @@
 # Siempria Network Monitor - Product Requirements Document
 
 ## Original Problem Statement
-Build and deploy "Siempria Network Monitor," a full-stack network monitoring application pivoted into a multi-tenant SaaS platform named "Siempriapp." The application monitors Mobotix cameras, VMware ESXi servers, QNAP and Synology NAS devices.
+Build and deploy "Siempria Network Monitor," a full-stack network monitoring application pivoted into a multi-tenant SaaS platform named "Siempriapp." The application monitors Mobotix cameras, VMware ESXi servers, QNAP, Synology NAS devices, and OpenVPN servers.
 
 ## User Personas
 - **Network Administrators**: Monitor cameras and infrastructure
@@ -11,7 +11,7 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 ## Core Requirements
 - Multi-language support (ES, EN, DE, FR, IT, RU, ZH)
 - Real-time device monitoring with alerts
-- Infrastructure monitoring (ESXi, QNAP, Synology)
+- Infrastructure monitoring (ESXi, QNAP, Synology, OpenVPN)
 - NAS connection alerts for cameras
 - Audible alerts for critical events
 - Email notifications via SMTP
@@ -26,54 +26,46 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 │   ├── routes/           # API endpoints
 │   │   ├── billing.py    # Stripe payments
 │   │   └── payments.py   # Payment routes
-│   └── services/         # Business logic
+│   └── services/         
+│       └── infrastructure_service.py  # ESXi, QNAP, Synology, OpenVPN
 └── frontend/             # React
     ├── src/
     │   ├── App.js        # Main component (5800 lines - refactor in progress)
-    │   ├── contexts/     # NEW: AuthContext
-    │   ├── hooks/        # NEW: useNotifications
-    │   ├── services/     # NEW: NotificationService
+    │   ├── contexts/     # AuthContext
+    │   ├── hooks/        # useNotifications
+    │   ├── services/     # NotificationService
     │   └── components/   # UI components
-    │       ├── auth/     # NEW: LoginPage
-    │       ├── common/   # NEW: StatusBadges, LoadingComponents
-    │       └── settings/ # NEW: NotificationSettings
+    │       ├── auth/     # LoginPage
+    │       ├── common/   # StatusBadges, LoadingComponents
+    │       ├── panels/   # InfrastructurePanel
+    │       └── settings/ # NotificationSettings
 ```
 
 ## What's Been Implemented
 
-### Session: 2026-02-02 (Latest Update - Part 3)
-- ✅ **NotificationSettings Integrated into Settings Panel**
-  - Visible in Settings tab after SMTP configuration
-  - Browser notifications: Enable/test button
-  - Sound alerts: Toggle + test button
-  - Clear instructions for blocked notifications
-- ✅ **Common Components Created**
-  - `/components/common/StatusBadges.jsx` - StatusDot, StatusBadge, RoleBadge, etc.
-  - `/components/common/LoadingComponents.jsx` - LoadingScreen, LoadingSkeleton
-  - `/components/common/index.js` - Clean exports
+### Session: 2026-02-02 (Latest - Part 4)
+- ✅ **OpenVPN Monitoring Added**
+  - New `OpenVPNService` class in backend
+  - Supports management interface and SSH fallback
+  - Shows connected VPN clients with stats
+  - Added to Infrastructure panel with green color theme
+- ✅ **Loading Bars for Tabs**
+  - Incidents tab: Amber loading animation with AlertTriangle icon
+  - Logs tab: Blue loading animation with FileText icon
+  - Shows descriptive text ("Cargando Incidencias", "Cargando Logs")
 
-### Session: 2026-02-02 (Part 2 - Refactoring & Features)
-- ✅ **Code Refactoring Started**
-  - Created `/contexts/AuthContext.jsx` - Auth state management
-  - Created `/components/auth/LoginPage.jsx` - Standalone login component
-  - Created `/services/NotificationService.js` - Push notification service
-  - Created `/hooks/useNotifications.js` - Notification hook
-  - Created `/components/settings/NotificationSettings.jsx` - Notification config UI
-- ✅ **Stripe Integration Verified**
-  - `/routes/billing.py` - Already functional with plans: Basic (29€), Pro (79€), Enterprise (299€)
-  - Checkout flow, webhooks, and status polling implemented
-  - Uses emergentintegrations library
-- ✅ **i18n Translations** - Already complete (648 lines in ES, similar for EN, DE, FR, IT, RU, ZH)
-- ✅ **Alerts Historical View** - Already implemented in AlertsPanel
-  - Pie chart for alerts by type
-  - Bar chart for alert trends over time
-  - Time range filter (week/month/year)
+### Session: 2026-02-02 (Part 3)
+- ✅ NotificationSettings integrated into Settings Panel
+- ✅ Common components created (StatusBadges, LoadingComponents)
 
-### Session: 2026-02-02 (Part 1 - Bug Fixes)
-- ✅ **Login Error Feedback Fix (P1)** - Visual error message in login form
-- ✅ **Infrastructure Panel Safe Rendering Fix (P0)** - Prevents React Error #31
-- ✅ **ESXi SSH Fallback** - paramiko-based fallback for VM detection
-- ✅ **Loading Indicator for Infrastructure Tab** - Confirmed working
+### Session: 2026-02-02 (Part 2)
+- ✅ Code refactoring started (AuthContext, LoginPage, etc.)
+- ✅ Stripe, i18n, Alerts Historical View verified
+
+### Session: 2026-02-02 (Part 1)
+- ✅ Login Error Feedback Fix
+- ✅ Infrastructure Panel Safe Rendering Fix
+- ✅ ESXi SSH Fallback with paramiko
 
 ### Session: 2026-02-01
 - ✅ **NEW Professional Header Design** - Dark elegant theme inspired by siempria.com/mobotix.com
