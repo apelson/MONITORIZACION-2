@@ -337,6 +337,7 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
       case 'esxi': return <Server className="w-5 h-5" />;
       case 'qnap': return <Database className="w-5 h-5" />;
       case 'synology': return <HardDrive className="w-5 h-5" />;
+      case 'openvpn': return <Shield className="w-5 h-5" />;
       default: return <Server className="w-5 h-5" />;
     }
   };
