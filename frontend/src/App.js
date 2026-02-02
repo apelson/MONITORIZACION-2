@@ -514,7 +514,7 @@ const LoginPage = () => {
                   <Label className="text-slate-700">{t('auth.username')}</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <Input data-testid="login-username" value={username} onChange={(e) => setUsername(e.target.value)} className="pl-10" placeholder={t('auth.username')} />
+                    <Input data-testid="login-username" value={username} onChange={(e) => { setUsername(e.target.value); setLoginError(""); }} className="pl-10" placeholder={t('auth.username')} />
                   </div>
                 </div>
                 <div className="space-y-2">
