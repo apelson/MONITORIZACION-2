@@ -1836,7 +1836,63 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [incidentData, setIncidentData] = useState({ title: "", description: "", priority: "high" });
   const [creating, setCreating] = useState(false);
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'analytics'
+  const [timeRange, setTimeRange] = useState('week'); // 'week', 'month', 'year'
   const { authAxios } = useAuth();
+
+  // Calculate alert statistics
+  const alertStats = useMemo(() => {
+    const now = new Date();
+    const filtered = alerts.filter(a => {
+      const alertDate = new Date(a.timestamp);
+      const daysAgo = (now - alertDate) / (1000 * 60 * 60 * 24);
+      
+      if (timeRange === 'week') return daysAgo <= 7;
+      if (timeRange === 'month') return daysAgo <= 30;
+      if (timeRange === 'year') return daysAgo <= 365;
+      return true;
+    });
+
+    // Group by type
+    const byType = filtered.reduce((acc, alert) => {
+      const type = alert.alert_type || 'other';
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {});
+
+    // Group by date
+    const byDate = filtered.reduce((acc, alert) => {
+      const date = new Date(alert.timestamp).toLocaleDateString('es-ES', { 
+        month: 'short', 
+        day: 'numeric' 
+      });
+      acc[date] = (acc[date] || 0) + 1;
+      return acc;
+    }, {});
+
+    // Transform for charts
+    const typeData = Object.entries(byType).map(([type, count]) => {
+      const typeLabels = {
+        'device_down': 'Caídas',
+        'device_up': 'Recuperaciones',
+        'nas_disconnected': 'NAS Desc.',
+        'nas_reconnected': 'NAS Rec.',
+        'storage_full': 'Almacenamiento',
+        'recording_stopped': 'Grabación'
+      };
+      return {
+        name: typeLabels[type] || type,
+        value: count,
+        type: type
+      };
+    });
+
+    const dateData = Object.entries(byDate)
+      .sort((a, b) => new Date(a[0]) - new Date(b[0]))
+      .map(([date, count]) => ({ date, alertas: count }));
+
+    return { typeData, dateData, total: filtered.length };
+  }, [alerts, timeRange]);
 
   const handleCreateFromAlert = (alert) => {
     setSelectedAlert(alert);
