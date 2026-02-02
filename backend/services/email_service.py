@@ -216,3 +216,106 @@ async def send_test_email(to_email: str = None) -> dict:
             return {"success": False, "error": "Error al enviar email"}
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+
+async def send_password_reset_email(to_email: str, username: str, reset_token: str):
+    """Send password reset email"""
+    smtp_config = await get_smtp_config()
+    if not smtp_config:
+        logger.warning("Cannot send password reset email: SMTP not configured")
+        return False
+    
+    # For local development, use localhost. For production, use actual domain
+    # You may want to get this from environment or settings
+    base_url = "http://siempriapp.com"  # Change to your actual domain
+    reset_link = f"{base_url}/reset-password?token={reset_token}"
+    
+    subject = "🔐 Recuperar Contraseña - Siempria Monitor"
+    
+    html_body = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+            <tr>
+                <td align="center">
+                    <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <!-- Header -->
+                        <tr>
+                            <td style="background: linear-gradient(135deg, #0891b2 0%, #3b82f6 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                                <h1 style="color: #ffffff; margin: 0; font-size: 28px;">🔐 Recuperar Contraseña</h1>
+                            </td>
+                        </tr>
+                        
+                        <!-- Content -->
+                        <tr>
+                            <td style="padding: 40px 30px;">
+                                <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                                    Hola <strong>{username}</strong>,
+                                </p>
+                                <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                                    Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en Siempria Network Monitor.
+                                </p>
+                                <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+                                    Haz clic en el botón siguiente para crear una nueva contraseña:
+                                </p>
+                                
+                                <!-- Reset Button -->
+                                <table width="100%" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td align="center" style="padding: 20px 0;">
+                                            <a href="{reset_link}" 
+                                               style="display: inline-block; padding: 15px 40px; background: linear-gradient(135deg, #0891b2 0%, #3b82f6 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold;">
+                                                Restablecer Contraseña
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                                
+                                <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0; padding: 20px; background-color: #f9fafb; border-radius: 6px; border-left: 4px solid #0891b2;">
+                                    <strong>⏰ Este enlace expirará en 1 hora</strong><br>
+                                    Si no solicitaste este cambio, puedes ignorar este correo de forma segura.
+                                </p>
+                                
+                                <p style="color: #9ca3af; font-size: 13px; line-height: 1.6; margin: 20px 0 0 0;">
+                                    Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+                                    <a href="{reset_link}" style="color: #0891b2; word-break: break-all;">{reset_link}</a>
+                                </p>
+                            </td>
+                        </tr>
+                        
+                        <!-- Footer -->
+                        <tr>
+                            <td style="background-color: #f9fafb; padding: 30px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
+                                <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px 0;">
+                                    <strong>Siempria Network Monitor</strong>
+                                </p>
+                                <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                                    © {datetime.now().year} Siempria - Sistema de Monitorización de Red
+                                </p>
+                                <p style="color: #9ca3af; font-size: 12px; margin: 10px 0 0 0;">
+                                    📧 soporte@siempria.com | 📞 822 22 00 22
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    """
+    
+    success = send_email_generic(smtp_config, to_email, subject, html_body)
+    
+    if success:
+        logger.info(f"Password reset email sent to {to_email}")
+    else:
+        logger.error(f"Failed to send password reset email to {to_email}")
+    
+    return success
+
