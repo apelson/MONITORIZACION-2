@@ -1945,10 +1945,130 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
 
   return (
     <>
-      <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><Bell className="w-5 h-5" />{t('nav.alerts', 'Alertas')}</CardTitle></CardHeader>
-        <CardContent>
-          {alerts.length === 0 ? <div className="empty-state py-8"><Bell className="w-12 h-12 mb-4 opacity-20" /><p>{t('alerts.noAlerts', 'No hay alertas')}</p></div> : (
+      <div className="space-y-4">
+        {/* View Mode Tabs */}
+        <div className="flex items-center justify-between">
+          <div className="flex gap-2">
+            <Button 
+              variant={viewMode === 'list' ? 'default' : 'outline'} 
+              size="sm"
+              onClick={() => setViewMode('list')}
+            >
+              <Bell className="w-4 h-4 mr-2" />
+              Lista
+            </Button>
+            <Button 
+              variant={viewMode === 'analytics' ? 'default' : 'outline'} 
+              size="sm"
+              onClick={() => setViewMode('analytics')}
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Histórico
+            </Button>
+          </div>
+          
+          {viewMode === 'analytics' && (
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">Última semana</SelectItem>
+                <SelectItem value="month">Último mes</SelectItem>
+                <SelectItem value="year">Último año</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+
+        {/* Analytics View */}
+        {viewMode === 'analytics' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Total Alerts Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Total de Alertas</CardTitle>
+                <CardDescription>{timeRange === 'week' ? 'Última semana' : timeRange === 'month' ? 'Último mes' : 'Último año'}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-bold text-primary">{alertStats.total}</div>
+                <p className="text-sm text-muted-foreground mt-2">Alertas registradas</p>
+              </CardContent>
+            </Card>
+
+            {/* Alerts by Type - Pie Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Alertas por Tipo</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {alertStats.typeData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <RechartsPieChart>
+                      <Pie
+                        data={alertStats.typeData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {alertStats.typeData.map((entry, index) => {
+                          const colors = {
+                            'device_down': '#ef4444',
+                            'device_up': '#22c55e',
+                            'nas_disconnected': '#f97316',
+                            'nas_reconnected': '#3b82f6',
+                            'storage_full': '#dc2626',
+                            'recording_stopped': '#fb923c'
+                          };
+                          return <Cell key={`cell-${index}`} fill={colors[entry.type] || '#6366f1'} />;
+                        })}
+                      </Pie>
+                      <Tooltip />
+                    </RechartsPieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+                    Sin datos para mostrar
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Alerts by Date - Bar Chart */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-base">Tendencia de Alertas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {alertStats.dateData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={alertStats.dateData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="alertas" fill="#0891b2" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                    Sin datos para mostrar
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          /* List View - Original */
+          <Card>
+            <CardHeader><CardTitle className="flex items-center gap-2"><Bell className="w-5 h-5" />{t('nav.alerts', 'Alertas')}</CardTitle></CardHeader>
+            <CardContent>
+              {alerts.length === 0 ? <div className="empty-state py-8"><Bell className="w-12 h-12 mb-4 opacity-20" /><p>{t('alerts.noAlerts', 'No hay alertas')}</p></div> : (
             <ScrollArea className="h-[400px]">
               <div className="space-y-3">{alerts.map(a => {
                 // Alert styling config based on type
