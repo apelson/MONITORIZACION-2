@@ -157,6 +157,7 @@ class ESXiService:
         """Get list of all VMs with their status"""
         if not self.session:
             if not self.connect():
+                logger.warning("ESXi: Could not establish session for VM listing")
                 return []
         
         vms = []
@@ -173,10 +174,11 @@ class ESXiService:
                         f"{self._get_base_url()}{endpoint}",
                         timeout=20
                     )
-                    logger.debug(f"ESXi VM endpoint {endpoint}: status {response.status_code}")
+                    logger.info(f"ESXi VM endpoint {endpoint}: status {response.status_code}")
                     
                     if response.status_code == 200:
                         data = response.json()
+                        logger.debug(f"ESXi VM data type: {type(data)}, keys: {data.keys() if isinstance(data, dict) else 'N/A'}")
                         if isinstance(data, dict):
                             vms = data.get('value', data.get('result', []))
                         else:
@@ -185,26 +187,29 @@ class ESXiService:
                         if isinstance(vms, list) and len(vms) > 0:
                             logger.info(f"ESXi found {len(vms)} VMs via {endpoint}")
                             return vms
+                        else:
+                            logger.info(f"ESXi endpoint {endpoint} returned empty VM list")
                     elif response.status_code == 401:
-                        logger.warning(f"ESXi auth failed on {endpoint}")
+                        logger.warning(f"ESXi auth failed on {endpoint}, attempting reconnect")
                         if self.connect():
                             continue
                 except Exception as e:
-                    logger.debug(f"ESXi endpoint {endpoint} error: {e}")
+                    logger.warning(f"ESXi endpoint {endpoint} error: {e}")
                     continue
             
             # For standalone ESXi (no vCenter), try MOB/SOAP-based approach via vim-cmd proxy
-            # ESXi has limited REST API - try to get VM list from hostd
+            logger.info("ESXi: Attempting MOB approach for standalone ESXi")
             try:
                 # Try the ESXi MOB API - Get registered VMs
                 mob_url = f"{self._get_base_url()}/mob/?moid=ha-folder-vm&doPath=childEntity"
                 response = self.session.get(mob_url, timeout=15, auth=(self.username, self.password))
+                logger.info(f"ESXi MOB response: status {response.status_code}")
                 
                 if response.status_code == 200 and 'VirtualMachine' in response.text:
                     # Parse VM IDs from MOB response
                     import re
                     vm_ids = re.findall(r'vm-(\d+)', response.text)
-                    logger.info(f"ESXi MOB found {len(vm_ids)} VMs")
+                    logger.info(f"ESXi MOB found {len(vm_ids)} VM IDs: {vm_ids[:5]}")
                     
                     for vm_id in vm_ids[:20]:  # Limit to 20 VMs
                         try:
@@ -238,14 +243,24 @@ class ESXiService:
                                     vm_info['power_state'] = 'SUSPENDED'
                                 
                                 vms.append(vm_info)
+                                logger.debug(f"ESXi extracted VM: {vm_info['name']}")
                         except Exception as e:
                             logger.debug(f"Error getting VM vm-{vm_id} details: {e}")
                             continue
                     
                     if vms:
+                        logger.info(f"ESXi MOB successfully extracted {len(vms)} VMs")
                         return vms
+                else:
+                    logger.warning(f"ESXi MOB returned status {response.status_code}, 'VirtualMachine' in response: {'VirtualMachine' in response.text}")
             except Exception as e:
-                logger.debug(f"ESXi MOB approach failed: {e}")
+                logger.warning(f"ESXi MOB approach failed: {e}")
+            
+            logger.warning(f"ESXi: No VMs found using any method. ESXi may have no VMs or limited API access.")
+            return vms
+        except Exception as e:
+            logger.error(f"Error getting VMs: {e}")
+            return []
             
             # Try SOAP/vim-cmd style endpoint
             try:
