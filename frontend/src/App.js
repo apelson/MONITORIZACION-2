@@ -378,6 +378,9 @@ const LoginPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetting, setResetting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -395,6 +398,25 @@ const LoginPage = () => {
       toast.error(errorMsg, { duration: 4000 });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    if (!resetEmail || !resetEmail.includes('@')) {
+      toast.error('Por favor ingresa un email válido');
+      return;
+    }
+    setResetting(true);
+    try {
+      await axios.post(`${API}/auth/forgot-password`, { email: resetEmail });
+      toast.success('Se ha enviado un email con instrucciones para recuperar tu contraseña');
+      setShowForgotPassword(false);
+      setResetEmail("");
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Error al enviar email de recuperación');
+    } finally {
+      setResetting(false);
     }
   };
 
