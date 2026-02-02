@@ -1181,6 +1181,241 @@ class SynologyService:
         return result
 
 
+# ============ OpenVPN Service ============
+class OpenVPNService:
+    """Service to monitor OpenVPN servers via management interface or SSH"""
+    
+    def __init__(self, host: str, username: str, password: str, port: int = 1194, management_port: int = 7505, use_ssl: bool = False):
+        self.host = host
+        self.port = port  # OpenVPN port (for connectivity check)
+        self.management_port = management_port  # Management interface port
+        self.username = username
+        self.password = password
+        self.use_ssl = use_ssl
+        self.socket = None
+        
+    def connect(self) -> bool:
+        """Test connection to OpenVPN server"""
+        import socket
+        
+        # First, try to connect to management interface
+        try:
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.settimeout(10)
+            self.socket.connect((self.host, self.management_port))
+            
+            # Read welcome message
+            welcome = self.socket.recv(1024).decode('utf-8', errors='ignore')
+            logger.info(f"OpenVPN management connected: {welcome[:50]}")
+            return True
+        except Exception as e:
+            logger.debug(f"OpenVPN management interface not available: {e}")
+            self.socket = None
+        
+        # Fallback: just check if OpenVPN port is open
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(5)
+            result = sock.connect_ex((self.host, self.port))
+            sock.close()
+            return result == 0
+        except:
+            return False
+    
+    def disconnect(self):
+        """Close connection"""
+        if self.socket:
+            try:
+                self.socket.close()
+            except:
+                pass
+            self.socket = None
+    
+    def _send_command(self, command: str) -> str:
+        """Send command to management interface"""
+        if not self.socket:
+            return ""
+        
+        try:
+            self.socket.send(f"{command}\n".encode())
+            response = ""
+            while True:
+                chunk = self.socket.recv(4096).decode('utf-8', errors='ignore')
+                response += chunk
+                if 'END' in chunk or 'ERROR' in chunk or not chunk:
+                    break
+            return response
+        except Exception as e:
+            logger.error(f"OpenVPN command error: {e}")
+            return ""
+    
+    def get_status(self) -> Optional[Dict[str, Any]]:
+        """Get OpenVPN server status"""
+        if not self.socket:
+            return None
+        
+        try:
+            response = self._send_command("status")
+            
+            clients = []
+            stats = {"bytes_in": 0, "bytes_out": 0}
+            
+            # Parse status output
+            lines = response.split('\n')
+            in_client_section = False
+            
+            for line in lines:
+                line = line.strip()
+                
+                if line.startswith('ROUTING TABLE') or line.startswith('GLOBAL STATS'):
+                    in_client_section = False
+                elif line.startswith('Common Name'):
+                    in_client_section = True
+                elif in_client_section and ',' in line:
+                    parts = line.split(',')
+                    if len(parts) >= 4 and not parts[0].startswith('UNDEF'):
+                        clients.append({
+                            "name": parts[0],
+                            "real_address": parts[1] if len(parts) > 1 else "",
+                            "bytes_received": int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 0,
+                            "bytes_sent": int(parts[3]) if len(parts) > 3 and parts[3].isdigit() else 0,
+                            "connected_since": parts[4] if len(parts) > 4 else ""
+                        })
+            
+            return {
+                "clients": clients,
+                "client_count": len(clients),
+                "stats": stats
+            }
+        except Exception as e:
+            logger.error(f"Error getting OpenVPN status: {e}")
+            return None
+    
+    def get_version(self) -> Optional[str]:
+        """Get OpenVPN version"""
+        if not self.socket:
+            return None
+        
+        try:
+            response = self._send_command("version")
+            # Parse version from response
+            for line in response.split('\n'):
+                if 'OpenVPN' in line:
+                    return line.strip()
+            return None
+        except:
+            return None
+    
+    def get_clients_via_ssh(self) -> List[Dict[str, Any]]:
+        """Get connected clients via SSH (fallback method)"""
+        if not HAS_PARAMIKO:
+            return []
+        
+        clients = []
+        ssh = None
+        try:
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            
+            ssh.connect(
+                hostname=self.host,
+                port=22,
+                username=self.username,
+                password=self.password,
+                timeout=15,
+                allow_agent=False,
+                look_for_keys=False
+            )
+            
+            # Try to read status file
+            status_paths = [
+                '/var/log/openvpn/openvpn-status.log',
+                '/etc/openvpn/openvpn-status.log',
+                '/var/run/openvpn/server.status',
+                '/tmp/openvpn-status.log'
+            ]
+            
+            for path in status_paths:
+                stdin, stdout, stderr = ssh.exec_command(f'cat {path} 2>/dev/null', timeout=10)
+                output = stdout.read().decode('utf-8', errors='ignore')
+                
+                if output and 'Common Name' in output:
+                    # Parse status file
+                    lines = output.split('\n')
+                    in_client_section = False
+                    
+                    for line in lines:
+                        line = line.strip()
+                        if line.startswith('Common Name'):
+                            in_client_section = True
+                        elif line.startswith('ROUTING TABLE'):
+                            in_client_section = False
+                        elif in_client_section and ',' in line:
+                            parts = line.split(',')
+                            if len(parts) >= 4 and not parts[0].startswith('UNDEF'):
+                                clients.append({
+                                    "name": parts[0],
+                                    "real_address": parts[1] if len(parts) > 1 else "",
+                                    "bytes_received": int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 0,
+                                    "bytes_sent": int(parts[3]) if len(parts) > 3 and parts[3].isdigit() else 0,
+                                    "connected_since": parts[4] if len(parts) > 4 else ""
+                                })
+                    
+                    if clients:
+                        break
+            
+            return clients
+        except Exception as e:
+            logger.error(f"OpenVPN SSH error: {e}")
+            return []
+        finally:
+            if ssh:
+                try:
+                    ssh.close()
+                except:
+                    pass
+    
+    def get_full_status(self) -> Dict[str, Any]:
+        """Get complete OpenVPN server status"""
+        result = {
+            "connected": False,
+            "host": self.host,
+            "port": self.port,
+            "management_port": self.management_port,
+            "timestamp": datetime.utcnow().isoformat(),
+            "version": None,
+            "clients": [],
+            "client_count": 0,
+            "health": "unknown"
+        }
+        
+        if self.connect():
+            result["connected"] = True
+            
+            # Try management interface first
+            if self.socket:
+                result["version"] = self.get_version()
+                status = self.get_status()
+                if status:
+                    result["clients"] = status.get("clients", [])
+                    result["client_count"] = status.get("client_count", 0)
+            
+            # If no clients from management, try SSH
+            if not result["clients"]:
+                ssh_clients = self.get_clients_via_ssh()
+                if ssh_clients:
+                    result["clients"] = ssh_clients
+                    result["client_count"] = len(ssh_clients)
+            
+            # Determine health
+            if result["connected"]:
+                result["health"] = "healthy"
+            
+            self.disconnect()
+        
+        return result
+
+
 # ============ Unified Infrastructure Service ============
 class InfrastructureService:
     """Unified service for all infrastructure monitoring"""
