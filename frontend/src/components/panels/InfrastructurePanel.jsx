@@ -1190,6 +1190,70 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
                       )}
                     </>
                   )}
+                  
+                  {/* OpenVPN Details */}
+                  {selectedDevice?.device_type === 'openvpn' && (
+                    <>
+                      {/* Connection Stats */}
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <Users className="w-4 h-4" />
+                            {t('infra.vpnClients', 'Clientes Conectados')} ({deviceDetails.client_count || 0})
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {deviceDetails.clients && deviceDetails.clients.length > 0 ? (
+                            <div className="space-y-2">
+                              {deviceDetails.clients.map((client, i) => (
+                                <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                                    <div>
+                                      <p className="font-medium">{safeRender(client.name)}</p>
+                                      {client.real_address && <p className="text-xs text-muted-foreground">{safeRender(client.real_address)}</p>}
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    {client.connected_since && (
+                                      <Badge variant="outline" className="text-xs">
+                                        <Clock className="w-3 h-3 mr-1" />
+                                        {safeRender(client.connected_since)}
+                                      </Badge>
+                                    )}
+                                    {(client.bytes_received || client.bytes_sent) && (
+                                      <Badge variant="outline" className="text-xs">
+                                        ↓{formatBytes(client.bytes_received)} / ↑{formatBytes(client.bytes_sent)}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-center text-muted-foreground py-4">
+                              {t('infra.noVpnClients', 'No hay clientes conectados')}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                      
+                      {/* Version Info */}
+                      {deviceDetails.version && (
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-base flex items-center gap-2">
+                              <Info className="w-4 h-4" />
+                              Información del Servidor
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-sm text-muted-foreground">{safeRender(deviceDetails.version)}</p>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
