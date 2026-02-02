@@ -4053,6 +4053,30 @@ const AccessLogsPanel = () => {
   const totalPages = Math.ceil(total / pageSize);
   const hasSecurityAlerts = security && (security.failed_logins?.length > 0 || security.high_activity_users?.length > 0);
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-8">
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full border-4 border-blue-200 animate-spin" style={{ borderTopColor: '#3b82f6' }} />
+                <FileText className="w-6 h-6 text-blue-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-medium text-slate-700">{t('logs.loading', 'Cargando Logs')}</p>
+                <p className="text-sm text-slate-500">{t('logs.loadingDescription', 'Obteniendo registros del sistema...')}</p>
+              </div>
+              <div className="w-64 h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full animate-pulse" style={{ width: '60%', animation: 'loading-bar 1.5s ease-in-out infinite' }} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
