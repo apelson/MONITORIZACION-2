@@ -381,10 +381,21 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!username || !password) { toast.error(t('validation.required')); return; }
+    if (!username || !password) { 
+      toast.error(t('validation.required', 'Por favor completa todos los campos')); 
+      return; 
+    }
     setLoading(true);
-    try { await login(username, password); toast.success(t('auth.welcomeBack')); } catch (e) { toast.error(e.response?.data?.detail || t('errors.generic')); }
-    setLoading(false);
+    try { 
+      await login(username, password); 
+      toast.success(t('auth.welcomeBack', '¡Bienvenido de nuevo!')); 
+    } catch (e) { 
+      console.error('Login error:', e);
+      const errorMsg = e.response?.data?.detail || e.message || 'Usuario o contraseña incorrectos';
+      toast.error(errorMsg, { duration: 4000 });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
