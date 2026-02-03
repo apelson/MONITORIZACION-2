@@ -349,6 +349,56 @@ async def get_alerts(
         "by_type": type_counts
     }
 
+@router.get("/alerts/stats")
+async def get_alert_stats(current_user: dict = Depends(get_current_user)):
+    """
+    Get alert statistics for dashboard:
+    - Monthly count (resets on day 1)
+    - Daily, weekly, yearly counts
+    - Historical totals
+    """
+    from datetime import datetime, timedelta
+    
+    now = datetime.utcnow()
+    
+    # Calculate date boundaries
+    start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    start_of_week = now - timedelta(days=now.weekday())
+    start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
+    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    start_of_year = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    # Count alerts for each period
+    today_count = await alerts_collection.count_documents({"timestamp": {"$gte": start_of_day.isoformat()}})
+    week_count = await alerts_collection.count_documents({"timestamp": {"$gte": start_of_week.isoformat()}})
+    month_count = await alerts_collection.count_documents({"timestamp": {"$gte": start_of_month.isoformat()}})
+    year_count = await alerts_collection.count_documents({"timestamp": {"$gte": start_of_year.isoformat()}})
+    total_count = await alerts_collection.count_documents({})
+    
+    # Get last 7 days trend
+    daily_trend = []
+    for i in range(7):
+        day_start = (now - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
+        day_end = day_start + timedelta(days=1)
+        count = await alerts_collection.count_documents({
+            "timestamp": {"$gte": day_start.isoformat(), "$lt": day_end.isoformat()}
+        })
+        daily_trend.append({
+            "date": day_start.strftime("%Y-%m-%d"),
+            "count": count
+        })
+    
+    return {
+        "today": today_count,
+        "week": week_count,
+        "month": month_count,
+        "year": year_count,
+        "total": total_count,
+        "current_month_name": now.strftime("%B %Y"),
+        "daily_trend": list(reversed(daily_trend)),
+        "days_in_month": (now.replace(month=now.month % 12 + 1, day=1) - timedelta(days=1)).day if now.month < 12 else 31
+    }
+
 @router.post("/devices/{device_id}/check-nas")
 async def check_device_nas(device_id: str, storage_info: dict = None, current_user: dict = Depends(get_current_user)):
     """Check if device (camera) has lost NAS connection"""
