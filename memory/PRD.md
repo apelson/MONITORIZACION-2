@@ -4,9 +4,9 @@
 Build and deploy "Siempria Network Monitor," a full-stack network monitoring application pivoted into a multi-tenant SaaS platform named "Siempriapp." The application monitors Mobotix cameras, VMware ESXi servers, QNAP, Synology NAS devices, and OpenVPN servers.
 
 ## User Personas
-- **Network Administrators**: Monitor cameras and infrastructure
-- **IT Managers**: View statistics, alerts, and incidents
-- **End Users**: Access public dashboards (future)
+- **Network Administrators**: Monitor cameras and infrastructure devices
+- **IT Managers**: View statistics, alerts, incidents, and reports
+- **End Users**: Access public dashboards (planned)
 
 ## Core Requirements
 - Multi-language support (ES, EN, DE, FR, IT, RU, ZH)
@@ -24,13 +24,15 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 ├── backend/              # FastAPI
 │   ├── server.py         # Main server
 │   ├── routes/           # API endpoints
+│   │   ├── devices.py    # Device CRUD + alerts
+│   │   ├── infrastructure.py  # ESXi/QNAP/Synology/OpenVPN
 │   │   ├── billing.py    # Stripe payments
-│   │   └── payments.py   # Payment routes
+│   │   └── ...
 │   └── services/         
-│       └── infrastructure_service.py  # ESXi, QNAP, Synology, OpenVPN
-└── frontend/             # React
+│       └── infrastructure_service.py  # ESXi, QNAP, Synology, OpenVPN services
+└── frontend/             # React + Craco
     ├── src/
-    │   ├── App.js        # Main component (5800 lines - refactor in progress)
+    │   ├── App.js        # Main component (~5800 lines)
     │   ├── contexts/     # AuthContext
     │   ├── hooks/        # useNotifications
     │   ├── services/     # NotificationService
@@ -43,7 +45,14 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 
 ## What's Been Implemented
 
-### Session: 2026-02-02 (Latest - Part 4)
+### Session: 2026-02-03 (Latest)
+- ✅ **Deployment Script v2.0**: Improved `update_production.sh` with:
+  - Automatic `.env` file creation for frontend
+  - Clear step-by-step output with colors
+  - Error handling and verification steps
+- ✅ **Deployment Guide**: Created `GUIA_DESPLIEGUE_PRODUCCION.md`
+
+### Session: 2026-02-02 (Part 4)
 - ✅ **OpenVPN Monitoring Added**
   - New `OpenVPNService` class in backend
   - Supports management interface and SSH fallback
@@ -52,7 +61,7 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 - ✅ **Loading Bars for Tabs**
   - Incidents tab: Amber loading animation with AlertTriangle icon
   - Logs tab: Blue loading animation with FileText icon
-  - Shows descriptive text ("Cargando Incidencias", "Cargando Logs")
+  - Infrastructure tab: Loading indicator while connecting
 
 ### Session: 2026-02-02 (Part 3)
 - ✅ NotificationSettings integrated into Settings Panel
@@ -63,77 +72,74 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 - ✅ Stripe, i18n, Alerts Historical View verified
 
 ### Session: 2026-02-02 (Part 1)
-- ✅ Login Error Feedback Fix
-- ✅ Infrastructure Panel Safe Rendering Fix
-- ✅ ESXi SSH Fallback with paramiko
-
-### Session: 2026-02-01
-- ✅ **NEW Professional Header Design** - Dark elegant theme inspired by siempria.com/mobotix.com
-- ✅ **ESXi VM Detection Fix** - Added MOB (Managed Object Browser) support
-- ✅ **Tab Hover Effects** - Premium hover animations for navigation tabs
-- ✅ **"Abrir Incidencia" Button** - Added incident creation button
-- ✅ **Action Button Hover Effects** - Color-coded hover states
-- ✅ **Synology Fix** - Fixed white screen error when viewing Synology details
-- ✅ **Performance Optimization** - Added caching for infrastructure devices
+- ✅ Login Error Feedback Fix - Shows "Credenciales inválidas" in red
+- ✅ Infrastructure Panel Safe Rendering Fix (safeRender helper)
+- ✅ ESXi SSH Fallback with paramiko for VM detection
 
 ### Previous Sessions
-- ✅ NAS Services Detection (QNAP/Synology)
-- ✅ NAS Connection Alerts for cameras
-- ✅ Enhanced Infrastructure Panel with tooltips
-- ✅ "Open Web" button for device interfaces
+- ✅ Professional Header Design - Dark elegant theme
+- ✅ Tab Hover Effects - Premium animations
+- ✅ "Abrir Incidencia" Button on Infrastructure
+- ✅ Synology Details Fix - No more white screen
+- ✅ Alert system expansion - No 50 limit, shows monthly
+- ✅ Alert popup auto-dismiss after 60 seconds
 - ✅ Multi-language i18n (login page complete)
 - ✅ Audible alerts system
 
 ## Prioritized Backlog
 
-### P0 - Critical (Completed)
-- [x] Professional Header Design ✅
-- [x] Tab Hover Effects ✅
-- [x] Incident Button on Infrastructure ✅
-- [x] Synology Details Fix ✅
-- [x] Login Error Feedback Fix ✅
-- [x] Infrastructure Panel Safe Rendering ✅
+### P0 - Critical (Blocking)
+- [ ] **DEPLOY TO PRODUCTION** - User must run `update_production.sh`
+  - Script is ready at `/app/update_production.sh`
+  - Guide at `/app/GUIA_DESPLIEGUE_PRODUCCION.md`
 
 ### P1 - High Priority
-- [ ] Deploy latest changes to production server
-- [ ] Test ESXi VM detection with user's real ESXi host (192.168.1.97) - SSH fallback ready
+- [ ] Test ESXi VM detection with user's real ESXi host (192.168.1.97)
 - [ ] Test QNAP disk detection with user's real QNAP (192.168.1.3)
 - [ ] Complete i18n for all UI sections
-- [ ] Implement actual NAS connection monitoring for cameras
-- [ ] Implement "Forgot Password" feature (UI ready, backend endpoint exists)
+- [ ] Implement "Forgot Password" feature
 
 ### P2 - Medium Priority
-- [ ] Refactor App.js into smaller components
+- [ ] Refactor App.js into smaller components (<1000 lines each)
 - [ ] Fix favicon/PWA icons in production
 - [ ] Add more NAS-specific metrics
 - [ ] Historical view with charts for Alerts panel
 - [ ] Optimize duplicate API calls
 
-### P3 - Future
-- [ ] Stripe payment integration
+### P3 - Future/Backlog
+- [ ] Stripe payment integration checkout flow
 - [ ] Per-client subdomains
 - [ ] Public dashboards UI
 - [ ] Dahua P2P project
 
-## Files Modified This Session (2026-02-02)
-- `/app/frontend/src/App.js` - Added loginError state and visual error display in login form
-- `/app/frontend/src/components/panels/InfrastructurePanel.jsx` - Added safeRender helper, fixed formatBytes for objects
-- `/app/backend/services/infrastructure_service.py` - Added SSH fallback using paramiko for ESXi VM detection
-- `/app/backend/requirements.txt` - Added paramiko library
-
 ## Production Environment
-- **Source code**: `/home/monitorizacion/Documentos/MONITORIZACION-main/`
-- **Running services**: `/opt/siempria-monitor/`
+- **Development Source**: `/home/monitorizacion/Documentos/MONITORIZACION-main/`
+- **Production Running**: `/opt/siempria-monitor/`
 - **Domain**: siempriapp.com
+- **CRITICAL**: Frontend needs `.env` with `REACT_APP_BACKEND_URL=https://siempriapp.com`
 
-## Credentials
+## Test Credentials
 - Admin: `admin` / `Spw@16071977`
-- ESXi Debug: `root` / `Spw@16071977` @ `192.168.1.97`
-- QNAP Debug: `administrador` / `Spw@16071977` @ `192.168.1.3`
+- ESXi: `root` / `Spw@16071977` @ `192.168.1.97`
+- QNAP: `administrador` / `Spw@16071977` @ `192.168.1.3`
 
 ## Third-Party Integrations
 - i18next/react-i18next (internationalization)
-- paramiko (SSH for ESXi fallback) - NEW
+- paramiko (SSH for ESXi fallback)
 - QNAP QTS API
 - Synology DSM API
+- OpenVPN Management Interface
 - Stripe (planned)
+
+## Key Files Modified This Session
+- `/app/update_production.sh` - Improved deployment script v2.0
+- `/app/GUIA_DESPLIEGUE_PRODUCCION.md` - New deployment guide
+
+## Known Issues Blocking Production
+1. User's production server hasn't been updated with latest code
+2. Previous deployment attempts failed due to:
+   - Missing `REACT_APP_BACKEND_URL` in frontend `.env`
+   - npm dependency conflicts (ajv)
+   - Wrong Nginx paths
+   
+All these are addressed in the new `update_production.sh` script.
