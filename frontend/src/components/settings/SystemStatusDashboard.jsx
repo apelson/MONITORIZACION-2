@@ -126,7 +126,7 @@ const SystemStatusDashboard = ({ authAxios }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [api]);
 
   useEffect(() => {
     fetchStatus();
