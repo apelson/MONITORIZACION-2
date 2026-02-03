@@ -102,34 +102,27 @@ const SystemStatusDashboard = ({ authAxios }) => {
   const [error, setError] = useState(null);
   const [lastUpdate, setLastUpdate] = useState(null);
 
+  // Create axios instance with auth
+  const api = React.useMemo(() => {
+    if (authAxios) return authAxios;
+    const instance = axios.create({ baseURL: API });
+    instance.interceptors.request.use((config) => {
+      const token = localStorage.getItem('token');
+      if (token) config.headers.Authorization = `Bearer ${token}`;
+      return config;
+    });
+    return instance;
+  }, [authAxios]);
+
   const fetchStatus = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('No hay sesión activa');
-        setLoading(false);
-        return;
-      }
-      
-      const response = await fetch(`${API}/system-status`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error ${response.status}: ${errorText}`);
-      }
-      
-      const data = await response.json();
-      setStatus(data);
+      const response = await api.get('/system-status');
+      setStatus(response.data);
       setLastUpdate(new Date());
       setError(null);
     } catch (err) {
       console.error('SystemStatus error:', err);
-      setError(err.message);
+      setError(err.response?.data?.detail || err.message || 'Error desconocido');
     } finally {
       setLoading(false);
     }
