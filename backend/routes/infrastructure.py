@@ -1,5 +1,5 @@
 """
-Infrastructure Routes - VMware ESXi, QNAP, and Synology API endpoints
+Infrastructure Routes - VMware ESXi, QNAP, Synology and OpenVPN API endpoints
 """
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
@@ -7,7 +7,7 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 from bson import ObjectId
 
-from services.infrastructure_service import InfrastructureService, ESXiService, QNAPService, SynologyService
+from services.infrastructure_service import InfrastructureService, ESXiService, QNAPService, SynologyService, OpenVPNService
 from services.auth_service import get_current_user
 from config import db
 
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/infrastructure", tags=["infrastructure"])
 # ============ Pydantic Models ============
 class InfraDeviceCreate(BaseModel):
     name: str
-    device_type: str  # esxi, qnap, synology
+    device_type: str  # esxi, qnap, synology, openvpn
     host: str
     port: Optional[int] = None
     username: str
