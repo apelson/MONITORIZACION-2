@@ -286,8 +286,68 @@ async def get_device_history(device_id: str, limit: int = 100, current_user: dic
     return {"device": device, "history": history}
 
 @router.get("/alerts")
-async def get_alerts(limit: int = 50, current_user: dict = Depends(get_current_user)):
-    return {"alerts": await alerts_collection.find({}, {"_id": 0}).sort("timestamp", -1).limit(limit).to_list(length=limit)}
+async def get_alerts(
+    limit: int = Query(500, ge=1, le=10000, description="Número máximo de alertas"),
+    period: str = Query("month", description="Período: day, week, month, year, all"),
+    start_date: str = Query(None, description="Fecha inicio (ISO format)"),
+    end_date: str = Query(None, description="Fecha fin (ISO format)"),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get alerts with flexible filtering:
+    - period: day (hoy), week (esta semana), month (este mes), year (este año), all (todo)
+    - start_date/end_date: rango personalizado
+    """
+    from datetime import datetime, timedelta
+    
+    query = {}
+    now = datetime.utcnow()
+    
+    # Calculate date range based on period
+    if start_date and end_date:
+        # Custom date range
+        try:
+            query["timestamp"] = {
+                "$gte": start_date,
+                "$lte": end_date
+            }
+        except:
+            pass
+    elif period == "day":
+        start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        query["timestamp"] = {"$gte": start.isoformat()}
+    elif period == "week":
+        start = now - timedelta(days=now.weekday())
+        start = start.replace(hour=0, minute=0, second=0, microsecond=0)
+        query["timestamp"] = {"$gte": start.isoformat()}
+    elif period == "month":
+        start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        query["timestamp"] = {"$gte": start.isoformat()}
+    elif period == "year":
+        start = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        query["timestamp"] = {"$gte": start.isoformat()}
+    # period == "all" -> no filter
+    
+    alerts = await alerts_collection.find(query, {"_id": 0}).sort("timestamp", -1).limit(limit).to_list(length=limit)
+    
+    # Get stats for the period
+    total_count = await alerts_collection.count_documents(query)
+    
+    # Count by type
+    pipeline = [
+        {"$match": query},
+        {"$group": {"_id": "$type", "count": {"$sum": 1}}}
+    ]
+    type_counts = {}
+    async for doc in alerts_collection.aggregate(pipeline):
+        type_counts[doc["_id"]] = doc["count"]
+    
+    return {
+        "alerts": alerts,
+        "total": total_count,
+        "period": period,
+        "by_type": type_counts
+    }
 
 @router.post("/devices/{device_id}/check-nas")
 async def check_device_nas(device_id: str, storage_info: dict = None, current_user: dict = Depends(get_current_user)):
