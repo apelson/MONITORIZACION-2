@@ -100,7 +100,7 @@ const SystemStatusDashboard = ({ authAxios }) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API}/settings/system-status`, {
+      const response = await fetch(`${API}/system-status`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
