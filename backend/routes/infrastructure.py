@@ -55,6 +55,8 @@ def get_default_port(device_type: str, use_ssl: bool = True) -> int:
         return 443 if use_ssl else 8080
     elif device_type.lower() == "synology":
         return 5001 if use_ssl else 5000
+    elif device_type.lower() == "openvpn":
+        return 1194
     return 443
 
 def serialize_infra_device(device: dict) -> dict:
