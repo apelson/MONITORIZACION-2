@@ -7,10 +7,13 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional
 from pydantic import BaseModel
 import io
+import platform
+import psutil
+import subprocess
 
 from config import (
     settings_collection, scheduled_reports_collection, organizations_collection,
-    groups_collection, devices_collection, logger, cache
+    groups_collection, devices_collection, logger, cache, db
 )
 from models import EmailSettings, ScheduledReportConfig
 from services.auth_service import get_current_user, require_role
