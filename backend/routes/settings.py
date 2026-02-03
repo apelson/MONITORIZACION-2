@@ -196,3 +196,120 @@ async def generate_and_send_report():
     except Exception as e:
         logger.error(f"Error sending report: {e}")
         raise
+
+
+
+# ============ SYSTEM STATUS / HEALTH CHECK ============
+
+@router.get("/system-status")
+async def get_system_status(current_user: dict = Depends(get_current_user)):
+    """Get comprehensive system status for diagnostics dashboard"""
+    
+    status = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "services": {},
+        "system": {},
+        "database": {},
+        "application": {}
+    }
+    
+    # 1. Backend Status (obviously running if we're here)
+    status["services"]["backend"] = {
+        "status": "running",
+        "uptime": None,
+        "port": 8001
+    }
+    
+    # 2. Check MongoDB
+    try:
+        await db.command("ping")
+        db_stats = await db.command("dbStats")
+        collections = await db.list_collection_names()
+        status["database"] = {
+            "status": "connected",
+            "name": db.name,
+            "collections": len(collections),
+            "size_mb": round(db_stats.get("dataSize", 0) / (1024 * 1024), 2),
+            "objects": db_stats.get("objects", 0)
+        }
+    except Exception as e:
+        status["database"] = {
+            "status": "error",
+            "error": str(e)
+        }
+    
+    # 3. System Resources
+    try:
+        memory = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+        status["system"] = {
+            "platform": platform.system(),
+            "hostname": platform.node(),
+            "cpu_percent": psutil.cpu_percent(interval=0.1),
+            "memory": {
+                "total_gb": round(memory.total / (1024**3), 2),
+                "used_gb": round(memory.used / (1024**3), 2),
+                "percent": memory.percent
+            },
+            "disk": {
+                "total_gb": round(disk.total / (1024**3), 2),
+                "used_gb": round(disk.used / (1024**3), 2),
+                "percent": round(disk.percent, 1)
+            }
+        }
+    except Exception as e:
+        status["system"] = {"error": str(e)}
+    
+    # 4. Check Nginx (via subprocess - works on production server)
+    try:
+        result = subprocess.run(
+            ["systemctl", "is-active", "nginx"],
+            capture_output=True, text=True, timeout=5
+        )
+        nginx_status = result.stdout.strip()
+        status["services"]["nginx"] = {
+            "status": nginx_status if nginx_status in ["active", "inactive", "failed"] else "unknown",
+            "port": 443
+        }
+    except Exception:
+        # In container/dev environment, nginx might not be accessible via systemctl
+        status["services"]["nginx"] = {
+            "status": "unknown",
+            "note": "systemctl not available in this environment"
+        }
+    
+    # 5. Application Stats
+    try:
+        device_count = await devices_collection.count_documents({})
+        online_count = await devices_collection.count_documents({"status": "online"})
+        offline_count = await devices_collection.count_documents({"status": "offline"})
+        
+        status["application"] = {
+            "devices": {
+                "total": device_count,
+                "online": online_count,
+                "offline": offline_count
+            },
+            "api_url": "Active"
+        }
+    except Exception as e:
+        status["application"] = {"error": str(e)}
+    
+    return status
+
+
+@router.get("/system-status/quick")
+async def get_quick_status():
+    """Public quick health check endpoint (no auth required)"""
+    try:
+        await db.command("ping")
+        db_ok = True
+    except:
+        db_ok = False
+    
+    return {
+        "status": "ok" if db_ok else "degraded",
+        "backend": "running",
+        "database": "connected" if db_ok else "error",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
