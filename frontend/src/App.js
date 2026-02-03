@@ -2138,15 +2138,15 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
               </CardHeader>
               <CardContent>
                 {alertStats.typeData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={200}>
+                  <ResponsiveContainer width="100%" height={250}>
                     <RechartsPieChart>
                       <Pie
                         data={alertStats.typeData}
                         cx="50%"
-                        cy="50%"
-                        labelLine={false}
+                        cy="45%"
+                        labelLine={true}
                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
+                        outerRadius={70}
                         fill="#8884d8"
                         dataKey="value"
                       >
@@ -2162,7 +2162,14 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
                           return <Cell key={`cell-${index}`} fill={colors[entry.type] || '#6366f1'} />;
                         })}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip formatter={(value, name) => [value, name]} />
+                      <Legend 
+                        verticalAlign="bottom" 
+                        height={36}
+                        formatter={(value, entry) => (
+                          <span style={{ color: entry.color }}>{value}</span>
+                        )}
+                      />
                     </RechartsPieChart>
                   </ResponsiveContainer>
                 ) : (
