@@ -5011,6 +5011,11 @@ const Dashboard = () => {
         setFailuresDialogOpen(true);
         // Play alert sound for device failures
         playAlertSound();
+        
+        // Auto-close popup after 1 minute (60000ms)
+        setTimeout(() => {
+          setFailuresDialogOpen(false);
+        }, 60000);
       }
       
       // Check for new alerts and play sound
