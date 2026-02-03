@@ -103,8 +103,13 @@ const SystemStatusDashboard = ({ authAxios }) => {
 
   const fetchStatus = useCallback(async () => {
     try {
-      setLoading(true);
       const token = localStorage.getItem('token');
+      if (!token) {
+        setError('No hay sesión activa');
+        setLoading(false);
+        return;
+      }
+      
       const response = await fetch(`${API}/system-status`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -112,13 +117,17 @@ const SystemStatusDashboard = ({ authAxios }) => {
         }
       });
       
-      if (!response.ok) throw new Error('Error al obtener estado');
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error ${response.status}: ${errorText}`);
+      }
       
       const data = await response.json();
       setStatus(data);
       setLastUpdate(new Date());
       setError(null);
     } catch (err) {
+      console.error('SystemStatus error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
