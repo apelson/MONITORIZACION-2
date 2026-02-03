@@ -46,6 +46,12 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 ## What's Been Implemented
 
 ### Session: 2026-02-03 (Latest)
+- ✅ **System Status Dashboard**: New diagnostic dashboard in Settings showing:
+  - Backend API status (port 8001)
+  - Nginx status (port 443)
+  - MongoDB connection status and stats
+  - Device counts (online/offline)
+  - System resources (CPU, RAM, Disk usage)
 - ✅ **Deployment Script v2.0**: Improved `update_production.sh` with:
   - Automatic `.env` file creation for frontend
   - Clear step-by-step output with colors
