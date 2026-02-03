@@ -4921,7 +4921,7 @@ const Dashboard = () => {
     try {
       const [devRes, orgRes, grpRes, typeRes, alertRes] = await Promise.all([
         authAxios.get("/devices"), authAxios.get("/organizations"), authAxios.get("/groups"),
-        authAxios.get("/device-types"), authAxios.get("/alerts")
+        authAxios.get("/device-types"), authAxios.get("/alerts?period=month&limit=1000")
       ]);
       
       const newDevices = devRes.data.devices || [];
