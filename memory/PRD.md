@@ -140,6 +140,9 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 ## Key Files Modified This Session
 - `/app/update_production.sh` - Improved deployment script v2.0
 - `/app/GUIA_DESPLIEGUE_PRODUCCION.md` - New deployment guide
+- `/app/backend/routes/settings.py` - Added `/api/system-status` endpoint
+- `/app/frontend/src/components/settings/SystemStatusDashboard.jsx` - New diagnostic dashboard
+- `/app/frontend/src/App.js` - Integrated SystemStatusDashboard in Settings tab
 
 ## Known Issues Blocking Production
 1. User's production server hasn't been updated with latest code
