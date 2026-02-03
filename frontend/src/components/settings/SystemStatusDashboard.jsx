@@ -140,7 +140,8 @@ const SystemStatusDashboard = ({ authAxios }) => {
     return () => clearInterval(interval);
   }, [fetchStatus]);
 
-  if (loading && !status) {
+  // Show loading skeleton only during initial load
+  if (loading && !status && !error) {
     return (
       <Card>
         <CardHeader>
