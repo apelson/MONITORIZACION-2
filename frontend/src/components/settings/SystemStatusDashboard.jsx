@@ -3,6 +3,7 @@
  * Shows real-time status of backend, nginx, database and system resources
  */
 import React, { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import { 
   Server, Database, Globe, Cpu, HardDrive, Activity, 
   CheckCircle, XCircle, AlertTriangle, RefreshCw, Wifi
