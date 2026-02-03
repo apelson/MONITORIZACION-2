@@ -5599,6 +5599,7 @@ const Dashboard = () => {
           {(isAdmin || isTechnician) && <TabsContent value="incidents"><IncidentsPanel devices={devices} /></TabsContent>}
           {isAdmin && <TabsContent value="settings">
             <div className="space-y-6">
+              <SystemStatusDashboard authAxios={authAxios} />
               <SettingsPanel settings={settings} onSave={handleSaveSettings} />
               <NotificationSettings />
               <SecurityPanel />
