@@ -37,6 +37,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { LanguageSelector } from "@/components/LanguageSelector";
 import InfrastructurePanel from "@/components/panels/InfrastructurePanel";
 import NotificationSettings from "@/components/settings/NotificationSettings";
+import SystemStatusDashboard from "@/components/settings/SystemStatusDashboard";
 
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
