@@ -2033,6 +2033,54 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
   return (
     <>
       <div className="space-y-4">
+        {/* Month Stats Header */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-blue-600 font-medium">{t('alerts.thisMonth', 'Este Mes')}</p>
+                  <p className="text-2xl font-bold text-blue-700">{alerts.length}</p>
+                </div>
+                <Calendar className="w-8 h-8 text-blue-400" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-red-50 to-red-100">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-red-600 font-medium">{t('alerts.offline', 'Caídas')}</p>
+                  <p className="text-2xl font-bold text-red-700">{alerts.filter(a => a.alert_type === 'device_down').length}</p>
+                </div>
+                <WifiOff className="w-8 h-8 text-red-400" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-green-50 to-green-100">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-green-600 font-medium">{t('alerts.recovered', 'Recuperadas')}</p>
+                  <p className="text-2xl font-bold text-green-700">{alerts.filter(a => a.alert_type === 'device_up').length}</p>
+                </div>
+                <Wifi className="w-8 h-8 text-green-400" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-orange-600 font-medium">{t('alerts.nas', 'NAS')}</p>
+                  <p className="text-2xl font-bold text-orange-700">{alerts.filter(a => a.alert_type?.includes('nas')).length}</p>
+                </div>
+                <Database className="w-8 h-8 text-orange-400" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
         {/* View Mode Tabs */}
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
