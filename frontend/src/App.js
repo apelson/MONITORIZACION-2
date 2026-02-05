@@ -1917,7 +1917,7 @@ const UsersPanel = ({ users, onCreateUser, onEditUser, onDeleteUser, onResetPass
 );
 };
 
-const AlertsPanel = ({ alerts, organizations = [], devices = [], onCreateIncident }) => {
+const AlertsPanel = ({ alerts, organizations = [], devices = [], groups = [], onCreateIncident }) => {
   const { t } = useTranslation();
   const [showIncidentDialog, setShowIncidentDialog] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState(null);
@@ -1928,14 +1928,23 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], onCreateInciden
   const [selectedOrg, setSelectedOrg] = useState('all'); // Filter by organization
   const { authAxios } = useAuth();
 
-  // Create device to organization mapping
+  // Create device to organization mapping (device -> group -> organization)
   const deviceOrgMap = useMemo(() => {
+    // First, create a group to organization map
+    const groupOrgMap = {};
+    groups.forEach(g => {
+      groupOrgMap[g.id] = g.organization_id;
+    });
+    
+    // Then, map device_id to organization_id via group_id
     const map = {};
     devices.forEach(d => {
-      map[d.id] = d.organization_id;
+      if (d.group_id && groupOrgMap[d.group_id]) {
+        map[d.id] = groupOrgMap[d.group_id];
+      }
     });
     return map;
-  }, [devices]);
+  }, [devices, groups]);
 
   // Filter alerts by organization
   const filteredAlerts = useMemo(() => {
@@ -5642,7 +5651,7 @@ const Dashboard = () => {
               onFilterByType={(typeId) => { setFilterTypeId(typeId); setActiveTab("devices"); }} />
           </TabsContent>
 
-          <TabsContent value="alerts"><AlertsPanel alerts={alerts} organizations={organizations} devices={devices} /></TabsContent>
+          <TabsContent value="alerts"><AlertsPanel alerts={alerts} organizations={organizations} devices={devices} groups={groups} /></TabsContent>
           {isAdmin && <TabsContent value="infrastructure"><InfrastructurePanel authAxios={authAxios} /></TabsContent>}
           {isAdmin && <TabsContent value="users"><UsersPanel users={users} onCreateUser={() => { setSelectedUser(null); setUserDialogOpen(true); }} onEditUser={(u) => { setSelectedUser(u); setUserDialogOpen(true); }} onDeleteUser={(u) => { setDeleteTarget({ type: "user", item: u }); setDeleteDialogOpen(true); }} onResetPassword={handleOpenPasswordDialog} /></TabsContent>}
           {isAdmin && <TabsContent value="logs"><AccessLogsPanel /></TabsContent>}
