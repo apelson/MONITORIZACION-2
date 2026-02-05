@@ -2147,8 +2147,25 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], onCreateInciden
                 <SelectItem value="year">Último año</SelectItem>
               </SelectContent>
             </Select>
-          )}
+            )}
+          </div>
         </div>
+
+        {/* Selected Filter Badge */}
+        {selectedOrg !== 'all' && (
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <Building2 className="w-3 h-3" />
+              {organizations.find(o => o.id === selectedOrg)?.name || 'Centro'}
+              <button onClick={() => setSelectedOrg('all')} className="ml-1 hover:text-destructive">
+                <X className="w-3 h-3" />
+              </button>
+            </Badge>
+            <span className="text-sm text-muted-foreground">
+              {filteredAlerts.length} alertas
+            </span>
+          </div>
+        )}
 
         {/* Analytics View */}
         {viewMode === 'analytics' ? (
