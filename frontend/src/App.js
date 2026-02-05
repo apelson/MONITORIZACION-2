@@ -1917,7 +1917,7 @@ const UsersPanel = ({ users, onCreateUser, onEditUser, onDeleteUser, onResetPass
 );
 };
 
-const AlertsPanel = ({ alerts, onCreateIncident }) => {
+const AlertsPanel = ({ alerts, organizations = [], devices = [], onCreateIncident }) => {
   const { t } = useTranslation();
   const [showIncidentDialog, setShowIncidentDialog] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState(null);
@@ -1925,7 +1925,26 @@ const AlertsPanel = ({ alerts, onCreateIncident }) => {
   const [creating, setCreating] = useState(false);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'analytics'
   const [timeRange, setTimeRange] = useState('week'); // 'week', 'month', 'year'
+  const [selectedOrg, setSelectedOrg] = useState('all'); // Filter by organization
   const { authAxios } = useAuth();
+
+  // Create device to organization mapping
+  const deviceOrgMap = useMemo(() => {
+    const map = {};
+    devices.forEach(d => {
+      map[d.id] = d.organization_id;
+    });
+    return map;
+  }, [devices]);
+
+  // Filter alerts by organization
+  const filteredAlerts = useMemo(() => {
+    if (selectedOrg === 'all') return alerts;
+    return alerts.filter(a => {
+      const orgId = deviceOrgMap[a.device_id];
+      return orgId === selectedOrg;
+    });
+  }, [alerts, selectedOrg, deviceOrgMap]);
 
   // Calculate alert statistics
   const alertStats = useMemo(() => {
