@@ -2230,12 +2230,12 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], groups = [], on
             </Button>
           </div>
           
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center flex-wrap">
             {/* Organization Filter */}
-            <Select value={selectedOrg} onValueChange={setSelectedOrg}>
-              <SelectTrigger className="w-[200px]">
+            <Select value={selectedOrg} onValueChange={handleOrgChange}>
+              <SelectTrigger className="w-[180px]">
                 <Building2 className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Filtrar por centro" />
+                <SelectValue placeholder="Centro" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los centros</SelectItem>
@@ -2245,31 +2245,102 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], groups = [], on
               </SelectContent>
             </Select>
             
-            {viewMode === 'analytics' && (
-              <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="week">Última semana</SelectItem>
-                <SelectItem value="month">Último mes</SelectItem>
-                <SelectItem value="year">Último año</SelectItem>
+            {/* Group Filter */}
+            <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+              <SelectTrigger className="w-[180px]">
+                <Users className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Grupo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los grupos</SelectItem>
+                {filteredGroupsForOrg.map(group => (
+                  <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            )}
+            
+            {/* Time Range Filter */}
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="w-[160px]">
+                <Calendar className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Periodo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todo el tiempo</SelectItem>
+                <SelectItem value="today">Hoy</SelectItem>
+                <SelectItem value="week">Última semana</SelectItem>
+                <SelectItem value="month">Último mes</SelectItem>
+                <SelectItem value="year">Último año</SelectItem>
+                <SelectItem value="custom">Personalizado</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {/* Export Button */}
+            <Button variant="outline" size="sm" onClick={exportToCSV}>
+              <Download className="w-4 h-4 mr-2" />
+              Exportar
+            </Button>
           </div>
         </div>
+        
+        {/* Custom Date Range */}
+        {timeRange === 'custom' && (
+          <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium">Desde:</label>
+              <input 
+                type="date" 
+                value={dateFrom} 
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="px-3 py-1.5 border rounded-md text-sm"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium">Hasta:</label>
+              <input 
+                type="date" 
+                value={dateTo} 
+                onChange={(e) => setDateTo(e.target.value)}
+                className="px-3 py-1.5 border rounded-md text-sm"
+              />
+            </div>
+          </div>
+        )}
 
-        {/* Selected Filter Badge */}
-        {selectedOrg !== 'all' && (
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <Building2 className="w-3 h-3" />
-              {organizations.find(o => o.id === selectedOrg)?.name || 'Centro'}
-              <button onClick={() => setSelectedOrg('all')} className="ml-1 hover:text-destructive">
-                <X className="w-3 h-3" />
-              </button>
-            </Badge>
+        {/* Selected Filter Badges */}
+        {(selectedOrg !== 'all' || selectedGroup !== 'all' || timeRange !== 'all') && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {selectedOrg !== 'all' && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Building2 className="w-3 h-3" />
+                {organizations.find(o => o.id === selectedOrg)?.name || 'Centro'}
+                <button onClick={() => handleOrgChange('all')} className="ml-1 hover:text-destructive">
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            )}
+            {selectedGroup !== 'all' && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Users className="w-3 h-3" />
+                {groups.find(g => g.id === selectedGroup)?.name || 'Grupo'}
+                <button onClick={() => setSelectedGroup('all')} className="ml-1 hover:text-destructive">
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            )}
+            {timeRange !== 'all' && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {timeRange === 'today' ? 'Hoy' : 
+                 timeRange === 'week' ? 'Última semana' : 
+                 timeRange === 'month' ? 'Último mes' : 
+                 timeRange === 'year' ? 'Último año' : 
+                 timeRange === 'custom' ? `${dateFrom || '...'} - ${dateTo || '...'}` : timeRange}
+                <button onClick={() => setTimeRange('all')} className="ml-1 hover:text-destructive">
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            )}
             <span className="text-sm text-muted-foreground">
               {filteredAlerts.length} alertas
             </span>
