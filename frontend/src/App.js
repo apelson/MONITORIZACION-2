@@ -2101,7 +2101,7 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], onCreateInciden
         </div>
         
         {/* View Mode Tabs */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex gap-2">
             <Button 
               variant={viewMode === 'list' ? 'default' : 'outline'} 
@@ -2121,13 +2121,28 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], onCreateInciden
             </Button>
           </div>
           
-          {viewMode === 'analytics' && (
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue />
+          <div className="flex gap-2 items-center">
+            {/* Organization Filter */}
+            <Select value={selectedOrg} onValueChange={setSelectedOrg}>
+              <SelectTrigger className="w-[200px]">
+                <Building2 className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Filtrar por centro" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="week">Última semana</SelectItem>
+                <SelectItem value="all">Todos los centros</SelectItem>
+                {organizations.map(org => (
+                  <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {viewMode === 'analytics' && (
+              <Select value={timeRange} onValueChange={setTimeRange}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="week">Última semana</SelectItem>
                 <SelectItem value="month">Último mes</SelectItem>
                 <SelectItem value="year">Último año</SelectItem>
               </SelectContent>
