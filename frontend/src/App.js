@@ -2059,7 +2059,7 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], onCreateInciden
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-blue-600 font-medium">{t('alerts.thisMonth', 'Este Mes')}</p>
-                  <p className="text-2xl font-bold text-blue-700">{alerts.length}</p>
+                  <p className="text-2xl font-bold text-blue-700">{filteredAlerts.length}</p>
                 </div>
                 <Calendar className="w-8 h-8 text-blue-400" />
               </div>
@@ -2070,7 +2070,7 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], onCreateInciden
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-red-600 font-medium">{t('alerts.offline', 'Caídas')}</p>
-                  <p className="text-2xl font-bold text-red-700">{alerts.filter(a => a.alert_type === 'device_down').length}</p>
+                  <p className="text-2xl font-bold text-red-700">{filteredAlerts.filter(a => a.alert_type === 'device_down').length}</p>
                 </div>
                 <WifiOff className="w-8 h-8 text-red-400" />
               </div>
@@ -2081,7 +2081,7 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], onCreateInciden
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-green-600 font-medium">{t('alerts.recovered', 'Recuperadas')}</p>
-                  <p className="text-2xl font-bold text-green-700">{alerts.filter(a => a.alert_type === 'device_up').length}</p>
+                  <p className="text-2xl font-bold text-green-700">{filteredAlerts.filter(a => a.alert_type === 'device_up').length}</p>
                 </div>
                 <Wifi className="w-8 h-8 text-green-400" />
               </div>
@@ -2092,7 +2092,7 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], onCreateInciden
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-orange-600 font-medium">{t('alerts.nas', 'NAS')}</p>
-                  <p className="text-2xl font-bold text-orange-700">{alerts.filter(a => a.alert_type?.includes('nas')).length}</p>
+                  <p className="text-2xl font-bold text-orange-700">{filteredAlerts.filter(a => a.alert_type?.includes('nas')).length}</p>
                 </div>
                 <Database className="w-8 h-8 text-orange-400" />
               </div>
