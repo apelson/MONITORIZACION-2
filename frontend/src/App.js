@@ -1949,7 +1949,7 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], onCreateInciden
   // Calculate alert statistics
   const alertStats = useMemo(() => {
     const now = new Date();
-    const filtered = alerts.filter(a => {
+    const filtered = filteredAlerts.filter(a => {
       const alertDate = new Date(a.timestamp);
       const daysAgo = (now - alertDate) / (1000 * 60 * 60 * 24);
       
