@@ -2068,26 +2068,15 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], groups = [], on
 
   // Calculate alert statistics
   const alertStats = useMemo(() => {
-    const now = new Date();
-    const filtered = filteredAlerts.filter(a => {
-      const alertDate = new Date(a.timestamp);
-      const daysAgo = (now - alertDate) / (1000 * 60 * 60 * 24);
-      
-      if (timeRange === 'week') return daysAgo <= 7;
-      if (timeRange === 'month') return daysAgo <= 30;
-      if (timeRange === 'year') return daysAgo <= 365;
-      return true;
-    });
-
     // Group by type
-    const byType = filtered.reduce((acc, alert) => {
+    const byType = filteredAlerts.reduce((acc, alert) => {
       const type = alert.alert_type || 'other';
       acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {});
 
     // Group by date
-    const byDate = filtered.reduce((acc, alert) => {
+    const byDate = filteredAlerts.reduce((acc, alert) => {
       const date = new Date(alert.timestamp).toLocaleDateString('es-ES', { 
         month: 'short', 
         day: 'numeric' 
@@ -2117,8 +2106,8 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], groups = [], on
       .sort((a, b) => new Date(a[0]) - new Date(b[0]))
       .map(([date, count]) => ({ date, alertas: count }));
 
-    return { typeData, dateData, total: filtered.length };
-  }, [filteredAlerts, timeRange]);
+    return { typeData, dateData, total: filteredAlerts.length };
+  }, [filteredAlerts]);
 
   const handleCreateFromAlert = (alert) => {
     setSelectedAlert(alert);
