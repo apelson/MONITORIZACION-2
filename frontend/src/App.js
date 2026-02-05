@@ -2354,7 +2354,14 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], groups = [], on
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Total de Alertas</CardTitle>
-                <CardDescription>{timeRange === 'week' ? 'Última semana' : timeRange === 'month' ? 'Último mes' : 'Último año'}</CardDescription>
+                <CardDescription>
+                  {timeRange === 'all' ? 'Todo el tiempo' : 
+                   timeRange === 'today' ? 'Hoy' :
+                   timeRange === 'week' ? 'Última semana' : 
+                   timeRange === 'month' ? 'Último mes' : 
+                   timeRange === 'year' ? 'Último año' :
+                   timeRange === 'custom' ? `${dateFrom || '...'} - ${dateTo || '...'}` : ''}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-4xl font-bold text-primary">{alertStats.total}</div>
