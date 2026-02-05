@@ -45,7 +45,17 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 
 ## What's Been Implemented
 
-### Session: 2026-02-03 (Latest)
+### Session: 2026-02-05 (Latest)
+- ✅ **Dynamic API Configuration**: Created `src/config.js` for automatic URL detection:
+  - IP local (`192.168.1.76`) → `http://192.168.1.76`
+  - Domain (`siempriapp.com`) → `https://siempriapp.com`
+  - Development → Uses `REACT_APP_BACKEND_URL` from .env
+- ✅ **Organization Filter in Alerts**: Added dropdown to filter alerts by center/organization
+  - Filter persists when switching between List and Histórico views
+  - Shows filtered count when filter is active
+  - Badge shows selected organization with clear button
+
+### Session: 2026-02-03
 - ✅ **System Status Dashboard**: New diagnostic dashboard in Settings showing:
   - Backend API status (port 8001)
   - Nginx status (port 443)
