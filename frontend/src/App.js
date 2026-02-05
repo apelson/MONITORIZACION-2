@@ -5642,7 +5642,7 @@ const Dashboard = () => {
               onFilterByType={(typeId) => { setFilterTypeId(typeId); setActiveTab("devices"); }} />
           </TabsContent>
 
-          <TabsContent value="alerts"><AlertsPanel alerts={alerts} /></TabsContent>
+          <TabsContent value="alerts"><AlertsPanel alerts={alerts} organizations={organizations} devices={devices} /></TabsContent>
           {isAdmin && <TabsContent value="infrastructure"><InfrastructurePanel authAxios={authAxios} /></TabsContent>}
           {isAdmin && <TabsContent value="users"><UsersPanel users={users} onCreateUser={() => { setSelectedUser(null); setUserDialogOpen(true); }} onEditUser={(u) => { setSelectedUser(u); setUserDialogOpen(true); }} onDeleteUser={(u) => { setDeleteTarget({ type: "user", item: u }); setDeleteDialogOpen(true); }} onResetPassword={handleOpenPasswordDialog} /></TabsContent>}
           {isAdmin && <TabsContent value="logs"><AccessLogsPanel /></TabsContent>}
