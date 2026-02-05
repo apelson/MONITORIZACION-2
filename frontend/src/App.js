@@ -2261,9 +2261,9 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], onCreateInciden
           <Card>
             <CardHeader><CardTitle className="flex items-center gap-2"><Bell className="w-5 h-5" />{t('nav.alerts', 'Alertas')}</CardTitle></CardHeader>
             <CardContent>
-              {alerts.length === 0 ? <div className="empty-state py-8"><Bell className="w-12 h-12 mb-4 opacity-20" /><p>{t('alerts.noAlerts', 'No hay alertas')}</p></div> : (
+              {filteredAlerts.length === 0 ? <div className="empty-state py-8"><Bell className="w-12 h-12 mb-4 opacity-20" /><p>{t('alerts.noAlerts', 'No hay alertas')}</p></div> : (
             <ScrollArea className="h-[400px]">
-              <div className="space-y-3">{alerts.map(a => {
+              <div className="space-y-3">{filteredAlerts.map(a => {
                 // Alert styling config based on type
                 const alertStyles = {
                   'device_down': { bg: 'bg-red-50 border-red-200', icon: WifiOff, iconColor: 'text-red-600', textColor: 'text-red-700', msg: t('alerts.deviceDisconnected', 'Dispositivo se ha desconectado') },
