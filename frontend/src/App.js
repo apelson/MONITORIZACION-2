@@ -1924,36 +1924,147 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], groups = [], on
   const [incidentData, setIncidentData] = useState({ title: "", description: "", priority: "high" });
   const [creating, setCreating] = useState(false);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'analytics'
-  const [timeRange, setTimeRange] = useState('week'); // 'week', 'month', 'year'
+  const [timeRange, setTimeRange] = useState('all'); // 'today', 'week', 'month', 'year', 'custom', 'all'
   const [selectedOrg, setSelectedOrg] = useState('all'); // Filter by organization
+  const [selectedGroup, setSelectedGroup] = useState('all'); // Filter by group
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const { authAxios } = useAuth();
 
-  // Create device to organization mapping (device -> group -> organization)
-  const deviceOrgMap = useMemo(() => {
-    // First, create a group to organization map
-    const groupOrgMap = {};
-    groups.forEach(g => {
-      groupOrgMap[g.id] = g.organization_id;
-    });
-    
-    // Then, map device_id to organization_id via group_id
+  // Create device to group mapping
+  const deviceGroupMap = useMemo(() => {
     const map = {};
     devices.forEach(d => {
-      if (d.group_id && groupOrgMap[d.group_id]) {
-        map[d.id] = groupOrgMap[d.group_id];
+      if (d.group_id) {
+        map[d.id] = d.group_id;
       }
     });
     return map;
-  }, [devices, groups]);
+  }, [devices]);
 
-  // Filter alerts by organization
-  const filteredAlerts = useMemo(() => {
-    if (selectedOrg === 'all') return alerts;
-    return alerts.filter(a => {
-      const orgId = deviceOrgMap[a.device_id];
-      return orgId === selectedOrg;
+  // Create group to organization mapping
+  const groupOrgMap = useMemo(() => {
+    const map = {};
+    groups.forEach(g => {
+      map[g.id] = g.organization_id;
     });
-  }, [alerts, selectedOrg, deviceOrgMap]);
+    return map;
+  }, [groups]);
+
+  // Get groups filtered by selected organization
+  const filteredGroupsForOrg = useMemo(() => {
+    if (selectedOrg === 'all') return groups;
+    return groups.filter(g => g.organization_id === selectedOrg);
+  }, [groups, selectedOrg]);
+
+  // Filter alerts by organization, group, and time range
+  const filteredAlerts = useMemo(() => {
+    return alerts.filter(a => {
+      // Get the group_id of the device
+      const deviceGroupId = deviceGroupMap[a.device_id];
+      
+      // Filter by organization (via group)
+      if (selectedOrg !== 'all') {
+        const deviceOrgId = deviceGroupId ? groupOrgMap[deviceGroupId] : null;
+        if (deviceOrgId !== selectedOrg) return false;
+      }
+      
+      // Filter by group
+      if (selectedGroup !== 'all') {
+        if (deviceGroupId !== selectedGroup) return false;
+      }
+      
+      // Filter by time range
+      if (timeRange !== 'all') {
+        const alertDate = new Date(a.timestamp);
+        const now = new Date();
+        
+        if (timeRange === 'today') {
+          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          if (alertDate < today) return false;
+        } else if (timeRange === 'week') {
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          if (alertDate < weekAgo) return false;
+        } else if (timeRange === 'month') {
+          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          if (alertDate < monthAgo) return false;
+        } else if (timeRange === 'year') {
+          const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+          if (alertDate < yearAgo) return false;
+        } else if (timeRange === 'custom') {
+          if (dateFrom) {
+            const from = new Date(dateFrom);
+            if (alertDate < from) return false;
+          }
+          if (dateTo) {
+            const to = new Date(dateTo);
+            to.setHours(23, 59, 59, 999);
+            if (alertDate > to) return false;
+          }
+        }
+      }
+      
+      return true;
+    });
+  }, [alerts, selectedOrg, selectedGroup, timeRange, dateFrom, dateTo, deviceGroupMap, groupOrgMap]);
+
+  // Export alerts to CSV
+  const exportToCSV = () => {
+    const headers = ['Fecha', 'Hora', 'Dispositivo', 'IP', 'Tipo', 'Mensaje', 'Centro', 'Grupo'];
+    
+    const rows = filteredAlerts.map(a => {
+      const date = new Date(a.timestamp);
+      const deviceGroupId = deviceGroupMap[a.device_id];
+      const groupName = groups.find(g => g.id === deviceGroupId)?.name || '';
+      const orgId = deviceGroupId ? groupOrgMap[deviceGroupId] : null;
+      const orgName = organizations.find(o => o.id === orgId)?.name || '';
+      
+      const typeLabels = {
+        'device_down': 'Caída',
+        'device_up': 'Recuperación',
+        'nas_disconnected': 'NAS Desconectado',
+        'nas_reconnected': 'NAS Reconectado',
+        'storage_full': 'Almacenamiento Lleno',
+        'recording_stopped': 'Grabación Detenida'
+      };
+      
+      return [
+        date.toLocaleDateString('es-ES'),
+        date.toLocaleTimeString('es-ES'),
+        a.device_name || '',
+        a.device_ip || '',
+        typeLabels[a.alert_type] || a.alert_type || '',
+        a.message || '',
+        orgName,
+        groupName
+      ];
+    });
+    
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    const fileName = `alertas_${selectedOrg !== 'all' ? organizations.find(o => o.id === selectedOrg)?.name + '_' : ''}${new Date().toISOString().split('T')[0]}.csv`;
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', fileName);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success(`Exportadas ${filteredAlerts.length} alertas`);
+  };
+
+  // Reset group when organization changes
+  const handleOrgChange = (value) => {
+    setSelectedOrg(value);
+    setSelectedGroup('all');
+  };
 
   // Calculate alert statistics
   const alertStats = useMemo(() => {
