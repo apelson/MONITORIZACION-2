@@ -1,8 +1,7 @@
 /**
  * Notification Service - Push notifications and alerts
  */
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+import { API_URL as BACKEND_URL } from '../config';
 
 class NotificationService {
   constructor() {
