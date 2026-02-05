@@ -17,9 +17,11 @@ export const ICON_MAP = {
 
 export const getIcon = (iconName) => ICON_MAP[iconName] || Server;
 
-// Constants
-export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-export const API = `${BACKEND_URL}/api`;
+// Re-export from config for backwards compatibility
+import { API_URL, API as API_PATH } from '../config';
+export const BACKEND_URL = API_URL;
+export const API = API_PATH;
+
 export const LOGO_URL = "https://customer-assets.emergentagent.com/job_equip-tracker-39/artifacts/796492pi_version%20autorizada%202.png";
 export const LOGO_HORIZONTAL_URL = "https://customer-assets.emergentagent.com/job_monitorsys-2/artifacts/qs1jn738_logo%20principal.png";
 export const MOBOTIX_LOGO_URL = "https://www.mobotix.com/sites/default/files/2019-10/MOBOTIX-Logo.svg";
