@@ -1998,7 +1998,7 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], onCreateInciden
       .map(([date, count]) => ({ date, alertas: count }));
 
     return { typeData, dateData, total: filtered.length };
-  }, [alerts, timeRange]);
+  }, [filteredAlerts, timeRange]);
 
   const handleCreateFromAlert = (alert) => {
     setSelectedAlert(alert);
