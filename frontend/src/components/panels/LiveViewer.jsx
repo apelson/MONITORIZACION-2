@@ -584,11 +584,26 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
         style={{ display: error ? 'none' : 'block' }}
       />
 
-      {/* Footer overlay with drag handle */}
+      {/* Fullscreen exit button - visible in fullscreen mode */}
+      {isFullscreen && (
+        <button
+          onClick={handleDoubleClick}
+          className="absolute top-4 right-4 z-20 p-3 bg-black/70 hover:bg-black/90 rounded-full text-white transition-colors"
+          title="Salir de pantalla completa (doble clic o ESC)"
+        >
+          <Minimize2 className="w-6 h-6" />
+        </button>
+      )}
+
+      {/* Footer overlay with drag handle and fullscreen hint */}
       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-white/70 text-xs">
+            <Maximize2 className="w-3 h-3" />
+            <span>Doble clic = Pantalla completa</span>
+          </div>
           <div className="bg-white/20 rounded px-3 py-1 text-white/70 text-xs cursor-move">
-            ⋮⋮ Arrastrar para reordenar
+            ⋮⋮ Arrastrar
           </div>
         </div>
       </div>
