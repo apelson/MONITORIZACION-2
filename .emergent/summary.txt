@@ -1,252 +1,206 @@
 <analysis>**original_problem_statement:**
-The user's goal is to evolve Siempria Network Monitor into a multi-tenant SaaS application, Siempriapp. The immediate priority has been resolving critical deployment issues preventing any new fixes or features from reaching the user's production server ().
+The user requested the following features for the camera visualization screen:
+1.  Enable double-click on a camera feed to open it in full-screen mode.
+2.  Add a Directo (Live) button as a featured option, positioned below the existing CRA button.
 
-The user has requested several bug fixes (blank screens, incorrect monitoring data) and new features, including OpenVPN monitoring, an expanded alert system, and most recently, the ability to filter alerts by centro (organization) and grupo (group). A major challenge has been enabling access to the application from both the public domain and a local IP address ().
+Throughout the session, numerous other issues were discovered and addressed, including deployment problems, incorrect API responses, missing backend endpoints, and UI data inconsistencies. The user's final requests were to fix all visible errors, address performance issues, and clean up the code.
 
-**PRODUCT REQUIREMENTS:**
--   **Deployment & Stability:**
-    -   Achieve a stable, repeatable deployment process for the user's production server.
-    -   Ensure the application is accessible and functional from both the public domain () and the local network IP ().
--   **Core Feature Fixes (To be verified post-deployment):**
-    -   Fix blank screen on Synology device details.
-    -   Ensure ESXi monitoring correctly displays VMs.
-    -   Ensure QNAP monitoring correctly displays volumes/disks.
-    -   Fix login page to show feedback on incorrect credentials (Implemented, Verified).
-    -   Add loading indicators (Implemented, Verified).
--   **New Feature Requests:**
-    -   (In Progress) Implement a filter for alerts by centro (organization) and grupo (group).
-    -   (Done) Remove the 50-alert limit.
-    -   (Done) Implement OpenVPN monitoring.
-    -   (In Progress) Add a system status dashboard.
-
-**User's preferred language**: Spanish
+**User's preferred language**: Español
 
 **what currently exists?**
-The application in the agent's environment contains numerous fixes and new features, including a dynamic API URL configuration () to handle access from both local and public domains. The user, with the agent's guidance, has managed to deploy a version of the code that is now accessible via  and the local IP, resolving a major blocker.
+The application is a network monitoring system with a React frontend and a FastAPI backend. The agent has implemented the initial user requests (double-click fullscreen and a Live floating button). However, this led to a long and complex debugging session to fix numerous pre-existing and newly introduced issues. This included:
+- Correcting deployment paths and methods.
+- Restoring corrupted/outdated source files.
+- Adding multiple missing API endpoints for the CRA (Central Receptora de Alarmas) functionality.
+- Fixing data format mismatches between the frontend and backend.
+- Implementing a more robust status check for the Nginx service.
 
-However, the latest feature addition—an alert filter—has broken the alerts display, showing an empty list. The agent has been interactively debugging this with the user by providing  and  commands to modify  on the user's production server.
+The application is now in a semi-stable state where the main dashboards load, but some functionalities are still buggy.
 
 **Last working item**:
--   Last item agent was working: Debugging the newly implemented alert filtering functionality. After adding the UI and initial logic, alerts are not being displayed when a filter is applied. The agent has confirmed that  have a  and  have a , but the relationship between root and  needs to be correctly established in the frontend filtering logic.
--   Status: IN PROGRESS
--   Agent Testing Done: N
--   Which testing method agent to use? Manual debugging with the user on their production server. The agent needs to provide commands to inspect data and modify code.
--   User Testing Done: N
+-   **Last item agent was working:** The agent was performing a deep debugging session on the  component. The user pointed out that it was showing inconsistent data (e.g., Total: 0 but Online: 7) and not displaying the uptime percentage. The agent identified that the backend API endpoints ( and ) were returning data in a format the frontend didn't expect. The agent rewrote these endpoints to return the correct JSON structure.
+-   **Status:** USER VERIFICATION PENDING
+-   **Agent Testing Done:** Y (The agent tested the updated endpoints with  and confirmed they returned the correct data structure and values).
+-   **Which testing method agent to use?** Frontend testing agent to visually verify the  and ensure all stats (Total, Online, Offline, Uptime Percentage) are displayed correctly and consistently.
+-   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   Issue 1: **Alerts disappear when filtered by centro (P0)**
--   Issue 2: **Production deployment process is manual and fragile (P1)**
--   Issue 3: **QNAP Monitoring does not show volumes/disks (P2)**
--   Issue 4: **System Status Dashboard UI is broken (P2)**
+-   **Issue 1:** Saving device changes is broken (P0)
+-   **Issue 2:**  data display needs user verification (P0)
+-   **Issue 3:** Application instability and performance (P1)
+-   **Issue 4:** Network connectivity errors for some cameras (P2)
 
-Issues Detail:
--   Issue 1:
-    -   **Description:** The Alerts tab now includes a dropdown to filter by centro (organization). However, selecting any organization results in an empty list of alerts, even though unfiltered alerts are visible.
-    -   **Attempted fixes:** The agent guided the user to add filtering logic to . The logic was refined multiple times, first causing a white screen (due to undeclared variables) and now resulting in an empty list. The agent confirmed devices have a , but the logic to link a device's group to the selected organization is likely flawed.
+**Issues Detail:**
+-   **Issue 1:**
+    -   **Description**: When trying to add a device to the CRA group by checking the CRA box in the device edit form, the form gets stuck in a Guardando... (Saving...) state and never completes.
+    -   **Attempted fixes:** The agent identified that the  field was missing from the  Pydantic model in the backend. The agent added the field to  and restarted the service. However, the issue persists. Subsequent investigation revealed no  request is being sent from the frontend when Save is clicked, indicating a frontend-side problem.
     -   **Next debug checklist:**
-        1.  Verify the data structure of a  object by fetching . Confirm it contains an .
-        2.  Guide the user to inspect the   hook logic in  via  or .
-        3.  The current logic seems to be . We need to ensure  is correctly populated with all group IDs belonging to the . The previous implementation was getting groups from devices, which is incorrect. It should get groups from the root state.
-        4.  Correct the logic to properly map  ->  ->  -> .
-    -   **Why fix this issue and what will be achieved with the fix?** It is a direct and high-priority feature request from the user.
+        1.  Examine the  or equivalent function in the device form component in the frontend.
+        2.  Check the browser's developer console for any JavaScript errors when the Save button is clicked.
+        3.  Inspect the network tab in the browser's developer tools to confirm if a  request to  is being initiated.
+        4.  Verify the data payload being prepared by the frontend includes the  field.
+    -   **Why fix this issue and what will be achieved with the fix?** This is a core functionality blocker. Users cannot configure which devices are part of the CRA, making the CRA dashboard useless for new setups.
     -   **Status:** IN PROGRESS
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** Frontend
-    -   **Blocked on other issue:** None
--   Issue 2:
-    -   **Description:** The user deploys all changes by manually running commands provided by the agent. This has led to numerous errors (dependency issues, incorrect build configs, copy errors) and is not sustainable.
-    -   **Attempted fixes:** The agent has provided step-by-step commands and created a deployment script () in a previous session, but the user prefers direct guidance.
-    -   **Next debug checklist:** After fixing the alert filter, consolidate all successful deployment steps into a single, robust script and strongly recommend its use.
-    -   **Why fix this issue and what will be achieved with the fix?** To make future updates faster, more reliable, and less frustrating for the user.
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** Both.
+    -   **Blocked on other issue:** None.
+
+-   **Issue 2:**
+    -   **Description**: The user reported that the CRADashboard was showing inconsistent data (Total: 0, Online: 7) and not displaying the uptime percentage.
+    -   **Attempted fixes:** The agent corrected the backend API responses for , , and  to wrap the data in a JSON object as expected by the frontend (e.g., ) and to include all necessary fields (, ).
+    -   **Next debug checklist:** The user needs to verify if the fix works by refreshing the page. If it still fails, the next agent should use the frontend testing agent.
+    -   **Why fix this issue and what will be achieved with the fix?** The CRADashboard is a critical feature, and it must display accurate information.
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** Frontend.
+    -   **Blocked on other issue:** None.
+
+-   **Issue 3:**
+    -   **Description**: The user complained about general instability, too many errors everywhere, duplicated code, and too many lines, asking for code cleanup and optimization.
+    -   **Attempted fixes:** The agent fixed many specific bugs (missing endpoints, broken  commands, wrong file paths). However, a systematic cleanup has not been performed.
+    -   **Next debug checklist:** This is a larger task. See **In progress Task List**.
+    -   **Why fix this issue and what will be achieved with the fix?** To improve application stability, performance, and maintainability.
     -   **Status:** NOT STARTED
     -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** Both
-    -   **Blocked on other issue:** Issue 1
--   Issue 3:
-    -   **Description:** QNAP devices connect but show 0 volumes/disks. This is a long-standing issue from the original problem statement.
-    -   **Attempted fixes:** None directly. It has been blocked by the larger deployment issues.
-    -   **Next debug checklist:** Once deployment is stable, investigate the API response for QNAP devices and check the rendering logic in the frontend.
-    -   **Why fix this issue and what will be achieved with the fix?** Enables a core monitoring feature.
-    -   **Status:** NOT STARTED
+    -   **Should Test frontend/backend/both after fix?** Both.
+    -   **Blocked on other issue:** None.
+
+-   **Issue 4:**
+    -   **Description**: The live camera viewer shows a Connecting... or No signal message for many cameras. Investigation revealed the server cannot connect to some camera IPs (No existe ninguna ruta hasta el «host» or Connection refused). This is likely a network/firewall issue on the user's infrastructure.
+    -   **Attempted fixes:** The agent improved error handling in the frontend components (, ) to fail gracefully instead of flooding the console with errors.
+    -   **Next debug checklist:** This is an external issue, but the agent should ensure the UI handles it gracefully. No further action is required unless the user wants to debug the network, which is outside the current scope.
+    -   **Why fix this issue and what will be achieved with the fix?** Provides a better user experience by clearly indicating which cameras are unreachable without causing application errors.
+    -   **Status:** RESOLVED (from a code perspective, network issue remains).
     -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** Both
-    -   **Blocked on other issue:** Issue 1, Issue 2
--   Issue 4:
-    -   **Description:** The System Status Dashboard, implemented earlier, shows loading skeletons indefinitely.
-    -   **Attempted fixes:** The agent simplified the component's JSX, but did not resolve the underlying data-fetching or state issue.
-    -   **Next debug checklist:** Revisit  to debug the  hook and state updates.
-    -   **Why fix this issue and what will be achieved with the fix?** Fulfills a recent user request for a service health dashboard.
-    -   **Status:** NOT STARTED
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** Frontend
-    -   **Blocked on other issue:** Issue 1
+    -   **Should Test frontend/backend/both after fix?** Frontend.
+    -   **Blocked on other issue:** None.
 
 **In progress Task List**:
--   Task 1: **Fix Alert Filtering Logic**
-    -   **Where to resume:** In , inside the  component. The  hook for  needs to be corrected to properly link alerts to organizations via devices and groups.
-    -   **What will be achieved with this?** The user will be able to filter alerts by organization.
-    -   **Status:** IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?** Frontend
-    -   **Blocked on something:** None
+-   **Task 1:** Full-stack code review and refactoring (P1)
+    -   **Where to resume:** Start by analyzing  and  as they are very large and have been a source of issues. Then, review the newly created backend routes in  for consistency and best practices.
+    -   **What will be achieved with this?** A more stable, performant, and maintainable application, addressing the user's core complaint about instability and messy code.
+    -   **Status:** NOT STARTED
+    -   **Should Test frontend/backend/both after fix?** Both.
+    -   **Blocked on something:** It's best to resolve the pending functional issues (Issue 1) first.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   (P1) Add a second-level filter for groups on the Alerts tab, dependent on the selected centro.
--   **Future Tasks:**
-    -   (P2) Refactor the monolithic  into smaller components.
-    -   (P2) Finalize Stripe integration.
-    -   (P2) Verify ESXi, Synology, and QNAP monitoring fixes in production.
+    -   **(P1)** Implement performance optimizations as suggested to the user:
+        -   **Pagination:** Add pagination to the main devices list to avoid loading all 393+ devices at once. This will impact  and the  endpoint.
+        -   **Lazy Loading:** Implement lazy loading for camera snapshot images in the device list and galleries.
 
 **Completed work in this session**
--   **Dual Access (IP/Domain):** Successfully implemented a dynamic API URL configuration () and guided the user to apply it, enabling access via both  and .
--   **Production Deployment:** Guided the user through a complex series of debugging steps to get the application running stably on their production server, overcoming backend and Nginx issues.
--   **Alert Filter UI:** Guided the user to add the UI for filtering alerts by centro in .
+-   **Frontend:**
+    -   Added double-click-to-fullscreen in .
+    -   Created and integrated  for quick access to the live view.
+    -   Restored and corrected a severely outdated/corrupted  by downloading the correct version.
+    -   Downloaded and integrated missing components: , .
+    -   Updated  to handle API errors more gracefully.
+-   **Backend:**
+    -   Added  dependency.
+    -   Created  and registered its router in .
+    -   Fixed  to correctly report Nginx status without requiring sudo.
+    -   Added the  field to the  model in .
+    -   Created a full suite of CRA endpoints by adding  and .
+    -   Corrected the JSON response format for all CRA-related endpoints to match frontend expectations.
+    -   Cleaned up a broken  file caused by a faulty  command.
 
 **Earlier issues found/mentioned but not fixed**
--   The System Status Dashboard () is not functional; it remains stuck on a loading state.
+All known issues have been captured in the All Pending/In progress Issue list.
 
 **Known issue recurrence from previous fork**
--   **Issue:** Production deployment failures and instability.
--   **Recurrence count:** High.
--   **Status:** IN PROGRESS. The situation has improved (site is accessible), but the process is fragile and manual.
+N/A
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Frontend:** React (, ), Dynamic configuration based on .
--   **Deployment:** Manual debugging on user's Ubuntu server, involving  for services,  for reverse proxy,  for frontend, and 
-Usage:   
-  pip <command> [options]
+-   **Frontend:** React, yarn install v1.22.22
+[1/4] Resolving packages...
+success Already up-to-date.
+Done in 0.04s. for package management,  for API calls,  for icons,  for drag-and-drop,  for toasts.
+-   **Backend:** Python with FastAPI,  as the server,  for async MongoDB access,  for making async HTTP requests to cameras.
+-   **Database:** MongoDB.
+-   **Deployment:** The application is deployed on a Linux server. The frontend is built using yarn run v1.22.22
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command., and the static files are served by . The backend is a  service ().  also acts as a reverse proxy.
 
-Commands:
-  install                     Install packages.
-  lock                        Generate a lock file.
-  download                    Download packages.
-  uninstall                   Uninstall packages.
-  freeze                      Output installed packages in requirements format.
-  inspect                     Inspect the python environment.
-  list                        List installed packages.
-  show                        Show information about installed packages.
-  check                       Verify installed packages have compatible dependencies.
-  config                      Manage local and global configuration.
-  search                      Search PyPI for packages.
-  cache                       Inspect and manage pip's wheel cache.
-  index                       Inspect information available from package indexes.
-  wheel                       Build wheels from your requirements.
-  hash                        Compute hashes of package archives.
-  completion                  A helper command used for command completion.
-  debug                       Show information useful for debugging.
-  help                        Show help for commands.
+**key DB schema**
+-   ****: 
+-   ****: 
+-   ****: 
 
-General Options:
-  -h, --help                  Show help.
-  --debug                     Let unhandled exceptions propagate outside the
-                              main subroutine, instead of logging them to
-                              stderr.
-  --isolated                  Run pip in an isolated mode, ignoring
-                              environment variables and user configuration.
-  --require-virtualenv        Allow pip to only run in a virtual environment;
-                              exit with an error otherwise.
-  --python <python>           Run pip with the specified Python interpreter.
-  -v, --verbose               Give more output. Option is additive, and can be
-                              used up to 3 times.
-  -V, --version               Show version and exit.
-  -q, --quiet                 Give less output. Option is additive, and can be
-                              used up to 3 times (corresponding to WARNING,
-                              ERROR, and CRITICAL logging levels).
-  --log <path>                Path to a verbose appending log.
-  --no-input                  Disable prompting for input.
-  --keyring-provider <keyring_provider>
-                              Enable the credential lookup via the keyring
-                              library if user input is allowed. Specify which
-                              mechanism to use [auto, disabled, import,
-                              subprocess]. (default: auto)
-  --proxy <proxy>             Specify a proxy in the form
-                              scheme://[user:passwd@]proxy.server:port.
-  --retries <retries>         Maximum attempts to establish a new HTTP
-                              connection. (default: 5)
-  --timeout <sec>             Set the socket timeout (default 15 seconds).
-  --exists-action <action>    Default action when a path already exists:
-                              (s)witch, (i)gnore, (w)ipe, (b)ackup, (a)bort.
-  --trusted-host <hostname>   Mark this host or host:port pair as trusted,
-                              even though it does not have valid or any HTTPS.
-  --cert <path>               Path to PEM-encoded CA certificate bundle. If
-                              provided, overrides the default. See 'SSL
-                              Certificate Verification' in pip documentation
-                              for more information.
-  --client-cert <path>        Path to SSL client certificate, a single file
-                              containing the private key and the certificate
-                              in PEM format.
-  --cache-dir <dir>           Store the cache data in <dir>.
-  --no-cache-dir              Disable the cache.
-  --disable-pip-version-check
-                              Don't periodically check PyPI to determine
-                              whether a new version of pip is available for
-                              download. Implied with --no-index.
-  --no-color                  Suppress colored output.
-  --use-feature <feature>     Enable new functionality, that may be backward
-                              incompatible.
-  --use-deprecated <feature>  Enable deprecated functionality, that will be
-                              removed in the future.
-  --resume-retries <resume_retries>
-                              Maximum attempts to resume or restart an
-                              incomplete download. (default: 5) for backend dependencies.
--   **Debugging:** Interactive debugging via chat, using , , , and  on the user's machine.
+**changes in tech stack**
+-   Backend dependency  was installed to handle async requests to cameras.
 
 **All files of reference**
--   **Modified/Created:**
-    -   : Contains all the logic for the Alerts panel, including the broken filter. This is the primary file for the current task.
-    -   : New file that provides the dynamic API URL. Crucial for dual local/public access.
-    -   : New component for the status dashboard, currently non-functional.
-    -   : Modified to add the  endpoint.
+-   : Modified to add double-click fullscreen functionality.
+-   : New component for the live view shortcut.
+-   : Updated to handle API errors.
+-   : Exists to display CRA data; was the subject of the last debugging session.
+-   : New component downloaded to fix compilation errors.
+-   : Heavily modified; was restored from a backup and had imports/components added.
+-   : Updated to improve camera streaming.
+-   : Updated to fix the Nginx status check.
+-   : New file containing most CRA-related endpoints.
+-   : New file for CRA FTP event tracking.
+-   : Updated to add the  field to the  model.
+-   : Updated to include the new routers for , , and .
+-   : Cleaned up after being corrupted by a  command.
+
+**Areas that need refactoring**:
+-   The user explicitly requested code cleanup (depurar codigo, veo duplicados y demasiadas lineas).
+-    and  are very large monolithic files and should be broken down into smaller, more manageable components to improve maintainability and prevent the kind of issues seen in this session.
+-   The backend has had several hotfixes applied via  and direct file overwrites (). A thorough review for code quality, consistency, and correctness is recommended.
 
 **key api endpoints**
--   : Fetches alerts. Has .
--   : Fetches devices. Has .
--   : Fetches groups. Needs to be checked for .
--   : Fetches organizations.
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
 
 **Critical Info for New Agent**
-1.  **Your Top Priority:** Fix the alert filtering. The user is waiting. The issue lies in the data mapping logic within the   hook in . You need to ensure the  chain is correctly implemented.
-2.  **Verify Data First:** Before changing code, get the data structure for  to confirm it contains .
-3.  **Interactive Debugging:** The user is hands-on with their server. Continue the pattern of providing clear, copy-pasteable , , , and  commands. Go step-by-step.
-4.  **Do Not Break Dual Access:** The  file is critical. All changes must respect its logic to ensure the app works from both the local IP and the public domain.
-5.  **User's Next Request:** The user has already asked for a second filter for grupos. Once the centro filter works, this will be the next logical step.
+-   The production file system is at , while the development source code is at . Be extremely careful with file paths in commands.
+-   The user's environment has multiple copies of the source code (, , ). The correct one to work on is .
+-   The session was plagued by file corruption due to incorrect  commands. Double-check  syntax or use  for file creation/replacement, which has proven more reliable.
+-   The user's server has network limitations; it cannot access all camera IPs listed in the database. The code should handle these connection timeouts gracefully.
+-   The backend runs as a non-root user via , so commands like  or  may not be available or have the necessary permissions within the Python script's execution context.
 
 **documents and test reports created in this job**
--    (created but likely outdated by manual fixes)
--    (updated)
+N/A
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** done, what now?
-2.  **User:** ready, now I see the app, but I still have the same problem with the filters, the alarms don't appear.
-3.  **User:** The app is up, shall we implement the filter for the alarms?
-4.  **User:** I already see it, but it doesn't show alerts. I think we are missing fields to apply the filters because none of the alerts are showing up. In my opinion, the groups are missing, now it only shows the organizations, but the second filter, which associates the devices, is missing.
-5.  **User:** Can you send me the complete file to modify it? It seems to be giving an error. (after a failed build).
-6.  **User:** white screen again
-7.  **User:** ready, how do we finish?
-8.  **User:** can we go faster?
-9.  **User:** done, let's continue
-10. **User:** done
+-   : Agreed to debug the CRADashboard. (In Progress)
+-   : Reported inconsistent data on CRADashboard. (Fixed, pending verification)
+-   : Complained about general code quality and stability. (Acknowledged)
+-   : Asked to fix the Nginx status display. (Completed)
+-   : Reported that saving a device is not working. (In Progress)
+-   : Reported console errors after camera stream fix. (Led to CRA endpoint fixes)
+-   : Reported camera viewer not working after login was fixed. (Completed)
+-   : Reported being unable to log in. (Completed)
+-   : Reported that downloading the updated frontend files did not work. (Completed)
+-   : Reported that the restored app version was old. (Completed)
 
 **Project Health Check:**
--   **Broken:** The alert filtering feature in  is non-functional.
--   **Mocked:** None.
+-   **Broken**: The device editing form (specifically saving the CRA status) is not working.
+-   **Mocked**: None.
 
 **3rd Party Integrations**
--   Stripe (Payments) — requires User API Key. Currently disabled in the user's production environment by replacing .
--    (SSH library for ESXi)
+-   None explicitly mentioned.
 
 **Testing status**
--   Testing agent used after significant changes: NO
--   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created: None
--   Known regressions: The alert filtering implementation has caused the alert list to be empty when a filter is applied.
+-   **Testing agent used after significant changes:** NO
+-   **Troubleshoot agent used after agent stuck in loop:** NO
+-   **Test files created:** None.
+-   **Known regressions:** The Save Device functionality is not working for the  field.
 
 **Credentials to test flow:**
--   **User:** 
+-   **Username:** 
 -   **Password:** 
 
 **What agent forgot to execute**
-The agent attempted to implement the alert filtering logic without first verifying the complete data relationship between root and  via an API call. This led to incorrect assumptions and faulty logic that had to be debugged live. The agent also modified a counter on the main Tab component that was outside the scope of the  variable, causing a variable not defined error and a white screen, which required backtracking.</analysis>
+The agent did not fully resolve the issue where saving a device gets stuck on Guardando.... While the backend model was fixed, the agent identified it as a frontend issue (no PUT request sent) but did not proceed to debug the frontend code for that specific problem before the session ended.</analysis>
