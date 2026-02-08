@@ -576,17 +576,67 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${device.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`} />
             <span className="text-white text-sm font-medium truncate">{device.name}</span>
+            {/* Hemispheric view badge */}
+            {isHemispheric && (
+              <span className="text-[10px] bg-purple-500/80 text-white px-1.5 py-0.5 rounded">360°</span>
+            )}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-white hover:bg-white/20"
-            onClick={onRemove}
-          >
-            <X className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            {/* Hemispheric view mode buttons */}
+            {isHemispheric && (
+              <div className="flex items-center gap-0.5 mr-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => setViewMode('normal')}
+                  className={`px-1.5 py-0.5 text-xs rounded transition-colors ${
+                    viewMode === 'normal' 
+                      ? 'bg-cyan-500 text-white' 
+                      : 'bg-white/20 text-white/70 hover:bg-white/30'
+                  }`}
+                  title="Vista normal (corregida)"
+                >
+                  Normal
+                </button>
+                <button
+                  onClick={() => setViewMode('full')}
+                  className={`px-1.5 py-0.5 text-xs rounded transition-colors ${
+                    viewMode === 'full' 
+                      ? 'bg-purple-500 text-white' 
+                      : 'bg-white/20 text-white/70 hover:bg-white/30'
+                  }`}
+                  title="Vista fisheye completa (circular)"
+                >
+                  Fisheye
+                </button>
+                <button
+                  onClick={() => setViewMode('panorama')}
+                  className={`px-1.5 py-0.5 text-xs rounded transition-colors ${
+                    viewMode === 'panorama' 
+                      ? 'bg-orange-500 text-white' 
+                      : 'bg-white/20 text-white/70 hover:bg-white/30'
+                  }`}
+                  title="Vista panorámica 360°"
+                >
+                  Panorama
+                </button>
+              </div>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-white hover:bg-white/20"
+              onClick={onRemove}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
         <p className="text-white/70 text-xs">{device.ip_address}</p>
+        {/* Current view mode indicator */}
+        {viewMode !== 'normal' && (
+          <span className="text-[10px] bg-purple-500/80 text-white px-1.5 py-0.5 rounded mt-1 inline-block">
+            Modo: {viewMode === 'full' ? 'Fisheye' : 'Panorama'}
+          </span>
+        )}
       </div>
 
       {/* Loading state */}
