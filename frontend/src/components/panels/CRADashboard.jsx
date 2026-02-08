@@ -356,4 +356,104 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
   );
 };
 
+// CRA Device Card Component with FTP status badge
+const CRADeviceCard = ({ device, ftpStatus, loadingFtp, onRefreshFtp, onOpenLive, isOffline }) => {
+  const ftpEnabled = ftpStatus?.enabled;
+  const ftpError = ftpStatus?.error;
+  
+  return (
+    <div 
+      className={`flex items-center justify-between p-3 rounded-lg border ${
+        isOffline 
+          ? 'bg-red-50 border-red-200' 
+          : 'bg-green-50 border-green-200'
+      }`}
+    >
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        {isOffline ? (
+          <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+        ) : (
+          <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="font-medium truncate">{device.name}</p>
+          <p className="text-xs text-muted-foreground font-mono">{device.ip_address}</p>
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {/* FTP Status Badge */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                {loadingFtp ? (
+                  <Badge variant="outline" className="text-xs animate-pulse">
+                    <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                    FTP
+                  </Badge>
+                ) : ftpError ? (
+                  <Badge 
+                    variant="outline" 
+                    className="text-xs bg-gray-100 text-gray-500 cursor-pointer"
+                    onClick={onRefreshFtp}
+                  >
+                    <Upload className="w-3 h-3 mr-1" />
+                    FTP ?
+                  </Badge>
+                ) : ftpEnabled ? (
+                  <Badge className="text-xs bg-green-600 text-white hover:bg-green-700">
+                    <Upload className="w-3 h-3 mr-1" />
+                    ARMADO
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-xs bg-orange-100 text-orange-700 border-orange-300">
+                    <Upload className="w-3 h-3 mr-1" />
+                    DESARMADO
+                  </Badge>
+                )}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                {loadingFtp ? 'Verificando estado FTP...' : 
+                 ftpError ? `Error: ${ftpError}. Haz clic para reintentar` :
+                 ftpEnabled ? 'FTP activado - Subida de eventos activa' : 
+                 'FTP desactivado - Sin subida de eventos'}
+              </p>
+              {ftpStatus?.server && <p className="text-xs">Servidor: {ftpStatus.server}</p>}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        {/* Live View Button */}
+        {!isOffline && onOpenLive && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 w-7 p-0"
+                  onClick={() => onOpenLive(device)}
+                >
+                  <Video className="w-4 h-4 text-blue-600" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Ver en directo</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
+        {/* Status Badge */}
+        <Badge variant={isOffline ? "destructive" : "default"} className={!isOffline ? "bg-green-100 text-green-700" : ""}>
+          {isOffline ? 'Offline' : 'Online'}
+        </Badge>
+      </div>
+    </div>
+  );
+};
+
 export default CRADashboard;
