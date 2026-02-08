@@ -61,14 +61,8 @@ const CRADashboard = ({ authAxios }) => {
       return;
     }
     
-    // Prevent concurrent fetches
-    if (isFetchingRef.current) {
-      return;
-    }
-    
-    isFetchingRef.current = true;
-    
     try {
+      console.log('CRADashboard: Fetching data...');
       // Use optimized combined endpoint + events in parallel
       const [dashboardRes, eventsRes, eventStatsRes] = await Promise.all([
         authAxios.get('/cra/dashboard'),
@@ -76,6 +70,7 @@ const CRADashboard = ({ authAxios }) => {
         authAxios.get('/cra-events/stats?days=30')
       ]);
       
+      console.log('CRADashboard: Data received');
       const { status: statusData, devices: devicesData, alerts: alertsData } = dashboardRes.data;
       
       setDevices(devicesData || []);
@@ -111,7 +106,6 @@ const CRADashboard = ({ authAxios }) => {
       toast.error('Error al cargar datos CRA');
     } finally {
       setLoading(false);
-      isFetchingRef.current = false;
     }
   }, [authAxios, playAlertSound]);
 
