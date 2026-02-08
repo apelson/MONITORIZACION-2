@@ -62,25 +62,23 @@ const CRADashboard = ({ authAxios }) => {
     }
     
     try {
-      console.log('CRADashboard: Fetching data...');
-      // Use optimized combined endpoint + events in parallel
-      const [dashboardRes, eventsRes, eventStatsRes] = await Promise.all([
-        authAxios.get('/cra/dashboard'),
+      // Use individual endpoints (more reliable with React re-renders)
+      const [devicesRes, alertsRes, statusRes, eventsRes, eventStatsRes] = await Promise.all([
+        authAxios.get('/cra/devices'),
+        authAxios.get('/cra/alerts?limit=100'),
+        authAxios.get('/cra/status'),
         authAxios.get('/cra-events?days=7&limit=50'),
         authAxios.get('/cra-events/stats?days=30')
       ]);
       
-      console.log('CRADashboard: Data received');
-      const { status: statusData, devices: devicesData, alerts: alertsData } = dashboardRes.data;
-      
-      setDevices(devicesData || []);
-      setAlerts(alertsData || []);
-      setStatus(statusData);
+      setDevices(devicesRes.data.devices || []);
+      setAlerts(alertsRes.data.alerts || []);
+      setStatus(statusRes.data);
       setEvents(eventsRes.data.events || []);
       setEventStats(eventStatsRes.data);
       
       // Check for new alerts using refs
-      const newAlertCount = alertsData?.length || 0;
+      const newAlertCount = alertsRes.data.alerts?.length || 0;
       if (newAlertCount > lastAlertCountRef.current && lastAlertCountRef.current > 0) {
         playAlertSound();
         toast.warning('¡Nueva alerta CRA!', {
