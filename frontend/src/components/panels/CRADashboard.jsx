@@ -32,6 +32,20 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
   const intervalRef = useRef(null);
   const isFetchingRef = useRef(false);
 
+  // Fetch FTP history
+  const fetchFtpHistory = useCallback(async () => {
+    if (!authAxios) return;
+    setLoadingHistory(true);
+    try {
+      const response = await authAxios.get('/camera-stream/ftp-history?limit=50');
+      setFtpHistory(response.data.history || []);
+    } catch (error) {
+      console.error('Error fetching FTP history:', error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, [authAxios]);
+
   // Fetch FTP status for a device
   const fetchFtpStatus = useCallback(async (deviceId) => {
     if (!authAxios || loadingFtp[deviceId]) return;
