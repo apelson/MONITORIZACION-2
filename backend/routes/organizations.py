@@ -30,6 +30,10 @@ async def create_organization(data: OrganizationCreate, current_user: dict = Dep
         "logo_url": data.logo_url or "",
         "country": data.country or "",
         "city": data.city or "",
+        "address": data.address or "",
+        "postal_code": data.postal_code or "",
+        "phone": data.phone or "",
+        "contact_email": data.contact_email or "",
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await organizations_collection.insert_one(org)
