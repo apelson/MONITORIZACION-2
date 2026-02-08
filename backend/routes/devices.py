@@ -434,85 +434,139 @@ async def reorder_devices(data: dict, current_user: dict = Depends(require_role(
 
 # ============ CRA ENDPOINTS ============
 
-@router.get("/cra/devices")
-async def get_cra_devices(current_user: dict = Depends(get_current_user)):
-    """Get all CRA (critical) devices"""
-    # Get devices marked as CRA
-    cra_devices = await devices_collection.find({"is_cra": True}, {"_id": 0}).to_list(length=None)
+# ============ CRA OPTIMIZED ENDPOINTS ============
+
+# Cache for CRA device IDs (refreshed every 60 seconds)
+_cra_cache = {"devices": None, "device_ids": None, "timestamp": None, "group_ids": None}
+
+async def _get_cra_device_ids_cached():
+    """Get CRA device IDs with caching to avoid repeated queries"""
+    from datetime import timedelta
+    now = datetime.now(timezone.utc)
     
-    # Also get devices from CRA organizations
-    cra_orgs = await organizations_collection.find({"is_cra": True}, {"id": 1}).to_list(length=None)
+    # Use cache if valid (60 seconds)
+    if _cra_cache["timestamp"] and (now - _cra_cache["timestamp"]).total_seconds() < 60:
+        return _cra_cache["device_ids"], _cra_cache["group_ids"]
+    
+    # Get CRA organizations and their group IDs in parallel
+    cra_orgs, direct_cra_ids = await asyncio.gather(
+        organizations_collection.find({"is_cra": True}, {"id": 1}).to_list(length=100),
+        devices_collection.distinct("id", {"is_cra": True})
+    )
+    
     cra_org_ids = [org["id"] for org in cra_orgs]
+    cra_group_ids = []
     
     if cra_org_ids:
-        # Get groups from CRA organizations
-        cra_groups = await groups_collection.find({"organization_id": {"$in": cra_org_ids}}, {"id": 1}).to_list(length=None)
+        cra_groups = await groups_collection.find(
+            {"organization_id": {"$in": cra_org_ids}}, {"id": 1}
+        ).to_list(length=500)
         cra_group_ids = [g["id"] for g in cra_groups]
-        
-        # Get devices from those groups
-        org_devices = await devices_collection.find(
-            {"group_id": {"$in": cra_group_ids}, "is_cra": {"$ne": True}}, 
-            {"_id": 0}
-        ).to_list(length=None)
-        
-        # Mark them as CRA via organization
-        for d in org_devices:
-            d["cra_via_org"] = True
-        
-        cra_devices.extend(org_devices)
     
-    # Remove duplicates by id
-    seen = set()
-    unique_devices = []
+    # Get all CRA device IDs (direct + via group)
+    all_cra_ids = set(direct_cra_ids)
+    if cra_group_ids:
+        group_device_ids = await devices_collection.distinct("id", {"group_id": {"$in": cra_group_ids}})
+        all_cra_ids.update(group_device_ids)
+    
+    # Update cache
+    _cra_cache["device_ids"] = list(all_cra_ids)
+    _cra_cache["group_ids"] = cra_group_ids
+    _cra_cache["timestamp"] = now
+    
+    return _cra_cache["device_ids"], cra_group_ids
+
+@router.get("/cra/devices")
+async def get_cra_devices(current_user: dict = Depends(get_current_user)):
+    """Get all CRA (critical) devices - optimized with caching"""
+    cra_device_ids, cra_group_ids = await _get_cra_device_ids_cached()
+    
+    if not cra_device_ids:
+        return {"devices": [], "total": 0}
+    
+    # Single query to get all CRA devices
+    cra_devices = await devices_collection.find(
+        {"id": {"$in": cra_device_ids}},
+        {"_id": 0}
+    ).to_list(length=None)
+    
+    # Mark devices from CRA orgs
     for d in cra_devices:
-        if d["id"] not in seen:
-            seen.add(d["id"])
-            unique_devices.append(d)
+        if d.get("group_id") in cra_group_ids and not d.get("is_cra"):
+            d["cra_via_org"] = True
     
-    return {"devices": unique_devices, "total": len(unique_devices)}
+    return {"devices": cra_devices, "total": len(cra_devices)}
 
 @router.get("/cra/alerts")
-async def get_cra_alerts(current_user: dict = Depends(get_current_user)):
-    """Get alerts for CRA devices only"""
-    # Get CRA device IDs
-    cra_response = await get_cra_devices(current_user)
-    cra_device_ids = [d["id"] for d in cra_response["devices"]]
+async def get_cra_alerts(
+    limit: int = Query(100, ge=1, le=500),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get alerts for CRA devices only - optimized with pagination"""
+    cra_device_ids, _ = await _get_cra_device_ids_cached()
     
     if not cra_device_ids:
         return {"alerts": [], "total": 0}
     
-    # Get alerts for CRA devices
+    # Get alerts with limit for performance
     alerts = await alerts_collection.find(
         {"device_id": {"$in": cra_device_ids}},
         {"_id": 0}
-    ).sort("timestamp", -1).to_list(length=None)
+    ).sort("timestamp", -1).limit(limit).to_list(length=limit)
+    
+    # Get total count separately (faster than fetching all)
+    total = await alerts_collection.count_documents({"device_id": {"$in": cra_device_ids}})
     
     # Mark alerts as CRA
     for alert in alerts:
         alert["is_cra"] = True
     
-    return {"alerts": alerts, "total": len(alerts)}
+    return {"alerts": alerts, "total": total}
 
 @router.get("/cra/status")
 async def get_cra_status(current_user: dict = Depends(get_current_user)):
-    """Get CRA dashboard status summary"""
-    cra_response = await get_cra_devices(current_user)
-    devices = cra_response["devices"]
+    """Get CRA dashboard status summary - optimized with aggregation"""
+    cra_device_ids, _ = await _get_cra_device_ids_cached()
     
-    total = len(devices)
-    online = sum(1 for d in devices if d.get("status") == "online")
-    offline = sum(1 for d in devices if d.get("status") == "offline")
+    if not cra_device_ids:
+        return {
+            "total_devices": 0, "online": 0, "offline": 0,
+            "uptime_percentage": 100, "recent_alerts_24h": 0, "status": "ok"
+        }
     
-    # Get recent alerts count (last 24h)
+    # Use aggregation for status counts (single query)
+    status_pipeline = [
+        {"$match": {"id": {"$in": cra_device_ids}}},
+        {"$group": {
+            "_id": "$status",
+            "count": {"$sum": 1}
+        }}
+    ]
+    
+    # Get alerts count for last 24h
     from datetime import timedelta
     now = datetime.now(timezone.utc)
     yesterday = now - timedelta(hours=24)
     
-    cra_device_ids = [d["id"] for d in devices]
-    recent_alerts = await alerts_collection.count_documents({
-        "device_id": {"$in": cra_device_ids},
-        "timestamp": {"$gte": yesterday.isoformat()}
-    }) if cra_device_ids else 0
+    # Run both queries in parallel
+    status_result, recent_alerts = await asyncio.gather(
+        devices_collection.aggregate(status_pipeline).to_list(length=10),
+        alerts_collection.count_documents({
+            "device_id": {"$in": cra_device_ids},
+            "timestamp": {"$gte": yesterday.isoformat()}
+        })
+    )
+    
+    # Parse status counts
+    online = 0
+    offline = 0
+    for item in status_result:
+        if item["_id"] == "online":
+            online = item["count"]
+        elif item["_id"] == "offline":
+            offline = item["count"]
+    
+    total = online + offline
     
     return {
         "total_devices": total,
@@ -521,5 +575,61 @@ async def get_cra_status(current_user: dict = Depends(get_current_user)):
         "uptime_percentage": round((online / total * 100), 1) if total > 0 else 100,
         "recent_alerts_24h": recent_alerts,
         "status": "critical" if offline > 0 else "ok"
+    }
+
+@router.get("/cra/dashboard")
+async def get_cra_dashboard(current_user: dict = Depends(get_current_user)):
+    """Combined CRA dashboard data - single endpoint for all CRA data"""
+    cra_device_ids, cra_group_ids = await _get_cra_device_ids_cached()
+    
+    if not cra_device_ids:
+        return {
+            "status": {"total_devices": 0, "online": 0, "offline": 0, "uptime_percentage": 100, "recent_alerts_24h": 0, "status": "ok"},
+            "devices": [],
+            "alerts": [],
+            "events": []
+        }
+    
+    from datetime import timedelta
+    now = datetime.now(timezone.utc)
+    yesterday = now - timedelta(hours=24)
+    
+    # Run all queries in parallel for maximum performance
+    devices_task = devices_collection.find({"id": {"$in": cra_device_ids}}, {"_id": 0}).to_list(length=None)
+    alerts_task = alerts_collection.find(
+        {"device_id": {"$in": cra_device_ids}}, {"_id": 0}
+    ).sort("timestamp", -1).limit(100).to_list(length=100)
+    recent_alerts_task = alerts_collection.count_documents({
+        "device_id": {"$in": cra_device_ids},
+        "timestamp": {"$gte": yesterday.isoformat()}
+    })
+    
+    devices, alerts, recent_alerts_count = await asyncio.gather(
+        devices_task, alerts_task, recent_alerts_task
+    )
+    
+    # Calculate status
+    online = sum(1 for d in devices if d.get("status") == "online")
+    offline = sum(1 for d in devices if d.get("status") == "offline")
+    total = len(devices)
+    
+    # Mark devices and alerts
+    for d in devices:
+        if d.get("group_id") in cra_group_ids and not d.get("is_cra"):
+            d["cra_via_org"] = True
+    for alert in alerts:
+        alert["is_cra"] = True
+    
+    return {
+        "status": {
+            "total_devices": total,
+            "online": online,
+            "offline": offline,
+            "uptime_percentage": round((online / total * 100), 1) if total > 0 else 100,
+            "recent_alerts_24h": recent_alerts_count,
+            "status": "critical" if offline > 0 else "ok"
+        },
+        "devices": devices,
+        "alerts": alerts
     }
 
