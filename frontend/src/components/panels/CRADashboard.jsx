@@ -17,20 +17,51 @@ import {
   CheckCircle, XCircle, Upload, Video, Circle
 } from 'lucide-react';
 
-const CRADashboard = ({ authAxios }) => {
+const CRADashboard = ({ authAxios, onOpenLiveView }) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [activeTab, setActiveTab] = useState('status');
+  const [ftpStatuses, setFtpStatuses] = useState({}); // Device ID -> FTP status
+  const [loadingFtp, setLoadingFtp] = useState({});
   const audioRef = useRef(null);
   const lastAlertCountRef = useRef(0);
   const intervalRef = useRef(null);
+  const isFetchingRef = useRef(false);
+
+  // Fetch FTP status for a device
+  const fetchFtpStatus = useCallback(async (deviceId) => {
+    if (!authAxios || loadingFtp[deviceId]) return;
+    
+    setLoadingFtp(prev => ({ ...prev, [deviceId]: true }));
+    try {
+      const response = await authAxios.get(`/camera-stream/ftp-status/${deviceId}`);
+      setFtpStatuses(prev => ({
+        ...prev,
+        [deviceId]: {
+          enabled: response.data.ftp_enabled || response.data.event_enabled,
+          server: response.data.ftp_server,
+          error: response.data.error
+        }
+      }));
+    } catch (error) {
+      console.error(`Error fetching FTP status for ${deviceId}:`, error);
+      setFtpStatuses(prev => ({
+        ...prev,
+        [deviceId]: { enabled: false, error: 'No disponible' }
+      }));
+    } finally {
+      setLoadingFtp(prev => ({ ...prev, [deviceId]: false }));
+    }
+  }, [authAxios, loadingFtp]);
 
   // Single fetch function - simple and direct
-  const fetchData = async (showRefresh = false) => {
+  const fetchData = useCallback(async (showRefresh = false) => {
     if (!authAxios) return;
+    if (isFetchingRef.current) return;
     
+    isFetchingRef.current = true;
     if (showRefresh) setRefreshing(true);
     
     try {
@@ -41,10 +72,19 @@ const CRADashboard = ({ authAxios }) => {
         authAxios.get('/cra/alerts?limit=50')
       ]);
       
+      const devices = devicesRes.data.devices || [];
+      
       setData({
         status: statusRes.data,
-        devices: devicesRes.data.devices || [],
+        devices: devices,
         alerts: alertsRes.data.alerts || []
+      });
+      
+      // Fetch FTP status for all CRA devices (in background)
+      devices.forEach(device => {
+        if (!ftpStatuses[device.id]) {
+          fetchFtpStatus(device.id);
+        }
       });
       
       // Alert sound for new alerts
@@ -60,15 +100,16 @@ const CRADashboard = ({ authAxios }) => {
     } finally {
       setLoading(false);
       setRefreshing(false);
+      isFetchingRef.current = false;
     }
-  };
+  }, [authAxios, soundEnabled, ftpStatuses, fetchFtpStatus]);
 
   // Initial load and interval
   useEffect(() => {
     fetchData();
     intervalRef.current = setInterval(() => fetchData(), 30000);
     return () => clearInterval(intervalRef.current);
-  }, [authAxios]);
+  }, []);
 
   // Loading state
   if (loading) {
