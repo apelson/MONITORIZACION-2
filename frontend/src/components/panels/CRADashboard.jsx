@@ -43,7 +43,14 @@ const CRADashboard = ({ authAxios }) => {
   }, [soundEnabled]);
 
   const fetchCRAData = useCallback(async () => {
+    if (!authAxios) {
+      console.error('CRADashboard: authAxios is not available');
+      setLoading(false);
+      return;
+    }
+    
     try {
+      console.log('CRADashboard: Fetching CRA data...');
       const [devicesRes, alertsRes, statusRes, eventsRes, eventStatsRes] = await Promise.all([
         authAxios.get('/cra/devices'),
         authAxios.get('/cra/alerts'),
@@ -51,6 +58,12 @@ const CRADashboard = ({ authAxios }) => {
         authAxios.get('/cra-events?days=7&limit=50'),
         authAxios.get('/cra-events/stats?days=30')
       ]);
+      
+      console.log('CRADashboard: Data received', { 
+        devices: devicesRes.data?.devices?.length || 0,
+        alerts: alertsRes.data?.alerts?.length || 0,
+        status: statusRes.data
+      });
       
       setDevices(devicesRes.data.devices || []);
       setAlerts(alertsRes.data.alerts || []);
@@ -81,7 +94,8 @@ const CRADashboard = ({ authAxios }) => {
       setLastEventCount(newEventCount);
       
     } catch (error) {
-      console.error('Error fetching CRA data:', error);
+      console.error('CRADashboard: Error fetching CRA data:', error);
+      toast.error('Error al cargar datos CRA');
     } finally {
       setLoading(false);
     }
