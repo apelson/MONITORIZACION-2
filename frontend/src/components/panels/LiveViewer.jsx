@@ -523,11 +523,14 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
 
   return (
     <div
-      className="relative bg-black rounded-lg overflow-hidden group aspect-video"
+      ref={panelRef}
+      className={`relative bg-black rounded-lg overflow-hidden group cursor-pointer ${isFullscreen ? 'fixed inset-0 z-50' : 'aspect-video'}`}
       draggable={draggable}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDrop={onDrop}
+      onDoubleClick={handleDoubleClick}
+      title="Doble clic para pantalla completa"
     >
       {/* Header overlay */}
       <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/70 to-transparent p-2 z-10">
