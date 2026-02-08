@@ -51,6 +51,7 @@ from routes.incidents import router as incidents_router
 from routes.security import router as security_router
 from routes.infrastructure import router as infrastructure_router
 from routes.device_images import router as device_images_router
+from routes.cra_events import router as cra_events_router
 
 # Multi-tenant routers (SaaS)
 from routes.tenant_auth import router as tenant_auth_router
