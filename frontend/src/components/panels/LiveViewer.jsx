@@ -405,10 +405,38 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const imgRef = useRef(null);
+  const panelRef = useRef(null);
   const intervalRef = useRef(null);
 
   const baseUrl = process.env.REACT_APP_BACKEND_URL || '';
+
+  // Handle double-click for fullscreen
+  const handleDoubleClick = async () => {
+    if (!panelRef.current) return;
+    
+    try {
+      if (!document.fullscreenElement) {
+        await panelRef.current.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    } catch (err) {
+      console.error('Fullscreen error:', err);
+    }
+  };
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
   
   // Get auth token from localStorage
   const getAuthToken = () => {
