@@ -254,13 +254,21 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={(tab) => {
+        setActiveTab(tab);
+        if (tab === 'ftp-history' && ftpHistory.length === 0) {
+          fetchFtpHistory();
+        }
+      }}>
         <TabsList>
           <TabsTrigger value="status">
             <Server className="w-4 h-4 mr-2" />Estado Dispositivos
           </TabsTrigger>
           <TabsTrigger value="alerts">
             <Bell className="w-4 h-4 mr-2" />Alertas
+          </TabsTrigger>
+          <TabsTrigger value="ftp-history">
+            <History className="w-4 h-4 mr-2" />Historial FTP
           </TabsTrigger>
         </TabsList>
 
