@@ -1283,7 +1283,7 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
 
 const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) => {
   const { t } = useTranslation();
-  const [formData, setFormData] = useState({ name: "", description: "", color: "#3b82f6", logo_url: "", country: "", city: "" });
+  const [formData, setFormData] = useState({ name: "", description: "", color: "#3b82f6", logo_url: "", country: "", city: "", address: "", postal_code: "", phone: "", contact_email: "" });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
@@ -1302,9 +1302,13 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
       color: organization.color || "#3b82f6", 
       logo_url: organization.logo_url || "",
       country: organization.country || "",
-      city: organization.city || ""
+      city: organization.city || "",
+      address: organization.address || "",
+      postal_code: organization.postal_code || "",
+      phone: organization.phone || "",
+      contact_email: organization.contact_email || ""
     });
-    else setFormData({ name: "", description: "", color: "#3b82f6", logo_url: "", country: "", city: "" });
+    else setFormData({ name: "", description: "", color: "#3b82f6", logo_url: "", country: "", city: "", address: "", postal_code: "", phone: "", contact_email: "" });
   }, [organization, open]);
 
   const handleFileUpload = async (e) => {
