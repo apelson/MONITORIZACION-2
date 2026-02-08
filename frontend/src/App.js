@@ -1046,6 +1046,9 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
           </Button>
           <div className="flex items-center justify-center gap-1">
             <Button variant="ghost" size="sm" onClick={openDeviceInBrowser} title={t('devices.openInBrowser')}><Globe className="w-4 h-4" /></Button>
+            {isCamera && device.status === 'online' && onOpenLiveView && (
+              <Button variant="ghost" size="sm" onClick={() => onOpenLiveView(device)} title={t('devices.openLiveView', 'Ver en directo')} className="text-cyan-600 hover:text-cyan-700"><Video className="w-4 h-4" /></Button>
+            )}
             {isCamera && (
               <Button variant="ghost" size="sm" onClick={() => onMobotixInfo(device)} title={t('devices.cameraInfo')}><Info className="w-4 h-4" /></Button>
             )}
