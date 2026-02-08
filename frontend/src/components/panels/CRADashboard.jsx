@@ -105,6 +105,9 @@ const CRADashboard = ({ authAxios }) => {
   }, [authAxios, playAlertSound]);
 
   useEffect(() => {
+    // Reset fetching flag on mount
+    isFetchingRef.current = false;
+    
     fetchCRAData();
     
     // Auto-refresh every 30 seconds for CRA
@@ -114,6 +117,8 @@ const CRADashboard = ({ authAxios }) => {
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current);
       }
+      // Reset flag on unmount
+      isFetchingRef.current = false;
     };
   }, [fetchCRAData]);
 
