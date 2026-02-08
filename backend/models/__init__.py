@@ -41,6 +41,10 @@ class OrganizationCreate(BaseModel):
     logo_url: Optional[str] = ""
     country: Optional[str] = ""
     city: Optional[str] = ""
+    address: Optional[str] = ""
+    postal_code: Optional[str] = ""
+    phone: Optional[str] = ""
+    contact_email: Optional[str] = ""
 
 class OrganizationUpdate(BaseModel):
     name: Optional[str] = None
@@ -49,6 +53,10 @@ class OrganizationUpdate(BaseModel):
     logo_url: Optional[str] = None
     country: Optional[str] = None
     city: Optional[str] = None
+    address: Optional[str] = None
+    postal_code: Optional[str] = None
+    phone: Optional[str] = None
+    contact_email: Optional[str] = None
 
 # ============ GROUP MODELS ============
 
