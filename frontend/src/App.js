@@ -40,6 +40,7 @@ import DeviceGallery from "@/components/panels/DeviceGallery";
 import CRADashboard from "@/components/panels/CRADashboard";
 import LiveViewer from "@/components/panels/LiveViewer";
 import CRAFloatingButton from "@/components/common/CRAFloatingButton";
+import LiveViewerFloatingButton from "@/components/common/LiveViewerFloatingButton";
 import NotificationSettings from "@/components/settings/NotificationSettings";
 import SystemStatusDashboard from "@/components/settings/SystemStatusDashboard";
 
