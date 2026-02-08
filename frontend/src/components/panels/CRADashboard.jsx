@@ -266,16 +266,15 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
                 ) : (
                   <div className="space-y-2">
                     {offlineDevices.map(device => (
-                      <div key={device.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
-                        <div className="flex items-center gap-3">
-                          <XCircle className="w-5 h-5 text-red-500" />
-                          <div>
-                            <p className="font-medium">{device.name}</p>
-                            <p className="text-xs text-muted-foreground font-mono">{device.ip_address}</p>
-                          </div>
-                        </div>
-                        <Badge variant="destructive">Offline</Badge>
-                      </div>
+                      <CRADeviceCard 
+                        key={device.id} 
+                        device={device} 
+                        ftpStatus={ftpStatuses[device.id]}
+                        loadingFtp={loadingFtp[device.id]}
+                        onRefreshFtp={() => fetchFtpStatus(device.id)}
+                        onOpenLive={onOpenLiveView}
+                        isOffline
+                      />
                     ))}
                   </div>
                 )}
@@ -292,18 +291,16 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
                   {onlineDevices.map(device => (
-                    <div key={device.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex items-center gap-3">
-                        <CheckCircle className="w-5 h-5 text-green-500" />
-                        <div>
-                          <p className="font-medium">{device.name}</p>
-                          <p className="text-xs text-muted-foreground font-mono">{device.ip_address}</p>
-                        </div>
-                      </div>
-                      <Badge className="bg-green-100 text-green-700">Online</Badge>
-                    </div>
+                    <CRADeviceCard 
+                      key={device.id} 
+                      device={device} 
+                      ftpStatus={ftpStatuses[device.id]}
+                      loadingFtp={loadingFtp[device.id]}
+                      onRefreshFtp={() => fetchFtpStatus(device.id)}
+                      onOpenLive={onOpenLiveView}
+                    />
                   ))}
                 </div>
               </CardContent>
