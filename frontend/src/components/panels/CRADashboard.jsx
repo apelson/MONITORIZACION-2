@@ -1,19 +1,20 @@
 /**
  * CRADashboard - Dashboard para dispositivos CRA (Central Receptora de Alarmas)
- * Versión optimizada para carga rápida
+ * Versión optimizada con estado FTP y vista hemisférica
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Skeleton } from '../ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { toast } from 'sonner';
 import { 
   Shield, ShieldAlert, ShieldCheck, AlertTriangle, Wifi, WifiOff, 
   Bell, RefreshCw, Volume2, VolumeX, Clock, Activity, Server,
-  CheckCircle, XCircle
+  CheckCircle, XCircle, Upload, Video, Circle
 } from 'lucide-react';
 
 const CRADashboard = ({ authAxios }) => {
