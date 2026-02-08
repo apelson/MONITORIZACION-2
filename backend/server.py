@@ -751,3 +751,14 @@ async def download_index_js():
             content = f.read()
         return PlainTextResponse(content, media_type="text/plain")
     return PlainTextResponse("File not found", status_code=404)
+
+# Endpoint para descargar archivos de actualización
+from fastapi.responses import FileResponse
+import os
+
+@app.get("/api/download/{filename}")
+async def download_file(filename: str):
+    file_path = f"/app/backend/static_files/{filename}"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename=filename, media_type='application/octet-stream')
+    return {"error": "File not found"}
