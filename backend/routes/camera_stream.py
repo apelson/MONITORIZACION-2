@@ -449,30 +449,31 @@ async def get_hemispheric_image(
     headers = get_auth_header(username, password)
     base_url = f"{protocol}://{ip}:{port}"
     
-    # Mobotix hemispheric view parameters
+    # Mobotix hemispheric view parameters - for C25/C26 fisheye cameras
+    # The key is to request the FULL sensor image without dewarping
     view_params = {
-        "full": "mode=full",  # Full fisheye circle
+        "full": "",  # Empty = raw sensor image (full fisheye circle)
         "panorama": "mode=panorama",
         "north": "mode=north",
         "south": "mode=south",
         "quad": "mode=quad",
         "surround": "mode=surround",
-        "double_panorama": "mode=doublepanorama",
     }
     
-    view_param = view_params.get(view, view_params["full"])
+    view_param = view_params.get(view, "")
     
-    # Mobotix hemispheric image URLs to try - prioritize fisheye/full view
+    # Mobotix hemispheric image URLs - prioritize raw fisheye sensor image
     hemispheric_urls = [
-        # Full fisheye view - most direct approach for c25/c26
-        f"{base_url}/cgi-bin/image.jpg?{view_param}&size=640x480&quality={quality}",
-        f"{base_url}/cgi-bin/faststream.jpg?stream=full&{view_param}&quality={quality}",
-        # Without size parameter
-        f"{base_url}/cgi-bin/image.jpg?{view_param}&quality={quality}",
-        # Full resolution 
-        f"{base_url}/record/current.jpg",
-        # Standard as fallback (will show corrected view)
-        f"{base_url}/cgi-bin/image.jpg?quality={quality}",
+        # Full sensor image - raw fisheye circle (C25/C26 native resolution)
+        f"{base_url}/cgi-bin/jpg/image.cgi?channel=0&resolution=2592x1944&quality={quality}",
+        f"{base_url}/cgi-bin/jpg/image.cgi?resolution=1024x1024&quality={quality}",
+        f"{base_url}/cgi-bin/jpg/image.cgi?quality={quality}",
+        # Alternative: faststream for live view
+        f"{base_url}/cgi-bin/faststream.jpg?stream=full&quality={quality}",
+        # Event snapshot (full sensor)
+        f"{base_url}/control/event.jpg?sequence=head",
+        # Standard fallback with view mode (will be corrected)
+        f"{base_url}/cgi-bin/image.jpg?{view_param}&quality={quality}" if view_param else f"{base_url}/cgi-bin/image.jpg?quality={quality}",
     ]
     
     async with httpx.AsyncClient(timeout=15.0, verify=False) as client:
