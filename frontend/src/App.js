@@ -874,10 +874,20 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
       
       if (hasCameraConfig && device.status === "online") {
         try {
+          // Check if hemispheric camera inside the callback to ensure fresh value
+          const modelLower = (device.model || '').toLowerCase();
+          const isHemisphericCamera = modelLower.includes('c25') || 
+            modelLower.includes('c26') ||
+            modelLower.includes('q25') ||
+            modelLower.includes('s15');
+          
           // Use hemispheric endpoint for 360° cameras to show full fisheye view
-          const endpoint = isHemispheric 
+          const endpoint = isHemisphericCamera 
             ? `/camera-stream/hemispheric/${device.id}?view=full` 
             : `/image-proxy/${device.id}`;
+          
+          console.log(`Loading image for ${device.name}: model=${device.model}, hemispheric=${isHemisphericCamera}, endpoint=${endpoint}`);
+          
           const response = await authAxios.get(endpoint, { responseType: 'blob' });
           if (response.data) {
             const url = URL.createObjectURL(response.data);
