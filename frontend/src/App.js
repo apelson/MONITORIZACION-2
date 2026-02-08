@@ -5923,6 +5923,7 @@ const Dashboard = () => {
 
           <TabsContent value="alerts"><AlertsPanel alerts={alerts} organizations={organizations} devices={devices} groups={groups} /></TabsContent>
           {!isOperator && <TabsContent value="gallery"><DeviceGallery authAxios={authAxios} devices={devices} organizations={organizations} groups={groups} /></TabsContent>}
+          {!isOperator && <TabsContent value="cra"><CRADashboard authAxios={authAxios} /></TabsContent>}
           {isAdmin && <TabsContent value="infrastructure"><InfrastructurePanel authAxios={authAxios} /></TabsContent>}
           {isAdmin && <TabsContent value="users"><UsersPanel users={users} onCreateUser={() => { setSelectedUser(null); setUserDialogOpen(true); }} onEditUser={(u) => { setSelectedUser(u); setUserDialogOpen(true); }} onDeleteUser={(u) => { setDeleteTarget({ type: "user", item: u }); setDeleteDialogOpen(true); }} onResetPassword={handleOpenPasswordDialog} /></TabsContent>}
           {isAdmin && <TabsContent value="logs"><AccessLogsPanel /></TabsContent>}
