@@ -36,6 +36,17 @@ const CRADashboard = ({ authAxios }) => {
   const lastAlertCountRef = useRef(0);
   const lastEventCountRef = useRef(0);
   const isFetchingRef = useRef(false);
+  const hasMountedRef = useRef(false);
+
+  // Debug mount
+  useEffect(() => {
+    console.log('CRADashboard: Component mounted, authAxios:', !!authAxios);
+    hasMountedRef.current = true;
+    return () => {
+      console.log('CRADashboard: Component unmounting');
+      hasMountedRef.current = false;
+    };
+  }, [authAxios]);
 
   const playAlertSound = useCallback(() => {
     if (soundEnabled && audioRef.current) {
