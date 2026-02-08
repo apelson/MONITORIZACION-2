@@ -158,6 +158,14 @@ class PublicDashboardConfig(BaseModel):
     show_images: bool = True
     show_details: bool = False
 
+# ============ CRA SETTINGS ============
+
+class CRASettings(BaseModel):
+    enabled: bool = True
+    alert_emails: List[str] = []  # Specific emails for CRA alerts
+    sound_enabled: bool = True
+    priority_notification: bool = True  # Always send notifications for CRA
+
 # ============ DEVICE IMAGE MODELS ============
 
 class DeviceImageCreate(BaseModel):
