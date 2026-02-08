@@ -36,6 +36,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import InfrastructurePanel from "@/components/panels/InfrastructurePanel";
+import DeviceGallery from "@/components/panels/DeviceGallery";
 import NotificationSettings from "@/components/settings/NotificationSettings";
 import SystemStatusDashboard from "@/components/settings/SystemStatusDashboard";
 
