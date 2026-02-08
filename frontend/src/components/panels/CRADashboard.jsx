@@ -28,13 +28,14 @@ const CRADashboard = ({ authAxios }) => {
   const [eventStats, setEventStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [lastAlertCount, setLastAlertCount] = useState(0);
-  const [lastEventCount, setLastEventCount] = useState(0);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [activeTab, setActiveTab] = useState('status');
   const audioRef = useRef(null);
   const refreshIntervalRef = useRef(null);
+  const lastAlertCountRef = useRef(0);
+  const lastEventCountRef = useRef(0);
+  const isFetchingRef = useRef(false);
 
   const playAlertSound = useCallback(() => {
     if (soundEnabled && audioRef.current) {
@@ -48,6 +49,14 @@ const CRADashboard = ({ authAxios }) => {
       setLoading(false);
       return;
     }
+    
+    // Prevent concurrent fetches
+    if (isFetchingRef.current) {
+      console.log('CRADashboard: Already fetching, skipping...');
+      return;
+    }
+    
+    isFetchingRef.current = true;
     
     try {
       console.log('CRADashboard: Fetching CRA data...');
@@ -68,38 +77,39 @@ const CRADashboard = ({ authAxios }) => {
       setDevices(devicesRes.data.devices || []);
       setAlerts(alertsRes.data.alerts || []);
       setStatus(statusRes.data);
-      setEvents(eventsRes.data.events || []);
+      setEvents(devicesRes.data.events || []);
       setEventStats(eventStatsRes.data);
       
-      // Check for new alerts
+      // Check for new alerts using refs
       const newAlertCount = alertsRes.data.alerts?.length || 0;
-      if (newAlertCount > lastAlertCount && lastAlertCount > 0) {
+      if (newAlertCount > lastAlertCountRef.current && lastAlertCountRef.current > 0) {
         playAlertSound();
         toast.warning('¡Nueva alerta CRA!', {
           description: 'Se ha detectado una nueva alerta en dispositivos críticos',
           duration: 10000
         });
       }
-      setLastAlertCount(newAlertCount);
+      lastAlertCountRef.current = newAlertCount;
       
-      // Check for new FTP events
+      // Check for new FTP events using refs
       const newEventCount = eventsRes.data.events?.length || 0;
-      if (newEventCount > lastEventCount && lastEventCount > 0) {
+      if (newEventCount > lastEventCountRef.current && lastEventCountRef.current > 0) {
         playAlertSound();
         toast.warning('¡Nuevo evento CRA!', {
           description: 'Se ha recibido un nuevo envío FTP de alarma',
           duration: 10000
         });
       }
-      setLastEventCount(newEventCount);
+      lastEventCountRef.current = newEventCount;
       
     } catch (error) {
       console.error('CRADashboard: Error fetching CRA data:', error);
       toast.error('Error al cargar datos CRA');
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
-  }, [authAxios, lastAlertCount, lastEventCount, playAlertSound]);
+  }, [authAxios, playAlertSound]);
 
   useEffect(() => {
     fetchCRAData();
