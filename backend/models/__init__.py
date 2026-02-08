@@ -145,3 +145,14 @@ class PublicDashboardConfig(BaseModel):
     password: Optional[str] = None
     show_images: bool = True
     show_details: bool = False
+
+# ============ DEVICE IMAGE MODELS ============
+
+class DeviceImageCreate(BaseModel):
+    device_id: str
+    description: Optional[str] = ""
+    installation_date: Optional[str] = ""
+
+class DeviceImageUpdate(BaseModel):
+    description: Optional[str] = None
+    installation_date: Optional[str] = None
