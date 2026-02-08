@@ -1069,7 +1069,7 @@ ServerCard.displayName = 'ServerCard';
 // ============ DIALOGS ============
 const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, deviceTypes, onSave }) => {
   const { t } = useTranslation();
-  const [formData, setFormData] = useState({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_protocol: "http", camera_user: "", camera_password: "", camera_path: "", has_statistics: false });
+  const [formData, setFormData] = useState({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_protocol: "http", camera_user: "", camera_password: "", camera_path: "", has_statistics: false, is_cra: false });
   const [saving, setSaving] = useState(false);
   const [selectedOrgId, setSelectedOrgId] = useState("");
   const [initialized, setInitialized] = useState(false);
@@ -1088,12 +1088,13 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
           camera_user: device.camera_user || "",
           camera_password: device.camera_password || "",
           camera_path: device.camera_path || "",
-          has_statistics: device.has_statistics || false
+          has_statistics: device.has_statistics || false,
+          is_cra: device.is_cra || false
         });
         const grp = groups.find(g => g.id === device.group_id);
         if (grp) setSelectedOrgId(grp.organization_id);
       } else {
-        setFormData({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_protocol: "http", camera_user: "", camera_password: "", camera_path: "", has_statistics: false });
+        setFormData({ name: "", ip_address: "", port: 80, description: "", group_id: "", device_type_id: "", brand: "", model: "", location: "", notes: "", image_url: "", camera_protocol: "http", camera_user: "", camera_password: "", camera_path: "", has_statistics: false, is_cra: false });
         setSelectedOrgId("");
       }
       setInitialized(true);
