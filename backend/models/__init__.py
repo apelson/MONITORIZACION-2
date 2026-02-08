@@ -45,6 +45,12 @@ class OrganizationCreate(BaseModel):
     postal_code: Optional[str] = ""
     phone: Optional[str] = ""
     contact_email: Optional[str] = ""
+    # Responsable del centro
+    responsible_name: Optional[str] = ""
+    responsible_phone: Optional[str] = ""
+    responsible_email: Optional[str] = ""
+    # CRA - Central Receptora de Alarmas
+    is_cra: Optional[bool] = False
 
 class OrganizationUpdate(BaseModel):
     name: Optional[str] = None
@@ -57,6 +63,10 @@ class OrganizationUpdate(BaseModel):
     postal_code: Optional[str] = None
     phone: Optional[str] = None
     contact_email: Optional[str] = None
+    responsible_name: Optional[str] = None
+    responsible_phone: Optional[str] = None
+    responsible_email: Optional[str] = None
+    is_cra: Optional[bool] = None
 
 # ============ GROUP MODELS ============
 
