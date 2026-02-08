@@ -206,6 +206,10 @@ async def update_device(device_id: str, data: DeviceUpdate, request: Request, cu
     
     update = {k: v for k, v in data.model_dump().items() if v is not None}
     
+    # Invalidate CRA cache if is_cra field is updated
+    if "is_cra" in update:
+        _cra_cache["timestamp"] = None
+    
     # Rebuild image_url if camera fields are updated
     camera_protocol = update.get("camera_protocol", device.get("camera_protocol", "http"))
     camera_user = update.get("camera_user", device.get("camera_user", ""))
