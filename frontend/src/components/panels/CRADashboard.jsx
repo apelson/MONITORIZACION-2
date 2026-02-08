@@ -109,6 +109,7 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
     fetchData();
     intervalRef.current = setInterval(() => fetchData(), 30000);
     return () => clearInterval(intervalRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Loading state
