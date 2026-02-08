@@ -494,7 +494,13 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
       
       try {
         const token = getAuthToken();
-        const response = await fetch(`${baseUrl}/api/camera-stream/snapshot/${device.id}?t=${Date.now()}`, {
+        // Use hemispheric endpoint if in fisheye/panorama mode
+        let url = `${baseUrl}/api/camera-stream/snapshot/${device.id}?t=${Date.now()}`;
+        if (viewMode !== 'normal' && isHemispheric) {
+          url = `${baseUrl}/api/camera-stream/hemispheric/${device.id}?view=${viewMode}&t=${Date.now()}`;
+        }
+        
+        const response = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -502,14 +508,14 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
         
         if (response.ok) {
           const blob = await response.blob();
-          const url = URL.createObjectURL(blob);
+          const blobUrl = URL.createObjectURL(blob);
           
           if (imgRef.current && isMounted) {
             // Revoke old URL to prevent memory leak
             if (imgRef.current.src && imgRef.current.src.startsWith('blob:')) {
               URL.revokeObjectURL(imgRef.current.src);
             }
-            imgRef.current.src = url;
+            imgRef.current.src = blobUrl;
             setLoading(false);
             setError(false);
             setRetryCount(0);
@@ -545,7 +551,7 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
         URL.revokeObjectURL(imgRef.current.src);
       }
     };
-  }, [device.id, device.name, refreshInterval, baseUrl, retryCount]);
+  }, [device.id, device.name, refreshInterval, baseUrl, retryCount, viewMode, isHemispheric]);
 
   const handleRetry = () => {
     setError(false);
