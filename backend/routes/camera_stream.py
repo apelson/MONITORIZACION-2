@@ -4,13 +4,15 @@ Supports Mobotix cameras with authentication
 """
 from fastapi import APIRouter, HTTPException, Depends, Response, Query
 from fastapi.responses import StreamingResponse
-from typing import Optional
+from typing import Optional, List
 import httpx
 import asyncio
 import base64
 import time
+from datetime import datetime, timezone
+import uuid
 
-from config import devices_collection, logger
+from config import devices_collection, ftp_history_collection, logger
 from services.auth_service import get_current_user
 
 router = APIRouter(prefix="/camera-stream", tags=["camera-stream"])
