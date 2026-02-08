@@ -1272,6 +1272,20 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
             
             <div className="col-span-2 space-y-2"><Label>{t('common.description', 'Descripción')}</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
             <div className="col-span-2 space-y-2"><Label>{t('common.notes', 'Notas')}</Label><Textarea placeholder={t('common.notesPlaceholder', 'Notas internas, configuración...')} value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} rows={3} /></div>
+            
+            {/* CRA Checkbox */}
+            <div className="col-span-2 flex items-center gap-3 p-3 bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-lg">
+              <Switch 
+                id="is-cra" 
+                checked={formData.is_cra} 
+                onCheckedChange={(checked) => setFormData({ ...formData, is_cra: checked })}
+              />
+              <div className="flex-1">
+                <Label htmlFor="is-cra" className="cursor-pointer font-medium text-red-700">🚨 Dispositivo CRA</Label>
+                <p className="text-xs text-red-600">Marcar como dispositivo crítico (Central Receptora de Alarmas)</p>
+              </div>
+              <Shield className="w-5 h-5 text-red-500" />
+            </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button>
