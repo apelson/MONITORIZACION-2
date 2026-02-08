@@ -38,6 +38,8 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import InfrastructurePanel from "@/components/panels/InfrastructurePanel";
 import DeviceGallery from "@/components/panels/DeviceGallery";
 import CRADashboard from "@/components/panels/CRADashboard";
+import LiveViewer from "@/components/panels/LiveViewer";
+import CRAFloatingButton from "@/components/common/CRAFloatingButton";
 import NotificationSettings from "@/components/settings/NotificationSettings";
 import SystemStatusDashboard from "@/components/settings/SystemStatusDashboard";
 
