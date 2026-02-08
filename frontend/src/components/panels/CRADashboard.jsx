@@ -1,18 +1,21 @@
 /**
  * CRADashboard - Dashboard dedicado para dispositivos CRA (Central Receptora de Alarmas)
- * Muestra el estado de dispositivos críticos con alertas prioritarias
+ * Muestra el estado de dispositivos críticos con alertas prioritarias y eventos FTP
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { toast } from 'sonner';
 import { 
   Shield, ShieldAlert, ShieldCheck, AlertTriangle, Wifi, WifiOff, 
   Bell, RefreshCw, Volume2, VolumeX, Clock, Activity, Server,
-  CheckCircle, XCircle, AlertCircle
+  CheckCircle, XCircle, AlertCircle, Video, Upload, Play, Image as ImageIcon,
+  FileVideo, Calendar, Eye
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 
 // Sound for CRA alerts
 const CRA_ALERT_SOUND = '/sounds/cra-alert.mp3';
@@ -20,10 +23,16 @@ const CRA_ALERT_SOUND = '/sounds/cra-alert.mp3';
 const CRADashboard = ({ authAxios }) => {
   const [devices, setDevices] = useState([]);
   const [alerts, setAlerts] = useState([]);
+  const [events, setEvents] = useState([]);
   const [status, setStatus] = useState(null);
+  const [eventStats, setEventStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [lastAlertCount, setLastAlertCount] = useState(0);
+  const [lastEventCount, setLastEventCount] = useState(0);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showEventDialog, setShowEventDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState('status');
   const audioRef = useRef(null);
   const refreshIntervalRef = useRef(null);
 
@@ -35,15 +44,19 @@ const CRADashboard = ({ authAxios }) => {
 
   const fetchCRAData = useCallback(async () => {
     try {
-      const [devicesRes, alertsRes, statusRes] = await Promise.all([
+      const [devicesRes, alertsRes, statusRes, eventsRes, eventStatsRes] = await Promise.all([
         authAxios.get('/cra/devices'),
         authAxios.get('/cra/alerts'),
-        authAxios.get('/cra/status')
+        authAxios.get('/cra/status'),
+        authAxios.get('/cra-events?days=7&limit=50'),
+        authAxios.get('/cra-events/stats?days=30')
       ]);
       
       setDevices(devicesRes.data.devices || []);
       setAlerts(alertsRes.data.alerts || []);
       setStatus(statusRes.data);
+      setEvents(eventsRes.data.events || []);
+      setEventStats(eventStatsRes.data);
       
       // Check for new alerts
       const newAlertCount = alertsRes.data.alerts?.length || 0;
@@ -56,12 +69,23 @@ const CRADashboard = ({ authAxios }) => {
       }
       setLastAlertCount(newAlertCount);
       
+      // Check for new FTP events
+      const newEventCount = eventsRes.data.events?.length || 0;
+      if (newEventCount > lastEventCount && lastEventCount > 0) {
+        playAlertSound();
+        toast.warning('¡Nuevo evento CRA!', {
+          description: 'Se ha recibido un nuevo envío FTP de alarma',
+          duration: 10000
+        });
+      }
+      setLastEventCount(newEventCount);
+      
     } catch (error) {
       console.error('Error fetching CRA data:', error);
     } finally {
       setLoading(false);
     }
-  }, [authAxios, lastAlertCount, playAlertSound]);
+  }, [authAxios, lastAlertCount, lastEventCount, playAlertSound]);
 
   useEffect(() => {
     fetchCRAData();
@@ -91,6 +115,11 @@ const CRADashboard = ({ authAxios }) => {
     if (status.offline > 0) return `¡ALERTA! ${status.offline} dispositivo(s) offline`;
     if (status.recent_alerts_24h > 0) return `${status.recent_alerts_24h} alertas en las últimas 24h`;
     return 'Todos los sistemas operativos';
+  };
+
+  const openEventPreview = (event) => {
+    setSelectedEvent(event);
+    setShowEventDialog(true);
   };
 
   if (loading) {
@@ -178,7 +207,7 @@ const CRADashboard = ({ authAxios }) => {
       </Card>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -226,155 +255,287 @@ const CRADashboard = ({ authAxios }) => {
             </div>
           </CardContent>
         </Card>
-      </div>
-
-      {/* Two Column Layout: Offline Devices + Recent Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Offline Devices - Priority View */}
-        <Card className={`${offlineDevices.length > 0 ? 'border-red-300 bg-red-50/50' : ''}`}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <WifiOff className={`w-5 h-5 ${offlineDevices.length > 0 ? 'text-red-600' : 'text-muted-foreground'}`} />
-              Dispositivos Offline
-              {offlineDevices.length > 0 && (
-                <Badge variant="destructive" className="animate-pulse">{offlineDevices.length}</Badge>
-              )}
-            </CardTitle>
-            <CardDescription>
-              {offlineDevices.length > 0 
-                ? '¡Atención! Dispositivos críticos sin conexión' 
-                : 'Todos los dispositivos CRA están conectados'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {offlineDevices.length === 0 ? (
-              <div className="text-center py-8">
-                <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-3" />
-                <p className="text-green-600 font-medium">Sin dispositivos offline</p>
+        
+        <Card className={`${eventStats?.events_today > 0 ? 'bg-purple-50 border-purple-200' : ''}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className={`text-xs font-medium ${eventStats?.events_today > 0 ? 'text-purple-600' : 'text-muted-foreground'}`}>Envíos FTP Hoy</p>
+                <p className={`text-3xl font-bold ${eventStats?.events_today > 0 ? 'text-purple-700' : ''}`}>{eventStats?.events_today || 0}</p>
               </div>
-            ) : (
-              <ScrollArea className="h-[300px]">
-                <div className="space-y-2">
-                  {offlineDevices.map(device => (
-                    <div 
-                      key={device.id} 
-                      className="p-3 bg-red-100 border border-red-200 rounded-lg flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3">
-                        <XCircle className="w-5 h-5 text-red-600" />
-                        <div>
-                          <p className="font-medium text-red-800">{device.name}</p>
-                          <p className="text-xs text-red-600">{device.ip_address}:{device.port}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <Badge variant="destructive" className="text-xs">OFFLINE</Badge>
-                        {device.last_online && (
-                          <p className="text-xs text-red-600 mt-1">
-                            <Clock className="w-3 h-3 inline mr-1" />
-                            {new Date(device.last_online).toLocaleString('es-ES')}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            )}
+              <Upload className={`w-10 h-10 ${eventStats?.events_today > 0 ? 'text-purple-500' : 'text-gray-400'} opacity-50`} />
+            </div>
           </CardContent>
         </Card>
+      </div>
 
-        {/* Recent Alerts */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Bell className="w-5 h-5" />
-              Alertas Recientes CRA
-              {alerts.length > 0 && <Badge variant="secondary">{alerts.length}</Badge>}
-            </CardTitle>
-            <CardDescription>Últimas alertas de dispositivos críticos</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {alerts.length === 0 ? (
-              <div className="text-center py-8">
-                <Bell className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
-                <p className="text-muted-foreground">Sin alertas recientes</p>
-              </div>
-            ) : (
-              <ScrollArea className="h-[300px]">
-                <div className="space-y-2">
-                  {alerts.slice(0, 20).map(alert => {
-                    const isDown = alert.alert_type === 'device_down';
-                    return (
-                      <div 
-                        key={alert.id} 
-                        className={`p-3 rounded-lg border ${isDown ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {isDown ? (
-                              <WifiOff className="w-4 h-4 text-red-600" />
-                            ) : (
-                              <Wifi className="w-4 h-4 text-green-600" />
-                            )}
-                            <span className={`font-medium ${isDown ? 'text-red-700' : 'text-green-700'}`}>
-                              {alert.device_name}
-                            </span>
+      {/* Tabs for different views */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="status" className="gap-2">
+            <Server className="w-4 h-4" />
+            Estado Dispositivos
+          </TabsTrigger>
+          <TabsTrigger value="events" className="gap-2">
+            <FileVideo className="w-4 h-4" />
+            Eventos FTP
+            {events.length > 0 && <Badge variant="secondary" className="ml-1">{events.length}</Badge>}
+          </TabsTrigger>
+          <TabsTrigger value="alerts" className="gap-2">
+            <Bell className="w-4 h-4" />
+            Alertas
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Status Tab */}
+        <TabsContent value="status" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Offline Devices */}
+            <Card className={`${offlineDevices.length > 0 ? 'border-red-300 bg-red-50/50' : ''}`}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <WifiOff className={`w-5 h-5 ${offlineDevices.length > 0 ? 'text-red-600' : 'text-muted-foreground'}`} />
+                  Dispositivos Offline
+                  {offlineDevices.length > 0 && <Badge variant="destructive" className="animate-pulse">{offlineDevices.length}</Badge>}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {offlineDevices.length === 0 ? (
+                  <div className="text-center py-8">
+                    <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-3" />
+                    <p className="text-green-600 font-medium">Sin dispositivos offline</p>
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[250px]">
+                    <div className="space-y-2">
+                      {offlineDevices.map(device => (
+                        <div key={device.id} className="p-3 bg-red-100 border border-red-200 rounded-lg flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <XCircle className="w-5 h-5 text-red-600" />
+                            <div>
+                              <p className="font-medium text-red-800">{device.name}</p>
+                              <p className="text-xs text-red-600">{device.ip_address}:{device.port}</p>
+                            </div>
                           </div>
-                          <Badge variant={isDown ? 'destructive' : 'default'} className="text-xs">
-                            CRA
-                          </Badge>
+                          <Badge variant="destructive" className="text-xs">OFFLINE</Badge>
                         </div>
-                        <p className={`text-sm mt-1 ${isDown ? 'text-red-600' : 'text-green-600'}`}>
-                          {isDown ? 'Dispositivo desconectado' : 'Dispositivo recuperado'}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(alert.timestamp).toLocaleString('es-ES')}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </ScrollArea>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
 
-      {/* Online Devices Grid */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Wifi className="w-5 h-5 text-green-500" />
-            Dispositivos CRA Online
-            <Badge variant="secondary" className="bg-green-100 text-green-700">{onlineDevices.length}</Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {onlineDevices.length === 0 ? (
-            <div className="text-center py-8">
-              <Server className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
-              <p className="text-muted-foreground">No hay dispositivos CRA configurados</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-              {onlineDevices.map(device => (
-                <div 
-                  key={device.id}
-                  className="p-3 bg-green-50 border border-green-200 rounded-lg text-center hover:shadow-md transition-shadow"
-                >
-                  <Wifi className="w-6 h-6 text-green-500 mx-auto mb-2" />
-                  <p className="font-medium text-sm truncate" title={device.name}>{device.name}</p>
-                  <p className="text-xs text-muted-foreground">{device.ip_address}</p>
-                  <Badge variant="outline" className="mt-2 text-xs bg-green-100 text-green-700 border-green-300">
-                    Online
-                  </Badge>
+            {/* Online Devices */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Wifi className="w-5 h-5 text-green-500" />
+                  Dispositivos Online
+                  <Badge variant="secondary" className="bg-green-100 text-green-700">{onlineDevices.length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {onlineDevices.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Server className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
+                    <p className="text-muted-foreground">No hay dispositivos CRA configurados</p>
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[250px]">
+                    <div className="grid grid-cols-2 gap-2">
+                      {onlineDevices.map(device => (
+                        <div key={device.id} className="p-2 bg-green-50 border border-green-200 rounded-lg text-center">
+                          <Wifi className="w-4 h-4 text-green-500 mx-auto mb-1" />
+                          <p className="font-medium text-xs truncate">{device.name}</p>
+                          <p className="text-xs text-muted-foreground">{device.ip_address}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Events Tab - FTP Uploads */}
+        <TabsContent value="events" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileVideo className="w-5 h-5" />
+                Eventos FTP (Alarmas enviadas a CRA)
+              </CardTitle>
+              <CardDescription>
+                Registro de videos/imágenes enviados por las cámaras a la Central Receptora
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {events.length === 0 ? (
+                <div className="text-center py-12">
+                  <Upload className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Sin eventos FTP registrados</h3>
+                  <p className="text-muted-foreground">
+                    Los eventos aparecerán aquí cuando las cámaras envíen alarmas a la CRA
+                  </p>
                 </div>
-              ))}
-            </div>
+              ) : (
+                <ScrollArea className="h-[400px]">
+                  <div className="space-y-3">
+                    {events.map(event => (
+                      <div 
+                        key={event.id} 
+                        className="p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                        onClick={() => openEventPreview(event)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3">
+                            <div className="p-2 bg-purple-100 rounded-lg">
+                              <Video className="w-5 h-5 text-purple-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium">{event.device_name || event.camera_ip}</p>
+                              <p className="text-sm text-muted-foreground">{event.original_filename}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="outline" className="text-xs">
+                                  <Calendar className="w-3 h-3 mr-1" />
+                                  {new Date(event.timestamp).toLocaleString('es-ES')}
+                                </Badge>
+                                {event.organization_name && (
+                                  <Badge variant="secondary" className="text-xs">{event.organization_name}</Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <Button variant="ghost" size="sm">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Alerts Tab */}
+        <TabsContent value="alerts" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="w-5 h-5" />
+                Alertas de Conexión CRA
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {alerts.length === 0 ? (
+                <div className="text-center py-8">
+                  <Bell className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
+                  <p className="text-muted-foreground">Sin alertas recientes</p>
+                </div>
+              ) : (
+                <ScrollArea className="h-[400px]">
+                  <div className="space-y-2">
+                    {alerts.map(alert => {
+                      const isDown = alert.alert_type === 'device_down';
+                      return (
+                        <div key={alert.id} className={`p-3 rounded-lg border ${isDown ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              {isDown ? <WifiOff className="w-4 h-4 text-red-600" /> : <Wifi className="w-4 h-4 text-green-600" />}
+                              <span className={`font-medium ${isDown ? 'text-red-700' : 'text-green-700'}`}>{alert.device_name}</span>
+                            </div>
+                            <Badge variant={isDown ? 'destructive' : 'default'} className="text-xs">CRA</Badge>
+                          </div>
+                          <p className={`text-sm mt-1 ${isDown ? 'text-red-600' : 'text-green-600'}`}>
+                            {isDown ? 'Dispositivo desconectado' : 'Dispositivo recuperado'}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">{new Date(alert.timestamp).toLocaleString('es-ES')}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Event Preview Dialog */}
+      <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
+        <DialogContent className="sm:max-w-2xl">
+          {selectedEvent && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Video className="w-5 h-5" />
+                  Evento CRA - {selectedEvent.device_name || selectedEvent.camera_ip}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {selectedEvent.saved_filename ? (
+                  <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
+                    {selectedEvent.saved_filename.match(/\.(mp4|avi|mkv|mov|mxg)$/i) ? (
+                      <video 
+                        controls 
+                        className="max-w-full max-h-full"
+                        src={`/api/cra-events/file/${selectedEvent.saved_filename}`}
+                      />
+                    ) : (
+                      <img 
+                        src={`/api/cra-events/file/${selectedEvent.saved_filename}`}
+                        alt="Evento CRA"
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                    <div className="text-center">
+                      <FileVideo className="w-16 h-16 mx-auto text-muted-foreground/30 mb-2" />
+                      <p className="text-muted-foreground">Archivo no disponible</p>
+                    </div>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Cámara</p>
+                    <p className="font-medium">{selectedEvent.device_name || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">IP</p>
+                    <p className="font-medium">{selectedEvent.camera_ip}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Fecha/Hora</p>
+                    <p className="font-medium">{new Date(selectedEvent.timestamp).toLocaleString('es-ES')}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Archivo</p>
+                    <p className="font-medium truncate">{selectedEvent.original_filename || '-'}</p>
+                  </div>
+                  {selectedEvent.organization_name && (
+                    <div>
+                      <p className="text-muted-foreground">Centro</p>
+                      <p className="font-medium">{selectedEvent.organization_name}</p>
+                    </div>
+                  )}
+                  {selectedEvent.group_name && (
+                    <div>
+                      <p className="text-muted-foreground">Grupo</p>
+                      <p className="font-medium">{selectedEvent.group_name}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
           )}
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
