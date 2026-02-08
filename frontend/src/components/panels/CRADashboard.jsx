@@ -110,22 +110,27 @@ const CRADashboard = ({ authAxios }) => {
   }, [authAxios, playAlertSound]);
 
   useEffect(() => {
-    // Reset fetching flag on mount
-    isFetchingRef.current = false;
+    let isMounted = true;
     
-    fetchCRAData();
+    const loadData = async () => {
+      if (!authAxios || !isMounted) return;
+      await fetchCRAData();
+    };
+    
+    loadData();
     
     // Auto-refresh every 30 seconds for CRA
-    refreshIntervalRef.current = setInterval(fetchCRAData, 30000);
+    const intervalId = setInterval(() => {
+      if (isMounted) {
+        fetchCRAData();
+      }
+    }, 30000);
     
     return () => {
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current);
-      }
-      // Reset flag on unmount
-      isFetchingRef.current = false;
+      isMounted = false;
+      clearInterval(intervalId);
     };
-  }, [fetchCRAData]);
+  }, [authAxios, fetchCRAData]);
 
   const offlineDevices = devices.filter(d => d.status === 'offline');
   const onlineDevices = devices.filter(d => d.status === 'online');
