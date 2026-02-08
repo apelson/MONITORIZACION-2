@@ -404,53 +404,98 @@ const LiveViewer = ({ authAxios, devices = [], organizations = [], groups = [], 
 const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragStart, onDragOver, onDrop, onRemove }) => {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const imgRef = useRef(null);
   const intervalRef = useRef(null);
 
-  const getStreamUrl = () => {
-    const baseUrl = process.env.REACT_APP_BACKEND_URL || '';
-    if (streamMode === 'mjpeg') {
-      return `${baseUrl}/api/camera-stream/mjpeg/${device.id}`;
-    } else {
-      // For snapshot mode, we'll update manually
-      return `${baseUrl}/api/camera-stream/snapshot/${device.id}?t=${Date.now()}`;
+  const baseUrl = process.env.REACT_APP_BACKEND_URL || '';
+  
+  // Get auth token from localStorage
+  const getAuthToken = () => {
+    try {
+      return localStorage.getItem('token') || '';
+    } catch {
+      return '';
     }
   };
 
-  // Snapshot polling
+  const getSnapshotUrl = () => {
+    const token = getAuthToken();
+    const timestamp = Date.now();
+    return `${baseUrl}/api/camera-stream/snapshot/${device.id}?t=${timestamp}&token=${token}`;
+  };
+
+  // Snapshot polling for real-time view
   useEffect(() => {
-    if (streamMode === 'snapshot') {
-      const updateSnapshot = () => {
-        if (imgRef.current) {
-          const baseUrl = process.env.REACT_APP_BACKEND_URL || '';
-          imgRef.current.src = `${baseUrl}/api/camera-stream/snapshot/${device.id}?t=${Date.now()}`;
+    let isMounted = true;
+    
+    const updateSnapshot = async () => {
+      if (!isMounted || !imgRef.current) return;
+      
+      try {
+        const token = getAuthToken();
+        const response = await fetch(`${baseUrl}/api/camera-stream/snapshot/${device.id}?t=${Date.now()}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          
+          if (imgRef.current && isMounted) {
+            // Revoke old URL to prevent memory leak
+            if (imgRef.current.src && imgRef.current.src.startsWith('blob:')) {
+              URL.revokeObjectURL(imgRef.current.src);
+            }
+            imgRef.current.src = url;
+            setLoading(false);
+            setError(false);
+            setRetryCount(0);
+          }
+        } else {
+          throw new Error(`HTTP ${response.status}`);
         }
-      };
-
-      intervalRef.current = setInterval(updateSnapshot, refreshInterval);
-      updateSnapshot();
-
-      return () => {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
+      } catch (err) {
+        console.error(`Camera ${device.name} error:`, err);
+        if (isMounted) {
+          setRetryCount(prev => prev + 1);
+          if (retryCount > 5) {
+            setError(true);
+            setLoading(false);
+          }
         }
-      };
-    }
-  }, [device.id, streamMode, refreshInterval]);
+      }
+    };
 
-  const handleLoad = () => {
-    setLoading(false);
+    // Initial load
+    updateSnapshot();
+    
+    // Set up polling
+    intervalRef.current = setInterval(updateSnapshot, refreshInterval);
+
+    return () => {
+      isMounted = false;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      // Clean up blob URL
+      if (imgRef.current?.src?.startsWith('blob:')) {
+        URL.revokeObjectURL(imgRef.current.src);
+      }
+    };
+  }, [device.id, device.name, refreshInterval, baseUrl, retryCount]);
+
+  const handleRetry = () => {
     setError(false);
-  };
-
-  const handleError = () => {
-    setLoading(false);
-    setError(true);
+    setLoading(true);
+    setRetryCount(0);
   };
 
   return (
     <div
-      className="relative bg-black rounded-lg overflow-hidden group"
+      className="relative bg-black rounded-lg overflow-hidden group aspect-video"
       draggable={draggable}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
@@ -476,7 +521,7 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
       </div>
 
       {/* Loading state */}
-      {loading && (
+      {loading && !error && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
           <div className="text-center">
             <RefreshCw className="w-8 h-8 text-white/50 animate-spin mx-auto mb-2" />
@@ -491,7 +536,11 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
           <div className="text-center">
             <VideoOff className="w-12 h-12 text-red-500/50 mx-auto mb-2" />
             <p className="text-white/70 text-sm">Sin señal</p>
-            <p className="text-white/50 text-xs">{device.ip_address}</p>
+            <p className="text-white/50 text-xs mb-2">{device.ip_address}</p>
+            <Button variant="outline" size="sm" onClick={handleRetry} className="text-xs">
+              <RefreshCw className="w-3 h-3 mr-1" />
+              Reintentar
+            </Button>
           </div>
         </div>
       )}
@@ -499,11 +548,8 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
       {/* Video/Image stream */}
       <img
         ref={imgRef}
-        src={getStreamUrl()}
         alt={device.name}
         className="w-full h-full object-contain"
-        onLoad={handleLoad}
-        onError={handleError}
         style={{ display: error ? 'none' : 'block' }}
       />
 
