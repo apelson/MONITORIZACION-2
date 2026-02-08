@@ -1383,6 +1383,27 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
             </div>
             
             <div className="space-y-2">
+              <Label>Dirección completa</Label>
+              <Input placeholder="Calle, número, piso..." value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Código Postal</Label>
+                <Input placeholder="Ej: 28001" value={formData.postal_code} onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Teléfono</Label>
+                <Input placeholder="Ej: +34 912 345 678" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Email de contacto</Label>
+              <Input type="email" placeholder="contacto@empresa.com" value={formData.contact_email} onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })} />
+            </div>
+            
+            <div className="space-y-2">
               <Label>{t('common.logo', 'Logo')}</Label>
               <div className="flex gap-2">
                 <Input 
