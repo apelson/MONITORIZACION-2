@@ -167,6 +167,16 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 - Stripe (planned)
 
 ## Key Files Modified This Session
+- `/app/frontend/src/components/panels/CRADashboard.jsx` - Fixed infinite loading bug
+- `/app/frontend/src/components/common/PWAInstallPrompt.jsx` - New extracted component
+- `/app/frontend/src/components/devices/ServerCard.jsx` - New extracted component
+- `/app/frontend/src/components/devices/SortableCard.jsx` - New extracted component
+- `/app/frontend/src/components/dialogs/CommonDialogs.jsx` - New extracted dialogs
+- `/app/frontend/src/components/common/index.js` - Updated exports
+- `/app/frontend/src/components/devices/index.js` - New index file
+- `/app/frontend/src/components/dialogs/index.js` - New index file
+
+## Previous Session Key Files
 - `/app/update_production.sh` - Improved deployment script v2.0
 - `/app/GUIA_DESPLIEGUE_PRODUCCION.md` - New deployment guide
 - `/app/backend/routes/settings.py` - Added `/api/system-status` endpoint
