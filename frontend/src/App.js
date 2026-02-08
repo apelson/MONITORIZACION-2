@@ -5744,6 +5744,7 @@ const Dashboard = () => {
             {!isOperator && <TabsTrigger data-testid="tab-alerts" value="alerts" className="gap-2"><Bell className="w-4 h-4" />{t('nav.alerts', 'Alertas')}{alerts.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-1.5" title={t('alerts.thisMonth', 'Este mes')}>{alerts.length}</Badge>}</TabsTrigger>}
             {!isOperator && <TabsTrigger data-testid="tab-gallery" value="gallery" className="gap-2"><Camera className="w-4 h-4" />Galería</TabsTrigger>}
             {!isOperator && <TabsTrigger data-testid="tab-cra" value="cra" className="gap-2"><Shield className="w-4 h-4 text-red-500" />CRA</TabsTrigger>}
+            {!isOperator && <TabsTrigger data-testid="tab-live" value="live" className="gap-2"><Video className="w-4 h-4" />En Directo</TabsTrigger>}
             {isAdmin && <TabsTrigger data-testid="tab-infrastructure" value="infrastructure" className="gap-2"><Server className="w-4 h-4" />{t('nav.infrastructure', 'Infraestructura')}</TabsTrigger>}
             {isAdmin && <TabsTrigger data-testid="tab-users" value="users" className="gap-2"><Users className="w-4 h-4" />{t('nav.users')}</TabsTrigger>}
             {isAdmin && <TabsTrigger data-testid="tab-logs" value="logs" className="gap-2"><FileSearch className="w-4 h-4" />Logs</TabsTrigger>}
