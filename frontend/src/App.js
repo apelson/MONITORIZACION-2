@@ -5957,6 +5957,14 @@ const Dashboard = () => {
         />
       )}
 
+      {/* Live Viewer Floating Button - below CRA button */}
+      <LiveViewerFloatingButton 
+        authAxios={authAxios}
+        devices={devices}
+        onClick={() => setActiveTab('live')} 
+        isActive={activeTab === 'live'}
+      />
+
       {/* Logo fijo en la parte inferior para móvil - solo el logo, sin fondo */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 flex justify-center py-2 bg-white/95 backdrop-blur-sm border-t border-gray-100" style={{ zIndex: 9999 }}>
         <img src={LOGO_HORIZONTAL_URL} alt="Siempria" className="h-8 object-contain" />
