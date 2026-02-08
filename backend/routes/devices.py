@@ -430,3 +430,96 @@ async def reorder_devices(data: dict, current_user: dict = Depends(require_role(
             {"$set": {"sort_order": order.get("sort_order", 0)}}
         )
     return {"message": "Orden actualizado"}
+
+
+# ============ CRA ENDPOINTS ============
+
+@router.get("/cra/devices")
+async def get_cra_devices(current_user: dict = Depends(get_current_user)):
+    """Get all CRA (critical) devices"""
+    # Get devices marked as CRA
+    cra_devices = await devices_collection.find({"is_cra": True}, {"_id": 0}).to_list(length=None)
+    
+    # Also get devices from CRA organizations
+    cra_orgs = await organizations_collection.find({"is_cra": True}, {"id": 1}).to_list(length=None)
+    cra_org_ids = [org["id"] for org in cra_orgs]
+    
+    if cra_org_ids:
+        # Get groups from CRA organizations
+        cra_groups = await groups_collection.find({"organization_id": {"$in": cra_org_ids}}, {"id": 1}).to_list(length=None)
+        cra_group_ids = [g["id"] for g in cra_groups]
+        
+        # Get devices from those groups
+        org_devices = await devices_collection.find(
+            {"group_id": {"$in": cra_group_ids}, "is_cra": {"$ne": True}}, 
+            {"_id": 0}
+        ).to_list(length=None)
+        
+        # Mark them as CRA via organization
+        for d in org_devices:
+            d["cra_via_org"] = True
+        
+        cra_devices.extend(org_devices)
+    
+    # Remove duplicates by id
+    seen = set()
+    unique_devices = []
+    for d in cra_devices:
+        if d["id"] not in seen:
+            seen.add(d["id"])
+            unique_devices.append(d)
+    
+    return {"devices": unique_devices, "total": len(unique_devices)}
+
+@router.get("/cra/alerts")
+async def get_cra_alerts(current_user: dict = Depends(get_current_user)):
+    """Get alerts for CRA devices only"""
+    # Get CRA device IDs
+    cra_response = await get_cra_devices(current_user)
+    cra_device_ids = [d["id"] for d in cra_response["devices"]]
+    
+    if not cra_device_ids:
+        return {"alerts": [], "total": 0}
+    
+    # Get alerts for CRA devices
+    alerts = await alerts_collection.find(
+        {"device_id": {"$in": cra_device_ids}},
+        {"_id": 0}
+    ).sort("timestamp", -1).to_list(length=None)
+    
+    # Mark alerts as CRA
+    for alert in alerts:
+        alert["is_cra"] = True
+    
+    return {"alerts": alerts, "total": len(alerts)}
+
+@router.get("/cra/status")
+async def get_cra_status(current_user: dict = Depends(get_current_user)):
+    """Get CRA dashboard status summary"""
+    cra_response = await get_cra_devices(current_user)
+    devices = cra_response["devices"]
+    
+    total = len(devices)
+    online = sum(1 for d in devices if d.get("status") == "online")
+    offline = sum(1 for d in devices if d.get("status") == "offline")
+    
+    # Get recent alerts count (last 24h)
+    from datetime import timedelta
+    now = datetime.now(timezone.utc)
+    yesterday = now - timedelta(hours=24)
+    
+    cra_device_ids = [d["id"] for d in devices]
+    recent_alerts = await alerts_collection.count_documents({
+        "device_id": {"$in": cra_device_ids},
+        "timestamp": {"$gte": yesterday.isoformat()}
+    }) if cra_device_ids else 0
+    
+    return {
+        "total_devices": total,
+        "online": online,
+        "offline": offline,
+        "uptime_percentage": round((online / total * 100), 1) if total > 0 else 100,
+        "recent_alerts_24h": recent_alerts,
+        "status": "critical" if offline > 0 else "ok"
+    }
+
