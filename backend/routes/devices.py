@@ -312,7 +312,7 @@ async def get_alerts(
                 "$gte": start_date,
                 "$lte": end_date
             }
-        except:
+        except Exception:
             pass
     elif period == "day":
         start = now.replace(hour=0, minute=0, second=0, microsecond=0)
