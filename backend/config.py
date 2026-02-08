@@ -36,6 +36,7 @@ scheduled_reports_collection = db["scheduled_reports"]
 public_dashboards_collection = db["public_dashboards"]
 access_logs_collection = db["access_logs"]  # NEW: Access logs
 incidents_collection = db["incidents"]  # NEW: Incidents/tickets
+device_images_collection = db["device_images"]  # NEW: Device installation images
 
 # JWT Settings
 SECRET_KEY = os.environ.get("SECRET_KEY", "siempria-network-monitor-secret-key-2024")
