@@ -1416,6 +1416,43 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
               <Input type="email" placeholder="contacto@empresa.com" value={formData.contact_email} onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })} />
             </div>
             
+            {/* Responsable Section */}
+            <div className="border-t pt-4 mt-4">
+              <Label className="text-sm font-semibold text-muted-foreground mb-3 block">👤 Persona Responsable</Label>
+              <div className="space-y-3">
+                <div>
+                  <Label>Nombre del Responsable</Label>
+                  <Input placeholder="Juan García" value={formData.responsible_name} onChange={(e) => setFormData({ ...formData, responsible_name: e.target.value })} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Teléfono Responsable</Label>
+                    <Input placeholder="+34 600 123 456" value={formData.responsible_phone} onChange={(e) => setFormData({ ...formData, responsible_phone: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>Email Responsable</Label>
+                    <Input type="email" placeholder="responsable@empresa.com" value={formData.responsible_email} onChange={(e) => setFormData({ ...formData, responsible_email: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* CRA Section */}
+            <div className="border-t pt-4 mt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-semibold">🚨 Centro CRA</Label>
+                  <p className="text-xs text-muted-foreground">Central Receptora de Alarmas - Dispositivos críticos</p>
+                </div>
+                <Switch checked={formData.is_cra} onCheckedChange={(checked) => setFormData({ ...formData, is_cra: checked })} />
+              </div>
+              {formData.is_cra && (
+                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
+                  ⚠️ Todos los dispositivos de esta organización serán marcados como críticos y tendrán prioridad en las alertas.
+                </div>
+              )}
+            </div>
+            
             <div className="space-y-2">
               <Label>{t('common.logo', 'Logo')}</Label>
               <div className="flex gap-2">
