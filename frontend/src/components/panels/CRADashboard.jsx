@@ -359,6 +359,7 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
 
 // CRA Device Card Component with FTP status badge
 const CRADeviceCard = ({ device, ftpStatus, loadingFtp, onRefreshFtp, onOpenLive, isOffline }) => {
+  const ftpLoaded = ftpStatus !== undefined;
   const ftpEnabled = ftpStatus?.enabled;
   const ftpError = ftpStatus?.error;
   
@@ -388,7 +389,7 @@ const CRADeviceCard = ({ device, ftpStatus, loadingFtp, onRefreshFtp, onOpenLive
           <Tooltip>
             <TooltipTrigger asChild>
               <div>
-                {loadingFtp ? (
+                {loadingFtp || !ftpLoaded ? (
                   <Badge variant="outline" className="text-xs animate-pulse">
                     <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
                     FTP
@@ -417,7 +418,7 @@ const CRADeviceCard = ({ device, ftpStatus, loadingFtp, onRefreshFtp, onOpenLive
             </TooltipTrigger>
             <TooltipContent>
               <p>
-                {loadingFtp ? 'Verificando estado FTP...' : 
+                {loadingFtp || !ftpLoaded ? 'Verificando estado FTP...' : 
                  ftpError ? `Error: ${ftpError}. Haz clic para reintentar` :
                  ftpEnabled ? 'FTP activado - Subida de eventos activa' : 
                  'FTP desactivado - Sin subida de eventos'}
