@@ -34,6 +34,10 @@ async def create_organization(data: OrganizationCreate, current_user: dict = Dep
         "postal_code": data.postal_code or "",
         "phone": data.phone or "",
         "contact_email": data.contact_email or "",
+        "responsible_name": data.responsible_name or "",
+        "responsible_phone": data.responsible_phone or "",
+        "responsible_email": data.responsible_email or "",
+        "is_cra": data.is_cra or False,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await organizations_collection.insert_one(org)
