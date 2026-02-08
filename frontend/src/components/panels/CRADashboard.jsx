@@ -376,7 +376,109 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* FTP History Tab */}
+        <TabsContent value="ftp-history" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-blue-500" />
+                  Historial de Cambios FTP
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={fetchFtpHistory}
+                  disabled={loadingHistory}
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${loadingHistory ? 'animate-spin' : ''}`} />
+                  Actualizar
+                </Button>
+              </CardTitle>
+              <CardDescription>
+                Registro de cambios de estado FTP para auditoría de seguridad
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingHistory ? (
+                <div className="space-y-2">
+                  {[1,2,3].map(i => <Skeleton key={i} className="h-16" />)}
+                </div>
+              ) : ftpHistory.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <History className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>No hay historial de cambios FTP registrado</p>
+                  <p className="text-sm">El historial se registra automáticamente al consultar el estado FTP de los dispositivos</p>
+                </div>
+              ) : (
+                <ScrollArea className="h-[400px]">
+                  <div className="space-y-2">
+                    {ftpHistory.map((entry, idx) => (
+                      <FTPHistoryEntry key={entry.id || idx} entry={entry} />
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+    </div>
+  );
+};
+
+// FTP History Entry Component
+const FTPHistoryEntry = ({ entry }) => {
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleString('es-ES', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+  };
+
+  const getChangeIcon = () => {
+    switch (entry.change_type) {
+      case 'armed': return <ShieldCheck className="w-5 h-5 text-green-600" />;
+      case 'disarmed': return <ShieldAlert className="w-5 h-5 text-orange-600" />;
+      default: return <Shield className="w-5 h-5 text-blue-600" />;
+    }
+  };
+
+  const getChangeLabel = () => {
+    switch (entry.change_type) {
+      case 'armed': return { text: 'ARMADO', color: 'bg-green-100 text-green-700' };
+      case 'disarmed': return { text: 'DESARMADO', color: 'bg-orange-100 text-orange-700' };
+      default: return { text: 'INICIAL', color: 'bg-blue-100 text-blue-700' };
+    }
+  };
+
+  const label = getChangeLabel();
+
+  return (
+    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+      <div className="flex-shrink-0 mt-1">{getChangeIcon()}</div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-medium">{entry.device_name}</span>
+          <Badge className={`text-xs ${label.color}`}>{label.text}</Badge>
+        </div>
+        <div className="text-sm text-muted-foreground mt-1">
+          <span className="font-mono text-xs">{formatDate(entry.timestamp)}</span>
+          {entry.ftp_server && (
+            <span className="ml-2">• Servidor: {entry.ftp_server}</span>
+          )}
+        </div>
+        <div className="text-xs text-muted-foreground mt-1">
+          Detectado por: <span className="font-medium">{entry.detected_by}</span>
+          {entry.previous_status !== null && (
+            <span className="ml-2">
+              • Estado anterior: {entry.previous_status ? 'ARMADO' : 'DESARMADO'}
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
