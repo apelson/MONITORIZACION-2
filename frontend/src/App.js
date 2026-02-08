@@ -37,6 +37,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { LanguageSelector } from "@/components/LanguageSelector";
 import InfrastructurePanel from "@/components/panels/InfrastructurePanel";
 import DeviceGallery from "@/components/panels/DeviceGallery";
+import CRADashboard from "@/components/panels/CRADashboard";
 import NotificationSettings from "@/components/settings/NotificationSettings";
 import SystemStatusDashboard from "@/components/settings/SystemStatusDashboard";
 
