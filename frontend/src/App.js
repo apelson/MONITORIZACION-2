@@ -1284,7 +1284,11 @@ const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, d
 
 const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) => {
   const { t } = useTranslation();
-  const [formData, setFormData] = useState({ name: "", description: "", color: "#3b82f6", logo_url: "", country: "", city: "", address: "", postal_code: "", phone: "", contact_email: "" });
+  const [formData, setFormData] = useState({ 
+    name: "", description: "", color: "#3b82f6", logo_url: "", country: "", city: "", 
+    address: "", postal_code: "", phone: "", contact_email: "",
+    responsible_name: "", responsible_phone: "", responsible_email: "", is_cra: false
+  });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
@@ -1307,9 +1311,17 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
       address: organization.address || "",
       postal_code: organization.postal_code || "",
       phone: organization.phone || "",
-      contact_email: organization.contact_email || ""
+      contact_email: organization.contact_email || "",
+      responsible_name: organization.responsible_name || "",
+      responsible_phone: organization.responsible_phone || "",
+      responsible_email: organization.responsible_email || "",
+      is_cra: organization.is_cra || false
     });
-    else setFormData({ name: "", description: "", color: "#3b82f6", logo_url: "", country: "", city: "", address: "", postal_code: "", phone: "", contact_email: "" });
+    else setFormData({ 
+      name: "", description: "", color: "#3b82f6", logo_url: "", country: "", city: "", 
+      address: "", postal_code: "", phone: "", contact_email: "",
+      responsible_name: "", responsible_phone: "", responsible_email: "", is_cra: false
+    });
   }, [organization, open]);
 
   const handleFileUpload = async (e) => {
