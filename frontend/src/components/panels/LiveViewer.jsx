@@ -546,9 +546,10 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
-      // Clean up blob URL
-      if (imgRef.current?.src?.startsWith('blob:')) {
-        URL.revokeObjectURL(imgRef.current.src);
+      // Clean up blob URL - save ref to variable to avoid stale ref
+      const currentImg = imgRef.current;
+      if (currentImg?.src?.startsWith('blob:')) {
+        URL.revokeObjectURL(currentImg.src);
       }
     };
   }, [device.id, device.name, refreshInterval, baseUrl, retryCount, viewMode, isHemispheric]);
