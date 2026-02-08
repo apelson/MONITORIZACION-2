@@ -376,12 +376,49 @@ async def get_camera_ftp_status(
                         ftp_info["raw_config"][f"event_{endpoint}"] = content[:300]
                 except:
                     continue
+            
+            # Check for status change and record in history
+            current_status = ftp_info["ftp_enabled"] or ftp_info["event_enabled"]
+            await _record_ftp_status_change(device_id, device.get("name"), current_status, ftp_info, current_user)
                     
         except Exception as e:
             logger.error(f"Error getting FTP status for {device_id}: {e}")
             ftp_info["error"] = str(e)
     
     return ftp_info
+
+
+async def _record_ftp_status_change(device_id: str, device_name: str, current_status: bool, ftp_info: dict, user: dict):
+    """Record FTP status change in history for auditing"""
+    try:
+        # Get last recorded status
+        last_record = await ftp_history_collection.find_one(
+            {"device_id": device_id},
+            sort=[("timestamp", -1)]
+        )
+        
+        last_status = last_record.get("ftp_enabled") if last_record else None
+        
+        # Only record if status changed or no previous record
+        if last_status is None or last_status != current_status:
+            history_entry = {
+                "id": str(uuid.uuid4()),
+                "device_id": device_id,
+                "device_name": device_name,
+                "ftp_enabled": current_status,
+                "previous_status": last_status,
+                "ftp_server": ftp_info.get("ftp_server"),
+                "ftp_path": ftp_info.get("ftp_path"),
+                "event_enabled": ftp_info.get("event_enabled"),
+                "change_type": "initial" if last_status is None else ("armed" if current_status else "disarmed"),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "detected_by": user.get("username", "system"),
+                "user_id": user.get("id")
+            }
+            await ftp_history_collection.insert_one(history_entry)
+            logger.info(f"FTP status change recorded for {device_name}: {last_status} -> {current_status}")
+    except Exception as e:
+        logger.error(f"Error recording FTP history: {e}")
 
 
 @router.get("/hemispheric/{device_id}")
