@@ -874,7 +874,11 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
       
       if (hasCameraConfig && device.status === "online") {
         try {
-          const response = await authAxios.get(`/image-proxy/${device.id}`, { responseType: 'blob' });
+          // Use hemispheric endpoint for 360° cameras to show full fisheye view
+          const endpoint = isHemispheric 
+            ? `/camera-stream/hemispheric/${device.id}?view=full` 
+            : `/image-proxy/${device.id}`;
+          const response = await authAxios.get(endpoint, { responseType: 'blob' });
           if (response.data) {
             const url = URL.createObjectURL(response.data);
             setImageData(url);
