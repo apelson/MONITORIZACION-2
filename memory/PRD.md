@@ -129,11 +129,17 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 - [ ] Implement "Forgot Password" feature
 
 ### P2 - Medium Priority
-- [ ] Refactor App.js into smaller components (<1000 lines each)
+- [ ] **Continue App.js Refactoring** - Currently 6266 lines, target <1000 lines each
+  - [ ] Extract DeviceFormDialog component
+  - [ ] Extract GroupFormDialog component  
+  - [ ] Extract AlertsPanel component
+  - [ ] Extract StatisticsPanel component
 - [ ] Fix favicon/PWA icons in production
 - [ ] Add more NAS-specific metrics
 - [ ] Historical view with charts for Alerts panel
 - [ ] Optimize duplicate API calls
+- [ ] Fix missing sound file `/sounds/cra-alert.mp3`
+- [ ] Add DialogDescription to DeviceFormDialog (accessibility)
 
 ### P3 - Future/Backlog
 - [ ] Stripe payment integration checkout flow
