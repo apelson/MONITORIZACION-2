@@ -918,7 +918,7 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
     
     observer.observe(node);
     return () => observer.disconnect();
-  }, [imageData, isCamera, hasCameraConfig, device.status, device.id, device.name, authAxios, isHemispheric]);
+  }, [imageData, isCamera, hasCameraConfig, device.status, device.id, device.name, device.model, authAxios]);
 
   // Set placeholder for offline cameras immediately
   useEffect(() => {
