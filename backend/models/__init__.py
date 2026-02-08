@@ -113,6 +113,7 @@ class DeviceCreate(BaseModel):
     camera_password: Optional[str] = ""
     camera_path: Optional[str] = ""
     has_statistics: Optional[bool] = False
+    is_cra: Optional[bool] = False  # CRA - Critical device
 
 class DeviceUpdate(BaseModel):
     name: Optional[str] = None
@@ -131,6 +132,7 @@ class DeviceUpdate(BaseModel):
     camera_password: Optional[str] = None
     camera_path: Optional[str] = None
     has_statistics: Optional[bool] = None
+    is_cra: Optional[bool] = None
 
 # ============ SETTINGS MODELS ============
 
