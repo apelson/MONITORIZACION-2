@@ -406,11 +406,39 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [viewMode, setViewMode] = useState('normal'); // 'normal', 'fisheye', 'panorama'
+  const [cameraConfig, setCameraConfig] = useState(null);
   const imgRef = useRef(null);
   const panelRef = useRef(null);
   const intervalRef = useRef(null);
 
   const baseUrl = process.env.REACT_APP_BACKEND_URL || '';
+
+  // Check if camera is hemispheric
+  const isHemispheric = cameraConfig?.is_hemispheric || 
+    device.model?.toLowerCase().includes('c25') || 
+    device.model?.toLowerCase().includes('c26') ||
+    device.model?.toLowerCase().includes('q25') ||
+    device.model?.toLowerCase().includes('s15');
+
+  // Fetch camera config on mount to detect hemispheric cameras
+  useEffect(() => {
+    const fetchCameraConfig = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        const response = await fetch(`${baseUrl}/api/camera-stream/camera-config/${device.id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const config = await response.json();
+          setCameraConfig(config);
+        }
+      } catch (err) {
+        console.error('Error fetching camera config:', err);
+      }
+    };
+    fetchCameraConfig();
+  }, [device.id, baseUrl]);
 
   // Handle double-click for fullscreen
   const handleDoubleClick = async () => {
@@ -450,6 +478,10 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
   const getSnapshotUrl = () => {
     const token = getAuthToken();
     const timestamp = Date.now();
+    // Use hemispheric endpoint if in fisheye/panorama mode
+    if (viewMode !== 'normal' && isHemispheric) {
+      return `${baseUrl}/api/camera-stream/hemispheric/${device.id}?view=${viewMode}&t=${timestamp}`;
+    }
     return `${baseUrl}/api/camera-stream/snapshot/${device.id}?t=${timestamp}&token=${token}`;
   };
 
