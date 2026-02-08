@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { 
   Shield, ShieldAlert, ShieldCheck, AlertTriangle, Wifi, WifiOff, 
   Bell, RefreshCw, Volume2, VolumeX, Clock, Activity, Server,
-  CheckCircle, XCircle, Upload, Video, Circle
+  CheckCircle, XCircle, Upload, Video, Circle, History, FileText
 } from 'lucide-react';
 
 const CRADashboard = ({ authAxios, onOpenLiveView }) => {
@@ -25,6 +25,8 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
   const [activeTab, setActiveTab] = useState('status');
   const [ftpStatuses, setFtpStatuses] = useState({}); // Device ID -> FTP status
   const [loadingFtp, setLoadingFtp] = useState({});
+  const [ftpHistory, setFtpHistory] = useState([]); // FTP change history
+  const [loadingHistory, setLoadingHistory] = useState(false);
   const audioRef = useRef(null);
   const lastAlertCountRef = useRef(0);
   const intervalRef = useRef(null);
