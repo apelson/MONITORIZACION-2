@@ -166,6 +166,7 @@ async def create_device(data: DeviceCreate, request: Request, current_user: dict
         "camera_password": data.camera_password or "",
         "camera_path": data.camera_path or "",
         "has_statistics": data.has_statistics or False,
+        "is_cra": data.is_cra or False,
         "status": "unknown",
         "last_check": None,
         "last_online": None,
