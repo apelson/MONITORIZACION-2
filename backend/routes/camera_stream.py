@@ -630,3 +630,75 @@ async def get_full_camera_config(
             config["error"] = str(e)
     
     return config
+
+
+# ============ FTP HISTORY ENDPOINTS ============
+
+@router.get("/ftp-history/{device_id}")
+async def get_device_ftp_history(
+    device_id: str,
+    limit: int = Query(50, ge=1, le=200),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get FTP status change history for a specific device"""
+    history = await ftp_history_collection.find(
+        {"device_id": device_id},
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(limit).to_list(length=limit)
+    
+    return {
+        "device_id": device_id,
+        "history": history,
+        "total": len(history)
+    }
+
+
+@router.get("/ftp-history")
+async def get_all_ftp_history(
+    limit: int = Query(100, ge=1, le=500),
+    device_id: Optional[str] = None,
+    change_type: Optional[str] = Query(None, description="Filter by: armed, disarmed, initial"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get FTP status change history for all devices (audit log)"""
+    query = {}
+    if device_id:
+        query["device_id"] = device_id
+    if change_type:
+        query["change_type"] = change_type
+    
+    history = await ftp_history_collection.find(
+        query,
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(limit).to_list(length=limit)
+    
+    # Get summary statistics
+    total_count = await ftp_history_collection.count_documents(query)
+    armed_count = await ftp_history_collection.count_documents({**query, "change_type": "armed"})
+    disarmed_count = await ftp_history_collection.count_documents({**query, "change_type": "disarmed"})
+    
+    return {
+        "history": history,
+        "total": total_count,
+        "showing": len(history),
+        "stats": {
+            "armed_events": armed_count,
+            "disarmed_events": disarmed_count
+        }
+    }
+
+
+@router.delete("/ftp-history/{device_id}")
+async def clear_device_ftp_history(
+    device_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Clear FTP history for a specific device (admin only)"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Solo administradores pueden eliminar historial")
+    
+    result = await ftp_history_collection.delete_many({"device_id": device_id})
+    return {
+        "message": f"Historial eliminado para dispositivo {device_id}",
+        "deleted_count": result.deleted_count
+    }
