@@ -451,27 +451,27 @@ async def get_hemispheric_image(
     
     # Mobotix hemispheric view parameters
     view_params = {
-        "full": "mode=hemisphere&view=full",
-        "panorama": "mode=hemisphere&view=panorama",
-        "north": "mode=hemisphere&view=north",
-        "south": "mode=hemisphere&view=south",
-        "quad": "mode=hemisphere&view=quad",
-        "surround": "mode=hemisphere&view=surround",
-        "double_panorama": "mode=hemisphere&view=doublepanorama",
+        "full": "mode=full",  # Full fisheye circle
+        "panorama": "mode=panorama",
+        "north": "mode=north",
+        "south": "mode=south",
+        "quad": "mode=quad",
+        "surround": "mode=surround",
+        "double_panorama": "mode=doublepanorama",
     }
     
     view_param = view_params.get(view, view_params["full"])
     
-    # Mobotix hemispheric image URLs to try
+    # Mobotix hemispheric image URLs to try - prioritize fisheye/full view
     hemispheric_urls = [
-        # MxPEG with hemispheric view
-        f"{base_url}/cgi-bin/image.jpg?{view_param}&quality={quality}",
+        # Full fisheye view - most direct approach for c25/c26
+        f"{base_url}/cgi-bin/image.jpg?{view_param}&size=640x480&quality={quality}",
         f"{base_url}/cgi-bin/faststream.jpg?stream=full&{view_param}&quality={quality}",
-        # Full resolution fisheye
-        f"{base_url}/record/current.jpg?{view_param}",
-        # Alternative Mobotix API
-        f"{base_url}/control/control?action=snapshot&{view_param}&quality={quality}",
-        # Standard snapshot as fallback
+        # Without size parameter
+        f"{base_url}/cgi-bin/image.jpg?{view_param}&quality={quality}",
+        # Full resolution 
+        f"{base_url}/record/current.jpg",
+        # Standard as fallback (will show corrected view)
         f"{base_url}/cgi-bin/image.jpg?quality={quality}",
     ]
     
