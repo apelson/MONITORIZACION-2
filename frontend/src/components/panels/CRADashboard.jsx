@@ -397,19 +397,27 @@ const CRADeviceCard = ({ device, ftpStatus, loadingFtp, onRefreshFtp, onOpenLive
                 ) : ftpError ? (
                   <Badge 
                     variant="outline" 
-                    className="text-xs bg-gray-100 text-gray-500 cursor-pointer"
+                    className="text-xs cursor-pointer"
+                    style={{ backgroundColor: '#f3f4f6', color: '#6b7280' }}
                     onClick={onRefreshFtp}
                   >
                     <Upload className="w-3 h-3 mr-1" />
                     FTP ?
                   </Badge>
                 ) : ftpEnabled ? (
-                  <Badge className="text-xs bg-green-600 text-white hover:bg-green-700">
+                  <Badge 
+                    className="text-xs"
+                    style={{ backgroundColor: '#16a34a', color: 'white', border: 'none' }}
+                  >
                     <Upload className="w-3 h-3 mr-1" />
                     ARMADO
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="text-xs bg-orange-100 text-orange-700 border-orange-300">
+                  <Badge 
+                    variant="outline" 
+                    className="text-xs"
+                    style={{ backgroundColor: '#ffedd5', color: '#c2410c', borderColor: '#fdba74' }}
+                  >
                     <Upload className="w-3 h-3 mr-1" />
                     DESARMADO
                   </Badge>
