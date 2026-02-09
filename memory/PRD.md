@@ -34,18 +34,17 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 │   │   ├── superadmin_integrated.py  # Multi-tenant SuperAdmin
 │   │   └── ...
 │   └── services/         
-│       └── infrastructure_service.py  # ESXi, QNAP, Synology, OpenVPN services
+│       └── infrastructure_service.py
 └── frontend/             # React + Craco
     ├── src/
     │   ├── App.js        # Main component (~6200 lines)
-    │   ├── contexts/     # AuthContext
-    │   ├── hooks/        # useNotifications
-    │   ├── services/     # NotificationService
-    │   └── components/   # UI components
-    │       ├── auth/     # LoginPage
-    │       ├── common/   # StatusBadges, CRAFloatingButton, LiveViewerFloatingButton
-    │       ├── panels/   # CRADashboard, LiveViewer, InfrastructurePanel
-    │       └── settings/ # NotificationSettings, RolesManager, SuperAdminTab
+    │   ├── components/
+    │   │   ├── common/   # SectionLoader, CRAFloatingButton, LiveViewerFloatingButton
+    │   │   ├── panels/   # CRADashboard, LiveViewer, InfrastructurePanel
+    │   │   └── settings/ # RolesManager, SuperAdminTab, NotificationSettings
+    │   └── ...
+    └── public/
+        └── sounds/       # cra-alert.wav
 ```
 
 ## What's Been Implemented
@@ -55,10 +54,9 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 #### Role-Based Access Control (RBAC) ✅
 - Backend API `/api/roles` with full CRUD operations
 - 4 default system roles: Administrador, Técnico, Cliente, Operador CRA
-- Granular permissions per section (devices, gallery, cra, live, statistics, alerts, users, settings, export, organizations, groups, reports, incidents, roles)
+- Granular permissions per section
 - Frontend `RolesManager.jsx` component for managing roles
 - API `/api/roles/my-permissions` for fetching current user permissions
-- Group and organization access control (all vs assigned)
 
 #### CRA Dashboard Filters ✅
 - ARMADO/DESARMADO filter buttons functional
@@ -67,11 +65,18 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 
 #### Floating Buttons Color Differentiation ✅
 - **CRA Button**: Dynamic colors (green=OK, yellow=warning, red=alert)
-- **En Directo Button**: Purple/violet gradient (`from-purple-600 to-violet-500`)
+- **En Directo Button**: Purple/violet gradient
 
-#### SuperAdmin Tab Integration ✅
-- New "Super Admin" tab visible for admin users
-- Foundation for multi-tenant management
+#### Global Section Loader ✅ (NEW)
+- `SectionLoader.jsx` component created
+- Shows loading overlay with company logo after 2 seconds of loading
+- Integrated into Dashboard with `useDelayedLoading` hook
+- Includes animated spinner, progress dots, and loading message
+
+#### Sound Alert Fix ✅ (NEW)
+- Fixed audio file format (was RIFF/WAV named as .mp3)
+- Created proper `/sounds/cra-alert.wav` file
+- Updated CRADashboard.jsx to use correct file extension
 
 #### Bug Fixes ✅
 - Fixed duplicate `if (loading)` in CRADashboard.jsx (line 164-165)
@@ -82,10 +87,6 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 - Live View Button on Device Cards
 - FTP History for Auditing
 - CRADashboard Performance Optimization
-- Dynamic API Configuration
-- Organization Filter in Alerts
-- System Status Dashboard
-- OpenVPN Monitoring
 - All infrastructure features (ESXi, QNAP, Synology, alerts, i18n, etc.)
 
 ## Prioritized Backlog
@@ -94,26 +95,26 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 - [x] RBAC system functional
 - [x] CRA filters (ARMADO/DESARMADO) working
 - [x] Floating button colors differentiated
+- [x] Global loading screen implemented
+- [x] Sound alert file fixed
 
 ### P1 - High Priority
-- [ ] Global loading screen for sections that take >2 seconds
-- [ ] Add `/sounds/cra-alert.mp3` file for alert audio
 - [ ] Continue App.js Refactoring - Target <1000 lines each
   - [ ] Extract AlertsPanel component
   - [ ] Extract StatisticsPanel component
+  - [ ] Extract DeviceFormDialog component
 
 ### P2 - Medium Priority
 - [ ] Full Multi-Tenant (SaaS) Implementation
 - [ ] Hemispheric camera improvements (user requested)
-- [ ] Use optimized CRA endpoint `/api/cra/dashboard-data`
-- [ ] Add DialogDescription to DeviceFormDialog (accessibility)
+- [ ] Backend stability improvements
 
 ### P3 - Future/Backlog
 - [ ] Stripe payment integration checkout flow
 - [ ] Per-client subdomains
 - [ ] Public dashboards UI
 - [ ] Lazy loading for camera images
-- [ ] Backend stability improvements
+- [ ] Public domain access fix (siempriapp.com)
 
 ## Key API Endpoints
 
@@ -131,22 +132,11 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 - `GET /api/cra/alerts` - CRA alerts
 - `GET /api/camera-stream/ftp-status/{device_id}` - FTP configuration status
 - `GET /api/camera-stream/ftp-status-batch` - Batch FTP status
-- `GET /api/camera-stream/ftp-history` - FTP change history (audit log)
-- `GET /api/camera-stream/hemispheric/{device_id}?view=full|panorama` - Hemispheric view
-
-### Standard Endpoints
-- `POST /api/auth/login`
-- `GET /api/auth/me`
-- `GET /api/devices`
-- `GET /api/users`
-- `GET /api/alerts`
 
 ## Database Collections
 - `devices` - Device information
 - `roles` - Role definitions and permissions
 - `ftp_history` - FTP status change history
-- `status_history` - Device status history
-- `alerts` - System alerts
 - `users` - User accounts (includes role_id)
 - `organizations` - Multi-tenant organizations
 - `groups` - Device groups
@@ -161,16 +151,32 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 - Admin: `admin` / `Spw@16071977`
 - Operador: `operador` / `operador`
 - Tecnico: `tecnico` / `tecnico123`
-- ESXi: `root` / `Spw@16071977` @ `192.168.1.97`
-- QNAP: `administrador` / `Spw@16071977` @ `192.168.1.3`
 
 ## Key Files Modified This Session
-- `/app/frontend/src/components/panels/CRADashboard.jsx` - Fixed duplicate if statement
-- `/app/frontend/src/components/common/LiveViewerFloatingButton.jsx` - Changed to purple/violet gradient
-- `/app/backend/routes/roles.py` - RBAC API (verified working)
-- `/app/frontend/src/components/settings/RolesManager.jsx` - Roles UI (verified working)
+- `/app/frontend/src/App.js` - Added SectionLoader import and integration
+- `/app/frontend/src/components/common/SectionLoader.jsx` - NEW: Global loading component
+- `/app/frontend/src/components/panels/CRADashboard.jsx` - Fixed duplicate if, updated audio path
+- `/app/frontend/src/components/common/LiveViewerFloatingButton.jsx` - Changed to purple/violet
+- `/app/frontend/public/sounds/cra-alert.wav` - NEW: Proper WAV format audio
 
-## Known Issues
-- Missing `/sounds/cra-alert.mp3` file (404 error in console, LOW priority)
-- Production deployment requires manual file copying and service restart
-- App.js is ~6200 lines and needs refactoring
+## Production Update Commands
+```bash
+# Connect to production server
+ssh usuario@siempriapp.com
+cd /opt/siempria-monitor
+
+# Download updated files
+curl -o frontend/src/components/panels/CRADashboard.jsx "https://cra-perf-test.preview.emergentagent.com/api/download-file?path=CRADashboard.jsx"
+curl -o frontend/src/components/common/LiveViewerFloatingButton.jsx "https://cra-perf-test.preview.emergentagent.com/api/download-file?path=LiveViewerFloatingButton.jsx"
+
+# Copy SectionLoader (new file)
+# You'll need to create this file manually or use the download endpoint
+
+# Rebuild frontend
+cd frontend
+yarn build
+
+# Restart services
+sudo systemctl restart siempria-backend
+sudo systemctl reload nginx
+```
