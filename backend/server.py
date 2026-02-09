@@ -225,6 +225,7 @@ async def download_file(path: str):
         "RolesManager.jsx": "/app/frontend/src/components/settings/RolesManager.jsx",
         "SuperAdminTab.jsx": "/app/frontend/src/components/settings/SuperAdminTab.jsx",
         "LiveViewerFloatingButton.jsx": "/app/frontend/src/components/common/LiveViewerFloatingButton.jsx",
+        "SectionLoader.jsx": "/app/frontend/src/components/common/SectionLoader.jsx",
         "App.js": "/app/frontend/src/App.js",
     }
     
