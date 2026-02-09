@@ -5935,6 +5935,7 @@ const Dashboard = () => {
             {isAdmin && <TabsTrigger data-testid="tab-logs" value="logs" className="gap-2"><FileSearch className="w-4 h-4" />Logs</TabsTrigger>}
             {canAccessSection('incidents') && <TabsTrigger data-testid="tab-incidents" value="incidents" className="gap-2"><ClipboardList className="w-4 h-4" />{t('nav.incidents')}</TabsTrigger>}
             {canAccessSection('settings') && <TabsTrigger data-testid="tab-settings" value="settings" className="gap-2"><Settings className="w-4 h-4" />{t('nav.settings')}</TabsTrigger>}
+            {isAdmin && <TabsTrigger data-testid="tab-superadmin" value="superadmin" className="gap-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"><Shield className="w-4 h-4" />Super Admin</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="devices">
