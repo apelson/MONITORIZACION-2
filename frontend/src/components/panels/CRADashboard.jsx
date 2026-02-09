@@ -274,6 +274,47 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
         </TabsList>
 
         <TabsContent value="status" className="mt-4">
+          {/* FTP Filter Buttons */}
+          <div className="flex items-center gap-2 mb-4 p-3 bg-muted/50 rounded-lg">
+            <span className="text-sm font-medium text-muted-foreground mr-2">Filtrar por FTP:</span>
+            <Button 
+              variant={ftpFilter === 'all' ? 'default' : 'outline'} 
+              size="sm"
+              onClick={() => setFtpFilter('all')}
+            >
+              Todos
+            </Button>
+            <Button 
+              variant={ftpFilter === 'armed' ? 'default' : 'outline'} 
+              size="sm"
+              onClick={() => setFtpFilter('armed')}
+              className={ftpFilter === 'armed' ? 'bg-green-600 hover:bg-green-700' : ''}
+            >
+              <ShieldCheck className="w-4 h-4 mr-1" />
+              ARMADO
+            </Button>
+            <Button 
+              variant={ftpFilter === 'disarmed' ? 'default' : 'outline'} 
+              size="sm"
+              onClick={() => setFtpFilter('disarmed')}
+              className={ftpFilter === 'disarmed' ? 'bg-orange-600 hover:bg-orange-700' : ''}
+            >
+              <ShieldAlert className="w-4 h-4 mr-1" />
+              DESARMADO
+            </Button>
+            <span className="ml-auto text-sm text-muted-foreground">
+              {(() => {
+                const filteredOnline = onlineDevices.filter(d => {
+                  if (ftpFilter === 'all') return true;
+                  const ftp = ftpStatuses[d.id];
+                  if (!ftp) return ftpFilter === 'all';
+                  return ftpFilter === 'armed' ? ftp.enabled : !ftp.enabled;
+                });
+                return `${filteredOnline.length} dispositivos`;
+              })()}
+            </span>
+          </div>
+
           <div className="grid md:grid-cols-2 gap-6">
             {/* Offline Devices */}
             <Card className={offlineDevices.length > 0 ? "border-red-200" : ""}>
@@ -291,7 +332,14 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {offlineDevices.map(device => (
+                    {offlineDevices
+                      .filter(d => {
+                        if (ftpFilter === 'all') return true;
+                        const ftp = ftpStatuses[d.id];
+                        if (!ftp) return false;
+                        return ftpFilter === 'armed' ? ftp.enabled : !ftp.enabled;
+                      })
+                      .map(device => (
                       <CRADeviceCard 
                         key={device.id} 
                         device={device} 
@@ -313,12 +361,26 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Wifi className="w-5 h-5 text-green-500" />
                   Dispositivos Online
-                  <Badge variant="secondary" className="ml-2">{onlineDevices.length}</Badge>
+                  <Badge variant="secondary" className="ml-2">
+                    {onlineDevices.filter(d => {
+                      if (ftpFilter === 'all') return true;
+                      const ftp = ftpStatuses[d.id];
+                      if (!ftp) return ftpFilter === 'all';
+                      return ftpFilter === 'armed' ? ftp.enabled : !ftp.enabled;
+                    }).length}
+                  </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                  {onlineDevices.map(device => (
+                  {onlineDevices
+                    .filter(d => {
+                      if (ftpFilter === 'all') return true;
+                      const ftp = ftpStatuses[d.id];
+                      if (!ftp) return ftpFilter === 'all';
+                      return ftpFilter === 'armed' ? ftp.enabled : !ftp.enabled;
+                    })
+                    .map(device => (
                     <CRADeviceCard 
                       key={device.id} 
                       device={device} 
