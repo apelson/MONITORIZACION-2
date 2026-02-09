@@ -150,7 +150,7 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
       setRefreshing(false);
       isFetchingRef.current = false;
     }
-  }, [authAxios, soundEnabled, ftpStatuses, fetchFtpStatus]);
+  }, [authAxios, soundEnabled]);
 
   // Initial load and interval
   useEffect(() => {
