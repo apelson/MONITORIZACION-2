@@ -5679,6 +5679,18 @@ const Dashboard = () => {
                 </div>
                 {recentFailures.length > 0 && <Bell className="w-4 h-4 text-red-400 animate-pulse ml-2" />}
               </button>
+              <div className="status-hud-divider" />
+              <button 
+                onClick={() => setActiveTab('cra')} 
+                className="status-hud-item cra hover:bg-cyan-500/10 px-3 py-2 rounded-full transition-all"
+                title="Ver dispositivos CRA"
+              >
+                <Shield className="w-4 h-4 text-cyan-400" />
+                <div className="flex flex-col items-center">
+                  <span className="status-count text-cyan-400">{devices.filter(d => d.device_type === 'cra').length}</span>
+                  <span className="status-hud-label hidden sm:block text-cyan-400">CRA</span>
+                </div>
+              </button>
             </div>
 
             {/* Right: Actions */}
