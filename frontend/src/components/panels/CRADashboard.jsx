@@ -107,11 +107,12 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
     if (showRefresh) setRefreshing(true);
     
     try {
-      // Fetch status and devices only (fast endpoints)
-      const [statusRes, devicesRes, alertsRes] = await Promise.all([
+      // Fetch all data in parallel including FTP status batch
+      const [statusRes, devicesRes, alertsRes, ftpBatchRes] = await Promise.all([
         authAxios.get('/cra/status'),
         authAxios.get('/cra/devices'),
-        authAxios.get('/cra/alerts?limit=50')
+        authAxios.get('/cra/alerts?limit=50'),
+        authAxios.get('/camera-stream/ftp-status-batch').catch(() => ({ data: { statuses: {} } }))
       ]);
       
       const devices = devicesRes.data.devices || [];
@@ -122,12 +123,17 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
         alerts: alertsRes.data.alerts || []
       });
       
-      // Fetch FTP status for all CRA devices (in background)
-      devices.forEach(device => {
-        if (!ftpStatuses[device.id]) {
-          fetchFtpStatus(device.id);
-        }
+      // Set FTP statuses from batch response
+      const statuses = ftpBatchRes.data?.statuses || {};
+      const formattedStatuses = {};
+      Object.entries(statuses).forEach(([deviceId, status]) => {
+        formattedStatuses[deviceId] = {
+          enabled: status.status === 'armed',
+          server: status.server,
+          error: status.status === 'error' ? 'No disponible' : null
+        };
       });
+      setFtpStatuses(formattedStatuses);
       
       // Alert sound for new alerts
       const newCount = alertsRes.data.alerts?.length || 0;
