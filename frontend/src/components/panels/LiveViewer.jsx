@@ -414,12 +414,18 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
 
   const baseUrl = process.env.REACT_APP_BACKEND_URL || '';
 
-  // Check if camera is hemispheric
+  // Check if camera is hemispheric (C25, C26, Q24, Q25, Q26, S14, S15, S16, M25, M26 models)
   const isHemispheric = cameraConfig?.is_hemispheric || 
     device.model?.toLowerCase().includes('c25') || 
     device.model?.toLowerCase().includes('c26') ||
+    device.model?.toLowerCase().includes('q24') ||
     device.model?.toLowerCase().includes('q25') ||
-    device.model?.toLowerCase().includes('s15');
+    device.model?.toLowerCase().includes('q26') ||
+    device.model?.toLowerCase().includes('s14') ||
+    device.model?.toLowerCase().includes('s15') ||
+    device.model?.toLowerCase().includes('s16') ||
+    device.model?.toLowerCase().includes('m25') ||
+    device.model?.toLowerCase().includes('m26');
 
   // Fetch camera config on mount to detect hemispheric cameras
   useEffect(() => {
