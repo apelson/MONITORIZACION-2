@@ -162,19 +162,20 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
 
   // Loading state
   if (loading) {
+  if (loading) {
     return (
-      <div className="p-6 space-y-4">
-        <div className="flex items-center gap-3 mb-6">
-          <Shield className="w-8 h-8 text-cyan-500" />
-          <div>
-            <h2 className="text-2xl font-bold">Panel CRA</h2>
-            <p className="text-muted-foreground">Cargando...</p>
-          </div>
+      <div className="flex flex-col items-center justify-center py-16 gap-6">
+        <div className="relative">
+          <div className="w-20 h-20 rounded-full border-4 border-cyan-500/20 border-t-cyan-500 animate-spin" />
+          <img 
+            src="https://customer-assets.emergentagent.com/job_051d11b5-64eb-4eef-a44f-e7e0e5b16da5/artifacts/03lnmzfi_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png" 
+            alt="Siempria" 
+            className="absolute inset-0 m-auto w-10 h-10 object-contain"
+          />
         </div>
-        <div className="grid grid-cols-4 gap-4">
-          {[1,2,3,4].map(i => (
-            <Card key={i}><CardContent className="p-6"><Skeleton className="h-16 w-full" /></CardContent></Card>
-          ))}
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">Cargando Panel CRA</h3>
+          <p className="text-sm text-muted-foreground">Obteniendo datos de dispositivos...</p>
         </div>
       </div>
     );
