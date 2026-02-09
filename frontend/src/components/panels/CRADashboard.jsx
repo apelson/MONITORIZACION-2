@@ -47,7 +47,31 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
     }
   }, [authAxios]);
 
-  // Fetch FTP status for a device
+  // Fetch FTP status for all devices in batch (optimized)
+  const fetchAllFtpStatuses = useCallback(async () => {
+    if (!authAxios) return;
+    
+    try {
+      const response = await authAxios.get('/camera-stream/ftp-status-batch');
+      const statuses = response.data.statuses || {};
+      
+      // Convert batch response to our format
+      const formattedStatuses = {};
+      Object.entries(statuses).forEach(([deviceId, status]) => {
+        formattedStatuses[deviceId] = {
+          enabled: status.status === 'armed',
+          server: status.server,
+          error: status.status === 'error' ? 'No disponible' : null
+        };
+      });
+      
+      setFtpStatuses(formattedStatuses);
+    } catch (error) {
+      console.error('Error fetching batch FTP status:', error);
+    }
+  }, [authAxios]);
+
+  // Fetch FTP status for a single device (for refresh button)
   const fetchFtpStatus = useCallback(async (deviceId) => {
     if (!authAxios || loadingFtp[deviceId]) return;
     
@@ -72,6 +96,7 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
       setLoadingFtp(prev => ({ ...prev, [deviceId]: false }));
     }
   }, [authAxios, loadingFtp]);
+
 
   // Single fetch function - simple and direct
   const fetchData = useCallback(async (showRefresh = false) => {
