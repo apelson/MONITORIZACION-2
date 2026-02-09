@@ -5505,7 +5505,7 @@ const Dashboard = () => {
               onFilterByType={(typeId) => { setFilterTypeId(typeId); setActiveTab("devices"); }} />
           </TabsContent>
 
-          <TabsContent value="alerts"><AlertsPanel alerts={alerts} organizations={organizations} devices={devices} groups={groups} /></TabsContent>
+          <TabsContent value="alerts"><AlertsPanel alerts={alerts} organizations={organizations} devices={devices} groups={groups} authAxios={authAxios} /></TabsContent>
           {!isOperator && <TabsContent value="gallery"><DeviceGallery authAxios={authAxios} devices={devices} organizations={organizations} groups={groups} /></TabsContent>}
           {!isOperator && <TabsContent value="cra"><CRADashboard authAxios={authAxios} onOpenLiveView={(device) => { setActiveTab('live'); }} /></TabsContent>}
           {!isOperator && <TabsContent value="live" className="h-[calc(100vh-200px)]"><LiveViewer authAxios={authAxios} devices={devices} organizations={organizations} groups={groups} /></TabsContent>}
