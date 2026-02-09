@@ -292,33 +292,7 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const initAuth = async () => {
-      if (token) {
-        try {
-          const response = await axios.get(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
-          setUser(response.data.user);
-        } catch (error) {
-          localStorage.removeItem("token");
-          setToken(null);
-        }
-      }
-      setLoading(false);
-    };
-    initAuth();
-  }, [token]);
-
-  const login = async (username, password) => {
-    const response = await axios.post(`${API}/auth/login`, { username, password });
-    const { token: accessToken, user: userData } = response.data;
-    localStorage.setItem("token", accessToken);
-    setToken(accessToken);
-    setUser(userData);
-    return userData;
-  };
-
-  const logout = () => { localStorage.removeItem("token"); setToken(null); setUser(null); };
+  const [userPermissions, setUserPermissions] = useState(null);
 
   // Create axios instance that always reads fresh token from localStorage
   const authAxios = useMemo(() => {
@@ -346,7 +320,105 @@ const AuthProvider = ({ children }) => {
     return instance;
   }, []);
 
-  return <AuthContext.Provider value={{ user, token, login, logout, loading, authAxios }}>{children}</AuthContext.Provider>;
+  // Fetch user permissions
+  const fetchPermissions = useCallback(async () => {
+    try {
+      const response = await authAxios.get('/roles/my-permissions');
+      setUserPermissions(response.data);
+    } catch (error) {
+      console.error('Error fetching permissions:', error);
+      // Default to admin permissions for backwards compatibility
+      setUserPermissions({
+        permissions: {
+          devices: ['view', 'edit', 'delete', 'create'],
+          gallery: ['view', 'upload', 'delete'],
+          cra: ['view', 'manage'],
+          live: ['view'],
+          statistics: ['view', 'export'],
+          alerts: ['view', 'acknowledge', 'delete'],
+          users: ['view', 'edit', 'delete', 'create'],
+          settings: ['view', 'edit'],
+          export: ['pdf', 'excel', 'csv'],
+          organizations: ['view', 'edit', 'delete', 'create'],
+          groups: ['view', 'edit', 'delete', 'create'],
+          reports: ['view', 'create', 'schedule'],
+          incidents: ['view', 'create', 'edit', 'delete'],
+          roles: ['view', 'edit', 'delete', 'create']
+        },
+        group_access: 'all',
+        organization_access: 'all'
+      });
+    }
+  }, [authAxios]);
+
+  useEffect(() => {
+    const initAuth = async () => {
+      if (token) {
+        try {
+          const response = await axios.get(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+          setUser(response.data.user);
+        } catch (error) {
+          localStorage.removeItem("token");
+          setToken(null);
+        }
+      }
+      setLoading(false);
+    };
+    initAuth();
+  }, [token]);
+
+  // Fetch permissions when user is set
+  useEffect(() => {
+    if (user && token) {
+      fetchPermissions();
+    }
+  }, [user, token, fetchPermissions]);
+
+  const login = async (username, password) => {
+    const response = await axios.post(`${API}/auth/login`, { username, password });
+    const { token: accessToken, user: userData } = response.data;
+    localStorage.setItem("token", accessToken);
+    setToken(accessToken);
+    setUser(userData);
+    return userData;
+  };
+
+  const logout = () => { 
+    localStorage.removeItem("token"); 
+    setToken(null); 
+    setUser(null); 
+    setUserPermissions(null);
+  };
+
+  // Helper function to check if user has permission
+  const hasPermission = (section, action) => {
+    if (!userPermissions?.permissions) return true; // Default allow for backwards compatibility
+    const sectionPerms = userPermissions.permissions[section] || [];
+    return sectionPerms.includes(action);
+  };
+
+  // Helper function to check if user can access a section
+  const canAccessSection = (section) => {
+    if (!userPermissions?.permissions) return true;
+    const sectionPerms = userPermissions.permissions[section] || [];
+    return sectionPerms.length > 0;
+  };
+
+  return (
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      login, 
+      logout, 
+      loading, 
+      authAxios, 
+      userPermissions,
+      hasPermission,
+      canAccessSection
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 // ============ COMPONENTS ============
