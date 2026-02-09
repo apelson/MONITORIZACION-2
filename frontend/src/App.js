@@ -5277,7 +5277,25 @@ const IncidentsPanel = ({ devices }) => {
   );
 };
 
-const LoadingSkeleton = () => (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">{[1,2,3,4].map(i => <Card key={i} className="server-card"><CardContent className="p-6"><div className="flex items-start gap-3"><Skeleton className="w-10 h-10 rounded-lg" /><div className="flex-1 space-y-2"><Skeleton className="h-5 w-32" /><Skeleton className="h-4 w-24" /></div></div><Skeleton className="h-4 w-full mt-4" /><Separator className="my-4" /><div className="flex gap-2"><Skeleton className="h-8 flex-1" /><Skeleton className="h-8 w-8" /></div></CardContent></Card>)}</div>);
+const LoadingSkeleton = () => (
+  <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="flex flex-col items-center gap-6">
+      <div className="relative">
+        <div className="w-20 h-20 rounded-full border-4 border-cyan-500/20 border-t-cyan-500 animate-spin" />
+        <Shield className="absolute inset-0 m-auto w-10 h-10 text-cyan-400" />
+      </div>
+      <div className="text-center space-y-2">
+        <h2 className="text-xl font-semibold text-white">Cargando Panel de Control</h2>
+        <p className="text-sm text-slate-400">Obteniendo datos de dispositivos...</p>
+      </div>
+      <div className="flex gap-2">
+        <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{animationDelay: '0ms'}} />
+        <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{animationDelay: '150ms'}} />
+        <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{animationDelay: '300ms'}} />
+      </div>
+    </div>
+  </div>
+);
 
 // ============ DASHBOARD ============
 const Dashboard = () => {
