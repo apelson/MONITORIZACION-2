@@ -54,6 +54,7 @@ from routes.device_images import router as device_images_router
 from routes.cra_events import router as cra_events_router
 from routes.camera_stream import router as camera_stream_router
 from routes.roles import router as roles_router
+from routes.superadmin_integrated import router as superadmin_router
 
 # Multi-tenant routers (SaaS)
 from routes.tenant_auth import router as tenant_auth_router
