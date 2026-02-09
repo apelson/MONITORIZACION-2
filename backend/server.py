@@ -187,6 +187,24 @@ api_router.include_router(billing_router)
 async def root():
     return {"message": "Siempria Network Monitor API v3.0 (Refactored)"}
 
+@api_router.get("/download-build")
+async def download_build():
+    """Download the frontend build tar.gz for production deployment"""
+    import os
+    build_path = os.path.join(os.path.dirname(__file__), "frontend_build_clean.tar.gz")
+    if not os.path.exists(build_path):
+        raise HTTPException(status_code=404, detail="Build file not found")
+    
+    def iterfile():
+        with open(build_path, "rb") as f:
+            yield from f
+    
+    return StreamingResponse(
+        iterfile(),
+        media_type="application/gzip",
+        headers={"Content-Disposition": "attachment; filename=frontend_build.tar.gz"}
+    )
+
 @api_router.get("/image-proxy/{device_id}")
 async def image_proxy(device_id: str, current_user: dict = Depends(get_current_user)):
     """Proxy to load device images with authentication"""
