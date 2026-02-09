@@ -18,7 +18,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
 
 const AlertsPanel = ({ alerts, organizations = [], devices = [], groups = [], onCreateIncident, authAxios }) => {
   const { t } = useTranslation();
