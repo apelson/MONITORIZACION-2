@@ -201,6 +201,44 @@ async def get_available_permissions(current_user: dict = Depends(get_current_use
         "permissions": AVAILABLE_PERMISSIONS
     }
 
+@router.get("/my-permissions")
+async def get_my_permissions(current_user: dict = Depends(get_current_user)):
+    """Get permissions for the current user"""
+    role = await get_user_role(current_user)
+    
+    return {
+        "user_id": current_user.get("id"),
+        "username": current_user.get("username"),
+        "role_id": current_user.get("role_id", "admin"),
+        "role_name": role.get("name", "Administrador"),
+        "permissions": role.get("permissions", {}),
+        "group_access": role.get("group_access", "all"),
+        "organization_access": role.get("organization_access", "all"),
+        "allowed_groups": role.get("allowed_groups", []),
+        "allowed_organizations": role.get("allowed_organizations", [])
+    }
+
+@router.get("/user/{user_id}/permissions")
+async def get_user_permissions(user_id: str, current_user: dict = Depends(get_current_user)):
+    """Get all permissions for a specific user"""
+    user = await users_collection.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    role = await get_user_role(user)
+    
+    return {
+        "user_id": user_id,
+        "username": user.get("username"),
+        "role_id": user.get("role_id", "admin"),
+        "role_name": role.get("name", "Administrador"),
+        "permissions": role.get("permissions", {}),
+        "group_access": role.get("group_access", "all"),
+        "organization_access": role.get("organization_access", "all"),
+        "allowed_groups": role.get("allowed_groups", []),
+        "allowed_organizations": role.get("allowed_organizations", [])
+    }
+
 @router.get("")
 async def get_roles(current_user: dict = Depends(get_current_user)):
     """Get all roles"""
