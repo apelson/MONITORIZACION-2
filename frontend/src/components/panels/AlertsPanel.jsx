@@ -20,7 +20,7 @@ import { ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, Tooltip, 
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 
-const AlertsPanel = ({ alerts, organizations = [], devices = [], groups = [], onCreateIncident }) => {
+const AlertsPanel = ({ alerts, organizations = [], devices = [], groups = [], onCreateIncident, authAxios }) => {
   const { t } = useTranslation();
   const [showIncidentDialog, setShowIncidentDialog] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState(null);
@@ -32,7 +32,6 @@ const AlertsPanel = ({ alerts, organizations = [], devices = [], groups = [], on
   const [selectedGroup, setSelectedGroup] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const { authAxios } = useAuth();
 
   // Create device to group mapping
   const deviceGroupMap = useMemo(() => {
