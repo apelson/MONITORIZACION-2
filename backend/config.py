@@ -38,6 +38,7 @@ access_logs_collection = db["access_logs"]  # NEW: Access logs
 incidents_collection = db["incidents"]  # NEW: Incidents/tickets
 device_images_collection = db["device_images"]  # NEW: Device installation images
 ftp_history_collection = db["ftp_history"]  # FTP status change history for auditing
+roles_collection = db["roles"]  # Role-based permission system
 
 # JWT Settings
 SECRET_KEY = os.environ.get("SECRET_KEY", "siempria-network-monitor-secret-key-2024")
