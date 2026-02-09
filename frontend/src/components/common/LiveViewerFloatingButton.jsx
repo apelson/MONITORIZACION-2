@@ -34,10 +34,10 @@ const LiveViewerFloatingButton = ({ authAxios, onClick, isActive, devices = [] }
           flex items-center cursor-pointer shadow-2xl rounded-l-xl overflow-hidden
           transition-all duration-300
           ${hasOffline 
-            ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white' 
-            : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
+            ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white' 
+            : 'bg-gradient-to-r from-cyan-600 to-teal-500 text-white'
           }
-          ${isActive ? 'ring-4 ring-white ring-opacity-50' : ''}
+          ${isActive ? 'ring-4 ring-cyan-300 ring-opacity-50' : ''}
         `}
         onClick={onClick}
       >
@@ -78,7 +78,7 @@ const LiveViewerFloatingButton = ({ authAxios, onClick, isActive, devices = [] }
                   </span>
                   <Badge 
                     variant="destructive" 
-                    className="h-5 bg-white text-orange-600"
+                    className="h-5 bg-white text-red-600"
                   >
                     {offlineCameras}
                   </Badge>
@@ -96,7 +96,7 @@ const LiveViewerFloatingButton = ({ authAxios, onClick, isActive, devices = [] }
 
       {/* Pulse animation for live indicator */}
       <div className="absolute top-2 left-2 pointer-events-none">
-        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
       </div>
     </div>
   );
