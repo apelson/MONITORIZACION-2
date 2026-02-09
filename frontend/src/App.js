@@ -959,8 +959,14 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
           const modelLower = (device.model || '').toLowerCase();
           const isHemisphericCamera = modelLower.includes('c25') || 
             modelLower.includes('c26') ||
+            modelLower.includes('q24') ||
             modelLower.includes('q25') ||
-            modelLower.includes('s15');
+            modelLower.includes('q26') ||
+            modelLower.includes('s14') ||
+            modelLower.includes('s15') ||
+            modelLower.includes('s16') ||
+            modelLower.includes('m25') ||
+            modelLower.includes('m26');
           
           // Use hemispheric endpoint for 360° cameras to show full fisheye view
           const endpoint = isHemisphericCamera 
