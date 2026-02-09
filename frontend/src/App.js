@@ -5277,7 +5277,7 @@ const IncidentsPanel = ({ devices }) => {
   );
 };
 
-const LoadingSkeleton = () => (
+const LoadingSkeleton = ({ message = "Cargando datos..." }) => (
   <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
     <div className="flex flex-col items-center gap-8">
       {/* Logo animado */}
@@ -5298,12 +5298,12 @@ const LoadingSkeleton = () => (
       
       {/* Barra de progreso animada */}
       <div className="w-64 h-1 bg-slate-700 rounded-full overflow-hidden">
-        <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full animate-loading-bar" 
+        <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" 
              style={{animation: 'loadingBar 1.5s ease-in-out infinite'}} />
       </div>
       
       {/* Texto de carga */}
-      <p className="text-sm text-slate-400">Cargando datos...</p>
+      <p className="text-sm text-slate-400">{message}</p>
     </div>
     
     <style>{`
@@ -5313,6 +5313,21 @@ const LoadingSkeleton = () => (
         100% { width: 0%; margin-left: 100%; }
       }
     `}</style>
+  </div>
+);
+
+// Componente de carga inline para secciones específicas
+const SectionLoading = ({ message = "Cargando..." }) => (
+  <div className="flex flex-col items-center justify-center py-16 gap-4">
+    <div className="relative">
+      <div className="w-16 h-16 rounded-full border-4 border-cyan-500/20 border-t-cyan-500 animate-spin" />
+      <img 
+        src="https://customer-assets.emergentagent.com/job_051d11b5-64eb-4eef-a44f-e7e0e5b16da5/artifacts/03lnmzfi_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png" 
+        alt="Siempria" 
+        className="absolute inset-0 m-auto w-8 h-8 object-contain"
+      />
+    </div>
+    <p className="text-sm text-muted-foreground">{message}</p>
   </div>
 );
 
