@@ -223,9 +223,19 @@ const RolesManager = ({ authAxios, users = [], onUserUpdate }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <RefreshCw className="w-6 h-6 animate-spin mr-2" />
-        <span>Cargando roles...</span>
+      <div className="flex flex-col items-center justify-center py-16 gap-6">
+        <div className="relative">
+          <div className="w-20 h-20 rounded-full border-4 border-cyan-500/20 border-t-cyan-500 animate-spin" />
+          <img 
+            src="https://customer-assets.emergentagent.com/job_051d11b5-64eb-4eef-a44f-e7e0e5b16da5/artifacts/03lnmzfi_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png" 
+            alt="Siempria" 
+            className="absolute inset-0 m-auto w-10 h-10 object-contain"
+          />
+        </div>
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">Cargando Roles</h3>
+          <p className="text-sm text-muted-foreground">Obteniendo permisos del sistema...</p>
+        </div>
       </div>
     );
   }
