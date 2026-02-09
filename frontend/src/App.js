@@ -44,6 +44,7 @@ import LiveViewerFloatingButton from "@/components/common/LiveViewerFloatingButt
 import NotificationSettings from "@/components/settings/NotificationSettings";
 import SystemStatusDashboard from "@/components/settings/SystemStatusDashboard";
 import RolesManager from "@/components/settings/RolesManager";
+import SuperAdminTab from "@/components/settings/SuperAdminTab";
 
 
 import { API_URL as BACKEND_URL, API } from './config';
