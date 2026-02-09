@@ -34,10 +34,10 @@ const LiveViewerFloatingButton = ({ authAxios, onClick, isActive, devices = [] }
           flex items-center cursor-pointer shadow-2xl rounded-l-xl overflow-hidden
           transition-all duration-300
           ${hasOffline 
-            ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white' 
-            : 'bg-gradient-to-r from-cyan-600 to-teal-500 text-white'
+            ? 'bg-gradient-to-r from-purple-600 to-violet-500 text-white' 
+            : 'bg-gradient-to-r from-violet-600 to-purple-500 text-white'
           }
-          ${isActive ? 'ring-4 ring-cyan-300 ring-opacity-50' : ''}
+          ${isActive ? 'ring-4 ring-purple-300 ring-opacity-50' : ''}
         `}
         onClick={onClick}
       >
