@@ -4321,24 +4321,19 @@ const IncidentsPanel = ({ devices }) => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="p-8">
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-full border-4 border-amber-200 animate-spin" style={{ borderTopColor: '#f59e0b' }} />
-                <AlertTriangle className="w-6 h-6 text-amber-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-medium text-slate-700">{t('incidents.loading', 'Cargando Incidencias')}</p>
-                <p className="text-sm text-slate-500">{t('incidents.loadingDescription', 'Obteniendo tickets y estadísticas...')}</p>
-              </div>
-              <div className="w-64 h-2 bg-slate-200 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full animate-pulse" style={{ width: '60%', animation: 'loading-bar 1.5s ease-in-out infinite' }} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="flex flex-col items-center justify-center py-16 gap-6">
+        <div className="relative">
+          <div className="w-20 h-20 rounded-full border-4 border-cyan-500/20 border-t-cyan-500 animate-spin" />
+          <img 
+            src="https://customer-assets.emergentagent.com/job_051d11b5-64eb-4eef-a44f-e7e0e5b16da5/artifacts/03lnmzfi_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png" 
+            alt="Siempria" 
+            className="absolute inset-0 m-auto w-10 h-10 object-contain"
+          />
+        </div>
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">{t('incidents.loading', 'Cargando Incidencias')}</h3>
+          <p className="text-sm text-muted-foreground">{t('incidents.loadingDescription', 'Obteniendo tickets y estadísticas...')}</p>
+        </div>
       </div>
     );
   }
