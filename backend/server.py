@@ -220,6 +220,7 @@ async def download_file(path: str):
         "LiveViewer.jsx": "/app/frontend/src/components/panels/LiveViewer.jsx",
         "ServerCard.jsx": "/app/frontend/src/components/devices/ServerCard.jsx",
         "RolesManager.jsx": "/app/frontend/src/components/settings/RolesManager.jsx",
+        "LiveViewerFloatingButton.jsx": "/app/frontend/src/components/common/LiveViewerFloatingButton.jsx",
         "App.js": "/app/frontend/src/App.js",
     }
     
