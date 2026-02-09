@@ -215,9 +215,12 @@ async def download_file(path: str):
         "camera_stream.py": "/app/backend/routes/camera_stream.py",
         "devices.py": "/app/backend/routes/devices.py", 
         "cra_events.py": "/app/backend/routes/cra_events.py",
+        "roles.py": "/app/backend/routes/roles.py",
         "CRADashboard.jsx": "/app/frontend/src/components/panels/CRADashboard.jsx",
         "LiveViewer.jsx": "/app/frontend/src/components/panels/LiveViewer.jsx",
         "ServerCard.jsx": "/app/frontend/src/components/devices/ServerCard.jsx",
+        "RolesManager.jsx": "/app/frontend/src/components/settings/RolesManager.jsx",
+        "App.js": "/app/frontend/src/App.js",
     }
     
     if path not in allowed_files:
