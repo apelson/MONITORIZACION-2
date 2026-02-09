@@ -6130,6 +6130,7 @@ const Dashboard = () => {
               <BackupPanel />
             </div>
           </TabsContent>}
+          {isAdmin && <TabsContent value="superadmin"><SuperAdminTab authAxios={authAxios} /></TabsContent>}
         </Tabs>
       </main>
 
