@@ -932,11 +932,17 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
   // Check if device has camera credentials configured
   const hasCameraConfig = !!(device.camera_user && device.camera_password && device.camera_path);
 
-  // Check if it's a hemispheric camera (C25, C26, Q25, S15 models)
+  // Check if it's a hemispheric camera (C25, C26, Q24, Q25, Q26, S14, S15, S16, M25, M26 models)
   const isHemispheric = device.model?.toLowerCase().includes('c25') || 
     device.model?.toLowerCase().includes('c26') ||
+    device.model?.toLowerCase().includes('q24') ||
     device.model?.toLowerCase().includes('q25') ||
-    device.model?.toLowerCase().includes('s15');
+    device.model?.toLowerCase().includes('q26') ||
+    device.model?.toLowerCase().includes('s14') ||
+    device.model?.toLowerCase().includes('s15') ||
+    device.model?.toLowerCase().includes('s16') ||
+    device.model?.toLowerCase().includes('m25') ||
+    device.model?.toLowerCase().includes('m26');
 
   // Reference for lazy loading
   const cardRef = useCallback(node => {
