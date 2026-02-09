@@ -420,36 +420,21 @@ const InfrastructurePanel = ({ authAxios: externalAuthAxios, onCreateIncident })
     return String(value);
   };
 
-  // Custom loading spinner component
+  // Custom loading spinner component with Siempria logo
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20">
-        {/* Animated Infrastructure Icon */}
+      <div className="flex flex-col items-center justify-center py-16 gap-6">
         <div className="relative">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 animate-pulse">
-            <Server className="w-10 h-10 text-white" />
-          </div>
-          {/* Orbiting dots */}
-          <div className="absolute inset-0 animate-spin" style={{ animationDuration: '3s' }}>
-            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
-          </div>
-          <div className="absolute inset-0 animate-spin" style={{ animationDuration: '3s', animationDelay: '1s' }}>
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-purple-500 shadow-lg shadow-purple-500/50" />
-          </div>
-          <div className="absolute inset-0 animate-spin" style={{ animationDuration: '3s', animationDelay: '2s' }}>
-            <div className="absolute top-1/2 -right-2 -translate-y-1/2 w-3 h-3 rounded-full bg-orange-500 shadow-lg shadow-orange-500/50" />
-          </div>
+          <div className="w-20 h-20 rounded-full border-4 border-cyan-500/20 border-t-cyan-500 animate-spin" />
+          <img 
+            src="https://customer-assets.emergentagent.com/job_051d11b5-64eb-4eef-a44f-e7e0e5b16da5/artifacts/03lnmzfi_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png" 
+            alt="Siempria" 
+            className="absolute inset-0 m-auto w-10 h-10 object-contain"
+          />
         </div>
-        
-        {/* Loading text */}
-        <div className="mt-6 text-center">
-          <h3 className="text-lg font-semibold text-slate-700">{t('infra.loading', 'Cargando Infraestructura')}</h3>
-          <p className="text-sm text-slate-500 mt-1">{t('infra.loadingDesc', 'Conectando con dispositivos...')}</p>
-        </div>
-        
-        {/* Progress bar */}
-        <div className="mt-4 w-48 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full animate-loading-bar" />
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">{t('infra.loading', 'Cargando Infraestructura')}</h3>
+          <p className="text-sm text-muted-foreground">{t('infra.loadingDesc', 'Conectando con dispositivos...')}</p>
         </div>
       </div>
     );
