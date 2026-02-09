@@ -218,10 +218,12 @@ async def download_file(path: str):
         "devices.py": "/app/backend/routes/devices.py", 
         "cra_events.py": "/app/backend/routes/cra_events.py",
         "roles.py": "/app/backend/routes/roles.py",
+        "superadmin_integrated.py": "/app/backend/routes/superadmin_integrated.py",
         "CRADashboard.jsx": "/app/frontend/src/components/panels/CRADashboard.jsx",
         "LiveViewer.jsx": "/app/frontend/src/components/panels/LiveViewer.jsx",
         "ServerCard.jsx": "/app/frontend/src/components/devices/ServerCard.jsx",
         "RolesManager.jsx": "/app/frontend/src/components/settings/RolesManager.jsx",
+        "SuperAdminTab.jsx": "/app/frontend/src/components/settings/SuperAdminTab.jsx",
         "LiveViewerFloatingButton.jsx": "/app/frontend/src/components/common/LiveViewerFloatingButton.jsx",
         "App.js": "/app/frontend/src/App.js",
     }
