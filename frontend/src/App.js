@@ -5759,7 +5759,7 @@ const Dashboard = () => {
               >
                 <Shield className="w-4 h-4 text-cyan-400" />
                 <div className="flex flex-col items-center">
-                  <span className="status-count text-cyan-400">{devices.filter(d => d.device_type === 'cra').length}</span>
+                  <span className="status-count text-cyan-400">{devices.filter(d => d.is_cra === true).length}</span>
                   <span className="status-hud-label hidden sm:block text-cyan-400">CRA</span>
                 </div>
               </button>
