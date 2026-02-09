@@ -5761,10 +5761,20 @@ const Dashboard = () => {
     setCurrentPage(1);
   }, [filterOrgId, filterGroupId, filterTypeId, filterCountry, filterStatus, filterStats, searchQuery]);
 
+  // Delayed loading for global overlay
+  const showGlobalLoader = useDelayedLoading(loading, 2000);
+  
   return (
     <div className="app-container">
       <Toaster position="top-right" richColors />
       <PWAInstallPrompt />
+      
+      {/* Global Section Loader - shows after 2 seconds of loading */}
+      <SectionLoader 
+        isLoading={loading} 
+        delay={2000} 
+        message="Cargando Panel de Control"
+      />
 
       {/* Header - Premium Professional Design */}
       <header className="app-header">
