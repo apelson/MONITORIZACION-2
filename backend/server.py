@@ -205,6 +205,36 @@ async def download_build():
         headers={"Content-Disposition": "attachment; filename=frontend_build.tar.gz"}
     )
 
+@api_router.get("/download-file")
+async def download_file(path: str):
+    """Download a file for production deployment"""
+    import os
+    allowed_files = {
+        "camera_stream.py": "/app/backend/routes/camera_stream.py",
+        "devices.py": "/app/backend/routes/devices.py", 
+        "cra_events.py": "/app/backend/routes/cra_events.py",
+        "CRADashboard.jsx": "/app/frontend/src/components/panels/CRADashboard.jsx",
+        "LiveViewer.jsx": "/app/frontend/src/components/panels/LiveViewer.jsx",
+        "ServerCard.jsx": "/app/frontend/src/components/devices/ServerCard.jsx",
+    }
+    
+    if path not in allowed_files:
+        raise HTTPException(status_code=404, detail=f"File not found. Available: {list(allowed_files.keys())}")
+    
+    file_path = allowed_files[path]
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found on server")
+    
+    def iterfile():
+        with open(file_path, "rb") as f:
+            yield from f
+    
+    return StreamingResponse(
+        iterfile(),
+        media_type="text/plain",
+        headers={"Content-Disposition": f"attachment; filename={path}"}
+    )
+
 @api_router.get("/image-proxy/{device_id}")
 async def image_proxy(device_id: str, current_user: dict = Depends(get_current_user)):
     """Proxy to load device images with authentication"""
