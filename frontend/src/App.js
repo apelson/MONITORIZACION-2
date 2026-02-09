@@ -5279,21 +5279,40 @@ const IncidentsPanel = ({ devices }) => {
 
 const LoadingSkeleton = () => (
   <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex flex-col items-center gap-8">
+      {/* Logo animado */}
       <div className="relative">
-        <div className="w-20 h-20 rounded-full border-4 border-cyan-500/20 border-t-cyan-500 animate-spin" />
-        <Shield className="absolute inset-0 m-auto w-10 h-10 text-cyan-400" />
+        <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" />
+        <img 
+          src="https://customer-assets.emergentagent.com/job_051d11b5-64eb-4eef-a44f-e7e0e5b16da5/artifacts/03lnmzfi_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png" 
+          alt="Siempria" 
+          className="w-32 h-32 object-contain animate-pulse relative z-10"
+        />
       </div>
+      
+      {/* Texto */}
       <div className="text-center space-y-2">
-        <h2 className="text-xl font-semibold text-white">Cargando Panel de Control</h2>
-        <p className="text-sm text-slate-400">Obteniendo datos de dispositivos...</p>
+        <h2 className="text-2xl font-bold text-white">SIEMPRIA MONITOR</h2>
+        <p className="text-sm text-cyan-400">Network Monitoring System</p>
       </div>
-      <div className="flex gap-2">
-        <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{animationDelay: '0ms'}} />
-        <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{animationDelay: '150ms'}} />
-        <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{animationDelay: '300ms'}} />
+      
+      {/* Barra de progreso animada */}
+      <div className="w-64 h-1 bg-slate-700 rounded-full overflow-hidden">
+        <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full animate-loading-bar" 
+             style={{animation: 'loadingBar 1.5s ease-in-out infinite'}} />
       </div>
+      
+      {/* Texto de carga */}
+      <p className="text-sm text-slate-400">Cargando datos...</p>
     </div>
+    
+    <style>{`
+      @keyframes loadingBar {
+        0% { width: 0%; margin-left: 0%; }
+        50% { width: 60%; margin-left: 20%; }
+        100% { width: 0%; margin-left: 100%; }
+      }
+    `}</style>
   </div>
 );
 
