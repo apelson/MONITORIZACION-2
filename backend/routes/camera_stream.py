@@ -284,6 +284,86 @@ async def get_camera_info(
     }
 
 
+# Cache for FTP status to avoid repeated calls
+_ftp_status_cache = {}
+FTP_CACHE_TTL = 60  # Cache for 60 seconds
+
+async def _get_ftp_status_for_device(device: dict) -> dict:
+    """Internal function to get FTP status for a single device"""
+    device_id = device.get("id")
+    
+    # Check cache first
+    cache_entry = _ftp_status_cache.get(device_id)
+    if cache_entry and (time.time() - cache_entry["timestamp"]) < FTP_CACHE_TTL:
+        return cache_entry["data"]
+    
+    ip = device.get("ip_address")
+    port = device.get("port", 80)
+    protocol = device.get("camera_protocol", "http")
+    username = device.get("camera_user", "")
+    password = device.get("camera_password", "")
+    
+    headers = get_auth_header(username, password)
+    base_url = f"{protocol}://{ip}:{port}"
+    
+    ftp_info = {
+        "device_id": device_id,
+        "device_name": device.get("name"),
+        "enabled": False,
+        "server": None,
+        "status": "unknown"
+    }
+    
+    async with httpx.AsyncClient(timeout=5.0, verify=False) as client:
+        try:
+            # Quick check - just try one endpoint
+            response = await client.get(f"{base_url}/admin/fileserver", headers=headers)
+            if response.status_code == 200:
+                content = response.text.lower()
+                ftp_info["enabled"] = "enabled=yes" in content or "ftp" in content
+                ftp_info["status"] = "armed" if ftp_info["enabled"] else "disarmed"
+        except Exception:
+            ftp_info["status"] = "error"
+    
+    # Cache the result
+    _ftp_status_cache[device_id] = {
+        "timestamp": time.time(),
+        "data": ftp_info
+    }
+    
+    return ftp_info
+
+@router.get("/ftp-status-batch")
+async def get_ftp_status_batch(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get FTP status for all CRA devices in parallel (optimized)"""
+    # Get all CRA devices
+    devices = await devices_collection.find(
+        {"device_type": "cra"},
+        {"_id": 0, "id": 1, "name": 1, "ip_address": 1, "port": 1, 
+         "camera_protocol": 1, "camera_user": 1, "camera_password": 1}
+    ).to_list(500)
+    
+    # Fetch FTP status in parallel with limited concurrency
+    semaphore = asyncio.Semaphore(10)  # Max 10 concurrent requests
+    
+    async def fetch_with_semaphore(device):
+        async with semaphore:
+            return await _get_ftp_status_for_device(device)
+    
+    results = await asyncio.gather(*[fetch_with_semaphore(d) for d in devices])
+    
+    # Convert to dict keyed by device_id
+    statuses = {r["device_id"]: r for r in results}
+    
+    return {
+        "statuses": statuses,
+        "total": len(devices),
+        "armed": sum(1 for r in results if r.get("status") == "armed"),
+        "disarmed": sum(1 for r in results if r.get("status") == "disarmed"),
+        "error": sum(1 for r in results if r.get("status") == "error")
+    }
 
 @router.get("/ftp-status/{device_id}")
 async def get_camera_ftp_status(
