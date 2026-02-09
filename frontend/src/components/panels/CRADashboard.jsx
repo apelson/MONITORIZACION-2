@@ -27,6 +27,7 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
   const [loadingFtp, setLoadingFtp] = useState({});
   const [ftpHistory, setFtpHistory] = useState([]); // FTP change history
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [ftpFilter, setFtpFilter] = useState('all'); // 'all', 'armed', 'disarmed'
   const audioRef = useRef(null);
   const lastAlertCountRef = useRef(0);
   const intervalRef = useRef(null);
