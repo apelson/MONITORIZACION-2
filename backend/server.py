@@ -175,6 +175,7 @@ api_router.include_router(infrastructure_router)
 api_router.include_router(device_images_router)
 api_router.include_router(cra_events_router)
 api_router.include_router(camera_stream_router)
+api_router.include_router(roles_router)
 
 # Include multi-tenant routers (SaaS)
 api_router.include_router(tenant_auth_router)
