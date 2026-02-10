@@ -3284,29 +3284,33 @@ const Dashboard = () => {
       </header>
 
       {/* Main */}
-      <main className="container mx-auto max-w-7xl px-6 py-8">
+      <main className="container mx-auto max-w-7xl px-3 sm:px-6 py-4 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6 flex-wrap h-auto gap-1">
-            {canAccessSection('devices') && (
-              <TabsTrigger data-testid="tab-devices" value="devices" className="gap-2">
-                {isOperator ? <Camera className="w-4 h-4" /> : <Server className="w-4 h-4" />}
-                {isOperator ? t('devices.cameras', 'Cámaras Online') : t('nav.devices')}
-              </TabsTrigger>
-            )}
-            {canAccessSection('statistics') && <TabsTrigger data-testid="tab-statistics" value="statistics" className="gap-2"><BarChart3 className="w-4 h-4" />{t('stats.title', 'Estadísticas')}</TabsTrigger>}
-            {canAccessSection('organizations') && <TabsTrigger data-testid="tab-structure" value="structure" className="gap-2"><Building2 className="w-4 h-4" />{t('nav.structure', 'Estructura')}</TabsTrigger>}
-            {canAccessSection('devices') && <TabsTrigger data-testid="tab-types" value="types" className="gap-2"><Tag className="w-4 h-4" />{t('nav.types', 'Tipos')}</TabsTrigger>}
-            {canAccessSection('alerts') && <TabsTrigger data-testid="tab-alerts" value="alerts" className="gap-2"><Bell className="w-4 h-4" />{t('nav.alerts', 'Alertas')}{alerts.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-1.5" title={t('alerts.thisMonth', 'Este mes')}>{alerts.length}</Badge>}</TabsTrigger>}
-            {canAccessSection('gallery') && <TabsTrigger data-testid="tab-gallery" value="gallery" className="gap-2"><Camera className="w-4 h-4" />Galería</TabsTrigger>}
-            {canAccessSection('cra') && <TabsTrigger data-testid="tab-cra" value="cra" className="gap-2"><Shield className="w-4 h-4 text-red-500" />CRA</TabsTrigger>}
-            {canAccessSection('live') && <TabsTrigger data-testid="tab-live" value="live" className="gap-2"><Video className="w-4 h-4" />En Directo</TabsTrigger>}
-            {isAdmin && <TabsTrigger data-testid="tab-infrastructure" value="infrastructure" className="gap-2"><Server className="w-4 h-4" />{t('nav.infrastructure', 'Infraestructura')}</TabsTrigger>}
-            {canAccessSection('users') && <TabsTrigger data-testid="tab-users" value="users" className="gap-2"><Users className="w-4 h-4" />{t('nav.users')}</TabsTrigger>}
-            {isAdmin && <TabsTrigger data-testid="tab-logs" value="logs" className="gap-2"><FileSearch className="w-4 h-4" />Logs</TabsTrigger>}
-            {canAccessSection('incidents') && <TabsTrigger data-testid="tab-incidents" value="incidents" className="gap-2"><ClipboardList className="w-4 h-4" />{t('nav.incidents')}</TabsTrigger>}
-            {canAccessSection('settings') && <TabsTrigger data-testid="tab-settings" value="settings" className="gap-2"><Settings className="w-4 h-4" />{t('nav.settings')}</TabsTrigger>}
-            {isAdmin && <TabsTrigger data-testid="tab-superadmin" value="superadmin" className="gap-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"><Shield className="w-4 h-4" />Super Admin</TabsTrigger>}
-          </TabsList>
+          {/* Mobile-optimized tabs with horizontal scroll */}
+          <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 pb-2">
+            <TabsList className="mb-4 sm:mb-6 flex-nowrap sm:flex-wrap h-auto gap-1 min-w-max sm:min-w-0">
+              {canAccessSection('devices') && (
+                <TabsTrigger data-testid="tab-devices" value="devices" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+                  {isOperator ? <Camera className="w-3 h-3 sm:w-4 sm:h-4" /> : <Server className="w-3 h-3 sm:w-4 sm:h-4" />}
+                  <span className="hidden sm:inline">{isOperator ? t('devices.cameras', 'Cámaras Online') : t('nav.devices')}</span>
+                  <span className="sm:hidden">{isOperator ? 'Cámaras' : 'Disp.'}</span>
+                </TabsTrigger>
+              )}
+              {canAccessSection('statistics') && <TabsTrigger data-testid="tab-statistics" value="statistics" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('stats.title', 'Estadísticas')}</span><span className="sm:hidden">Stats</span></TabsTrigger>}
+              {canAccessSection('organizations') && <TabsTrigger data-testid="tab-structure" value="structure" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Building2 className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.structure', 'Estructura')}</span><span className="sm:hidden">Org.</span></TabsTrigger>}
+              {canAccessSection('devices') && <TabsTrigger data-testid="tab-types" value="types" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Tag className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.types', 'Tipos')}</span><span className="sm:hidden">Tipos</span></TabsTrigger>}
+              {canAccessSection('alerts') && <TabsTrigger data-testid="tab-alerts" value="alerts" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Bell className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.alerts', 'Alertas')}</span><span className="sm:hidden">Alert.</span>{alerts.length > 0 && <Badge variant="secondary" className="ml-1 h-4 sm:h-5 px-1 text-[10px] sm:text-xs">{alerts.length}</Badge>}</TabsTrigger>}
+              {canAccessSection('gallery') && <TabsTrigger data-testid="tab-gallery" value="gallery" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Camera className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">Galería</span><span className="sm:hidden">Gal.</span></TabsTrigger>}
+              {canAccessSection('cra') && <TabsTrigger data-testid="tab-cra" value="cra" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Shield className="w-3 h-3 sm:w-4 sm:h-4 text-red-500" />CRA</TabsTrigger>}
+              {canAccessSection('live') && <TabsTrigger data-testid="tab-live" value="live" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Video className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">En Directo</span><span className="sm:hidden">Live</span></TabsTrigger>}
+              {isAdmin && <TabsTrigger data-testid="tab-infrastructure" value="infrastructure" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Server className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.infrastructure', 'Infraestructura')}</span><span className="sm:hidden">Infra</span></TabsTrigger>}
+              {canAccessSection('users') && <TabsTrigger data-testid="tab-users" value="users" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Users className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.users')}</span><span className="sm:hidden">Users</span></TabsTrigger>}
+              {isAdmin && <TabsTrigger data-testid="tab-logs" value="logs" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><FileSearch className="w-3 h-3 sm:w-4 sm:h-4" />Logs</TabsTrigger>}
+              {canAccessSection('incidents') && <TabsTrigger data-testid="tab-incidents" value="incidents" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><ClipboardList className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.incidents')}</span><span className="sm:hidden">Incid.</span></TabsTrigger>}
+              {canAccessSection('settings') && <TabsTrigger data-testid="tab-settings" value="settings" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Settings className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.settings')}</span><span className="sm:hidden">Config</span></TabsTrigger>}
+              {isAdmin && <TabsTrigger data-testid="tab-superadmin" value="superadmin" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"><Shield className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">Super Admin</span><span className="sm:hidden">Admin</span></TabsTrigger>}
+            </TabsList>
+          </div>
 
           <TabsContent value="devices">
             {/* Filters - not for operators, available for technicians */}
