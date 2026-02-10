@@ -2620,9 +2620,6 @@ const SecurityPanel = () => {
 };
 
 // ============ SCHEDULED REPORTS PANEL (extracted to /components/panels/ScheduledReportsPanel.jsx) ============
-
-// ============ BACKUP PANEL (extracted to /components/panels/BackupPanel.jsx) ============
-
 // ============ BACKUP PANEL (extracted to /components/panels/BackupPanel.jsx) ============
 // ============ DAILY DOWNTIME REPORT PANEL (extracted to /components/panels/DailyReportPanel.jsx) ============
 // ============ ACCESS LOGS PANEL (extracted to /components/panels/AccessLogsPanel.jsx) ============
