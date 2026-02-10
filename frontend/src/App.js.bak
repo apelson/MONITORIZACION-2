@@ -2840,6 +2840,479 @@ const ScheduledReportsPanel = ({ organizations }) => {
 
 // ============ ACCESS LOGS PANEL (extracted to /components/panels/AccessLogsPanel.jsx) ============
 
+  const fetchBackups = useCallback(async () => {
+    try {
+      const res = await authAxios.get("/backup/list");
+      setBackups(res.data.backups || []);
+    } catch (e) { console.error("Error fetching backups:", e); }
+    setLoading(false);
+  }, [authAxios]);
+
+  useEffect(() => { fetchBackups(); }, [fetchBackups]);
+
+  const handleDownload = async (format = "json") => {
+    setDownloading(true);
+    try {
+      const endpoint = format === "zip" ? "/backup/download-zip" : "/backup/download";
+      const response = await authAxios.get(`${endpoint}?include_history=${includeHistory}`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+      link.setAttribute('download', `siempria_backup_${timestamp}.${format}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Backup descargado correctamente");
+    } catch (e) {
+      console.error("Download error:", e);
+      toast.error("Error al descargar backup");
+    }
+    setDownloading(false);
+  };
+
+  const handleCreateAuto = async () => {
+    setCreating(true);
+    try {
+      await authAxios.post(`/backup/create-auto?include_history=${includeHistory}`);
+      toast.success("Backup creado en el servidor");
+      fetchBackups();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Error al crear backup");
+    }
+    setCreating(false);
+  };
+
+  const handleRestore = async (file) => {
+    if (!file) return;
+    
+    if (!window.confirm("⚠️ ADVERTENCIA: Restaurar un backup reemplazará todos los datos actuales. ¿Continuar?")) {
+      return;
+    }
+    
+    setRestoring(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      await authAxios.post(`/backup/restore?merge=${mergeMode}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      toast.success("Backup restaurado correctamente. Recargando...");
+      setTimeout(() => window.location.reload(), 2000);
+    } catch (e) {
+      console.error("Restore error:", e);
+      toast.error(e.response?.data?.detail || "Error al restaurar backup");
+    }
+    setRestoring(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleDownloadServerBackup = async (filename) => {
+    try {
+      const response = await authAxios.get(`/backup/auto/${filename}`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Backup descargado");
+    } catch (e) {
+      toast.error("Error al descargar");
+    }
+  };
+
+  const handleDeleteServerBackup = async (filename) => {
+    if (!window.confirm(`¿Eliminar backup ${filename}?`)) return;
+    try {
+      await authAxios.delete(`/backup/auto/${filename}`);
+      toast.success("Backup eliminado");
+      fetchBackups();
+    } catch (e) {
+      toast.error("Error al eliminar");
+    }
+  };
+
+  const formatSize = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Archive className="w-5 h-5 text-blue-600" />
+          Sistema de Backup
+        </CardTitle>
+        <CardDescription>
+          Crea, descarga y restaura copias de seguridad de tus datos
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Download section */}
+        <div className="p-4 bg-blue-50 rounded-lg space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-blue-900">Descargar Backup</p>
+              <p className="text-sm text-blue-700">Descarga una copia completa de todos tus datos</p>
+            </div>
+            <HardDrive className="w-8 h-8 text-blue-600" />
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Switch checked={includeHistory} onCheckedChange={setIncludeHistory} />
+            <span className="text-sm text-blue-800">Incluir historial (archivo más grande)</span>
+          </div>
+          
+          <div className="flex gap-2 flex-wrap">
+            <Button 
+              onClick={() => handleDownload("json")} 
+              disabled={downloading}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              {downloading ? "Descargando..." : "Descargar JSON"}
+            </Button>
+            <Button 
+              onClick={() => handleDownload("zip")} 
+              disabled={downloading}
+              variant="outline"
+              className="border-blue-600 text-blue-600 hover:bg-blue-50"
+            >
+              <FolderArchive className="w-4 h-4 mr-2" />
+              Descargar ZIP
+            </Button>
+          </div>
+        </div>
+
+        {/* Restore section */}
+        <div className="p-4 bg-amber-50 rounded-lg space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-amber-900">Restaurar Backup</p>
+              <p className="text-sm text-amber-700">Restaura tus datos desde un archivo de backup</p>
+            </div>
+            <RotateCcw className="w-8 h-8 text-amber-600" />
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Switch checked={mergeMode} onCheckedChange={setMergeMode} />
+            <span className="text-sm text-amber-800">
+              Modo fusión (no elimina datos existentes)
+            </span>
+          </div>
+          
+          <div className="flex gap-2 items-center">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,.zip"
+              onChange={(e) => handleRestore(e.target.files?.[0])}
+              className="hidden"
+              id="backup-file-input"
+            />
+            <Button 
+              onClick={() => fileInputRef.current?.click()}
+              disabled={restoring}
+              variant="outline"
+              className="border-amber-600 text-amber-700 hover:bg-amber-100"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {restoring ? t('backup.restoring', 'Restaurando...') : t('backup.selectFile', 'Seleccionar archivo')}
+            </Button>
+            <span className="text-xs text-amber-600">JSON o ZIP</span>
+          </div>
+        </div>
+
+        {/* Server backups section */}
+        <div className="p-4 bg-gray-50 rounded-lg space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">Backups en Servidor</p>
+              <p className="text-sm text-muted-foreground">Backups automáticos almacenados en el servidor</p>
+            </div>
+            <Button 
+              onClick={handleCreateAuto} 
+              disabled={creating}
+              size="sm"
+              variant="outline"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              {creating ? t('common.creating', 'Creando...') : t('backup.createNow', 'Crear ahora')}
+            </Button>
+          </div>
+
+          {loading ? (
+            <Skeleton className="h-20 w-full" />
+          ) : backups.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No hay backups en el servidor
+            </p>
+          ) : (
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {backups.map((backup) => (
+                <div 
+                  key={backup.filename}
+                  className="flex items-center justify-between p-2 bg-white rounded border text-sm"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <FileIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-mono text-xs truncate">{backup.filename}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatSize(backup.size)} • {new Date(backup.created).toLocaleString('es-ES')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-1 flex-shrink-0">
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-7 w-7"
+                      onClick={() => handleDownloadServerBackup(backup.filename)}
+                    >
+                      <Download className="w-3 h-3" />
+                    </Button>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-7 w-7 text-red-500 hover:text-red-700"
+                      onClick={() => handleDeleteServerBackup(backup.filename)}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Info */}
+        <div className="p-3 bg-muted rounded-lg">
+          <p className="text-xs text-muted-foreground">
+            <Info className="w-3 h-3 inline mr-1" />
+            Los backups incluyen: organizaciones, grupos, dispositivos, usuarios, alertas y configuraciones.
+            Se mantienen los últimos 10 backups automáticos en el servidor.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// ============ DAILY DOWNTIME REPORT PANEL ============
+const DailyReportPanel = () => {
+  const { t } = useTranslation();
+  const [config, setConfig] = useState({
+    enabled: false,
+    time: "08:00",
+    recipients: []
+  });
+  const [emailInput, setEmailInput] = useState("");
+  const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [loadingPreview, setLoadingPreview] = useState(false);
+  const { authAxios } = useAuth();
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await authAxios.get("/reports/settings");
+        setConfig({
+          enabled: res.data.daily_report_enabled || false,
+          time: res.data.daily_report_time || "08:00",
+          recipients: res.data.daily_report_recipients || []
+        });
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    };
+    fetchSettings();
+  }, [authAxios]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await authAxios.put("/reports/settings", {
+        daily_report_enabled: config.enabled,
+        daily_report_time: config.time,
+        daily_report_recipients: config.recipients
+      });
+      toast.success("Configuración guardada");
+    } catch (e) {
+      toast.error("Error al guardar");
+    }
+    setSaving(false);
+  };
+
+  const handleSendNow = async () => {
+    if (config.recipients.length === 0) {
+      toast.error("Añade al menos un destinatario");
+      return;
+    }
+    setSending(true);
+    try {
+      await authAxios.post(`/reports/send?days=1`, config.recipients);
+      toast.success("Informe enviado correctamente");
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Error al enviar");
+    }
+    setSending(false);
+  };
+
+  const loadPreview = async () => {
+    setLoadingPreview(true);
+    try {
+      const res = await authAxios.get("/reports/preview?days=1");
+      setPreview(res.data);
+    } catch (e) {
+      toast.error("Error al cargar preview");
+    }
+    setLoadingPreview(false);
+  };
+
+  const addEmail = () => {
+    const email = emailInput.trim().toLowerCase();
+    if (email && email.includes("@") && !config.recipients.includes(email)) {
+      setConfig({ ...config, recipients: [...config.recipients, email] });
+      setEmailInput("");
+    }
+  };
+
+  const removeEmail = (email) => {
+    setConfig({ ...config, recipients: config.recipients.filter(e => e !== email) });
+  };
+
+  if (loading) return <Card><CardContent className="p-6"><Skeleton className="h-32 w-full" /></CardContent></Card>;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FileText className="w-5 h-5 text-orange-600" />
+          Informe Diario de Caídas
+        </CardTitle>
+        <CardDescription>
+          Recibe un resumen diario con todas las caídas de dispositivos
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Enable */}
+        <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg">
+          <div>
+            <p className="font-medium text-orange-900">Informe automático diario</p>
+            <p className="text-sm text-orange-700">Recibe cada día un resumen de las caídas del sistema</p>
+          </div>
+          <Switch checked={config.enabled} onCheckedChange={(v) => setConfig({ ...config, enabled: v })} />
+        </div>
+
+        {/* Time */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Hora de envío</label>
+            <Input 
+              type="time" 
+              value={config.time}
+              onChange={(e) => setConfig({ ...config, time: e.target.value })}
+            />
+            <p className="text-xs text-muted-foreground">Hora local del servidor</p>
+          </div>
+        </div>
+
+        {/* Recipients */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Destinatarios</label>
+          <div className="flex gap-2">
+            <Input 
+              placeholder="email@ejemplo.com"
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addEmail()}
+            />
+            <Button onClick={addEmail} variant="outline">
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+          {config.recipients.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {config.recipients.map(email => (
+                <Badge key={email} variant="secondary" className="flex items-center gap-1">
+                  <Mail className="w-3 h-3" />
+                  {email}
+                  <button onClick={() => removeEmail(email)} className="ml-1 hover:text-red-500">
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Preview */}
+        <div className="border rounded-lg p-4 bg-gray-50">
+          <div className="flex items-center justify-between mb-3">
+            <p className="font-medium text-sm">Vista previa del informe</p>
+            <Button variant="outline" size="sm" onClick={loadPreview} disabled={loadingPreview}>
+              <Eye className="w-4 h-4 mr-1" />
+              {loadingPreview ? t('common.loading', 'Cargando...') : t('reports.viewPreview', 'Ver preview')}
+            </Button>
+          </div>
+          {preview && (
+            <div className="grid grid-cols-4 gap-3 text-center">
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-2xl font-bold text-green-600">{preview.summary.online_now}</p>
+                <p className="text-xs text-muted-foreground">Online</p>
+              </div>
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-2xl font-bold text-red-600">{preview.summary.offline_now}</p>
+                <p className="text-xs text-muted-foreground">Offline</p>
+              </div>
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-2xl font-bold text-amber-600">{preview.summary.total_downtime_events}</p>
+                <p className="text-xs text-muted-foreground">Caídas (24h)</p>
+              </div>
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-2xl font-bold text-gray-600">{preview.summary.total_devices}</p>
+                <p className="text-xs text-muted-foreground">{t('common.total', 'Total')}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2 pt-4 border-t">
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? t('common.saving', 'Guardando...') : t('settings.saveConfig', 'Guardar configuración')}
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={handleSendNow} 
+            disabled={sending || config.recipients.length === 0}
+          >
+            <Send className="w-4 h-4 mr-2" />
+            {sending ? "Enviando..." : "Enviar ahora"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 // ============ ACCESS LOGS PANEL (extracted to /components/panels/AccessLogsPanel.jsx) ============
 
 // ============ INCIDENTS PANEL ============
