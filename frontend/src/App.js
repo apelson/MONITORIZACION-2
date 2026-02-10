@@ -4183,7 +4183,7 @@ const Dashboard = () => {
           {!isOperator && <TabsContent value="live" className="h-[calc(100vh-200px)]"><LiveViewer authAxios={authAxios} devices={devices} organizations={organizations} groups={groups} /></TabsContent>}
           {isAdmin && <TabsContent value="infrastructure"><InfrastructurePanel authAxios={authAxios} /></TabsContent>}
           {isAdmin && <TabsContent value="users"><UsersPanel users={users} authAxios={authAxios} onCreateUser={() => { setSelectedUser(null); setUserDialogOpen(true); }} onEditUser={(u) => { setSelectedUser(u); setUserDialogOpen(true); }} onDeleteUser={(u) => { setDeleteTarget({ type: "user", item: u }); setDeleteDialogOpen(true); }} onResetPassword={handleOpenPasswordDialog} onUserUpdate={fetchAll} /></TabsContent>}
-          {isAdmin && <TabsContent value="logs"><AccessLogsPanel /></TabsContent>}
+          {isAdmin && <TabsContent value="logs"><AccessLogsPanel authAxios={authAxios} /></TabsContent>}
           {(isAdmin || isTechnician) && <TabsContent value="incidents"><IncidentsPanel devices={devices} authAxios={authAxios} /></TabsContent>}
           {isAdmin && <TabsContent value="settings">
             <div className="space-y-6">
