@@ -4719,6 +4719,7 @@ const Dashboard = () => {
   const { t } = useTranslation();
   const { user, logout, authAxios, canAccessSection, hasPermission } = useAuth();
   const [devices, setDevices] = useState([]);
+  const [deviceStats, setDeviceStats] = useState({ total: 0, online: 0, offline: 0, cra: 0 });
   const [organizations, setOrganizations] = useState([]);
   const [groups, setGroups] = useState([]);
   const [deviceTypes, setDeviceTypes] = useState([]);
