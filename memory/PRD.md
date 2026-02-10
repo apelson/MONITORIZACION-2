@@ -30,11 +30,11 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 │   └── services/         
 └── frontend/             # React + Craco
     ├── src/
-    │   ├── App.js        # Main component (~5846 lines, refactored from 6463)
+    │   ├── App.js        # Main component (~4518 lines, refactored from 6463)
     │   ├── contexts/     # AuthContext
     │   ├── components/
     │   │   ├── common/   # SectionLoader, CRAFloatingButton, LiveViewerFloatingButton
-    │   │   ├── panels/   # AlertsPanel (NEW), CRADashboard, LiveViewer, InfrastructurePanel
+    │   │   ├── panels/   # AlertsPanel, StatisticsPanel, IncidentsPanel, AccessLogsPanel, CRADashboard, LiveViewer, InfrastructurePanel
     │   │   └── settings/ # RolesManager, SuperAdminTab, NotificationSettings
     │   └── ...
     └── public/
@@ -43,11 +43,22 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 
 ## What's Been Implemented
 
+### Session: 2026-02-10
+
+#### Refactorización App.js - Fase 2 ✅
+- **AccessLogsPanel extraído** - ~406 líneas movidas a `/components/panels/AccessLogsPanel.jsx`
+- App.js reducido de 4924 líneas a 4518 líneas (-406 líneas)
+- Componente recibe `authAxios` como prop
+- Funcionalidades preservadas: stats cards, alertas de seguridad, tabla de logs, filtros, exportación CSV
+- Testing agent verificó funcionamiento: 100% tests pasados
+
 ### Session: 2026-02-09
 
-#### Refactorización App.js ✅
+#### Refactorización App.js - Fase 1 ✅
 - **AlertsPanel extraído** - ~630 líneas movidas a `/components/panels/AlertsPanel.jsx`
-- App.js reducido de 6463 líneas a 5846 líneas (-617 líneas)
+- **StatisticsPanel extraído** - componente de estadísticas
+- **IncidentsPanel extraído** - componente de incidentes
+- App.js reducido de 6463 líneas a 4924 líneas
 - Componente independiente con props: `alerts, organizations, devices, groups, authAxios`
 
 #### Soporte Cámaras Hemisféricas Ampliado ✅
