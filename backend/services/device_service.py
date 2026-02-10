@@ -9,7 +9,8 @@ import uuid
 from config import devices_collection, history_collection, logger
 from services.email_service import create_alert
 
-async def check_device_status(ip: str, port: int, timeout: float = 3.0) -> str:
+async def check_device_status(ip: str, port: int, timeout: float = 1.5) -> str:
+    """Check if device is online with optimized timeout"""
     try:
         loop = asyncio.get_event_loop()
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
