@@ -2619,24 +2619,9 @@ const SecurityPanel = () => {
   );
 };
 
-const ScheduledReportsPanel = ({ organizations }) => {
-  const { t } = useTranslation();
-  const [config, setConfig] = useState({
-    enabled: false,
-    frequency: "weekly",
-    day_of_week: 0,
-    day_of_month: 1,
-    hour: 8,
-    recipient_emails: [],
-    include_offline_list: true,
-    include_uptime_stats: true,
-    organization_ids: []
-  });
-  const [emailInput, setEmailInput] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const { authAxios } = useAuth();
+// ============ SCHEDULED REPORTS PANEL (extracted to /components/panels/ScheduledReportsPanel.jsx) ============
+
+// ============ BACKUP PANEL (extracted to /components/panels/BackupPanel.jsx) ============
 
   useEffect(() => {
     const fetchConfig = async () => {
