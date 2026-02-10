@@ -292,7 +292,7 @@ async def get_device_history(device_id: str, limit: int = 100, current_user: dic
 
 @router.get("/alerts")
 async def get_alerts(
-    limit: int = Query(100000, ge=1, le=100000, description="Número máximo de alertas (sin límite práctico)"),
+    limit: int = Query(500, ge=1, le=10000, description="Número máximo de alertas"),
     period: str = Query("month", description="Período: day, week, month, year, all"),
     start_date: str = Query(None, description="Fecha inicio (ISO format)"),
     end_date: str = Query(None, description="Fecha fin (ISO format)"),
