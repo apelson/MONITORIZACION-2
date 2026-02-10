@@ -470,3 +470,152 @@
         transform: translateY(0);
     }
 }
+
+/* ========================================
+   MOBILE RESPONSIVE STYLES
+   ======================================== */
+
+/* Mobile Header Adjustments */
+@media (max-width: 640px) {
+  .app-header {
+    padding: 8px 0;
+  }
+  
+  .status-hud {
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 30px;
+  }
+  
+  .status-hud-item {
+    gap: 4px;
+    font-size: 12px;
+  }
+  
+  .status-hud-item.online .status-count,
+  .status-hud-item.offline .status-count {
+    font-size: 16px;
+  }
+  
+  .status-hud-divider {
+    height: 24px;
+  }
+  
+  .status-count {
+    font-size: 16px !important;
+  }
+  
+  /* Hide CRA label on very small screens */
+  .status-hud-item.cra .status-hud-label {
+    display: none;
+  }
+}
+
+/* Mobile Tabs - Scrollable */
+@media (max-width: 640px) {
+  /* Hide scrollbar but allow scrolling */
+  .overflow-x-auto::-webkit-scrollbar {
+    display: none;
+  }
+  .overflow-x-auto {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Mobile Cards */
+@media (max-width: 640px) {
+  .grid.gap-6 {
+    gap: 12px;
+  }
+  
+  /* Make device cards full width */
+  .grid-cols-1 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Mobile Select dropdowns */
+@media (max-width: 640px) {
+  [data-radix-popper-content-wrapper] {
+    max-width: calc(100vw - 32px) !important;
+  }
+}
+
+/* Mobile Dialogs */
+@media (max-width: 640px) {
+  [role="dialog"] {
+    max-width: calc(100vw - 16px) !important;
+    max-height: calc(100vh - 32px) !important;
+    margin: 8px !important;
+    border-radius: 16px !important;
+  }
+  
+  [role="dialog"] > div {
+    padding: 16px !important;
+  }
+}
+
+/* Mobile Tables */
+@media (max-width: 640px) {
+  table {
+    font-size: 12px;
+  }
+  
+  th, td {
+    padding: 8px 6px !important;
+  }
+  
+  /* Hide less important columns on mobile */
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+/* Mobile Buttons */
+@media (max-width: 640px) {
+  .btn-primary-action {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* Mobile Footer spacing */
+@media (max-width: 640px) {
+  footer {
+    padding: 12px 16px !important;
+  }
+  
+  footer .container {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+}
+
+/* Floating buttons mobile position */
+@media (max-width: 640px) {
+  .fixed.bottom-6.right-6 {
+    bottom: 16px !important;
+    right: 16px !important;
+  }
+  
+  .fixed.bottom-6.right-6 button,
+  .fixed.bottom-6.right-6 > div {
+    width: 48px !important;
+    height: 48px !important;
+  }
+}
+
+/* Mobile-friendly touch targets */
+@media (max-width: 640px) {
+  button, 
+  [role="button"],
+  a {
+    min-height: 36px;
+  }
+  
+  input, select, textarea {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
+}
