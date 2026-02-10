@@ -229,6 +229,8 @@ async def download_file(path: str):
         "CRADashboard.jsx": "/app/frontend/src/components/panels/CRADashboard.jsx",
         "LiveViewer.jsx": "/app/frontend/src/components/panels/LiveViewer.jsx",
         "AlertsPanel.jsx": "/app/frontend/src/components/panels/AlertsPanel.jsx",
+        "StatisticsPanel.jsx": "/app/frontend/src/components/panels/StatisticsPanel.jsx",
+        "IncidentsPanel.jsx": "/app/frontend/src/components/panels/IncidentsPanel.jsx",
         "InfrastructurePanel.jsx": "/app/frontend/src/components/panels/InfrastructurePanel.jsx",
         "ServerCard.jsx": "/app/frontend/src/components/devices/ServerCard.jsx",
         "RolesManager.jsx": "/app/frontend/src/components/settings/RolesManager.jsx",
