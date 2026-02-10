@@ -406,11 +406,45 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [viewMode, setViewMode] = useState('normal'); // 'normal', 'fisheye', 'panorama'
+  const [cameraConfig, setCameraConfig] = useState(null);
   const imgRef = useRef(null);
   const panelRef = useRef(null);
   const intervalRef = useRef(null);
 
   const baseUrl = process.env.REACT_APP_BACKEND_URL || '';
+
+  // Check if camera is hemispheric (C25, C26, Q24, Q25, Q26, S14, S15, S16, M25, M26 models)
+  const isHemispheric = cameraConfig?.is_hemispheric || 
+    device.model?.toLowerCase().includes('c25') || 
+    device.model?.toLowerCase().includes('c26') ||
+    device.model?.toLowerCase().includes('q24') ||
+    device.model?.toLowerCase().includes('q25') ||
+    device.model?.toLowerCase().includes('q26') ||
+    device.model?.toLowerCase().includes('s14') ||
+    device.model?.toLowerCase().includes('s15') ||
+    device.model?.toLowerCase().includes('s16') ||
+    device.model?.toLowerCase().includes('m25') ||
+    device.model?.toLowerCase().includes('m26');
+
+  // Fetch camera config on mount to detect hemispheric cameras
+  useEffect(() => {
+    const fetchCameraConfig = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        const response = await fetch(`${baseUrl}/api/camera-stream/camera-config/${device.id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const config = await response.json();
+          setCameraConfig(config);
+        }
+      } catch (err) {
+        console.error('Error fetching camera config:', err);
+      }
+    };
+    fetchCameraConfig();
+  }, [device.id, baseUrl]);
 
   // Handle double-click for fullscreen
   const handleDoubleClick = async () => {
@@ -450,6 +484,10 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
   const getSnapshotUrl = () => {
     const token = getAuthToken();
     const timestamp = Date.now();
+    // Use hemispheric endpoint if in fisheye/panorama mode
+    if (viewMode !== 'normal' && isHemispheric) {
+      return `${baseUrl}/api/camera-stream/hemispheric/${device.id}?view=${viewMode}&t=${timestamp}`;
+    }
     return `${baseUrl}/api/camera-stream/snapshot/${device.id}?t=${timestamp}&token=${token}`;
   };
 
@@ -462,7 +500,13 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
       
       try {
         const token = getAuthToken();
-        const response = await fetch(`${baseUrl}/api/camera-stream/snapshot/${device.id}?t=${Date.now()}`, {
+        // Use hemispheric endpoint if in fisheye/panorama mode
+        let url = `${baseUrl}/api/camera-stream/snapshot/${device.id}?t=${Date.now()}`;
+        if (viewMode !== 'normal' && isHemispheric) {
+          url = `${baseUrl}/api/camera-stream/hemispheric/${device.id}?view=${viewMode}&t=${Date.now()}`;
+        }
+        
+        const response = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -470,14 +514,14 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
         
         if (response.ok) {
           const blob = await response.blob();
-          const url = URL.createObjectURL(blob);
+          const blobUrl = URL.createObjectURL(blob);
           
           if (imgRef.current && isMounted) {
             // Revoke old URL to prevent memory leak
             if (imgRef.current.src && imgRef.current.src.startsWith('blob:')) {
               URL.revokeObjectURL(imgRef.current.src);
             }
-            imgRef.current.src = url;
+            imgRef.current.src = blobUrl;
             setLoading(false);
             setError(false);
             setRetryCount(0);
@@ -508,12 +552,13 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
-      // Clean up blob URL
-      if (imgRef.current?.src?.startsWith('blob:')) {
-        URL.revokeObjectURL(imgRef.current.src);
+      // Clean up blob URL - save ref to variable to avoid stale ref
+      const currentImg = imgRef.current;
+      if (currentImg?.src?.startsWith('blob:')) {
+        URL.revokeObjectURL(currentImg.src);
       }
     };
-  }, [device.id, device.name, refreshInterval, baseUrl, retryCount]);
+  }, [device.id, device.name, refreshInterval, baseUrl, retryCount, viewMode, isHemispheric]);
 
   const handleRetry = () => {
     setError(false);
@@ -538,17 +583,67 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${device.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`} />
             <span className="text-white text-sm font-medium truncate">{device.name}</span>
+            {/* Hemispheric view badge */}
+            {isHemispheric && (
+              <span className="text-[10px] bg-purple-500/80 text-white px-1.5 py-0.5 rounded">360°</span>
+            )}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-white hover:bg-white/20"
-            onClick={onRemove}
-          >
-            <X className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            {/* Hemispheric view mode buttons */}
+            {isHemispheric && (
+              <div className="flex items-center gap-0.5 mr-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => setViewMode('normal')}
+                  className={`px-1.5 py-0.5 text-xs rounded transition-colors ${
+                    viewMode === 'normal' 
+                      ? 'bg-cyan-500 text-white' 
+                      : 'bg-white/20 text-white/70 hover:bg-white/30'
+                  }`}
+                  title="Vista normal (corregida)"
+                >
+                  Normal
+                </button>
+                <button
+                  onClick={() => setViewMode('full')}
+                  className={`px-1.5 py-0.5 text-xs rounded transition-colors ${
+                    viewMode === 'full' 
+                      ? 'bg-purple-500 text-white' 
+                      : 'bg-white/20 text-white/70 hover:bg-white/30'
+                  }`}
+                  title="Vista fisheye completa (circular)"
+                >
+                  Fisheye
+                </button>
+                <button
+                  onClick={() => setViewMode('panorama')}
+                  className={`px-1.5 py-0.5 text-xs rounded transition-colors ${
+                    viewMode === 'panorama' 
+                      ? 'bg-orange-500 text-white' 
+                      : 'bg-white/20 text-white/70 hover:bg-white/30'
+                  }`}
+                  title="Vista panorámica 360°"
+                >
+                  Panorama
+                </button>
+              </div>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-white hover:bg-white/20"
+              onClick={onRemove}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
         <p className="text-white/70 text-xs">{device.ip_address}</p>
+        {/* Current view mode indicator */}
+        {viewMode !== 'normal' && (
+          <span className="text-[10px] bg-purple-500/80 text-white px-1.5 py-0.5 rounded mt-1 inline-block">
+            Modo: {viewMode === 'full' ? 'Fisheye' : 'Panorama'}
+          </span>
+        )}
       </div>
 
       {/* Loading state */}
