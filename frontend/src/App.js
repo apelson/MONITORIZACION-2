@@ -45,6 +45,7 @@ import IncidentsPanel from "@/components/panels/IncidentsPanel";
 import AccessLogsPanel from "@/components/panels/AccessLogsPanel";
 import BackupPanel from "@/components/panels/BackupPanel";
 import DailyReportPanel from "@/components/panels/DailyReportPanel";
+import ScheduledReportsPanel from "@/components/panels/ScheduledReportsPanel";
 import CRAFloatingButton from "@/components/common/CRAFloatingButton";
 import LiveViewerFloatingButton from "@/components/common/LiveViewerFloatingButton";
 import NotificationSettings from "@/components/settings/NotificationSettings";
