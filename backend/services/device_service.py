@@ -111,14 +111,15 @@ async def check_camera_nas_connection(device_id: str, storage_info: dict):
         )
 
 async def check_all_devices():
+    """Check all devices in parallel batches for better performance"""
     logger.info("Starting scheduled device check...")
     devices = await devices_collection.find({}, {"_id": 0}).to_list(length=None)
     
-    for device in devices:
-        try:
-            await check_single_device(device["id"], background_alert=True)
-            await asyncio.sleep(0.1)  # Small delay between checks
-        except Exception as e:
-            logger.error(f"Error checking device {device.get('name', 'unknown')}: {e}")
+    # Process in batches of 20 devices concurrently
+    batch_size = 20
+    for i in range(0, len(devices), batch_size):
+        batch = devices[i:i + batch_size]
+        tasks = [check_single_device(d["id"], background_alert=True) for d in batch]
+        await asyncio.gather(*tasks, return_exceptions=True)
     
     logger.info(f"Completed check for {len(devices)} devices")
