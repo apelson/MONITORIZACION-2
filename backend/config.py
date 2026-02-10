@@ -40,6 +40,30 @@ device_images_collection = db["device_images"]  # NEW: Device installation image
 ftp_history_collection = db["ftp_history"]  # FTP status change history for auditing
 roles_collection = db["roles"]  # Role-based permission system
 
+# ============ DATABASE INDEXES FOR PERFORMANCE ============
+async def create_indexes():
+    """Create MongoDB indexes for faster queries"""
+    try:
+        # Devices indexes
+        await devices_collection.create_index("status")
+        await devices_collection.create_index("is_cra")
+        await devices_collection.create_index("group_id")
+        await devices_collection.create_index("device_type_id")
+        await devices_collection.create_index([("status", 1), ("is_cra", 1)])
+        
+        # Alerts indexes
+        await alerts_collection.create_index("timestamp")
+        await alerts_collection.create_index("device_id")
+        await alerts_collection.create_index([("timestamp", -1)])
+        
+        # History indexes  
+        await history_collection.create_index("device_id")
+        await history_collection.create_index([("timestamp", -1)])
+        
+        logger.info("MongoDB indexes created successfully")
+    except Exception as e:
+        logger.warning(f"Error creating indexes: {e}")
+
 # JWT Settings
 SECRET_KEY = os.environ.get("SECRET_KEY", "siempria-network-monitor-secret-key-2024")
 ALGORITHM = "HS256"
