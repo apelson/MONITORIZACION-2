@@ -2835,14 +2835,10 @@ const ScheduledReportsPanel = ({ organizations }) => {
 };
 
 // ============ BACKUP PANEL (extracted to /components/panels/BackupPanel.jsx) ============
-
 // ============ DAILY DOWNTIME REPORT PANEL (extracted to /components/panels/DailyReportPanel.jsx) ============
-
 // ============ ACCESS LOGS PANEL (extracted to /components/panels/AccessLogsPanel.jsx) ============
 
-// ============ ACCESS LOGS PANEL (extracted to /components/panels/AccessLogsPanel.jsx) ============
-
-// ============ INCIDENTS PANEL ============
+// ============ LOADING COMPONENTS ============
 const LoadingSkeleton = ({ message = "Cargando datos..." }) => (
   <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
     <div className="flex flex-col items-center gap-8">
