@@ -135,6 +135,10 @@ async def periodic_device_check():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Create database indexes for performance
+    from config import create_indexes
+    await create_indexes()
+    
     await init_default_data()
     asyncio.create_task(periodic_device_check())
     
@@ -149,7 +153,7 @@ async def lifespan(app: FastAPI):
     scheduler.start()
     logger.info("Scheduler started for daily reports")
     
-    logger.info("Siempria Network Monitor API started")
+    logger.info("Siempria Network Monitor API started - OPTIMIZED")
     yield
     scheduler.shutdown()
     logger.info("Siempria Network Monitor API stopped")
