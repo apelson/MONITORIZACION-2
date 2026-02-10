@@ -4590,7 +4590,7 @@ const Dashboard = () => {
           {isAdmin && <TabsContent value="infrastructure"><InfrastructurePanel authAxios={authAxios} /></TabsContent>}
           {isAdmin && <TabsContent value="users"><UsersPanel users={users} authAxios={authAxios} onCreateUser={() => { setSelectedUser(null); setUserDialogOpen(true); }} onEditUser={(u) => { setSelectedUser(u); setUserDialogOpen(true); }} onDeleteUser={(u) => { setDeleteTarget({ type: "user", item: u }); setDeleteDialogOpen(true); }} onResetPassword={handleOpenPasswordDialog} onUserUpdate={fetchAll} /></TabsContent>}
           {isAdmin && <TabsContent value="logs"><AccessLogsPanel /></TabsContent>}
-          {(isAdmin || isTechnician) && <TabsContent value="incidents"><IncidentsPanel devices={devices} /></TabsContent>}
+          {(isAdmin || isTechnician) && <TabsContent value="incidents"><IncidentsPanel devices={devices} authAxios={authAxios} /></TabsContent>}
           {isAdmin && <TabsContent value="settings">
             <div className="space-y-6">
               <SystemStatusDashboard authAxios={authAxios} />
