@@ -2834,18 +2834,11 @@ const ScheduledReportsPanel = ({ organizations }) => {
   );
 };
 
-// ============ BACKUP PANEL ============
-const BackupPanel = () => {
-  const { t } = useTranslation();
-  const [backups, setBackups] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [downloading, setDownloading] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [restoring, setRestoring] = useState(false);
-  const [includeHistory, setIncludeHistory] = useState(false);
-  const [mergeMode, setMergeMode] = useState(false);
-  const { authAxios } = useAuth();
-  const fileInputRef = useRef(null);
+// ============ BACKUP PANEL (extracted to /components/panels/BackupPanel.jsx) ============
+
+// ============ DAILY DOWNTIME REPORT PANEL (extracted to /components/panels/DailyReportPanel.jsx) ============
+
+// ============ ACCESS LOGS PANEL (extracted to /components/panels/AccessLogsPanel.jsx) ============
 
   const fetchBackups = useCallback(async () => {
     try {
