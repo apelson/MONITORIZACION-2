@@ -3710,8 +3710,8 @@ const Dashboard = () => {
               <NotificationSettings />
               <SecurityPanel />
               <ScheduledReportsPanel organizations={organizations} />
-              <DailyReportPanel />
-              <BackupPanel />
+              <DailyReportPanel authAxios={authAxios} />
+              <BackupPanel authAxios={authAxios} />
             </div>
           </TabsContent>}
           {isAdmin && <TabsContent value="superadmin"><SuperAdminTab authAxios={authAxios} /></TabsContent>}
