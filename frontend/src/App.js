@@ -3318,25 +3318,7 @@ const DailyReportPanel = () => {
   );
 };
 
-// ============ ACCESS LOGS PANEL ============
-const AccessLogsPanel = () => {
-  const { t } = useTranslation();
-  const [logs, setLogs] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [security, setSecurity] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(0);
-  const [filters, setFilters] = useState({
-    category: "",
-    username: "",
-    log_type: "",
-    start_date: "",
-    end_date: ""
-  });
-  const [showSecurity, setShowSecurity] = useState(false);
-  const { authAxios } = useAuth();
-  const pageSize = 50;
+// ============ ACCESS LOGS PANEL (extracted to /components/panels/AccessLogsPanel.jsx) ============
 
   // Load data on mount
   useEffect(() => {
