@@ -4858,10 +4858,20 @@ const Dashboard = () => {
     
     fetchingRef.current = true;
     try {
-      const [devRes, orgRes, grpRes, typeRes, alertRes] = await Promise.all([
-        authAxios.get("/devices"), authAxios.get("/organizations"), authAxios.get("/groups"),
-        authAxios.get("/device-types"), authAxios.get("/alerts?period=month&limit=500")
+      // Load stats separately (fast, cached) and devices paginated
+      const [statsRes, devRes, orgRes, grpRes, typeRes, alertRes] = await Promise.all([
+        authAxios.get("/devices/stats"),
+        authAxios.get("/devices?limit=50&page=1"), 
+        authAxios.get("/organizations"), 
+        authAxios.get("/groups"),
+        authAxios.get("/device-types"), 
+        authAxios.get("/alerts?period=month&limit=200")
       ]);
+      
+      // Use stats for header counters (faster)
+      if (statsRes.data) {
+        setDeviceStats(statsRes.data);
+      }
       
       const newDevices = devRes.data.devices || [];
       
