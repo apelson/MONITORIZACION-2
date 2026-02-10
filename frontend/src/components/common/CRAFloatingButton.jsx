@@ -34,8 +34,8 @@ const CRAFloatingButton = ({ authAxios, onClick, isActive }) => {
   if (loading) {
     return (
       <div className="fixed right-0 top-1/3 z-50">
-        <div className="bg-gray-200 text-gray-500 p-3 rounded-l-xl shadow-lg animate-pulse">
-          <Shield className="w-6 h-6" />
+        <div className="bg-gray-200 text-gray-500 p-2 sm:p-3 rounded-l-xl shadow-lg animate-pulse">
+          <Shield className="w-5 h-5 sm:w-6 sm:h-6" />
         </div>
       </div>
     );
