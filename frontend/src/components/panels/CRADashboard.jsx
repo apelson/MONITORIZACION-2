@@ -197,87 +197,87 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
   const offlineDevices = devices.filter(d => d.status === 'offline');
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 overflow-x-hidden">
       {/* Audio element */}
       <audio ref={audioRef} src="/sounds/cra-alert.wav" preload="auto" />
       
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className={`p-3 rounded-xl ${status?.offline > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
-            {status?.offline > 0 ? <ShieldAlert className="w-8 h-8 text-red-600" /> : <ShieldCheck className="w-8 h-8 text-green-600" />}
+          <div className={`p-2 sm:p-3 rounded-xl ${status?.offline > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
+            {status?.offline > 0 ? <ShieldAlert className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" /> : <ShieldCheck className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />}
           </div>
           <div>
-            <h2 className="text-2xl font-bold">Panel CRA</h2>
-            <p className="text-muted-foreground">Central Receptora de Alarmas</p>
+            <h2 className="text-xl sm:text-2xl font-bold">Panel CRA</h2>
+            <p className="text-sm text-muted-foreground">Central Receptora de Alarmas</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setSoundEnabled(!soundEnabled)}>
+          <Button variant="outline" size="sm" onClick={() => setSoundEnabled(!soundEnabled)} className="text-xs sm:text-sm">
             {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            <span className="ml-2">{soundEnabled ? 'Sonido ON' : 'Sonido OFF'}</span>
+            <span className="ml-1 sm:ml-2 hidden sm:inline">{soundEnabled ? 'Sonido ON' : 'Sonido OFF'}</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={() => fetchData(true)} disabled={refreshing}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Actualizar
+          <Button variant="outline" size="sm" onClick={() => fetchData(true)} disabled={refreshing} className="text-xs sm:text-sm">
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="ml-1 sm:ml-2 hidden sm:inline">Actualizar</span>
           </Button>
         </div>
       </div>
 
       {/* Alert banner */}
       {status?.recent_alerts_24h > 0 && (
-        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl">
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-orange-600" />
-            <span className="font-medium text-orange-800">{status.recent_alerts_24h} alertas en las últimas 24h</span>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-3 sm:p-4 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600 flex-shrink-0" />
+            <span className="text-sm font-medium text-orange-800">{status.recent_alerts_24h} alertas en las últimas 24h</span>
           </div>
-          <Badge variant={status.offline > 0 ? "destructive" : "default"} className="text-sm">
+          <Badge variant={status.offline > 0 ? "destructive" : "default"} className="text-xs sm:text-sm">
             {status.uptime_percentage?.toFixed(0) || 100}% Operativo
           </Badge>
         </div>
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-4">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total CRA</p>
-                <p className="text-3xl font-bold">{status?.total_devices || 0}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Total CRA</p>
+                <p className="text-2xl sm:text-3xl font-bold">{status?.total_devices || 0}</p>
               </div>
-              <Server className="w-8 h-8 text-blue-500 opacity-50" />
+              <Server className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500 opacity-50" />
             </div>
           </CardContent>
         </Card>
         <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-700">Online</p>
-                <p className="text-3xl font-bold text-green-700">{status?.online || 0}</p>
+                <p className="text-xs sm:text-sm text-green-700">Online</p>
+                <p className="text-2xl sm:text-3xl font-bold text-green-700">{status?.online || 0}</p>
               </div>
-              <Wifi className="w-8 h-8 text-green-500" />
+              <Wifi className="w-6 h-6 sm:w-8 sm:h-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
         <Card className={status?.offline > 0 ? "bg-red-50 border-red-200" : ""}>
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${status?.offline > 0 ? 'text-red-700' : 'text-muted-foreground'}`}>Offline</p>
-                <p className={`text-3xl font-bold ${status?.offline > 0 ? 'text-red-700' : ''}`}>{status?.offline || 0}</p>
+                <p className={`text-xs sm:text-sm ${status?.offline > 0 ? 'text-red-700' : 'text-muted-foreground'}`}>Offline</p>
+                <p className={`text-2xl sm:text-3xl font-bold ${status?.offline > 0 ? 'text-red-700' : ''}`}>{status?.offline || 0}</p>
               </div>
-              <WifiOff className={`w-8 h-8 ${status?.offline > 0 ? 'text-red-500' : 'text-gray-300'}`} />
+              <WifiOff className={`w-6 h-6 sm:w-8 sm:h-8 ${status?.offline > 0 ? 'text-red-500' : 'text-gray-300'}`} />
             </div>
           </CardContent>
         </Card>
         <Card className={status?.recent_alerts_24h > 0 ? "bg-orange-50 border-orange-200" : ""}>
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${status?.recent_alerts_24h > 0 ? 'text-orange-700' : 'text-muted-foreground'}`}>Alertas 24h</p>
-                <p className={`text-3xl font-bold ${status?.recent_alerts_24h > 0 ? 'text-orange-700' : ''}`}>{status?.recent_alerts_24h || 0}</p>
+                <p className={`text-xs sm:text-sm ${status?.recent_alerts_24h > 0 ? 'text-orange-700' : 'text-muted-foreground'}`}>Alertas 24h</p>
+                <p className={`text-2xl sm:text-3xl font-bold ${status?.recent_alerts_24h > 0 ? 'text-orange-700' : ''}`}>{status?.recent_alerts_24h || 0}</p>
               </div>
               <Bell className={`w-8 h-8 ${status?.recent_alerts_24h > 0 ? 'text-orange-500' : 'text-gray-300'}`} />
             </div>
