@@ -5018,7 +5018,7 @@ const Dashboard = () => {
 
           {/* Statistics Tab */}
           <TabsContent value="statistics">
-            <StatisticsPanel devices={devices} groups={groups} />
+            <StatisticsPanel devices={devices} groups={groups} authAxios={authAxios} />
           </TabsContent>
 
           <TabsContent value="structure">
