@@ -1,11 +1,12 @@
 """
-Device management routes
+Device management routes - OPTIMIZED FOR SCALE
 """
 from fastapi import APIRouter, HTTPException, Depends, Request, Query
 from typing import Optional
 from datetime import datetime, timezone
 import uuid
 import asyncio
+import time
 
 from config import (
     devices_collection, groups_collection, history_collection, 
@@ -18,11 +19,52 @@ from services.logging_service import log_access
 
 router = APIRouter(tags=["devices"])
 
+# ============ CACHE FOR PERFORMANCE ============
+_stats_cache = {"data": None, "timestamp": 0, "ttl": 10}  # 10 second cache
+
+async def get_cached_stats():
+    """Get device stats with 10-second cache"""
+    now = time.time()
+    if _stats_cache["data"] and (now - _stats_cache["timestamp"]) < _stats_cache["ttl"]:
+        return _stats_cache["data"]
+    
+    # Aggregate stats in one query
+    pipeline = [
+        {"$group": {
+            "_id": "$status",
+            "count": {"$sum": 1}
+        }}
+    ]
+    status_counts = {"online": 0, "offline": 0, "unknown": 0}
+    async for doc in devices_collection.aggregate(pipeline):
+        status_counts[doc["_id"]] = doc["count"]
+    
+    # Count CRA devices
+    cra_count = await devices_collection.count_documents({"is_cra": True})
+    
+    stats = {
+        "total": sum(status_counts.values()),
+        "online": status_counts.get("online", 0),
+        "offline": status_counts.get("offline", 0),
+        "cra": cra_count
+    }
+    
+    _stats_cache["data"] = stats
+    _stats_cache["timestamp"] = now
+    return stats
+
 def get_client_ip(request: Request) -> str:
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
         return forwarded.split(",")[0].strip()
     return request.client.host if request.client else "unknown"
+
+# ============ OPTIMIZED STATS ENDPOINT ============
+
+@router.get("/devices/stats")
+async def get_device_stats(current_user: dict = Depends(get_current_user)):
+    """Fast endpoint for header stats - uses cache"""
+    return await get_cached_stats()
 
 # ============ DEVICE TYPES ============
 
