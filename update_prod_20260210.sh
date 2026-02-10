@@ -18,7 +18,7 @@ cp "$FRONTEND_DIR/App.js" /var/www/siempria-monitor/backups/$(date +%Y%m%d)/
 mkdir -p "$FRONTEND_DIR/components/panels"
 
 # 3. Descargar archivos desde el preview
-BASE_URL="https://siempria-stable.preview.emergentagent.com"
+BASE_URL="https://react-refactor-18.preview.emergentagent.com"
 
 echo "⬇️ Descargando componentes..."
 
