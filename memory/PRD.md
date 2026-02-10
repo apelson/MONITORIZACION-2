@@ -125,9 +125,9 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
   - [x] Extract AccessLogsPanel - DONE (2026-02-10)
   - [x] Extract BackupPanel - DONE (2026-02-10)
   - [x] Extract DailyReportPanel - DONE (2026-02-10)
-  - [ ] Extract ScheduledReportsPanel (~215 lines)
-  - [ ] Extract LoginPage (~267 lines) - Ya existe en /components/auth/
-  - [ ] Extract DeviceFormDialog (~230 lines)
+  - [x] Extract ScheduledReportsPanel - DONE (2026-02-10 Fase 3)
+  - [x] LoginPage - Ya existe en /components/auth/
+  - [x] DeviceFormDialog - Ya existe en /components/dialogs/
 - [ ] List virtualization with react-window for 5k+ devices
 
 ### P2 - Medium Priority
