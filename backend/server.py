@@ -219,6 +219,7 @@ async def download_file(path: str):
         "cra_events.py": "/app/backend/routes/cra_events.py",
         "roles.py": "/app/backend/routes/roles.py",
         "superadmin_integrated.py": "/app/backend/routes/superadmin_integrated.py",
+        "device_service.py": "/app/backend/services/device_service.py",
         "CRADashboard.jsx": "/app/frontend/src/components/panels/CRADashboard.jsx",
         "LiveViewer.jsx": "/app/frontend/src/components/panels/LiveViewer.jsx",
         "AlertsPanel.jsx": "/app/frontend/src/components/panels/AlertsPanel.jsx",
