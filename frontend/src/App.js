@@ -3495,7 +3495,7 @@ const Dashboard = () => {
               <SettingsPanel settings={settings} onSave={handleSaveSettings} />
               <NotificationSettings />
               <SecurityPanel />
-              <ScheduledReportsPanel organizations={organizations} />
+              <ScheduledReportsPanel organizations={organizations} authAxios={authAxios} />
               <DailyReportPanel authAxios={authAxios} />
               <BackupPanel authAxios={authAxios} />
             </div>
