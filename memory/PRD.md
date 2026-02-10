@@ -119,14 +119,14 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 - [x] AccessLogsPanel refactored (Session 2026-02-10)
 
 ### P1 - High Priority
-- [ ] Continue App.js Refactoring
+- [x] Continue App.js Refactoring
   - [x] Extract StatisticsPanel - DONE
   - [x] Extract IncidentsPanel - DONE
   - [x] Extract AccessLogsPanel - DONE (2026-02-10)
-  - [ ] Extract BackupPanel (~285 lines)
-  - [ ] Extract DailyReportPanel (~200 lines)
+  - [x] Extract BackupPanel - DONE (2026-02-10)
+  - [x] Extract DailyReportPanel - DONE (2026-02-10)
   - [ ] Extract ScheduledReportsPanel (~215 lines)
-  - [ ] Extract LoginPage (~267 lines)
+  - [ ] Extract LoginPage (~267 lines) - Ya existe en /components/auth/
   - [ ] Extract DeviceFormDialog (~230 lines)
 - [ ] List virtualization with react-window for 5k+ devices
 
