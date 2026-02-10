@@ -3356,7 +3356,7 @@ const Dashboard = () => {
                   </Select>
                 {/* NEW: Status filter */}
                 <Select value={filterStatus || "all"} onValueChange={(v) => setFilterStatus(v === "all" ? null : v)}>
-                  <SelectTrigger className="w-[140px]"><SelectValue placeholder={t('common.status', 'Estado')} /></SelectTrigger>
+                  <SelectTrigger className="w-[calc(50%-4px)] sm:w-[140px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Estado" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t('common.all', 'Todos')}</SelectItem>
                     <SelectItem value="online"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" />{t('devices.online', 'Online')}</div></SelectItem>
@@ -3364,18 +3364,21 @@ const Dashboard = () => {
                     <SelectItem value="unknown"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-400" />{t('devices.unknown', 'Desconocido')}</div></SelectItem>
                   </SelectContent>
                 </Select>
-                {/* NEW: Filter by statistics */}
-                <Button 
-                  variant={filterStats ? "default" : "outline"} 
-                  size="sm" 
-                  onClick={() => setFilterStats(!filterStats)}
-                  className={filterStats ? "bg-purple-600 hover:bg-purple-700" : ""}
-                >
-                  <BarChart3 className="w-4 h-4 mr-1" />
-                  {t('filters.withStats', 'Con Stats')}
-                </Button>
-                {(searchQuery || filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus || filterStats) && <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(""); setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); setFilterStats(false); }}>{t('filters.clear', 'Limpiar filtros')}</Button>}
-                <span className="text-sm text-muted-foreground ml-auto">{filteredDevices.length} {t('devices.deviceCount', 'dispositivo(s)')}</span>
+                </div>
+                {/* Stats filter and clear button */}
+                <div className="flex gap-2 items-center w-full sm:w-auto justify-between sm:justify-start">
+                  <Button 
+                    variant={filterStats ? "default" : "outline"} 
+                    size="sm" 
+                    onClick={() => setFilterStats(!filterStats)}
+                    className={`h-9 text-xs sm:text-sm ${filterStats ? "bg-purple-600 hover:bg-purple-700" : ""}`}
+                  >
+                    <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                    Stats
+                  </Button>
+                  {(searchQuery || filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus || filterStats) && <Button variant="ghost" size="sm" className="h-9 text-xs sm:text-sm" onClick={() => { setSearchQuery(""); setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); setFilterStats(false); }}>Limpiar</Button>}
+                  <span className="text-xs sm:text-sm text-muted-foreground">{filteredDevices.length} disp.</span>
+                </div>
               </div>
             )}
             
