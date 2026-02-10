@@ -97,12 +97,19 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 - [x] Sound alert file fixed
 - [x] AlertsPanel refactored
 - [x] All hemispheric camera models supported
+- [x] AccessLogsPanel refactored (Session 2026-02-10)
 
 ### P1 - High Priority
 - [ ] Continue App.js Refactoring
-  - [ ] Extract StatisticsPanel (~475 lines)
-  - [ ] Extract IncidentsPanel (~500 lines)
-  - [ ] Extract DeviceFormDialog component
+  - [x] Extract StatisticsPanel - DONE
+  - [x] Extract IncidentsPanel - DONE
+  - [x] Extract AccessLogsPanel - DONE (2026-02-10)
+  - [ ] Extract BackupPanel (~285 lines)
+  - [ ] Extract DailyReportPanel (~200 lines)
+  - [ ] Extract ScheduledReportsPanel (~215 lines)
+  - [ ] Extract LoginPage (~267 lines)
+  - [ ] Extract DeviceFormDialog (~230 lines)
+- [ ] List virtualization with react-window for 5k+ devices
 
 ### P2 - Medium Priority
 - [ ] Full Multi-Tenant (SaaS) Implementation
