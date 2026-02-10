@@ -832,3 +832,14 @@ async def download_file(filename: str):
     if os.path.exists(file_path):
         return FileResponse(file_path, filename=filename, media_type='application/octet-stream')
     return {"error": "File not found"}
+
+# Endpoint temporal para descargar App.js
+@app.get("/api/download/appjs")
+async def download_appjs():
+    import os
+    file_path = "/app/frontend/src/App.js"
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            content = f.read()
+        return {"content": content}
+    return {"error": "File not found"}
