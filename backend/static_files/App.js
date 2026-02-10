@@ -39,10 +39,20 @@ import InfrastructurePanel from "@/components/panels/InfrastructurePanel";
 import DeviceGallery from "@/components/panels/DeviceGallery";
 import CRADashboard from "@/components/panels/CRADashboard";
 import LiveViewer from "@/components/panels/LiveViewer";
+import AlertsPanel from "@/components/panels/AlertsPanel";
+import StatisticsPanel from "@/components/panels/StatisticsPanel";
+import IncidentsPanel from "@/components/panels/IncidentsPanel";
+import AccessLogsPanel from "@/components/panels/AccessLogsPanel";
+import BackupPanel from "@/components/panels/BackupPanel";
+import DailyReportPanel from "@/components/panels/DailyReportPanel";
+import ScheduledReportsPanel from "@/components/panels/ScheduledReportsPanel";
 import CRAFloatingButton from "@/components/common/CRAFloatingButton";
 import LiveViewerFloatingButton from "@/components/common/LiveViewerFloatingButton";
 import NotificationSettings from "@/components/settings/NotificationSettings";
 import SystemStatusDashboard from "@/components/settings/SystemStatusDashboard";
+import RolesManager from "@/components/settings/RolesManager";
+import SuperAdminTab from "@/components/settings/SuperAdminTab";
+import SectionLoader, { useDelayedLoading } from "@/components/common/SectionLoader";
 
 
 import { API_URL as BACKEND_URL, API } from './config';
@@ -291,33 +301,7 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const initAuth = async () => {
-      if (token) {
-        try {
-          const response = await axios.get(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
-          setUser(response.data.user);
-        } catch (error) {
-          localStorage.removeItem("token");
-          setToken(null);
-        }
-      }
-      setLoading(false);
-    };
-    initAuth();
-  }, [token]);
-
-  const login = async (username, password) => {
-    const response = await axios.post(`${API}/auth/login`, { username, password });
-    const { token: accessToken, user: userData } = response.data;
-    localStorage.setItem("token", accessToken);
-    setToken(accessToken);
-    setUser(userData);
-    return userData;
-  };
-
-  const logout = () => { localStorage.removeItem("token"); setToken(null); setUser(null); };
+  const [userPermissions, setUserPermissions] = useState(null);
 
   // Create axios instance that always reads fresh token from localStorage
   const authAxios = useMemo(() => {
@@ -345,7 +329,105 @@ const AuthProvider = ({ children }) => {
     return instance;
   }, []);
 
-  return <AuthContext.Provider value={{ user, token, login, logout, loading, authAxios }}>{children}</AuthContext.Provider>;
+  // Fetch user permissions
+  const fetchPermissions = useCallback(async () => {
+    try {
+      const response = await authAxios.get('/roles/my-permissions');
+      setUserPermissions(response.data);
+    } catch (error) {
+      console.error('Error fetching permissions:', error);
+      // Default to admin permissions for backwards compatibility
+      setUserPermissions({
+        permissions: {
+          devices: ['view', 'edit', 'delete', 'create'],
+          gallery: ['view', 'upload', 'delete'],
+          cra: ['view', 'manage'],
+          live: ['view'],
+          statistics: ['view', 'export'],
+          alerts: ['view', 'acknowledge', 'delete'],
+          users: ['view', 'edit', 'delete', 'create'],
+          settings: ['view', 'edit'],
+          export: ['pdf', 'excel', 'csv'],
+          organizations: ['view', 'edit', 'delete', 'create'],
+          groups: ['view', 'edit', 'delete', 'create'],
+          reports: ['view', 'create', 'schedule'],
+          incidents: ['view', 'create', 'edit', 'delete'],
+          roles: ['view', 'edit', 'delete', 'create']
+        },
+        group_access: 'all',
+        organization_access: 'all'
+      });
+    }
+  }, [authAxios]);
+
+  useEffect(() => {
+    const initAuth = async () => {
+      if (token) {
+        try {
+          const response = await axios.get(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+          setUser(response.data.user);
+        } catch (error) {
+          localStorage.removeItem("token");
+          setToken(null);
+        }
+      }
+      setLoading(false);
+    };
+    initAuth();
+  }, [token]);
+
+  // Fetch permissions when user is set
+  useEffect(() => {
+    if (user && token) {
+      fetchPermissions();
+    }
+  }, [user, token, fetchPermissions]);
+
+  const login = async (username, password) => {
+    const response = await axios.post(`${API}/auth/login`, { username, password });
+    const { token: accessToken, user: userData } = response.data;
+    localStorage.setItem("token", accessToken);
+    setToken(accessToken);
+    setUser(userData);
+    return userData;
+  };
+
+  const logout = () => { 
+    localStorage.removeItem("token"); 
+    setToken(null); 
+    setUser(null); 
+    setUserPermissions(null);
+  };
+
+  // Helper function to check if user has permission
+  const hasPermission = (section, action) => {
+    if (!userPermissions?.permissions) return true; // Default allow for backwards compatibility
+    const sectionPerms = userPermissions.permissions[section] || [];
+    return sectionPerms.includes(action);
+  };
+
+  // Helper function to check if user can access a section
+  const canAccessSection = (section) => {
+    if (!userPermissions?.permissions) return true;
+    const sectionPerms = userPermissions.permissions[section] || [];
+    return sectionPerms.length > 0;
+  };
+
+  return (
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      login, 
+      logout, 
+      loading, 
+      authAxios, 
+      userPermissions,
+      hasPermission,
+      canAccessSection
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 // ============ COMPONENTS ============
@@ -840,7 +922,7 @@ const FirmwareBadge = ({ device }) => {
 };
 
 // ============ SERVER CARD ============
-const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete, onClone, onViewHistory, onMobotixInfo, onCreateIncident, canEdit }) => {
+const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete, onClone, onViewHistory, onMobotixInfo, onCreateIncident, onOpenLiveView, canEdit }) => {
   const { t } = useTranslation();
   const [isChecking, setIsChecking] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -857,6 +939,18 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
   // Check if device has camera credentials configured
   const hasCameraConfig = !!(device.camera_user && device.camera_password && device.camera_path);
 
+  // Check if it's a hemispheric camera (C25, C26, Q24, Q25, Q26, S14, S15, S16, M25, M26 models)
+  const isHemispheric = device.model?.toLowerCase().includes('c25') || 
+    device.model?.toLowerCase().includes('c26') ||
+    device.model?.toLowerCase().includes('q24') ||
+    device.model?.toLowerCase().includes('q25') ||
+    device.model?.toLowerCase().includes('q26') ||
+    device.model?.toLowerCase().includes('s14') ||
+    device.model?.toLowerCase().includes('s15') ||
+    device.model?.toLowerCase().includes('s16') ||
+    device.model?.toLowerCase().includes('m25') ||
+    device.model?.toLowerCase().includes('m26');
+
   // Reference for lazy loading
   const cardRef = useCallback(node => {
     if (!node) return;
@@ -868,7 +962,27 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
       
       if (hasCameraConfig && device.status === "online") {
         try {
-          const response = await authAxios.get(`/image-proxy/${device.id}`, { responseType: 'blob' });
+          // Check if hemispheric camera inside the callback to ensure fresh value
+          const modelLower = (device.model || '').toLowerCase();
+          const isHemisphericCamera = modelLower.includes('c25') || 
+            modelLower.includes('c26') ||
+            modelLower.includes('q24') ||
+            modelLower.includes('q25') ||
+            modelLower.includes('q26') ||
+            modelLower.includes('s14') ||
+            modelLower.includes('s15') ||
+            modelLower.includes('s16') ||
+            modelLower.includes('m25') ||
+            modelLower.includes('m26');
+          
+          // Use hemispheric endpoint for 360° cameras to show full fisheye view
+          const endpoint = isHemisphericCamera 
+            ? `/camera-stream/hemispheric/${device.id}?view=full` 
+            : `/image-proxy/${device.id}`;
+          
+          console.log(`Loading image for ${device.name}: model=${device.model}, hemispheric=${isHemisphericCamera}, endpoint=${endpoint}`);
+          
+          const response = await authAxios.get(endpoint, { responseType: 'blob' });
           if (response.data) {
             const url = URL.createObjectURL(response.data);
             setImageData(url);
@@ -898,7 +1012,7 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
     
     observer.observe(node);
     return () => observer.disconnect();
-  }, [imageData, isCamera, hasCameraConfig, device.status, device.id, device.name, authAxios]);
+  }, [imageData, isCamera, hasCameraConfig, device.status, device.id, device.name, device.model, authAxios]);
 
   // Set placeholder for offline cameras immediately
   useEffect(() => {
@@ -1046,6 +1160,9 @@ const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete,
           </Button>
           <div className="flex items-center justify-center gap-1">
             <Button variant="ghost" size="sm" onClick={openDeviceInBrowser} title={t('devices.openInBrowser')}><Globe className="w-4 h-4" /></Button>
+            {isCamera && device.status === 'online' && onOpenLiveView && (
+              <Button variant="ghost" size="sm" onClick={() => onOpenLiveView(device)} title={t('devices.openLiveView', 'Ver en directo')} className="text-cyan-600 hover:text-cyan-700"><Video className="w-4 h-4" /></Button>
+            )}
             {isCamera && (
               <Button variant="ghost" size="sm" onClick={() => onMobotixInfo(device)} title={t('devices.cameraInfo')}><Info className="w-4 h-4" /></Button>
             )}
@@ -1982,1143 +2099,58 @@ const DeviceTypesPanel = ({ deviceTypes, onCreateType, onEditType, onDeleteType,
   );
 };
 
-const UsersPanel = ({ users, onCreateUser, onEditUser, onDeleteUser, onResetPassword }) => {
+const UsersPanel = ({ users, onCreateUser, onEditUser, onDeleteUser, onResetPassword, authAxios, onUserUpdate }) => {
   const { t } = useTranslation();
-  return (
-  <Card>
-    <CardHeader className="flex flex-row items-center justify-between">
-      <div><CardTitle className="flex items-center gap-2"><Users className="w-5 h-5" />{t('users.title', 'Usuarios')}</CardTitle></div>
-      <Button data-testid="add-user-btn" size="sm" onClick={() => onCreateUser()}><Plus className="w-4 h-4 mr-2" />{t('common.add', 'Nuevo')}</Button>
-    </CardHeader>
-    <CardContent>
-      {users.length === 0 ? <div className="empty-state py-8"><Users className="w-12 h-12 mb-4 opacity-20" /><p>No hay usuarios</p></div> : (
-        <div className="space-y-3">{users.map(u => (
-          <div key={u.id} className="flex items-center justify-between p-4 rounded-lg border bg-card">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><User className="w-5 h-5 text-muted-foreground" /></div>
-              <div><div className="flex items-center gap-2"><span className="font-medium">{u.username}</span><RoleBadge role={u.role} />{!u.is_active && <Badge variant="outline" className="text-xs bg-red-50 text-red-600">Inactivo</Badge>}</div><p className="text-sm text-muted-foreground">{u.email}</p></div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={() => onResetPassword(u.id)}><Lock className="w-4 h-4" /></Button>
-              <Button variant="ghost" size="sm" onClick={() => onEditUser(u)}><Edit className="w-4 h-4" /></Button>
-              <Button variant="ghost" size="sm" onClick={() => onDeleteUser(u)} className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
-            </div>
-          </div>
-        ))}</div>
-      )}
-    </CardContent>
-  </Card>
-);
-};
-
-const AlertsPanel = ({ alerts, organizations = [], devices = [], groups = [], onCreateIncident }) => {
-  const { t } = useTranslation();
-  const [showIncidentDialog, setShowIncidentDialog] = useState(false);
-  const [selectedAlert, setSelectedAlert] = useState(null);
-  const [incidentData, setIncidentData] = useState({ title: "", description: "", priority: "high" });
-  const [creating, setCreating] = useState(false);
-  const [viewMode, setViewMode] = useState('list'); // 'list' or 'analytics'
-  const [timeRange, setTimeRange] = useState('all'); // 'today', 'week', 'month', 'year', 'custom', 'all'
-  const [selectedOrg, setSelectedOrg] = useState('all'); // Filter by organization
-  const [selectedGroup, setSelectedGroup] = useState('all'); // Filter by group
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  const { authAxios } = useAuth();
-
-  // Create device to group mapping
-  const deviceGroupMap = useMemo(() => {
-    const map = {};
-    devices.forEach(d => {
-      if (d.group_id) {
-        map[d.id] = d.group_id;
-      }
-    });
-    return map;
-  }, [devices]);
-
-  // Create group to organization mapping
-  const groupOrgMap = useMemo(() => {
-    const map = {};
-    groups.forEach(g => {
-      map[g.id] = g.organization_id;
-    });
-    return map;
-  }, [groups]);
-
-  // Get groups filtered by selected organization
-  const filteredGroupsForOrg = useMemo(() => {
-    if (selectedOrg === 'all') return groups;
-    return groups.filter(g => g.organization_id === selectedOrg);
-  }, [groups, selectedOrg]);
-
-  // Filter alerts by organization, group, and time range
-  const filteredAlerts = useMemo(() => {
-    return alerts.filter(a => {
-      // Get the group_id of the device
-      const deviceGroupId = deviceGroupMap[a.device_id];
-      
-      // Filter by organization (via group)
-      if (selectedOrg !== 'all') {
-        const deviceOrgId = deviceGroupId ? groupOrgMap[deviceGroupId] : null;
-        if (deviceOrgId !== selectedOrg) return false;
-      }
-      
-      // Filter by group
-      if (selectedGroup !== 'all') {
-        if (deviceGroupId !== selectedGroup) return false;
-      }
-      
-      // Filter by time range
-      if (timeRange !== 'all') {
-        const alertDate = new Date(a.timestamp);
-        const now = new Date();
-        
-        if (timeRange === 'today') {
-          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          if (alertDate < today) return false;
-        } else if (timeRange === 'week') {
-          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          if (alertDate < weekAgo) return false;
-        } else if (timeRange === 'month') {
-          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-          if (alertDate < monthAgo) return false;
-        } else if (timeRange === 'year') {
-          const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-          if (alertDate < yearAgo) return false;
-        } else if (timeRange === 'custom') {
-          if (dateFrom) {
-            const from = new Date(dateFrom);
-            if (alertDate < from) return false;
-          }
-          if (dateTo) {
-            const to = new Date(dateTo);
-            to.setHours(23, 59, 59, 999);
-            if (alertDate > to) return false;
-          }
-        }
-      }
-      
-      return true;
-    });
-  }, [alerts, selectedOrg, selectedGroup, timeRange, dateFrom, dateTo, deviceGroupMap, groupOrgMap]);
-
-  // Export alerts to CSV
-  const exportToCSV = () => {
-    const headers = ['Fecha', 'Hora', 'Dispositivo', 'IP', 'Tipo', 'Mensaje', 'Centro', 'Grupo'];
-    
-    const rows = filteredAlerts.map(a => {
-      const date = new Date(a.timestamp);
-      const deviceGroupId = deviceGroupMap[a.device_id];
-      const groupName = groups.find(g => g.id === deviceGroupId)?.name || '';
-      const orgId = deviceGroupId ? groupOrgMap[deviceGroupId] : null;
-      const orgName = organizations.find(o => o.id === orgId)?.name || '';
-      
-      const typeLabels = {
-        'device_down': 'Caída',
-        'device_up': 'Recuperación',
-        'nas_disconnected': 'NAS Desconectado',
-        'nas_reconnected': 'NAS Reconectado',
-        'storage_full': 'Almacenamiento Lleno',
-        'recording_stopped': 'Grabación Detenida'
-      };
-      
-      return [
-        date.toLocaleDateString('es-ES'),
-        date.toLocaleTimeString('es-ES'),
-        a.device_name || '',
-        a.device_ip || '',
-        typeLabels[a.alert_type] || a.alert_type || '',
-        a.message || '',
-        orgName,
-        groupName
-      ];
-    });
-    
-    const csvContent = [headers, ...rows]
-      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-    
-    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    
-    const fileName = `alertas_${selectedOrg !== 'all' ? organizations.find(o => o.id === selectedOrg)?.name + '_' : ''}${new Date().toISOString().split('T')[0]}.csv`;
-    
-    link.setAttribute('href', url);
-    link.setAttribute('download', fileName);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast.success(`Exportadas ${filteredAlerts.length} alertas`);
-  };
-
-  // Reset group when organization changes
-  const handleOrgChange = (value) => {
-    setSelectedOrg(value);
-    setSelectedGroup('all');
-  };
-
-  // Calculate alert statistics
-  const alertStats = useMemo(() => {
-    // Group by type
-    const byType = filteredAlerts.reduce((acc, alert) => {
-      const type = alert.alert_type || 'other';
-      acc[type] = (acc[type] || 0) + 1;
-      return acc;
-    }, {});
-
-    // Group by date
-    const byDate = filteredAlerts.reduce((acc, alert) => {
-      const date = new Date(alert.timestamp).toLocaleDateString('es-ES', { 
-        month: 'short', 
-        day: 'numeric' 
-      });
-      acc[date] = (acc[date] || 0) + 1;
-      return acc;
-    }, {});
-
-    // Transform for charts
-    const typeData = Object.entries(byType).map(([type, count]) => {
-      const typeLabels = {
-        'device_down': 'Caídas',
-        'device_up': 'Recuperaciones',
-        'nas_disconnected': 'NAS Desc.',
-        'nas_reconnected': 'NAS Rec.',
-        'storage_full': 'Almacenamiento',
-        'recording_stopped': 'Grabación'
-      };
-      return {
-        name: typeLabels[type] || type,
-        value: count,
-        type: type
-      };
-    });
-
-    const dateData = Object.entries(byDate)
-      .sort((a, b) => new Date(a[0]) - new Date(b[0]))
-      .map(([date, count]) => ({ date, alertas: count }));
-
-    return { typeData, dateData, total: filteredAlerts.length };
-  }, [filteredAlerts]);
-
-  const handleCreateFromAlert = (alert) => {
-    setSelectedAlert(alert);
-    const alertTitles = {
-      'device_down': '🔴 Caída',
-      'device_up': '🟢 Recuperación',
-      'nas_disconnected': '💾 NAS Desconectado',
-      'nas_reconnected': '💾 NAS Reconectado',
-      'storage_full': '💾 Almacenamiento Lleno',
-      'recording_stopped': '🔴 Grabación Detenida'
-    };
-    const alertPriorities = {
-      'device_down': 'high',
-      'nas_disconnected': 'high',
-      'storage_full': 'high',
-      'recording_stopped': 'medium',
-      'device_up': 'low',
-      'nas_reconnected': 'low'
-    };
-    setIncidentData({
-      title: `${alertTitles[alert.alert_type] || '⚠️ Alerta'}: ${alert.device_name}`,
-      description: `${alert.message}\n\nFecha del evento: ${new Date(alert.timestamp).toLocaleString('es-ES')}\nIP: ${alert.device_ip || 'N/A'}`,
-      priority: alertPriorities[alert.alert_type] || 'medium'
-    });
-    setShowIncidentDialog(true);
-  };
-
-  const handleSubmitIncident = async () => {
-    if (!incidentData.title || !incidentData.description) {
-      toast.error("Completa título y descripción");
-      return;
-    }
-    setCreating(true);
-    try {
-      await authAxios.post("/incidents", {
-        title: incidentData.title,
-        description: incidentData.description,
-        device_id: selectedAlert?.device_id || null,
-        priority: incidentData.priority,
-        category: "network"
-      });
-      toast.success("Incidencia creada desde alerta");
-      setShowIncidentDialog(false);
-      setSelectedAlert(null);
-    } catch (e) {
-      toast.error(e.response?.data?.detail || "Error al crear incidencia");
-    }
-    setCreating(false);
-  };
-
-  return (
-    <>
-      <div className="space-y-4">
-        {/* Month Stats Header */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-blue-600 font-medium">{t('alerts.thisMonth', 'Este Mes')}</p>
-                  <p className="text-2xl font-bold text-blue-700">{filteredAlerts.length}</p>
-                </div>
-                <Calendar className="w-8 h-8 text-blue-400" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-red-50 to-red-100">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-red-600 font-medium">{t('alerts.offline', 'Caídas')}</p>
-                  <p className="text-2xl font-bold text-red-700">{filteredAlerts.filter(a => a.alert_type === 'device_down').length}</p>
-                </div>
-                <WifiOff className="w-8 h-8 text-red-400" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-green-50 to-green-100">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-green-600 font-medium">{t('alerts.recovered', 'Recuperadas')}</p>
-                  <p className="text-2xl font-bold text-green-700">{filteredAlerts.filter(a => a.alert_type === 'device_up').length}</p>
-                </div>
-                <Wifi className="w-8 h-8 text-green-400" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-orange-50 to-orange-100">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-orange-600 font-medium">{t('alerts.nas', 'NAS')}</p>
-                  <p className="text-2xl font-bold text-orange-700">{filteredAlerts.filter(a => a.alert_type?.includes('nas')).length}</p>
-                </div>
-                <Database className="w-8 h-8 text-orange-400" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* View Mode Tabs */}
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex gap-2">
-            <Button 
-              variant={viewMode === 'list' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setViewMode('list')}
-            >
-              <Bell className="w-4 h-4 mr-2" />
-              Lista
-            </Button>
-            <Button 
-              variant={viewMode === 'analytics' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setViewMode('analytics')}
-            >
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Histórico
-            </Button>
-          </div>
-          
-          <div className="flex gap-2 items-center flex-wrap">
-            {/* Organization Filter */}
-            <Select value={selectedOrg} onValueChange={handleOrgChange}>
-              <SelectTrigger className="w-[180px]">
-                <Building2 className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Centro" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los centros</SelectItem>
-                {organizations.map(org => (
-                  <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            {/* Group Filter */}
-            <Select value={selectedGroup} onValueChange={setSelectedGroup}>
-              <SelectTrigger className="w-[180px]">
-                <Users className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Grupo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los grupos</SelectItem>
-                {filteredGroupsForOrg.map(group => (
-                  <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            {/* Time Range Filter */}
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-[160px]">
-                <Calendar className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Periodo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todo el tiempo</SelectItem>
-                <SelectItem value="today">Hoy</SelectItem>
-                <SelectItem value="week">Última semana</SelectItem>
-                <SelectItem value="month">Último mes</SelectItem>
-                <SelectItem value="year">Último año</SelectItem>
-                <SelectItem value="custom">Personalizado</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            {/* Export Button */}
-            <Button variant="outline" size="sm" onClick={exportToCSV}>
-              <Download className="w-4 h-4 mr-2" />
-              Exportar
-            </Button>
-          </div>
-        </div>
-        
-        {/* Custom Date Range */}
-        {timeRange === 'custom' && (
-          <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium">Desde:</label>
-              <input 
-                type="date" 
-                value={dateFrom} 
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="px-3 py-1.5 border rounded-md text-sm"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium">Hasta:</label>
-              <input 
-                type="date" 
-                value={dateTo} 
-                onChange={(e) => setDateTo(e.target.value)}
-                className="px-3 py-1.5 border rounded-md text-sm"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Selected Filter Badges */}
-        {(selectedOrg !== 'all' || selectedGroup !== 'all' || timeRange !== 'all') && (
-          <div className="flex items-center gap-2 flex-wrap">
-            {selectedOrg !== 'all' && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Building2 className="w-3 h-3" />
-                {organizations.find(o => o.id === selectedOrg)?.name || 'Centro'}
-                <button onClick={() => handleOrgChange('all')} className="ml-1 hover:text-destructive">
-                  <X className="w-3 h-3" />
-                </button>
-              </Badge>
-            )}
-            {selectedGroup !== 'all' && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Users className="w-3 h-3" />
-                {groups.find(g => g.id === selectedGroup)?.name || 'Grupo'}
-                <button onClick={() => setSelectedGroup('all')} className="ml-1 hover:text-destructive">
-                  <X className="w-3 h-3" />
-                </button>
-              </Badge>
-            )}
-            {timeRange !== 'all' && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                {timeRange === 'today' ? 'Hoy' : 
-                 timeRange === 'week' ? 'Última semana' : 
-                 timeRange === 'month' ? 'Último mes' : 
-                 timeRange === 'year' ? 'Último año' : 
-                 timeRange === 'custom' ? `${dateFrom || '...'} - ${dateTo || '...'}` : timeRange}
-                <button onClick={() => setTimeRange('all')} className="ml-1 hover:text-destructive">
-                  <X className="w-3 h-3" />
-                </button>
-              </Badge>
-            )}
-            <span className="text-sm text-muted-foreground">
-              {filteredAlerts.length} alertas
-            </span>
-          </div>
-        )}
-
-        {/* Analytics View */}
-        {viewMode === 'analytics' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Total Alerts Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Total de Alertas</CardTitle>
-                <CardDescription>
-                  {timeRange === 'all' ? 'Todo el tiempo' : 
-                   timeRange === 'today' ? 'Hoy' :
-                   timeRange === 'week' ? 'Última semana' : 
-                   timeRange === 'month' ? 'Último mes' : 
-                   timeRange === 'year' ? 'Último año' :
-                   timeRange === 'custom' ? `${dateFrom || '...'} - ${dateTo || '...'}` : ''}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-bold text-primary">{alertStats.total}</div>
-                <p className="text-sm text-muted-foreground mt-2">Alertas registradas</p>
-              </CardContent>
-            </Card>
-
-            {/* Alerts by Type - Pie Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Alertas por Tipo</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {alertStats.typeData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={250}>
-                    <RechartsPieChart>
-                      <Pie
-                        data={alertStats.typeData}
-                        cx="50%"
-                        cy="45%"
-                        labelLine={true}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={70}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {alertStats.typeData.map((entry, index) => {
-                          const colors = {
-                            'device_down': '#ef4444',
-                            'device_up': '#22c55e',
-                            'nas_disconnected': '#f97316',
-                            'nas_reconnected': '#3b82f6',
-                            'storage_full': '#dc2626',
-                            'recording_stopped': '#fb923c'
-                          };
-                          return <Cell key={`cell-${index}`} fill={colors[entry.type] || '#6366f1'} />;
-                        })}
-                      </Pie>
-                      <Tooltip formatter={(value, name) => [value, name]} />
-                      <Legend 
-                        verticalAlign="bottom" 
-                        height={36}
-                        formatter={(value, entry) => (
-                          <span style={{ color: entry.color }}>{value}</span>
-                        )}
-                      />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex items-center justify-center h-[200px] text-muted-foreground">
-                    Sin datos para mostrar
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Alerts by Date - Bar Chart */}
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-base">Tendencia de Alertas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {alertStats.dateData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={alertStats.dateData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="alertas" fill="#0891b2" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-                    Sin datos para mostrar
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        ) : (
-          /* List View - Original */
-          <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><Bell className="w-5 h-5" />{t('nav.alerts', 'Alertas')}</CardTitle></CardHeader>
-            <CardContent>
-              {filteredAlerts.length === 0 ? <div className="empty-state py-8"><Bell className="w-12 h-12 mb-4 opacity-20" /><p>{t('alerts.noAlerts', 'No hay alertas')}</p></div> : (
-            <ScrollArea className="h-[400px]">
-              <div className="space-y-3">{filteredAlerts.map(a => {
-                // Alert styling config based on type
-                const alertStyles = {
-                  'device_down': { bg: 'bg-red-50 border-red-200', icon: WifiOff, iconColor: 'text-red-600', textColor: 'text-red-700', msg: t('alerts.deviceDisconnected', 'Dispositivo se ha desconectado') },
-                  'device_up': { bg: 'bg-green-50 border-green-200', icon: Wifi, iconColor: 'text-green-600', textColor: 'text-green-700', msg: t('alerts.deviceRecovered', 'Dispositivo se ha recuperado') },
-                  'nas_disconnected': { bg: 'bg-orange-50 border-orange-200', icon: Database, iconColor: 'text-orange-600', textColor: 'text-orange-700', msg: t('alerts.nasDisconnected', 'Conexión NAS perdida') },
-                  'nas_reconnected': { bg: 'bg-blue-50 border-blue-200', icon: Database, iconColor: 'text-blue-600', textColor: 'text-blue-700', msg: 'NAS reconectado' },
-                  'storage_full': { bg: 'bg-red-50 border-red-200', icon: HardDrive, iconColor: 'text-red-600', textColor: 'text-red-700', msg: 'Almacenamiento lleno' },
-                  'recording_stopped': { bg: 'bg-orange-50 border-orange-200', icon: VideoOff, iconColor: 'text-orange-600', textColor: 'text-orange-700', msg: 'Grabación detenida' }
-                };
-                const style = alertStyles[a.alert_type] || { bg: 'bg-gray-50 border-gray-200', icon: AlertTriangle, iconColor: 'text-gray-600', textColor: 'text-gray-700', msg: a.message };
-                const IconComponent = style.icon;
-                return (
-                <div key={a.id} className={`p-4 rounded-lg border ${style.bg}`}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2"><IconComponent className={`w-4 h-4 ${style.iconColor}`} /><span className={`font-medium ${style.textColor}`}>{a.device_name}</span></div>
-                    <div className="flex items-center gap-2">
-                      {a.email_sent && <Badge variant="outline" className="text-xs"><Mail className="w-3 h-3 mr-1" />{t('alerts.sent', 'Enviado')}</Badge>}
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="h-7 text-xs"
-                        onClick={() => handleCreateFromAlert(a)}
-                      >
-                        <ClipboardList className="w-3 h-3 mr-1" />
-                        {t('incidents.addIncident', 'Crear Incidencia')}
-                      </Button>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">{style.msg}</p>
-                  <p className="text-xs text-muted-foreground mt-2">{new Date(a.timestamp).toLocaleString()}</p>
-                </div>
-              );})}</div>
-            </ScrollArea>
-          )}
-        </CardContent>
-      </Card>
-        )}
-      </div>
-
-      {/* Create Incident from Alert Dialog */}
-      <Dialog open={showIncidentDialog} onOpenChange={setShowIncidentDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ClipboardList className="w-5 h-5" />
-              {t('incidents.createFromAlert', 'Crear Incidencia desde Alerta')}
-            </DialogTitle>
-            <DialogDescription>
-              Se creará una incidencia vinculada al dispositivo {selectedAlert?.device_name}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Título</label>
-              <Input 
-                value={incidentData.title}
-                onChange={(e) => setIncidentData({ ...incidentData, title: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Descripción</label>
-              <Textarea 
-                value={incidentData.description}
-                onChange={(e) => setIncidentData({ ...incidentData, description: e.target.value })}
-                rows={4}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Prioridad</label>
-              <Select value={incidentData.priority} onValueChange={(v) => setIncidentData({ ...incidentData, priority: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Baja</SelectItem>
-                  <SelectItem value="medium">Media</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="critical">Crítica</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {selectedAlert?.device_id && (
-              <div className="p-3 bg-blue-50 rounded-lg text-sm">
-                <span className="font-medium">Dispositivo vinculado:</span> {selectedAlert.device_name}
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowIncidentDialog(false)}>{t('common.cancel')}</Button>
-            <Button onClick={handleSubmitIncident} disabled={creating}>
-              {creating ? t('common.creating', 'Creando...') : t('incidents.addIncident')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-};
-
-// ============ STATISTICS PANEL - REDESIGNED ============
-const StatisticsPanel = ({ devices, groups }) => {
-  const { t } = useTranslation();
-  const { authAxios } = useAuth();
-  const [camerasWithStats, setCamerasWithStats] = useState([]);
-  const [selectedCamera, setSelectedCamera] = useState(null);
-  const [statsData, setStatsData] = useState(null);
-  const [heatmapImage, setHeatmapImage] = useState(null);
-  const [reportData, setReportData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [activeStatsTab, setActiveStatsTab] = useState("conteo");
-  const [reportPeriod, setReportPeriod] = useState("week-current");
-  const [heatmapPeriod, setHeatmapPeriod] = useState("week-last");
-  const [useCustomDates, setUseCustomDates] = useState(false);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const chartRef = useRef(null);
-  
-  // Filter cameras that have statistics enabled
-  useEffect(() => {
-    const statsDevices = devices.filter(d => d.has_statistics === true && d.device_type_id === "type-camera");
-    setCamerasWithStats(statsDevices);
-  }, [devices]);
-  
-  // Prepare chart data from report
-  const chartData = useMemo(() => {
-    if (!reportData?.tables?.[0]?.data) return [];
-    const data = reportData.tables[0].data;
-    const colTitles = reportData.tables[0].columnTitles || [];
-    const totalsRow = data[data.length - 1];
-    
-    if (!totalsRow) return [];
-    
-    return colTitles.map((day, idx) => {
-      const cell = totalsRow[idx];
-      if (Array.isArray(cell) && cell[0] >= 0) {
-        return { name: day.substring(0, 3), entrada: cell[0], salida: cell[1], total: cell[0] + cell[1] };
-      }
-      return { name: day.substring(0, 3), entrada: 0, salida: 0, total: 0 };
-    }).filter(d => d.total > 0);
-  }, [reportData]);
-  
-  // Calculate totals
-  const totals = useMemo(() => {
-    const entrada = chartData.reduce((sum, d) => sum + d.entrada, 0);
-    const salida = chartData.reduce((sum, d) => sum + d.salida, 0);
-    return { entrada, salida, total: entrada + salida };
-  }, [chartData]);
-  
-  // Calculate record
-  const recordInfo = useMemo(() => {
-    if (!reportData?.tables?.[0]?.data) return null;
-    const data = reportData.tables[0].data;
-    const columnTitles = reportData.tables[0].columnTitles || [];
-    let maxTotal = 0, recordDay = "";
-    const totalsRow = data[data.length - 1];
-    if (totalsRow) {
-      totalsRow.forEach((cell, idx) => {
-        if (Array.isArray(cell) && cell[0] >= 0) {
-          const total = cell[0] + cell[1];
-          if (total > maxTotal) { maxTotal = total; recordDay = columnTitles[idx] || `Día ${idx + 1}`; }
-        }
-      });
-    }
-    return maxTotal > 0 ? { day: recordDay, total: maxTotal } : null;
-  }, [reportData]);
-  
-  const exportToExcel = () => {
-    if (!reportData?.tables?.[0]) { toast.error("No hay datos para exportar"); return; }
-    const table = reportData.tables[0];
-    let csv = `Cámara: ${selectedCamera?.name || 'N/A'}\n\nHora,` + (table.columnTitles?.join(",") || "") + "\n";
-    table.data?.forEach((row, idx) => {
-      const rowTitle = table.rowTitles?.[idx] || `Fila ${idx}`;
-      const cells = row.map(cell => Array.isArray(cell) ? (cell[0] >= 0 ? `${cell[0]}/${cell[1]}` : '-') : cell);
-      csv += rowTitle + "," + cells.join(",") + "\n";
-    });
-    const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = `estadisticas_${selectedCamera?.name || 'camara'}_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click(); toast.success("Exportado a CSV/Excel");
-  };
-  
-  const getGroupName = (groupId) => groups.find(g => g.id === groupId)?.name || "Sin grupo";
-  
-  // Fetch overview when camera is selected
-  const fetchCameraStats = async (camera) => {
-    setSelectedCamera(camera);
-    setLoading(true);
-    setStatsData(null); setHeatmapImage(null); setReportData(null);
-    try {
-      const res = await authAxios.get(`/cameras/${camera.id}/mobotix/overview`);
-      setStatsData(res.data.data);
-    } catch (e) { toast.error("Error al obtener datos: " + (e.response?.data?.detail || e.message)); }
-    setLoading(false);
-  };
-  
-  // Fetch counting report
-  const fetchReport = async () => {
-    if (!selectedCamera) return;
-    setLoading(true);
-    try {
-      let url;
-      if (useCustomDates && startDate && endDate) {
-        url = `/cameras/${selectedCamera.id}/mobotix/report?start_date=${startDate}&end_date=${endDate}`;
-      } else {
-        const [type, range] = reportPeriod.split('-');
-        url = `/cameras/${selectedCamera.id}/mobotix/report?report_type=${type}&export_range=${range}`;
-      }
-      const res = await authAxios.get(url);
-      setReportData(res.data.report);
-    } catch (e) { toast.error("Error al obtener reporte: " + (e.response?.data?.detail || e.message)); }
-    setLoading(false);
-  };
-  
-  // Fetch heatmap
-  const fetchHeatmap = async () => {
-    if (!selectedCamera) return;
-    setLoading(true);
-    try {
-      const [type, range] = heatmapPeriod.split('-');
-      const res = await authAxios.get(`/cameras/${selectedCamera.id}/mobotix/heatmap?heatmap_type=${type}&export_range=${range}`);
-      setHeatmapImage(res.data.image);
-    } catch (e) { toast.error("Error al obtener mapa de calor: " + (e.response?.data?.detail || e.message)); }
-    setLoading(false);
-  };
+  const [activeUserTab, setActiveUserTab] = useState('users');
   
   return (
-    <div className="space-y-6">
-      {camerasWithStats.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="py-16 text-center">
-            <BarChart3 className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-30" />
-            <h3 className="text-lg font-medium mb-2">No hay cámaras con estadísticas</h3>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Para ver estadísticas, edita una cámara y activa "Estadísticas MxAnalytics".
-            </p>
+    <Tabs value={activeUserTab} onValueChange={setActiveUserTab} className="w-full">
+      <TabsList className="mb-4">
+        <TabsTrigger value="users" className="gap-2">
+          <Users className="w-4 h-4" />
+          Usuarios ({users.length})
+        </TabsTrigger>
+        <TabsTrigger value="roles" className="gap-2">
+          <Shield className="w-4 h-4" />
+          Roles y Permisos
+        </TabsTrigger>
+      </TabsList>
+      
+      <TabsContent value="users">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div><CardTitle className="flex items-center gap-2"><Users className="w-5 h-5" />{t('users.title', 'Usuarios')}</CardTitle></div>
+            <Button data-testid="add-user-btn" size="sm" onClick={() => onCreateUser()}><Plus className="w-4 h-4 mr-2" />{t('common.add', 'Nuevo')}</Button>
+          </CardHeader>
+          <CardContent>
+            {users.length === 0 ? <div className="empty-state py-8"><Users className="w-12 h-12 mb-4 opacity-20" /><p>No hay usuarios</p></div> : (
+              <div className="space-y-3">{users.map(u => (
+                <div key={u.id} className="flex items-center justify-between p-4 rounded-lg border bg-card">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><User className="w-5 h-5 text-muted-foreground" /></div>
+                    <div><div className="flex items-center gap-2"><span className="font-medium">{u.username}</span><RoleBadge role={u.role} />{!u.is_active && <Badge variant="outline" className="text-xs bg-red-50 text-red-600">Inactivo</Badge>}</div><p className="text-sm text-muted-foreground">{u.email}</p></div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => onResetPassword(u.id)}><Lock className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="sm" onClick={() => onEditUser(u)}><Edit className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="sm" onClick={() => onDeleteUser(u)} className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                  </div>
+                </div>
+              ))}</div>
+            )}
           </CardContent>
         </Card>
-      ) : (
-        <div className="grid lg:grid-cols-4 gap-6">
-          {/* Camera Selector - Left sidebar */}
-          <Card className="lg:col-span-1">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Camera className="w-4 h-4 text-cyan-600" />
-                Cámaras ({camerasWithStats.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-2">
-              <ScrollArea className="h-[600px]">
-                <div className="space-y-1 p-1">
-                  {camerasWithStats.map(camera => (
-                    <button
-                      key={camera.id}
-                      onClick={() => fetchCameraStats(camera)}
-                      className={`w-full text-left p-3 rounded-lg transition-all ${
-                        selectedCamera?.id === camera.id 
-                          ? 'bg-cyan-100 border-2 border-cyan-400 shadow-sm' 
-                          : 'bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2.5 h-2.5 rounded-full ${camera.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`} />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">{camera.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{getGroupName(camera.group_id)}</p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-          
-          {/* Main Stats Area */}
-          <div className="lg:col-span-3 space-y-4">
-            {!selectedCamera ? (
-              <Card className="border-dashed">
-                <CardContent className="py-20 text-center">
-                  <Camera className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-30" />
-                  <p className="text-lg font-medium text-muted-foreground">{t('stats.selectCamera', 'Selecciona una cámara')}</p>
-                  <p className="text-sm text-muted-foreground">para ver sus estadísticas de conteo</p>
-                </CardContent>
-              </Card>
-            ) : loading && !statsData ? (
-              <Card>
-                <CardContent className="py-20 text-center">
-                  <RefreshCw className="w-10 h-10 mx-auto mb-4 animate-spin text-cyan-600" />
-                  <p className="text-muted-foreground">Cargando estadísticas...</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-                {/* Camera Header */}
-                <Card className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white">
-                  <CardContent className="py-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-white/20 rounded-lg">
-                          <Camera className="w-6 h-6" />
-                        </div>
-                        <div>
-                          <h2 className="text-xl font-bold">{selectedCamera.name}</h2>
-                          <p className="text-cyan-100 text-sm">{getGroupName(selectedCamera.group_id)} • {selectedCamera.ip_address}</p>
-                        </div>
-                      </div>
-                      <Badge className={`${selectedCamera.status === 'online' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
-                        {selectedCamera.status === 'online' ? 'Online' : 'Offline'}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Stats Tabs */}
-                <Tabs value={activeStatsTab} onValueChange={setActiveStatsTab}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="conteo" className="gap-2">
-                      <TrendingUp className="w-4 h-4" />
-                      Conteo de Personas
-                    </TabsTrigger>
-                    <TabsTrigger value="heatmap" className="gap-2">
-                      <Flame className="w-4 h-4" />
-                      Mapa de Calor
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  {/* CONTEO TAB */}
-                  <TabsContent value="conteo" className="space-y-4 mt-4">
-                    {/* Period Selector */}
-                    <Card>
-                      <CardContent className="py-4">
-                        <div className="flex flex-wrap items-center gap-3">
-                          <span className="text-sm font-medium text-muted-foreground">Período:</span>
-                          
-                          {!useCustomDates ? (
-                            <div className="flex gap-2 flex-wrap">
-                              {[
-                                { value: 'week-current', label: 'Esta semana' },
-                                { value: 'week-last', label: 'Semana anterior' },
-                                { value: 'month-current', label: 'Este mes' },
-                                { value: 'month-last', label: 'Mes anterior' },
-                              ].map(opt => (
-                                <Button
-                                  key={opt.value}
-                                  size="sm"
-                                  variant={reportPeriod === opt.value ? "default" : "outline"}
-                                  onClick={() => setReportPeriod(opt.value)}
-                                >
-                                  {opt.label}
-                                </Button>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-[150px]" />
-                              <span className="text-muted-foreground">→</span>
-                              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-[150px]" />
-                            </div>
-                          )}
-                          
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setUseCustomDates(!useCustomDates)}
-                            className="ml-auto"
-                          >
-                            <Calendar className="w-4 h-4 mr-1" />
-                            {useCustomDates ? 'Predefinido' : 'Personalizado'}
-                          </Button>
-                          
-                          <Button onClick={fetchReport} disabled={loading || (useCustomDates && (!startDate || !endDate))}>
-                            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                            Consultar
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    {/* Results */}
-                    {reportData && reportData.tables && reportData.tables[0] ? (
-                      <>
-                        {/* Summary Cards */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <Card className="bg-green-50 border-green-200">
-                            <CardContent className="py-4 text-center">
-                              <ArrowUpDown className="w-6 h-6 mx-auto mb-2 text-green-600" />
-                              <p className="text-3xl font-bold text-green-700">{totals.entrada.toLocaleString()}</p>
-                              <p className="text-sm text-green-600">Entradas</p>
-                            </CardContent>
-                          </Card>
-                          <Card className="bg-red-50 border-red-200">
-                            <CardContent className="py-4 text-center">
-                              <ArrowUpDown className="w-6 h-6 mx-auto mb-2 text-red-600" />
-                              <p className="text-3xl font-bold text-red-700">{totals.salida.toLocaleString()}</p>
-                              <p className="text-sm text-red-600">Salidas</p>
-                            </CardContent>
-                          </Card>
-                          <Card className="bg-blue-50 border-blue-200">
-                            <CardContent className="py-4 text-center">
-                              <Users className="w-6 h-6 mx-auto mb-2 text-blue-600" />
-                              <p className="text-3xl font-bold text-blue-700">{totals.total.toLocaleString()}</p>
-                              <p className="text-sm text-blue-600">{t('stats.totalPeople', 'Total Personas')}</p>
-                            </CardContent>
-                          </Card>
-                          {recordInfo && (
-                            <Card className="bg-amber-50 border-amber-200">
-                              <CardContent className="py-4 text-center">
-                                <Trophy className="w-6 h-6 mx-auto mb-2 text-amber-600" />
-                                <p className="text-3xl font-bold text-amber-700">{recordInfo.total.toLocaleString()}</p>
-                                <p className="text-sm text-amber-600">Récord ({recordInfo.day})</p>
-                              </CardContent>
-                            </Card>
-                          )}
-                        </div>
-                        
-                        {/* Chart */}
-                        <Card ref={chartRef}>
-                          <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                            <CardTitle className="text-base">Gráfico de Conteo</CardTitle>
-                            <div className="flex gap-2">
-                              <Button size="sm" variant="outline" onClick={exportToExcel}>
-                                <FileSpreadsheet className="w-4 h-4 mr-1" />Excel
-                              </Button>
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            {chartData.length > 0 ? (
-                              <div style={{ width: '100%', height: 280 }}>
-                                <ResponsiveContainer>
-                                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="name" />
-                                    <YAxis />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Bar dataKey="entrada" name="Entrada" fill="#22c55e" radius={[4,4,0,0]} />
-                                    <Bar dataKey="salida" name="Salida" fill="#ef4444" radius={[4,4,0,0]} />
-                                  </BarChart>
-                                </ResponsiveContainer>
-                              </div>
-                            ) : (
-                              <p className="text-center text-muted-foreground py-8">Sin datos para mostrar</p>
-                            )}
-                          </CardContent>
-                        </Card>
-                        
-                        {/* Data Table - Collapsible */}
-                        <Card>
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-base">{t('stats.hourlyDetail', 'Detalle por Hora')}</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <ScrollArea className="h-[300px]">
-                              <table className="w-full text-sm border-collapse">
-                                <thead className="sticky top-0 bg-white">
-                                  <tr className="bg-gray-100">
-                                    <th className="border p-2 text-left font-medium">Hora</th>
-                                    {reportData.tables[0].columnTitles?.map((col, i) => (
-                                      <th key={i} className="border p-2 text-center text-xs font-medium">{col}</th>
-                                    ))}
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {reportData.tables[0].data?.slice(0, -1).map((row, rowIdx) => (
-                                    <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                      <td className="border p-2 font-medium text-xs">{reportData.tables[0].rowTitles?.[rowIdx]}</td>
-                                      {row.map((cell, colIdx) => (
-                                        <td key={colIdx} className="border p-2 text-center text-xs">
-                                          {Array.isArray(cell) ? (
-                                            cell[0] < 0 ? <span className="text-gray-300">-</span> : (
-                                              <span><span className="text-green-600 font-medium">{cell[0]}</span><span className="text-gray-400">/</span><span className="text-red-600 font-medium">{cell[1]}</span></span>
-                                            )
-                                          ) : cell}
-                                        </td>
-                                      ))}
-                                    </tr>
-                                  ))}
-                                  <tr className="bg-blue-100 font-bold sticky bottom-0">
-                                    <td className="border p-2">TOTAL</td>
-                                    {reportData.tables[0].data?.[reportData.tables[0].data.length - 1]?.map((cell, colIdx) => (
-                                      <td key={colIdx} className="border p-2 text-center">
-                                        {Array.isArray(cell) ? (
-                                          cell[0] < 0 ? '-' : (
-                                            <span><span className="text-green-700">{cell[0]}</span>/<span className="text-red-700">{cell[1]}</span></span>
-                                          )
-                                        ) : cell}
-                                      </td>
-                                    ))}
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </ScrollArea>
-                            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-4">
-                              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-500"></span>Entrada</span>
-                              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-500"></span>Salida</span>
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </>
-                    ) : (
-                      <Card className="border-dashed">
-                        <CardContent className="py-12 text-center">
-                          <TrendingUp className="w-10 h-10 mx-auto mb-3 text-muted-foreground opacity-30" />
-                          <p className="text-muted-foreground">Selecciona un período y haz clic en <strong>Consultar</strong></p>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </TabsContent>
-                  
-                  {/* HEATMAP TAB */}
-                  <TabsContent value="heatmap" className="space-y-4 mt-4">
-                    {/* Period Selector */}
-                    <Card>
-                      <CardContent className="py-4">
-                        <div className="flex flex-wrap items-center gap-3">
-                          <span className="text-sm font-medium text-muted-foreground">Período:</span>
-                          <div className="flex gap-2 flex-wrap">
-                            {[
-                              { value: 'day-current', label: 'Hoy' },
-                              { value: 'day-last', label: 'Ayer' },
-                              { value: 'week-current', label: 'Esta semana' },
-                              { value: 'week-last', label: 'Semana anterior' },
-                              { value: 'month-current', label: 'Este mes' },
-                              { value: 'month-last', label: 'Mes anterior' },
-                            ].map(opt => (
-                              <Button
-                                key={opt.value}
-                                size="sm"
-                                variant={heatmapPeriod === opt.value ? "default" : "outline"}
-                                onClick={() => setHeatmapPeriod(opt.value)}
-                              >
-                                {opt.label}
-                              </Button>
-                            ))}
-                          </div>
-                          <Button onClick={fetchHeatmap} disabled={loading} className="ml-auto">
-                            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                            Consultar
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    {/* Heatmap Image */}
-                    {heatmapImage ? (
-                      <Card>
-                        <CardContent className="py-6">
-                          <img 
-                            src={heatmapImage} 
-                            alt="Mapa de calor" 
-                            className="max-w-full rounded-lg border shadow-sm mx-auto"
-                          />
-                          <p className="text-sm text-center text-muted-foreground mt-4">
-                            Las zonas más rojas indican mayor concentración de movimiento
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ) : (
-                      <Card className="border-dashed">
-                        <CardContent className="py-12 text-center">
-                          <Flame className="w-10 h-10 mx-auto mb-3 text-muted-foreground opacity-30" />
-                          <p className="text-muted-foreground">Selecciona un período y haz clic en <strong>Consultar</strong></p>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </TabsContent>
-                </Tabs>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+      </TabsContent>
+      
+      <TabsContent value="roles">
+        <RolesManager authAxios={authAxios} users={users} onUserUpdate={onUserUpdate} />
+      </TabsContent>
+    </Tabs>
   );
 };
 
+
+// ============ STATISTICS PANEL - REDESIGNED ============
 const PublicDashboardConfig = ({ organization }) => {
   const { t } = useTranslation();
   const [config, setConfig] = useState({
@@ -3307,11 +2339,19 @@ const SettingsPanel = ({ settings, onSave }) => {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="space-y-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
+          <div className="flex flex-col items-center justify-center py-16 gap-6">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-full border-4 border-cyan-500/20 border-t-cyan-500 animate-spin" />
+              <img 
+                src="https://customer-assets.emergentagent.com/job_051d11b5-64eb-4eef-a44f-e7e0e5b16da5/artifacts/03lnmzfi_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png" 
+                alt="Siempria" 
+                className="absolute inset-0 m-auto w-10 h-10 object-contain"
+              />
+            </div>
+            <div className="text-center">
+              <h3 className="text-lg font-semibold">Cargando Configuración</h3>
+              <p className="text-sm text-muted-foreground">Obteniendo datos del servidor...</p>
+            </div>
           </div>
         ) : (
         <form onSubmit={handleSave} className="space-y-4">
@@ -3579,1594 +2619,72 @@ const SecurityPanel = () => {
   );
 };
 
-const ScheduledReportsPanel = ({ organizations }) => {
-  const { t } = useTranslation();
-  const [config, setConfig] = useState({
-    enabled: false,
-    frequency: "weekly",
-    day_of_week: 0,
-    day_of_month: 1,
-    hour: 8,
-    recipient_emails: [],
-    include_offline_list: true,
-    include_uptime_stats: true,
-    organization_ids: []
-  });
-  const [emailInput, setEmailInput] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const { authAxios } = useAuth();
+// ============ SCHEDULED REPORTS PANEL (extracted to /components/panels/ScheduledReportsPanel.jsx) ============
+// ============ BACKUP PANEL (extracted to /components/panels/BackupPanel.jsx) ============
+// ============ DAILY DOWNTIME REPORT PANEL (extracted to /components/panels/DailyReportPanel.jsx) ============
+// ============ ACCESS LOGS PANEL (extracted to /components/panels/AccessLogsPanel.jsx) ============
 
-  useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        const res = await authAxios.get("/scheduled-reports");
-        if (res.data.config) setConfig(res.data.config);
-      } catch (e) { console.error(e); }
-      setLoading(false);
-    };
-    fetchConfig();
-  }, [authAxios]);
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await authAxios.post("/scheduled-reports", config);
-      toast.success("Configuración de reportes guardada");
-    } catch (e) {
-      toast.error(e.response?.data?.detail || "Error al guardar");
-    }
-    setSaving(false);
-  };
-
-  const handleSendNow = async () => {
-    setSending(true);
-    try {
-      await authAxios.post("/scheduled-reports/send-now");
-      toast.success("Reporte enviado correctamente");
-    } catch (e) {
-      toast.error(e.response?.data?.detail || "Error al enviar reporte");
-    }
-    setSending(false);
-  };
-
-  const addEmail = () => {
-    if (emailInput && emailInput.includes("@") && !config.recipient_emails.includes(emailInput)) {
-      setConfig({ ...config, recipient_emails: [...config.recipient_emails, emailInput] });
-      setEmailInput("");
-    }
-  };
-
-  const removeEmail = (email) => {
-    setConfig({ ...config, recipient_emails: config.recipient_emails.filter(e => e !== email) });
-  };
-
-  const dayNames = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-
-  if (loading) return <Card><CardContent className="p-6"><Skeleton className="h-32 w-full" /></CardContent></Card>;
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="w-5 h-5" />
-          Reportes Programados
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Enable/Disable */}
-        <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-          <div>
-            <p className="font-medium">Reportes automáticos</p>
-            <p className="text-sm text-muted-foreground">Enviar reportes de estado periódicamente</p>
-          </div>
-          <Switch checked={config.enabled} onCheckedChange={(v) => setConfig({ ...config, enabled: v })} />
-        </div>
-
-        {config.enabled && (
-          <>
-            {/* Frequency */}
-            <div className="space-y-2">
-              <Label>Frecuencia</Label>
-              <Select value={config.frequency} onValueChange={(v) => setConfig({ ...config, frequency: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="daily">Diario</SelectItem>
-                  <SelectItem value="weekly">Semanal</SelectItem>
-                  <SelectItem value="monthly">Mensual</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Day selection based on frequency */}
-            {config.frequency === "weekly" && (
-              <div className="space-y-2">
-                <Label>Día de la semana</Label>
-                <Select value={config.day_of_week.toString()} onValueChange={(v) => setConfig({ ...config, day_of_week: parseInt(v) })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {dayNames.map((day, i) => <SelectItem key={i} value={i.toString()}>{day}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {config.frequency === "monthly" && (
-              <div className="space-y-2">
-                <Label>Día del mes</Label>
-                <Select value={config.day_of_month.toString()} onValueChange={(v) => setConfig({ ...config, day_of_month: parseInt(v) })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {[...Array(28)].map((_, i) => <SelectItem key={i+1} value={(i+1).toString()}>{i+1}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Hour */}
-            <div className="space-y-2">
-              <Label>Hora de envío (UTC)</Label>
-              <Select value={config.hour.toString()} onValueChange={(v) => setConfig({ ...config, hour: parseInt(v) })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {[...Array(24)].map((_, i) => <SelectItem key={i} value={i.toString()}>{i.toString().padStart(2, '0')}:00</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Recipient emails */}
-            <div className="space-y-2">
-              <Label>Destinatarios</Label>
-              <div className="flex gap-2">
-                <Input 
-                  placeholder="email@ejemplo.com" 
-                  value={emailInput} 
-                  onChange={(e) => setEmailInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addEmail())}
-                />
-                <Button type="button" variant="outline" onClick={addEmail}><Plus className="w-4 h-4" /></Button>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {config.recipient_emails.map((email) => (
-                  <Badge key={email} variant="secondary" className="gap-1">
-                    {email}
-                    <button onClick={() => removeEmail(email)} className="ml-1 hover:text-red-500">&times;</button>
-                  </Badge>
-                ))}
-              </div>
-              {config.recipient_emails.length === 0 && (
-                <p className="text-xs text-muted-foreground">Se usará el email de alertas configurado</p>
-              )}
-            </div>
-
-            {/* Content options */}
-            <div className="space-y-3">
-              <Label>Contenido del reporte</Label>
-              <div className="flex items-center gap-2">
-                <Switch checked={config.include_uptime_stats} onCheckedChange={(v) => setConfig({ ...config, include_uptime_stats: v })} />
-                <span className="text-sm">Incluir estadísticas de uptime</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch checked={config.include_offline_list} onCheckedChange={(v) => setConfig({ ...config, include_offline_list: v })} />
-                <span className="text-sm">Incluir lista de dispositivos offline</span>
-              </div>
-            </div>
-
-            {/* Organization filter */}
-            <div className="space-y-2">
-              <Label>Organizaciones a incluir</Label>
-              <div className="flex flex-wrap gap-2">
-                {organizations.map((org) => (
-                  <Badge 
-                    key={org.id} 
-                    variant={config.organization_ids.includes(org.id) ? "default" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => {
-                      const ids = config.organization_ids.includes(org.id)
-                        ? config.organization_ids.filter(id => id !== org.id)
-                        : [...config.organization_ids, org.id];
-                      setConfig({ ...config, organization_ids: ids });
-                    }}
-                  >
-                    {org.name}
-                  </Badge>
-                ))}
-              </div>
-              {config.organization_ids.length === 0 && (
-                <p className="text-xs text-muted-foreground">Todas las organizaciones serán incluidas</p>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* Actions */}
-        <div className="flex gap-2 pt-4 border-t">
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? t('common.saving', 'Guardando...') : t('settings.saveConfig', 'Guardar configuración')}
-          </Button>
-          <Button variant="outline" onClick={handleSendNow} disabled={sending || !config.enabled}>
-            <Send className="w-4 h-4 mr-2" />
-            {sending ? "Enviando..." : "Enviar ahora"}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-// ============ BACKUP PANEL ============
-const BackupPanel = () => {
-  const { t } = useTranslation();
-  const [backups, setBackups] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [downloading, setDownloading] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [restoring, setRestoring] = useState(false);
-  const [includeHistory, setIncludeHistory] = useState(false);
-  const [mergeMode, setMergeMode] = useState(false);
-  const { authAxios } = useAuth();
-  const fileInputRef = useRef(null);
-
-  const fetchBackups = useCallback(async () => {
-    try {
-      const res = await authAxios.get("/backup/list");
-      setBackups(res.data.backups || []);
-    } catch (e) { console.error("Error fetching backups:", e); }
-    setLoading(false);
-  }, [authAxios]);
-
-  useEffect(() => { fetchBackups(); }, [fetchBackups]);
-
-  const handleDownload = async (format = "json") => {
-    setDownloading(true);
-    try {
-      const endpoint = format === "zip" ? "/backup/download-zip" : "/backup/download";
-      const response = await authAxios.get(`${endpoint}?include_history=${includeHistory}`, {
-        responseType: 'blob'
-      });
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
-      link.setAttribute('download', `siempria_backup_${timestamp}.${format}`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      toast.success("Backup descargado correctamente");
-    } catch (e) {
-      console.error("Download error:", e);
-      toast.error("Error al descargar backup");
-    }
-    setDownloading(false);
-  };
-
-  const handleCreateAuto = async () => {
-    setCreating(true);
-    try {
-      await authAxios.post(`/backup/create-auto?include_history=${includeHistory}`);
-      toast.success("Backup creado en el servidor");
-      fetchBackups();
-    } catch (e) {
-      toast.error(e.response?.data?.detail || "Error al crear backup");
-    }
-    setCreating(false);
-  };
-
-  const handleRestore = async (file) => {
-    if (!file) return;
-    
-    if (!window.confirm("⚠️ ADVERTENCIA: Restaurar un backup reemplazará todos los datos actuales. ¿Continuar?")) {
-      return;
-    }
-    
-    setRestoring(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      await authAxios.post(`/backup/restore?merge=${mergeMode}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      
-      toast.success("Backup restaurado correctamente. Recargando...");
-      setTimeout(() => window.location.reload(), 2000);
-    } catch (e) {
-      console.error("Restore error:", e);
-      toast.error(e.response?.data?.detail || "Error al restaurar backup");
-    }
-    setRestoring(false);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  const handleDownloadServerBackup = async (filename) => {
-    try {
-      const response = await authAxios.get(`/backup/auto/${filename}`, {
-        responseType: 'blob'
-      });
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      toast.success("Backup descargado");
-    } catch (e) {
-      toast.error("Error al descargar");
-    }
-  };
-
-  const handleDeleteServerBackup = async (filename) => {
-    if (!window.confirm(`¿Eliminar backup ${filename}?`)) return;
-    try {
-      await authAxios.delete(`/backup/auto/${filename}`);
-      toast.success("Backup eliminado");
-      fetchBackups();
-    } catch (e) {
-      toast.error("Error al eliminar");
-    }
-  };
-
-  const formatSize = (bytes) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Archive className="w-5 h-5 text-blue-600" />
-          Sistema de Backup
-        </CardTitle>
-        <CardDescription>
-          Crea, descarga y restaura copias de seguridad de tus datos
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Download section */}
-        <div className="p-4 bg-blue-50 rounded-lg space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-blue-900">Descargar Backup</p>
-              <p className="text-sm text-blue-700">Descarga una copia completa de todos tus datos</p>
-            </div>
-            <HardDrive className="w-8 h-8 text-blue-600" />
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Switch checked={includeHistory} onCheckedChange={setIncludeHistory} />
-            <span className="text-sm text-blue-800">Incluir historial (archivo más grande)</span>
-          </div>
-          
-          <div className="flex gap-2 flex-wrap">
-            <Button 
-              onClick={() => handleDownload("json")} 
-              disabled={downloading}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              {downloading ? "Descargando..." : "Descargar JSON"}
-            </Button>
-            <Button 
-              onClick={() => handleDownload("zip")} 
-              disabled={downloading}
-              variant="outline"
-              className="border-blue-600 text-blue-600 hover:bg-blue-50"
-            >
-              <FolderArchive className="w-4 h-4 mr-2" />
-              Descargar ZIP
-            </Button>
-          </div>
-        </div>
-
-        {/* Restore section */}
-        <div className="p-4 bg-amber-50 rounded-lg space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-amber-900">Restaurar Backup</p>
-              <p className="text-sm text-amber-700">Restaura tus datos desde un archivo de backup</p>
-            </div>
-            <RotateCcw className="w-8 h-8 text-amber-600" />
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Switch checked={mergeMode} onCheckedChange={setMergeMode} />
-            <span className="text-sm text-amber-800">
-              Modo fusión (no elimina datos existentes)
-            </span>
-          </div>
-          
-          <div className="flex gap-2 items-center">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json,.zip"
-              onChange={(e) => handleRestore(e.target.files?.[0])}
-              className="hidden"
-              id="backup-file-input"
-            />
-            <Button 
-              onClick={() => fileInputRef.current?.click()}
-              disabled={restoring}
-              variant="outline"
-              className="border-amber-600 text-amber-700 hover:bg-amber-100"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              {restoring ? t('backup.restoring', 'Restaurando...') : t('backup.selectFile', 'Seleccionar archivo')}
-            </Button>
-            <span className="text-xs text-amber-600">JSON o ZIP</span>
-          </div>
-        </div>
-
-        {/* Server backups section */}
-        <div className="p-4 bg-gray-50 rounded-lg space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Backups en Servidor</p>
-              <p className="text-sm text-muted-foreground">Backups automáticos almacenados en el servidor</p>
-            </div>
-            <Button 
-              onClick={handleCreateAuto} 
-              disabled={creating}
-              size="sm"
-              variant="outline"
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              {creating ? t('common.creating', 'Creando...') : t('backup.createNow', 'Crear ahora')}
-            </Button>
-          </div>
-
-          {loading ? (
-            <Skeleton className="h-20 w-full" />
-          ) : backups.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              No hay backups en el servidor
-            </p>
-          ) : (
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {backups.map((backup) => (
-                <div 
-                  key={backup.filename}
-                  className="flex items-center justify-between p-2 bg-white rounded border text-sm"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <FileIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <div className="min-w-0">
-                      <p className="font-mono text-xs truncate">{backup.filename}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatSize(backup.size)} • {new Date(backup.created).toLocaleString('es-ES')}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-1 flex-shrink-0">
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="h-7 w-7"
-                      onClick={() => handleDownloadServerBackup(backup.filename)}
-                    >
-                      <Download className="w-3 h-3" />
-                    </Button>
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="h-7 w-7 text-red-500 hover:text-red-700"
-                      onClick={() => handleDeleteServerBackup(backup.filename)}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Info */}
-        <div className="p-3 bg-muted rounded-lg">
-          <p className="text-xs text-muted-foreground">
-            <Info className="w-3 h-3 inline mr-1" />
-            Los backups incluyen: organizaciones, grupos, dispositivos, usuarios, alertas y configuraciones.
-            Se mantienen los últimos 10 backups automáticos en el servidor.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-// ============ DAILY DOWNTIME REPORT PANEL ============
-const DailyReportPanel = () => {
-  const { t } = useTranslation();
-  const [config, setConfig] = useState({
-    enabled: false,
-    time: "08:00",
-    recipients: []
-  });
-  const [emailInput, setEmailInput] = useState("");
-  const [preview, setPreview] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [loadingPreview, setLoadingPreview] = useState(false);
-  const { authAxios } = useAuth();
-
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const res = await authAxios.get("/reports/settings");
-        setConfig({
-          enabled: res.data.daily_report_enabled || false,
-          time: res.data.daily_report_time || "08:00",
-          recipients: res.data.daily_report_recipients || []
-        });
-      } catch (e) { console.error(e); }
-      setLoading(false);
-    };
-    fetchSettings();
-  }, [authAxios]);
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await authAxios.put("/reports/settings", {
-        daily_report_enabled: config.enabled,
-        daily_report_time: config.time,
-        daily_report_recipients: config.recipients
-      });
-      toast.success("Configuración guardada");
-    } catch (e) {
-      toast.error("Error al guardar");
-    }
-    setSaving(false);
-  };
-
-  const handleSendNow = async () => {
-    if (config.recipients.length === 0) {
-      toast.error("Añade al menos un destinatario");
-      return;
-    }
-    setSending(true);
-    try {
-      await authAxios.post(`/reports/send?days=1`, config.recipients);
-      toast.success("Informe enviado correctamente");
-    } catch (e) {
-      toast.error(e.response?.data?.detail || "Error al enviar");
-    }
-    setSending(false);
-  };
-
-  const loadPreview = async () => {
-    setLoadingPreview(true);
-    try {
-      const res = await authAxios.get("/reports/preview?days=1");
-      setPreview(res.data);
-    } catch (e) {
-      toast.error("Error al cargar preview");
-    }
-    setLoadingPreview(false);
-  };
-
-  const addEmail = () => {
-    const email = emailInput.trim().toLowerCase();
-    if (email && email.includes("@") && !config.recipients.includes(email)) {
-      setConfig({ ...config, recipients: [...config.recipients, email] });
-      setEmailInput("");
-    }
-  };
-
-  const removeEmail = (email) => {
-    setConfig({ ...config, recipients: config.recipients.filter(e => e !== email) });
-  };
-
-  if (loading) return <Card><CardContent className="p-6"><Skeleton className="h-32 w-full" /></CardContent></Card>;
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="w-5 h-5 text-orange-600" />
-          Informe Diario de Caídas
-        </CardTitle>
-        <CardDescription>
-          Recibe un resumen diario con todas las caídas de dispositivos
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Enable */}
-        <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg">
-          <div>
-            <p className="font-medium text-orange-900">Informe automático diario</p>
-            <p className="text-sm text-orange-700">Recibe cada día un resumen de las caídas del sistema</p>
-          </div>
-          <Switch checked={config.enabled} onCheckedChange={(v) => setConfig({ ...config, enabled: v })} />
-        </div>
-
-        {/* Time */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Hora de envío</label>
-            <Input 
-              type="time" 
-              value={config.time}
-              onChange={(e) => setConfig({ ...config, time: e.target.value })}
-            />
-            <p className="text-xs text-muted-foreground">Hora local del servidor</p>
-          </div>
-        </div>
-
-        {/* Recipients */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Destinatarios</label>
-          <div className="flex gap-2">
-            <Input 
-              placeholder="email@ejemplo.com"
-              value={emailInput}
-              onChange={(e) => setEmailInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && addEmail()}
-            />
-            <Button onClick={addEmail} variant="outline">
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-          {config.recipients.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {config.recipients.map(email => (
-                <Badge key={email} variant="secondary" className="flex items-center gap-1">
-                  <Mail className="w-3 h-3" />
-                  {email}
-                  <button onClick={() => removeEmail(email)} className="ml-1 hover:text-red-500">
-                    <X className="w-3 h-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Preview */}
-        <div className="border rounded-lg p-4 bg-gray-50">
-          <div className="flex items-center justify-between mb-3">
-            <p className="font-medium text-sm">Vista previa del informe</p>
-            <Button variant="outline" size="sm" onClick={loadPreview} disabled={loadingPreview}>
-              <Eye className="w-4 h-4 mr-1" />
-              {loadingPreview ? t('common.loading', 'Cargando...') : t('reports.viewPreview', 'Ver preview')}
-            </Button>
-          </div>
-          {preview && (
-            <div className="grid grid-cols-4 gap-3 text-center">
-              <div className="bg-white p-3 rounded-lg">
-                <p className="text-2xl font-bold text-green-600">{preview.summary.online_now}</p>
-                <p className="text-xs text-muted-foreground">Online</p>
-              </div>
-              <div className="bg-white p-3 rounded-lg">
-                <p className="text-2xl font-bold text-red-600">{preview.summary.offline_now}</p>
-                <p className="text-xs text-muted-foreground">Offline</p>
-              </div>
-              <div className="bg-white p-3 rounded-lg">
-                <p className="text-2xl font-bold text-amber-600">{preview.summary.total_downtime_events}</p>
-                <p className="text-xs text-muted-foreground">Caídas (24h)</p>
-              </div>
-              <div className="bg-white p-3 rounded-lg">
-                <p className="text-2xl font-bold text-gray-600">{preview.summary.total_devices}</p>
-                <p className="text-xs text-muted-foreground">{t('common.total', 'Total')}</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-2 pt-4 border-t">
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? t('common.saving', 'Guardando...') : t('settings.saveConfig', 'Guardar configuración')}
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={handleSendNow} 
-            disabled={sending || config.recipients.length === 0}
-          >
-            <Send className="w-4 h-4 mr-2" />
-            {sending ? "Enviando..." : "Enviar ahora"}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-// ============ ACCESS LOGS PANEL ============
-const AccessLogsPanel = () => {
-  const { t } = useTranslation();
-  const [logs, setLogs] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [security, setSecurity] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(0);
-  const [filters, setFilters] = useState({
-    category: "",
-    username: "",
-    log_type: "",
-    start_date: "",
-    end_date: ""
-  });
-  const [showSecurity, setShowSecurity] = useState(false);
-  const { authAxios } = useAuth();
-  const pageSize = 50;
-
-  // Load data on mount
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const params = new URLSearchParams();
-        params.append("skip", String(page * pageSize));
-        params.append("limit", String(pageSize));
-        if (filters.category) params.append("category", filters.category);
-        if (filters.username) params.append("username", filters.username);
-        
-        const logsRes = await authAxios.get(`/logs?${params.toString()}`);
-        setLogs(logsRes.data.logs || []);
-        setTotal(logsRes.data.total || 0);
-        
-        const statsRes = await authAxios.get("/logs/stats?days=7");
-        setStats(statsRes.data);
-        
-        const securityRes = await authAxios.get("/logs/security?hours=24");
-        setSecurity(securityRes.data);
-      } catch (e) {
-        console.error("Error loading logs:", e);
-        setLogs([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    if (authAxios) {
-      loadData();
-    }
-  }, [authAxios, page, filters]);
-
-  const fetchLogs = async () => {
-    // Manual refresh function
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      params.append("skip", String(page * pageSize));
-      params.append("limit", String(pageSize));
-      if (filters.category) params.append("category", filters.category);
-      if (filters.username) params.append("username", filters.username);
-      
-      const [logsRes, statsRes] = await Promise.all([
-        authAxios.get(`/logs?${params.toString()}`),
-        authAxios.get("/logs/stats?days=7")
-      ]);
-      
-      setLogs(logsRes.data.logs || []);
-      setTotal(logsRes.data.total || 0);
-      setStats(statsRes.data);
-    } catch (e) {
-      console.error("Error refreshing logs:", e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleExport = async (format) => {
-    try {
-      const params = new URLSearchParams();
-      params.append("format", format);
-      if (filters.start_date) params.append("start_date", filters.start_date);
-      if (filters.end_date) params.append("end_date", filters.end_date);
-      if (filters.category) params.append("category", filters.category);
-      
-      const response = await authAxios.get(`/logs/export?${params.toString()}`, {
-        responseType: 'blob'
-      });
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `logs_${new Date().toISOString().slice(0,10)}.${format}`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      toast.success("Logs exportados");
-    } catch (e) {
-      toast.error("Error al exportar");
-    }
-  };
-
-  const handleCleanup = async () => {
-    if (!window.confirm("¿Eliminar logs de más de 90 días?")) return;
-    try {
-      const res = await authAxios.delete("/logs/cleanup?days=90");
-      toast.success(res.data.message);
-      fetchLogs();
-      fetchStats();
-    } catch (e) {
-      toast.error("Error al limpiar logs");
-    }
-  };
-
-  const getLogTypeLabel = (type) => {
-    const labels = {
-      auth_login: t('logs.authLogin', 'Inicio sesión'),
-      auth_logout: t('logs.authLogout', 'Cierre sesión'),
-      auth_failed: t('logs.authFailed', 'Login fallido'),
-      device_create: t('logs.deviceCreate', 'Crear dispositivo'),
-      device_update: t('logs.deviceUpdate', 'Editar dispositivo'),
-      device_delete: t('logs.deviceDelete', 'Eliminar dispositivo'),
-      camera_view: t('logs.cameraView', 'Ver cámara'),
-      camera_image: t('logs.cameraImage', 'Descargar imagen'),
-      camera_stats: t('logs.cameraStats', 'Ver estadísticas'),
-      org_create: t('logs.orgCreate', 'Crear organización'),
-      org_update: t('logs.orgUpdate', 'Editar organización'),
-      org_delete: t('logs.orgDelete', 'Eliminar organización'),
-      group_create: t('logs.groupCreate', 'Crear grupo'),
-      group_update: t('logs.groupUpdate', 'Editar grupo'),
-      group_delete: t('logs.groupDelete', 'Eliminar grupo'),
-      user_create: t('logs.userCreate', 'Crear usuario'),
-      user_update: t('logs.userUpdate', 'Editar usuario'),
-      user_delete: t('logs.userDelete', 'Eliminar usuario'),
-      user_password: t('logs.userPassword', 'Cambiar contraseña'),
-      settings_update: t('logs.settingsUpdate', 'Actualizar config'),
-      backup_create: t('logs.backupCreate', 'Crear backup'),
-      backup_restore: t('logs.backupRestore', 'Restaurar backup'),
-      backup_download: t('logs.backupDownload', 'Descargar backup'),
-      export_data: t('logs.exportData', 'Exportar datos')
-    };
-    return labels[type] || type;
-  };
-
-  const getCategoryColor = (cat) => {
-    const colors = {
-      auth: "bg-blue-100 text-blue-800",
-      devices: "bg-green-100 text-green-800",
-      cameras: "bg-purple-100 text-purple-800",
-      organizations: "bg-amber-100 text-amber-800",
-      users: "bg-pink-100 text-pink-800",
-      system: "bg-gray-100 text-gray-800"
-    };
-    return colors[cat] || "bg-gray-100 text-gray-800";
-  };
-
-  const totalPages = Math.ceil(total / pageSize);
-  const hasSecurityAlerts = security && (security.failed_logins?.length > 0 || security.high_activity_users?.length > 0);
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="p-8">
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-full border-4 border-blue-200 animate-spin" style={{ borderTopColor: '#3b82f6' }} />
-                <FileText className="w-6 h-6 text-blue-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-medium text-slate-700">{t('logs.loading', 'Cargando Logs')}</p>
-                <p className="text-sm text-slate-500">{t('logs.loadingDescription', 'Obteniendo registros del sistema...')}</p>
-              </div>
-              <div className="w-64 h-2 bg-slate-200 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full animate-pulse" style={{ width: '60%', animation: 'loading-bar 1.5s ease-in-out infinite' }} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+// ============ LOADING COMPONENTS ============
+const LoadingSkeleton = ({ message = "Cargando datos..." }) => (
+  <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="flex flex-col items-center gap-8">
+      {/* Logo animado */}
+      <div className="relative">
+        <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" />
+        <img 
+          src="https://customer-assets.emergentagent.com/job_051d11b5-64eb-4eef-a44f-e7e0e5b16da5/artifacts/03lnmzfi_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png" 
+          alt="Siempria" 
+          className="w-32 h-32 object-contain animate-pulse relative z-10"
+        />
       </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
-            <CardContent className="p-4">
-              <p className="text-xs text-blue-600 font-medium">{t('logs.totalEvents', 'Total (7 días)')}</p>
-              <p className="text-2xl font-bold text-blue-900">{stats.total_logs}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-green-50 to-green-100">
-            <CardContent className="p-4">
-              <p className="text-xs text-green-600 font-medium">{t('logs.activeUsers', 'Usuarios Activos')}</p>
-              <p className="text-2xl font-bold text-green-900">{stats.active_users}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-red-50 to-red-100">
-            <CardContent className="p-4">
-              <p className="text-xs text-red-600 font-medium">Login Fallidos</p>
-              <p className="text-2xl font-bold text-red-900">{stats.failed_logins}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100">
-            <CardContent className="p-4">
-              <p className="text-xs text-purple-600 font-medium">Autenticación</p>
-              <p className="text-2xl font-bold text-purple-900">{stats.by_category?.auth || 0}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-amber-50 to-amber-100">
-            <CardContent className="p-4">
-              <p className="text-xs text-amber-600 font-medium">Dispositivos</p>
-              <p className="text-2xl font-bold text-amber-900">{stats.by_category?.devices || 0}</p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Security Alert */}
-      {hasSecurityAlerts && (
-        <Card className="border-red-200 bg-red-50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-red-800 flex items-center gap-2 text-base">
-              <AlertTriangle className="w-5 h-5" />
-              {t('security.alertsLast24h', 'Alertas de Seguridad (últimas 24h)')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setShowSecurity(!showSecurity)}
-              className="text-red-700"
-            >
-              {showSecurity ? t('security.hideDetails', 'Ocultar detalles') : t('security.showDetails', 'Ver detalles')}
-            </Button>
-            {showSecurity && (
-              <div className="mt-3 space-y-3">
-                {security.failed_logins?.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-red-800 mb-1">Intentos fallidos (3+):</p>
-                    {security.failed_logins.map((item, i) => (
-                      <div key={i} className="text-xs bg-white p-2 rounded mb-1">
-                        <span className="font-mono">{item.ip_address}</span> → 
-                        <span className="font-medium ml-1">{item.username}</span>
-                        <Badge variant="destructive" className="ml-2">{item.attempts} intentos</Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {security.high_activity_users?.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-amber-800 mb-1">Alta actividad:</p>
-                    {security.high_activity_users.map((item, i) => (
-                      <div key={i} className="text-xs bg-white p-2 rounded mb-1">
-                        <span className="font-medium">{item.username}</span>
-                        <Badge variant="outline" className="ml-2">{item.action_count} acciones</Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Filters & Actions */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <FileSearch className="w-5 h-5" />
-              Registro de Actividad
-            </CardTitle>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => handleExport("csv")}>
-                <Download className="w-4 h-4 mr-1" />CSV
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleCleanup}>
-                <Trash2 className="w-4 h-4 mr-1" />{t('common.clear', 'Limpiar')}
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Filters */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            <Select value={filters.category} onValueChange={(v) => { setFilters({...filters, category: v === "all" ? "" : v}); setPage(0); }}>
-              <SelectTrigger className="w-[140px]"><SelectValue placeholder="Categoría" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="auth">Autenticación</SelectItem>
-                <SelectItem value="devices">Dispositivos</SelectItem>
-                <SelectItem value="cameras">Cámaras</SelectItem>
-                <SelectItem value="organizations">Organizaciones</SelectItem>
-                <SelectItem value="users">{t('users.title', 'Usuarios')}</SelectItem>
-                <SelectItem value="system">Sistema</SelectItem>
-              </SelectContent>
-            </Select>
-            <Input 
-              placeholder="Usuario..." 
-              className="w-[140px]"
-              value={filters.username}
-              onChange={(e) => setFilters({...filters, username: e.target.value})}
-              onKeyDown={(e) => e.key === "Enter" && (setPage(0), fetchLogs())}
-            />
-            <Input 
-              type="date" 
-              className="w-[150px]"
-              value={filters.start_date}
-              onChange={(e) => { setFilters({...filters, start_date: e.target.value}); setPage(0); }}
-            />
-            <Input 
-              type="date" 
-              className="w-[150px]"
-              value={filters.end_date}
-              onChange={(e) => { setFilters({...filters, end_date: e.target.value}); setPage(0); }}
-            />
-            <Button variant="outline" size="sm" onClick={() => { setFilters({ category: "", username: "", log_type: "", start_date: "", end_date: "" }); setPage(0); }}>
-              <RefreshCw className="w-4 h-4" />
-            </Button>
-          </div>
-
-          {/* Logs Table */}
-          {loading ? (
-            <Skeleton className="h-64 w-full" />
-          ) : logs.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No hay logs que mostrar</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="text-left p-2 font-medium">Fecha/Hora</th>
-                    <th className="text-left p-2 font-medium">Usuario</th>
-                    <th className="text-left p-2 font-medium">Acción</th>
-                    <th className="text-left p-2 font-medium">Objetivo</th>
-                    <th className="text-left p-2 font-medium">IP</th>
-                    <th className="text-center p-2 font-medium">Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {logs.map((log) => (
-                    <tr key={log.id} className="border-b hover:bg-muted/30">
-                      <td className="p-2 text-xs font-mono whitespace-nowrap">
-                        {new Date(log.timestamp).toLocaleString('es-ES')}
-                      </td>
-                      <td className="p-2">
-                        <div className="flex items-center gap-1">
-                          <span className="font-medium">{log.username}</span>
-                          <span className="text-xs text-muted-foreground">({log.user_role})</span>
-                        </div>
-                      </td>
-                      <td className="p-2">
-                        <Badge className={getCategoryColor(log.category)} variant="outline">
-                          {getLogTypeLabel(log.log_type)}
-                        </Badge>
-                      </td>
-                      <td className="p-2 text-xs">
-                        {log.target_name || log.target_id || "-"}
-                      </td>
-                      <td className="p-2 text-xs font-mono">
-                        {log.ip_address}
-                      </td>
-                      <td className="p-2 text-center">
-                        {log.success ? (
-                          <Badge variant="outline" className="bg-green-50 text-green-700">OK</Badge>
-                        ) : (
-                          <Badge variant="destructive">Error</Badge>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4 pt-4 border-t">
-              <p className="text-sm text-muted-foreground">
-                Mostrando {page * pageSize + 1}-{Math.min((page + 1) * pageSize, total)} de {total}
-              </p>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setPage(p => Math.max(0, p - 1))}
-                  disabled={page === 0}
-                >
-                  Anterior
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                  disabled={page >= totalPages - 1}
-                >
-                  Siguiente
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      
+      {/* Texto */}
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl font-bold text-white">SIEMPRIA MONITOR</h2>
+        <p className="text-sm text-cyan-400">Network Monitoring System</p>
+      </div>
+      
+      {/* Barra de progreso animada */}
+      <div className="w-64 h-1 bg-slate-700 rounded-full overflow-hidden">
+        <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" 
+             style={{animation: 'loadingBar 1.5s ease-in-out infinite'}} />
+      </div>
+      
+      {/* Texto de carga */}
+      <p className="text-sm text-slate-400">{message}</p>
     </div>
-  );
-};
-
-// ============ INCIDENTS PANEL ============
-const IncidentsPanel = ({ devices }) => {
-  const { t } = useTranslation();
-  const [incidents, setIncidents] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState({ status: "", priority: "" });
-  const [showForm, setShowForm] = useState(false);
-  const [selectedIncident, setSelectedIncident] = useState(null);
-  const [showResolveDialog, setShowResolveDialog] = useState(false);
-  const [formData, setFormData] = useState({ title: "", description: "", device_id: "", priority: "medium", category: "other" });
-  const [resolution, setResolution] = useState({ text: "", notes: "" });
-  const [noteText, setNoteText] = useState("");
-  const { authAxios } = useAuth();
-
-  const fetchIncidents = useCallback(async () => {
-    try {
-      const params = new URLSearchParams();
-      if (filter.status) params.append("status", filter.status);
-      if (filter.priority) params.append("priority", filter.priority);
-      
-      const [incidentsRes, statsRes] = await Promise.all([
-        authAxios.get(`/incidents?${params.toString()}`),
-        authAxios.get("/incidents/stats")
-      ]);
-      setIncidents(incidentsRes.data.incidents || []);
-      setStats(statsRes.data);
-    } catch (e) {
-      console.error("Error fetching incidents:", e);
-    }
-    setLoading(false);
-  }, [authAxios, filter]);
-
-  useEffect(() => { fetchIncidents(); }, [fetchIncidents]);
-
-  const handleCreate = async () => {
-    if (!formData.title || !formData.description) {
-      toast.error("Completa título y descripción");
-      return;
-    }
-    try {
-      await authAxios.post("/incidents", {
-        title: formData.title,
-        description: formData.description,
-        device_id: formData.device_id || null,
-        priority: formData.priority,
-        category: formData.category
-      });
-      toast.success("Incidencia creada");
-      setShowForm(false);
-      setFormData({ title: "", description: "", device_id: "", priority: "medium", category: "other" });
-      fetchIncidents();
-    } catch (e) {
-      toast.error("Error al crear incidencia");
-    }
-  };
-
-  const handleResolve = async () => {
-    if (!resolution.text) {
-      toast.error("Describe la solución");
-      return;
-    }
-    try {
-      await authAxios.post(`/incidents/${selectedIncident.id}/resolve`, {
-        resolution: resolution.text,
-        resolution_notes: resolution.notes || null
-      });
-      toast.success("Incidencia resuelta");
-      setShowResolveDialog(false);
-      setSelectedIncident(null);
-      setResolution({ text: "", notes: "" });
-      fetchIncidents();
-    } catch (e) {
-      toast.error(e.response?.data?.detail || "Error al resolver");
-    }
-  };
-
-  const handleAddNote = async () => {
-    if (!noteText.trim()) return;
-    try {
-      await authAxios.post(`/incidents/${selectedIncident.id}/notes`, { note: noteText });
-      toast.success("Nota añadida");
-      setNoteText("");
-      // Refresh selected incident
-      const res = await authAxios.get(`/incidents/${selectedIncident.id}`);
-      setSelectedIncident(res.data);
-      fetchIncidents();
-    } catch (e) {
-      toast.error("Error al añadir nota");
-    }
-  };
-
-  const handleStatusChange = async (incidentId, newStatus) => {
-    try {
-      await authAxios.put(`/incidents/${incidentId}`, { status: newStatus });
-      toast.success("Estado actualizado");
-      fetchIncidents();
-      if (selectedIncident?.id === incidentId) {
-        const res = await authAxios.get(`/incidents/${incidentId}`);
-        setSelectedIncident(res.data);
+    
+    <style>{`
+      @keyframes loadingBar {
+        0% { width: 0%; margin-left: 0%; }
+        50% { width: 60%; margin-left: 20%; }
+        100% { width: 0%; margin-left: 100%; }
       }
-    } catch (e) {
-      toast.error("Error al actualizar");
-    }
-  };
+    `}</style>
+  </div>
+);
 
-  const getPriorityBadge = (priority) => {
-    const styles = {
-      low: "bg-gray-100 text-gray-700",
-      medium: "bg-blue-100 text-blue-700",
-      high: "bg-orange-100 text-orange-700",
-      critical: "bg-red-100 text-red-700"
-    };
-    const labels = { low: t('incidents.priorityLow', 'Baja'), medium: t('incidents.priorityMedium', 'Media'), high: t('incidents.priorityHigh', 'Alta'), critical: t('incidents.priorityCritical', 'Crítica') };
-    return <Badge className={styles[priority] || styles.medium}>{labels[priority] || priority}</Badge>;
-  };
-
-  const getStatusBadge = (status) => {
-    const styles = {
-      open: "bg-red-100 text-red-700",
-      in_progress: "bg-yellow-100 text-yellow-700",
-      resolved: "bg-green-100 text-green-700"
-    };
-    const labels = { open: t('incidents.statusOpen', 'Abierta'), in_progress: t('incidents.statusInProgress', 'En Progreso'), resolved: t('incidents.statusResolved', 'Resuelta') };
-    return <Badge className={styles[status] || styles.open}>{labels[status] || status}</Badge>;
-  };
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="p-8">
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-full border-4 border-amber-200 animate-spin" style={{ borderTopColor: '#f59e0b' }} />
-                <AlertTriangle className="w-6 h-6 text-amber-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-medium text-slate-700">{t('incidents.loading', 'Cargando Incidencias')}</p>
-                <p className="text-sm text-slate-500">{t('incidents.loadingDescription', 'Obteniendo tickets y estadísticas...')}</p>
-              </div>
-              <div className="w-64 h-2 bg-slate-200 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full animate-pulse" style={{ width: '60%', animation: 'loading-bar 1.5s ease-in-out infinite' }} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Stats */}
-      {stats && (
-        <div className="grid grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-br from-red-50 to-red-100">
-            <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-red-700">{stats.open}</p>
-              <p className="text-sm text-red-600">{t('incidents.statusOpen', 'Abiertas')}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100">
-            <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-yellow-700">{stats.in_progress}</p>
-              <p className="text-sm text-yellow-600">{t('incidents.statusInProgress', 'En Progreso')}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-green-50 to-green-100">
-            <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-green-700">{stats.resolved}</p>
-              <p className="text-sm text-green-600">{t('incidents.statusResolved', 'Resueltas')}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
-            <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-blue-700">{stats.total}</p>
-              <p className="text-sm text-blue-600">{t('common.total', 'Total')}</p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Filters & Actions */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          <Select value={filter.status || "all"} onValueChange={(v) => setFilter({ ...filter, status: v === "all" ? "" : v })}>
-            <SelectTrigger className="w-[150px]"><SelectValue placeholder="Estado" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="open">{t('incidents.statusOpen', 'Abiertas')}</SelectItem>
-              <SelectItem value="in_progress">{t('incidents.statusInProgress', 'En Progreso')}</SelectItem>
-              <SelectItem value="resolved">{t('incidents.statusResolved', 'Resueltas')}</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={filter.priority || "all"} onValueChange={(v) => setFilter({ ...filter, priority: v === "all" ? "" : v })}>
-            <SelectTrigger className="w-[150px]"><SelectValue placeholder={t('incidents.priority', 'Prioridad')} /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              <SelectItem value="critical">Crítica</SelectItem>
-              <SelectItem value="high">Alta</SelectItem>
-              <SelectItem value="medium">Media</SelectItem>
-              <SelectItem value="low">Baja</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <Button onClick={() => setShowForm(true)}>
-          <Plus className="w-4 h-4 mr-2" />{t('incidents.addIncident', 'Nueva Incidencia')}
-        </Button>
-      </div>
-
-      {/* Incidents List */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* List */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardList className="w-5 h-5" />
-              {t('incidents.list', 'Lista de Incidencias')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <Skeleton className="h-48 w-full" />
-            ) : incidents.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No hay incidencias</p>
-            ) : (
-              <div className="space-y-2 max-h-[500px] overflow-y-auto">
-                {incidents.map(inc => (
-                  <div 
-                    key={inc.id}
-                    className={`p-3 rounded-lg border cursor-pointer hover:bg-gray-50 transition-colors ${selectedIncident?.id === inc.id ? 'bg-blue-50 border-blue-300' : ''}`}
-                    onClick={() => setSelectedIncident(inc)}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{inc.title}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(inc.created_at).toLocaleDateString('es-ES')} • {inc.created_by_name}
-                        </p>
-                      </div>
-                      <div className="flex gap-1 ml-2">
-                        {getPriorityBadge(inc.priority)}
-                        {getStatusBadge(inc.status)}
-                      </div>
-                    </div>
-                    {inc.device && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        📷 {inc.device.name}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Detail */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              {t('incidents.detail', 'Detalle de Incidencia')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {selectedIncident ? (
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-lg">{selectedIncident.title}</h3>
-                    <div className="flex gap-1">
-                      {getPriorityBadge(selectedIncident.priority)}
-                      {getStatusBadge(selectedIncident.status)}
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{selectedIncident.description}</p>
-                </div>
-
-                {selectedIncident.device && (
-                  <div className="p-2 bg-gray-50 rounded-lg text-sm">
-                    <span className="font-medium">Dispositivo:</span> {selectedIncident.device.name} ({selectedIncident.device.ip_address})
-                  </div>
-                )}
-
-                {selectedIncident.resolution && (
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-sm font-medium text-green-800 flex items-center gap-1">
-                      <CheckCircle className="w-4 h-4" /> Solución aplicada
-                    </p>
-                    <p className="text-sm text-green-700 mt-1">{selectedIncident.resolution}</p>
-                    {selectedIncident.resolution_notes && (
-                      <p className="text-xs text-green-600 mt-1">Notas: {selectedIncident.resolution_notes}</p>
-                    )}
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Resuelto por {selectedIncident.resolved_by_name} el {new Date(selectedIncident.resolved_at).toLocaleString('es-ES')}
-                    </p>
-                  </div>
-                )}
-
-                {/* Actions */}
-                {selectedIncident.status !== "resolved" && (
-                  <div className="flex gap-2">
-                    {selectedIncident.status === "open" && (
-                      <Button size="sm" variant="outline" onClick={() => handleStatusChange(selectedIncident.id, "in_progress")}>
-                        {t('incidents.markInProgress', 'Marcar En Progreso')}
-                      </Button>
-                    )}
-                    <Button size="sm" onClick={() => setShowResolveDialog(true)} className="bg-green-600 hover:bg-green-700">
-                      <Wrench className="w-4 h-4 mr-1" />Resolver
-                    </Button>
-                  </div>
-                )}
-
-                {/* History */}
-                <div>
-                  <p className="font-medium text-sm mb-2">Historial</p>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {selectedIncident.history?.map((h, i) => (
-                      <div key={i} className="text-xs p-2 bg-gray-50 rounded">
-                        <div className="flex justify-between">
-                          <span className="font-medium">{h.user_name}</span>
-                          <span className="text-muted-foreground">{new Date(h.timestamp).toLocaleString('es-ES')}</span>
-                        </div>
-                        <p className="text-muted-foreground mt-1">{h.details}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Add Note */}
-                {selectedIncident.status !== "resolved" && (
-                  <div className="flex gap-2">
-                    <Input 
-                      placeholder="Añadir nota..." 
-                      value={noteText}
-                      onChange={(e) => setNoteText(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleAddNote()}
-                    />
-                    <Button variant="outline" onClick={handleAddNote}>
-                      <MessageSquare className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-center text-muted-foreground py-12">
-                {t('incidents.selectToView', 'Selecciona una incidencia para ver los detalles')}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Create Incident Dialog */}
-      <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('incidents.addIncident', 'Nueva Incidencia')}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Título *</label>
-              <Input 
-                placeholder="Ej: Cámara sin conexión"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Descripción *</label>
-              <Textarea 
-                placeholder="Describe el problema..."
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Prioridad</label>
-                <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Baja</SelectItem>
-                    <SelectItem value="medium">Media</SelectItem>
-                    <SelectItem value="high">Alta</SelectItem>
-                    <SelectItem value="critical">Crítica</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Categoría</label>
-                <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="hardware">Hardware</SelectItem>
-                    <SelectItem value="software">Software</SelectItem>
-                    <SelectItem value="network">Red</SelectItem>
-                    <SelectItem value="other">Otro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Dispositivo relacionado (opcional)</label>
-              <Select value={formData.device_id || "none"} onValueChange={(v) => setFormData({ ...formData, device_id: v === "none" ? "" : v })}>
-                <SelectTrigger><SelectValue placeholder={t('common.select', 'Seleccionar...')} /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Ninguno</SelectItem>
-                  {devices.map(d => (
-                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
-            <Button onClick={handleCreate}>{t('incidents.addIncident')}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Resolve Dialog */}
-      <Dialog open={showResolveDialog} onOpenChange={setShowResolveDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Resolver Incidencia</DialogTitle>
-            <DialogDescription>
-              Documenta la solución aplicada para futuras referencias
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Solución aplicada *</label>
-              <Textarea 
-                placeholder="Describe cómo se resolvió el problema..."
-                value={resolution.text}
-                onChange={(e) => setResolution({ ...resolution, text: e.target.value })}
-                rows={4}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Notas adicionales</label>
-              <Textarea 
-                placeholder="Información adicional, repuestos usados, etc."
-                value={resolution.notes}
-                onChange={(e) => setResolution({ ...resolution, notes: e.target.value })}
-                rows={2}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowResolveDialog(false)}>{t('common.cancel')}</Button>
-            <Button onClick={handleResolve} className="bg-green-600 hover:bg-green-700">
-              <CheckCircle className="w-4 h-4 mr-2" />{t('incidents.markResolved', 'Marcar como Resuelto')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+// Componente de carga inline para secciones específicas
+const SectionLoading = ({ message = "Cargando..." }) => (
+  <div className="flex flex-col items-center justify-center py-16 gap-4">
+    <div className="relative">
+      <div className="w-16 h-16 rounded-full border-4 border-cyan-500/20 border-t-cyan-500 animate-spin" />
+      <img 
+        src="https://customer-assets.emergentagent.com/job_051d11b5-64eb-4eef-a44f-e7e0e5b16da5/artifacts/03lnmzfi_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png" 
+        alt="Siempria" 
+        className="absolute inset-0 m-auto w-8 h-8 object-contain"
+      />
     </div>
-  );
-};
-
-const LoadingSkeleton = () => (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">{[1,2,3,4].map(i => <Card key={i} className="server-card"><CardContent className="p-6"><div className="flex items-start gap-3"><Skeleton className="w-10 h-10 rounded-lg" /><div className="flex-1 space-y-2"><Skeleton className="h-5 w-32" /><Skeleton className="h-4 w-24" /></div></div><Skeleton className="h-4 w-full mt-4" /><Separator className="my-4" /><div className="flex gap-2"><Skeleton className="h-8 flex-1" /><Skeleton className="h-8 w-8" /></div></CardContent></Card>)}</div>);
+    <p className="text-sm text-muted-foreground">{message}</p>
+  </div>
+);
 
 // ============ DASHBOARD ============
 const Dashboard = () => {
   const { t } = useTranslation();
-  const { user, logout, authAxios } = useAuth();
+  const { user, logout, authAxios, canAccessSection, hasPermission } = useAuth();
   const [devices, setDevices] = useState([]);
+  const [deviceStats, setDeviceStats] = useState({ total: 0, online: 0, offline: 0, cra: 0 });
   const [organizations, setOrganizations] = useState([]);
   const [groups, setGroups] = useState([]);
   const [deviceTypes, setDeviceTypes] = useState([]);
@@ -5263,7 +2781,7 @@ const Dashboard = () => {
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const DEVICES_PER_PAGE = 24;
+  const DEVICES_PER_PAGE = 12;
   
   // Custom device order (drag & drop)
   const [deviceOrder, setDeviceOrder] = useState(() => {
@@ -5294,8 +2812,10 @@ const Dashboard = () => {
   const isAdmin = user?.role === "admin";
   const isOperator = user?.role === "operator";
   const isTechnician = user?.role === "technician";
-  const onlineCount = devices.filter(d => d.status === 'online').length;
-  const offlineCount = devices.filter(d => d.status === 'offline').length;
+  // Use cached stats for header (faster than counting all devices)
+  const onlineCount = deviceStats.online || devices.filter(d => d.status === 'online').length;
+  const offlineCount = deviceStats.offline || devices.filter(d => d.status === 'offline').length;
+  const craCount = deviceStats.cra || devices.filter(d => d.is_cra === true).length;
 
   const fetchAll = useCallback(async () => {
     // Prevent concurrent calls
@@ -5306,10 +2826,20 @@ const Dashboard = () => {
     
     fetchingRef.current = true;
     try {
-      const [devRes, orgRes, grpRes, typeRes, alertRes] = await Promise.all([
-        authAxios.get("/devices"), authAxios.get("/organizations"), authAxios.get("/groups"),
-        authAxios.get("/device-types"), authAxios.get("/alerts?period=month&limit=1000")
+      // Load stats separately (fast, cached) and devices paginated
+      const [statsRes, devRes, orgRes, grpRes, typeRes, alertRes] = await Promise.all([
+        authAxios.get("/devices/stats"),
+        authAxios.get("/devices?limit=50&page=1"), 
+        authAxios.get("/organizations"), 
+        authAxios.get("/groups"),
+        authAxios.get("/device-types"), 
+        authAxios.get("/alerts?period=month&limit=200")
       ]);
+      
+      // Use stats for header counters (faster)
+      if (statsRes.data) {
+        setDeviceStats(statsRes.data);
+      }
       
       const newDevices = devRes.data.devices || [];
       
@@ -5590,10 +3120,20 @@ const Dashboard = () => {
     setCurrentPage(1);
   }, [filterOrgId, filterGroupId, filterTypeId, filterCountry, filterStatus, filterStats, searchQuery]);
 
+  // Delayed loading for global overlay
+  const showGlobalLoader = useDelayedLoading(loading, 2000);
+  
   return (
     <div className="app-container">
       <Toaster position="top-right" richColors />
       <PWAInstallPrompt />
+      
+      {/* Global Section Loader - shows after 2 seconds of loading */}
+      <SectionLoader 
+        isLoading={loading} 
+        delay={2000} 
+        message="Cargando Panel de Control"
+      />
 
       {/* Header - Premium Professional Design */}
       <header className="app-header">
@@ -5633,6 +3173,18 @@ const Dashboard = () => {
                   <span className="status-hud-label hidden sm:block">OFFLINE</span>
                 </div>
                 {recentFailures.length > 0 && <Bell className="w-4 h-4 text-red-400 animate-pulse ml-2" />}
+              </button>
+              <div className="status-hud-divider" />
+              <button 
+                onClick={() => setActiveTab('cra')} 
+                className="status-hud-item cra hover:bg-cyan-500/10 px-3 py-2 rounded-full transition-all"
+                title="Ver dispositivos CRA"
+              >
+                <Shield className="w-4 h-4 text-cyan-400" />
+                <div className="flex flex-col items-center">
+                  <span className="status-count text-cyan-400">{craCount}</span>
+                  <span className="status-hud-label hidden sm:block text-cyan-400">CRA</span>
+                </div>
               </button>
             </div>
 
@@ -5732,37 +3284,44 @@ const Dashboard = () => {
       </header>
 
       {/* Main */}
-      <main className="container mx-auto max-w-7xl px-6 py-8">
+      <main className="container mx-auto max-w-7xl px-3 sm:px-6 py-4 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6 flex-wrap h-auto gap-1">
-            <TabsTrigger data-testid="tab-devices" value="devices" className="gap-2">
-              {isOperator ? <Camera className="w-4 h-4" /> : <Server className="w-4 h-4" />}
-              {isOperator ? t('devices.cameras', 'Cámaras Online') : t('nav.devices')}
-            </TabsTrigger>
-            {!isOperator && !isTechnician && <TabsTrigger data-testid="tab-statistics" value="statistics" className="gap-2"><BarChart3 className="w-4 h-4" />{t('stats.title', 'Estadísticas')}</TabsTrigger>}
-            {!isOperator && <TabsTrigger data-testid="tab-structure" value="structure" className="gap-2"><Building2 className="w-4 h-4" />{t('nav.structure', 'Estructura')}</TabsTrigger>}
-            {!isOperator && <TabsTrigger data-testid="tab-types" value="types" className="gap-2"><Tag className="w-4 h-4" />{t('nav.types', 'Tipos')}</TabsTrigger>}
-            {!isOperator && <TabsTrigger data-testid="tab-alerts" value="alerts" className="gap-2"><Bell className="w-4 h-4" />{t('nav.alerts', 'Alertas')}{alerts.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-1.5" title={t('alerts.thisMonth', 'Este mes')}>{alerts.length}</Badge>}</TabsTrigger>}
-            {!isOperator && <TabsTrigger data-testid="tab-gallery" value="gallery" className="gap-2"><Camera className="w-4 h-4" />Galería</TabsTrigger>}
-            {!isOperator && <TabsTrigger data-testid="tab-cra" value="cra" className="gap-2"><Shield className="w-4 h-4 text-red-500" />CRA</TabsTrigger>}
-            {!isOperator && <TabsTrigger data-testid="tab-live" value="live" className="gap-2"><Video className="w-4 h-4" />En Directo</TabsTrigger>}
-            {isAdmin && <TabsTrigger data-testid="tab-infrastructure" value="infrastructure" className="gap-2"><Server className="w-4 h-4" />{t('nav.infrastructure', 'Infraestructura')}</TabsTrigger>}
-            {isAdmin && <TabsTrigger data-testid="tab-users" value="users" className="gap-2"><Users className="w-4 h-4" />{t('nav.users')}</TabsTrigger>}
-            {isAdmin && <TabsTrigger data-testid="tab-logs" value="logs" className="gap-2"><FileSearch className="w-4 h-4" />Logs</TabsTrigger>}
-            {(isAdmin || isTechnician) && <TabsTrigger data-testid="tab-incidents" value="incidents" className="gap-2"><ClipboardList className="w-4 h-4" />{t('nav.incidents')}</TabsTrigger>}
-            {isAdmin && <TabsTrigger data-testid="tab-settings" value="settings" className="gap-2"><Settings className="w-4 h-4" />{t('nav.settings')}</TabsTrigger>}
-          </TabsList>
+          {/* Mobile-optimized tabs with horizontal scroll */}
+          <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 pb-2">
+            <TabsList className="mb-4 sm:mb-6 flex-nowrap sm:flex-wrap h-auto gap-1 min-w-max sm:min-w-0">
+              {canAccessSection('devices') && (
+                <TabsTrigger data-testid="tab-devices" value="devices" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+                  {isOperator ? <Camera className="w-3 h-3 sm:w-4 sm:h-4" /> : <Server className="w-3 h-3 sm:w-4 sm:h-4" />}
+                  <span className="hidden sm:inline">{isOperator ? t('devices.cameras', 'Cámaras Online') : t('nav.devices')}</span>
+                  <span className="sm:hidden">{isOperator ? 'Cámaras' : 'Disp.'}</span>
+                </TabsTrigger>
+              )}
+              {canAccessSection('statistics') && <TabsTrigger data-testid="tab-statistics" value="statistics" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('stats.title', 'Estadísticas')}</span><span className="sm:hidden">Stats</span></TabsTrigger>}
+              {canAccessSection('organizations') && <TabsTrigger data-testid="tab-structure" value="structure" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Building2 className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.structure', 'Estructura')}</span><span className="sm:hidden">Org.</span></TabsTrigger>}
+              {canAccessSection('devices') && <TabsTrigger data-testid="tab-types" value="types" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Tag className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.types', 'Tipos')}</span><span className="sm:hidden">Tipos</span></TabsTrigger>}
+              {canAccessSection('alerts') && <TabsTrigger data-testid="tab-alerts" value="alerts" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Bell className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.alerts', 'Alertas')}</span><span className="sm:hidden">Alert.</span>{alerts.length > 0 && <Badge variant="secondary" className="ml-1 h-4 sm:h-5 px-1 text-[10px] sm:text-xs">{alerts.length}</Badge>}</TabsTrigger>}
+              {canAccessSection('gallery') && <TabsTrigger data-testid="tab-gallery" value="gallery" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Camera className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">Galería</span><span className="sm:hidden">Gal.</span></TabsTrigger>}
+              {canAccessSection('cra') && <TabsTrigger data-testid="tab-cra" value="cra" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Shield className="w-3 h-3 sm:w-4 sm:h-4 text-red-500" />CRA</TabsTrigger>}
+              {canAccessSection('live') && <TabsTrigger data-testid="tab-live" value="live" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Video className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">En Directo</span><span className="sm:hidden">Live</span></TabsTrigger>}
+              {isAdmin && <TabsTrigger data-testid="tab-infrastructure" value="infrastructure" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Server className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.infrastructure', 'Infraestructura')}</span><span className="sm:hidden">Infra</span></TabsTrigger>}
+              {canAccessSection('users') && <TabsTrigger data-testid="tab-users" value="users" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Users className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.users')}</span><span className="sm:hidden">Users</span></TabsTrigger>}
+              {isAdmin && <TabsTrigger data-testid="tab-logs" value="logs" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><FileSearch className="w-3 h-3 sm:w-4 sm:h-4" />Logs</TabsTrigger>}
+              {canAccessSection('incidents') && <TabsTrigger data-testid="tab-incidents" value="incidents" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><ClipboardList className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.incidents')}</span><span className="sm:hidden">Incid.</span></TabsTrigger>}
+              {canAccessSection('settings') && <TabsTrigger data-testid="tab-settings" value="settings" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Settings className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.settings')}</span><span className="sm:hidden">Config</span></TabsTrigger>}
+              {isAdmin && <TabsTrigger data-testid="tab-superadmin" value="superadmin" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"><Shield className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">Super Admin</span><span className="sm:hidden">Admin</span></TabsTrigger>}
+            </TabsList>
+          </div>
 
           <TabsContent value="devices">
             {/* Filters - not for operators, available for technicians */}
             {!isOperator && (
-              <div className="flex gap-2 mb-6 flex-wrap items-center">
+              <div className="flex gap-2 mb-4 sm:mb-6 flex-wrap items-center">
                 {/* Search input with magnifying glass */}
-                <div className="relative">
+                <div className="relative w-full sm:w-auto">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
-                    placeholder={t('common.search', 'Buscar por nombre, IP...')}
-                    className="w-[200px] pl-8"
+                    placeholder={t('common.search', 'Buscar...')}
+                    className="w-full sm:w-[200px] pl-8 h-9"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -5775,27 +3334,29 @@ const Dashboard = () => {
                     </button>
                   )}
                 </div>
-                {uniqueCountries.length > 0 && (
-                  <Select value={filterCountry || "all"} onValueChange={(v) => { setFilterCountry(v === "all" ? null : v); setFilterOrgId(null); setFilterGroupId(null); }}>
-                    <SelectTrigger className="w-[150px]"><SelectValue placeholder={t('common.country', 'País')} /></SelectTrigger>
-                    <SelectContent><SelectItem value="all">🌍 {t('common.all', 'Todos')}</SelectItem>{uniqueCountries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                {/* Mobile: Collapsible filters */}
+                <div className="flex gap-2 flex-wrap w-full sm:w-auto">
+                  {uniqueCountries.length > 0 && (
+                    <Select value={filterCountry || "all"} onValueChange={(v) => { setFilterCountry(v === "all" ? null : v); setFilterOrgId(null); setFilterGroupId(null); }}>
+                      <SelectTrigger className="w-[calc(50%-4px)] sm:w-[150px] h-9 text-xs sm:text-sm"><SelectValue placeholder={t('common.country', 'País')} /></SelectTrigger>
+                      <SelectContent><SelectItem value="all">🌍 {t('common.all', 'Todos')}</SelectItem>{uniqueCountries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                    </Select>
+                  )}
+                  <Select value={filterOrgId || "all"} onValueChange={(v) => { setFilterOrgId(v === "all" ? null : v); setFilterGroupId(null); }}>
+                    <SelectTrigger className="w-[calc(50%-4px)] sm:w-[180px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Org." /></SelectTrigger>
+                    <SelectContent><SelectItem value="all">{t('filters.allOrgs', 'Todas')}</SelectItem>{(filterCountry ? organizations.filter(o => o.country === filterCountry) : organizations).sort((a,b) => a.name.localeCompare(b.name, 'es')).map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
                   </Select>
-                )}
-                <Select value={filterOrgId || "all"} onValueChange={(v) => { setFilterOrgId(v === "all" ? null : v); setFilterGroupId(null); }}>
-                  <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('organizations.title', 'Organización')} /></SelectTrigger>
-                  <SelectContent><SelectItem value="all">{t('filters.allOrgs', 'Todas las org.')}</SelectItem>{(filterCountry ? organizations.filter(o => o.country === filterCountry) : organizations).sort((a,b) => a.name.localeCompare(b.name, 'es')).map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
-                </Select>
-                <Select value={filterGroupId || "all"} onValueChange={(v) => setFilterGroupId(v === "all" ? null : v)}>
-                  <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('groups.title', 'Grupo')} /></SelectTrigger>
-                  <SelectContent><SelectItem value="all">{t('filters.allGroups', 'Todos los grupos')}</SelectItem>{(filterOrgId ? sortedGroups.filter(g => g.organization_id === filterOrgId) : sortedGroups).map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
-                </Select>
-                <Select value={filterTypeId || "all"} onValueChange={(v) => setFilterTypeId(v === "all" ? null : v)}>
-                  <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('common.type', 'Tipo')} /></SelectTrigger>
-                  <SelectContent><SelectItem value="all">{t('filters.allTypes', 'Todos los tipos')}</SelectItem>{deviceTypes.map(dtype => { const Icon = getIcon(dtype.icon); return <SelectItem key={dtype.id} value={dtype.id}><div className="flex items-center gap-2"><Icon className="w-4 h-4" style={{ color: dtype.color }} />{dtype.name}</div></SelectItem>; })}</SelectContent>
-                </Select>
+                  <Select value={filterGroupId || "all"} onValueChange={(v) => setFilterGroupId(v === "all" ? null : v)}>
+                    <SelectTrigger className="w-[calc(50%-4px)] sm:w-[180px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Grupo" /></SelectTrigger>
+                    <SelectContent><SelectItem value="all">{t('filters.allGroups', 'Todos')}</SelectItem>{(filterOrgId ? sortedGroups.filter(g => g.organization_id === filterOrgId) : sortedGroups).map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
+                  </Select>
+                  <Select value={filterTypeId || "all"} onValueChange={(v) => setFilterTypeId(v === "all" ? null : v)}>
+                    <SelectTrigger className="w-[calc(50%-4px)] sm:w-[180px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Tipo" /></SelectTrigger>
+                    <SelectContent><SelectItem value="all">{t('filters.allTypes', 'Todos')}</SelectItem>{deviceTypes.map(dtype => { const Icon = getIcon(dtype.icon); return <SelectItem key={dtype.id} value={dtype.id}><div className="flex items-center gap-2"><Icon className="w-4 h-4" style={{ color: dtype.color }} />{dtype.name}</div></SelectItem>; })}</SelectContent>
+                  </Select>
                 {/* NEW: Status filter */}
                 <Select value={filterStatus || "all"} onValueChange={(v) => setFilterStatus(v === "all" ? null : v)}>
-                  <SelectTrigger className="w-[140px]"><SelectValue placeholder={t('common.status', 'Estado')} /></SelectTrigger>
+                  <SelectTrigger className="w-[calc(50%-4px)] sm:w-[140px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Estado" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t('common.all', 'Todos')}</SelectItem>
                     <SelectItem value="online"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" />{t('devices.online', 'Online')}</div></SelectItem>
@@ -5803,18 +3364,21 @@ const Dashboard = () => {
                     <SelectItem value="unknown"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-400" />{t('devices.unknown', 'Desconocido')}</div></SelectItem>
                   </SelectContent>
                 </Select>
-                {/* NEW: Filter by statistics */}
-                <Button 
-                  variant={filterStats ? "default" : "outline"} 
-                  size="sm" 
-                  onClick={() => setFilterStats(!filterStats)}
-                  className={filterStats ? "bg-purple-600 hover:bg-purple-700" : ""}
-                >
-                  <BarChart3 className="w-4 h-4 mr-1" />
-                  {t('filters.withStats', 'Con Stats')}
-                </Button>
-                {(searchQuery || filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus || filterStats) && <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(""); setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); setFilterStats(false); }}>{t('filters.clear', 'Limpiar filtros')}</Button>}
-                <span className="text-sm text-muted-foreground ml-auto">{filteredDevices.length} {t('devices.deviceCount', 'dispositivo(s)')}</span>
+                </div>
+                {/* Stats filter and clear button */}
+                <div className="flex gap-2 items-center w-full sm:w-auto justify-between sm:justify-start">
+                  <Button 
+                    variant={filterStats ? "default" : "outline"} 
+                    size="sm" 
+                    onClick={() => setFilterStats(!filterStats)}
+                    className={`h-9 text-xs sm:text-sm ${filterStats ? "bg-purple-600 hover:bg-purple-700" : ""}`}
+                  >
+                    <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                    Stats
+                  </Button>
+                  {(searchQuery || filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus || filterStats) && <Button variant="ghost" size="sm" className="h-9 text-xs sm:text-sm" onClick={() => { setSearchQuery(""); setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); setFilterStats(false); }}>Limpiar</Button>}
+                  <span className="text-xs sm:text-sm text-muted-foreground">{filteredDevices.length} disp.</span>
+                </div>
               </div>
             )}
             
@@ -5849,7 +3413,7 @@ const Dashboard = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                       {paginatedDevices.map(d => (
                         <SortableCard key={d.id} id={d.id}>
-                          <ServerCard device={d} group={groups.find(g => g.id === d.group_id)} deviceType={deviceTypes.find(t => t.id === d.device_type_id)} onCheck={handleCheckDevice} onEdit={(dev) => { setSelectedDevice(dev); setDeviceDialogOpen(true); }} onClone={handleCloneDevice} onDelete={(dev) => { setDeleteTarget({ type: "device", item: dev }); setDeleteDialogOpen(true); }} onViewHistory={handleViewHistory} onMobotixInfo={handleMobotixInfo} onCreateIncident={(isAdmin || isTechnician) ? handleCreateIncidentFromDevice : null} canEdit={canEdit} />
+                          <ServerCard device={d} group={groups.find(g => g.id === d.group_id)} deviceType={deviceTypes.find(t => t.id === d.device_type_id)} onCheck={handleCheckDevice} onEdit={(dev) => { setSelectedDevice(dev); setDeviceDialogOpen(true); }} onClone={handleCloneDevice} onDelete={(dev) => { setDeleteTarget({ type: "device", item: dev }); setDeleteDialogOpen(true); }} onViewHistory={handleViewHistory} onMobotixInfo={handleMobotixInfo} onCreateIncident={(isAdmin || isTechnician) ? handleCreateIncidentFromDevice : null} onOpenLiveView={(dev) => setActiveTab('live')} canEdit={canEdit} />
                         </SortableCard>
                       ))}
                     </div>
@@ -5903,7 +3467,7 @@ const Dashboard = () => {
 
           {/* Statistics Tab */}
           <TabsContent value="statistics">
-            <StatisticsPanel devices={devices} groups={groups} />
+            <StatisticsPanel devices={devices} groups={groups} authAxios={authAxios} />
           </TabsContent>
 
           <TabsContent value="structure">
@@ -5926,25 +3490,26 @@ const Dashboard = () => {
               onFilterByType={(typeId) => { setFilterTypeId(typeId); setActiveTab("devices"); }} />
           </TabsContent>
 
-          <TabsContent value="alerts"><AlertsPanel alerts={alerts} organizations={organizations} devices={devices} groups={groups} /></TabsContent>
+          <TabsContent value="alerts"><AlertsPanel alerts={alerts} organizations={organizations} devices={devices} groups={groups} authAxios={authAxios} /></TabsContent>
           {!isOperator && <TabsContent value="gallery"><DeviceGallery authAxios={authAxios} devices={devices} organizations={organizations} groups={groups} /></TabsContent>}
-          {!isOperator && <TabsContent value="cra"><CRADashboard authAxios={authAxios} /></TabsContent>}
+          {!isOperator && <TabsContent value="cra"><CRADashboard authAxios={authAxios} onOpenLiveView={(device) => { setActiveTab('live'); }} /></TabsContent>}
           {!isOperator && <TabsContent value="live" className="h-[calc(100vh-200px)]"><LiveViewer authAxios={authAxios} devices={devices} organizations={organizations} groups={groups} /></TabsContent>}
           {isAdmin && <TabsContent value="infrastructure"><InfrastructurePanel authAxios={authAxios} /></TabsContent>}
-          {isAdmin && <TabsContent value="users"><UsersPanel users={users} onCreateUser={() => { setSelectedUser(null); setUserDialogOpen(true); }} onEditUser={(u) => { setSelectedUser(u); setUserDialogOpen(true); }} onDeleteUser={(u) => { setDeleteTarget({ type: "user", item: u }); setDeleteDialogOpen(true); }} onResetPassword={handleOpenPasswordDialog} /></TabsContent>}
-          {isAdmin && <TabsContent value="logs"><AccessLogsPanel /></TabsContent>}
-          {(isAdmin || isTechnician) && <TabsContent value="incidents"><IncidentsPanel devices={devices} /></TabsContent>}
+          {isAdmin && <TabsContent value="users"><UsersPanel users={users} authAxios={authAxios} onCreateUser={() => { setSelectedUser(null); setUserDialogOpen(true); }} onEditUser={(u) => { setSelectedUser(u); setUserDialogOpen(true); }} onDeleteUser={(u) => { setDeleteTarget({ type: "user", item: u }); setDeleteDialogOpen(true); }} onResetPassword={handleOpenPasswordDialog} onUserUpdate={fetchAll} /></TabsContent>}
+          {isAdmin && <TabsContent value="logs"><AccessLogsPanel authAxios={authAxios} /></TabsContent>}
+          {(isAdmin || isTechnician) && <TabsContent value="incidents"><IncidentsPanel devices={devices} authAxios={authAxios} /></TabsContent>}
           {isAdmin && <TabsContent value="settings">
             <div className="space-y-6">
               <SystemStatusDashboard authAxios={authAxios} />
               <SettingsPanel settings={settings} onSave={handleSaveSettings} />
               <NotificationSettings />
               <SecurityPanel />
-              <ScheduledReportsPanel organizations={organizations} />
-              <DailyReportPanel />
-              <BackupPanel />
+              <ScheduledReportsPanel organizations={organizations} authAxios={authAxios} />
+              <DailyReportPanel authAxios={authAxios} />
+              <BackupPanel authAxios={authAxios} />
             </div>
           </TabsContent>}
+          {isAdmin && <TabsContent value="superadmin"><SuperAdminTab authAxios={authAxios} /></TabsContent>}
         </Tabs>
       </main>
 
