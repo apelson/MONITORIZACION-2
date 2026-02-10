@@ -4847,8 +4847,10 @@ const Dashboard = () => {
   const isAdmin = user?.role === "admin";
   const isOperator = user?.role === "operator";
   const isTechnician = user?.role === "technician";
-  const onlineCount = devices.filter(d => d.status === 'online').length;
-  const offlineCount = devices.filter(d => d.status === 'offline').length;
+  // Use cached stats for header (faster than counting all devices)
+  const onlineCount = deviceStats.online || devices.filter(d => d.status === 'online').length;
+  const offlineCount = deviceStats.offline || devices.filter(d => d.status === 'offline').length;
+  const craCount = deviceStats.cra || devices.filter(d => d.is_cra === true).length;
 
   const fetchAll = useCallback(async () => {
     // Prevent concurrent calls
