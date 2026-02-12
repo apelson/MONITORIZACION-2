@@ -2739,6 +2739,9 @@ const Dashboard = () => {
   const [historyModalDevice, setHistoryModalDevice] = useState(null);
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
   
+  // NOC Dashboard state
+  const [nocDashboardOpen, setNocDashboardOpen] = useState(false);
+  
   const audioRef = useRef(null);
   const fetchingRef = useRef(false); // Prevent concurrent API calls
   
