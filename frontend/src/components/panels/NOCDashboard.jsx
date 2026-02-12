@@ -893,6 +893,13 @@ const NOCDashboard = ({
           </div>
           <Building2 className="w-7 h-7 text-purple-400 opacity-40" />
         </div>
+        <div className={cn("bg-slate-900/80 rounded-lg p-2 flex items-center justify-between", stats.avgLatency && stats.avgLatency > 300 ? "border-2 border-orange-500" : "border border-slate-700/50")}>
+          <div>
+            <p className="text-[9px] text-cyan-400 uppercase">LATENCIA</p>
+            <p className="text-2xl font-bold text-cyan-400">{stats.avgLatency ? `${stats.avgLatency}ms` : '--'}</p>
+          </div>
+          <Gauge className="w-7 h-7 text-cyan-400 opacity-40" />
+        </div>
         <div className={cn("bg-slate-900/80 rounded-lg p-2 flex items-center justify-between", craDevices.some(d => d.status === 'offline') ? "border-2 border-red-500" : "border border-slate-700/50")}>
           <div>
             <p className="text-[9px] text-red-400 uppercase">CRA</p>
