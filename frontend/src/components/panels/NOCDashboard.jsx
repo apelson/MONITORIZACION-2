@@ -1100,6 +1100,127 @@ const NOCDashboard = ({
     }
   };
 
+  // Grid-based customizable view using react-grid-layout
+  const renderGridView = () => {
+    // Filter layout to only show visible widgets
+    const visibleLayout = layout.filter(item => widgetVisibility[item.i] !== false);
+    
+    return (
+      <div ref={containerRef} className="flex-1 flex flex-col gap-2">
+        {/* Stats Row - Always visible */}
+        <StatsWidget 
+          stats={stats} 
+          groups={groups} 
+          organizations={organizations} 
+          craDevices={craDevices} 
+        />
+        
+        {/* Draggable Grid */}
+        <div className={cn("flex-1 min-h-0", editMode && "bg-slate-800/30 rounded-lg p-2")}>
+          {editMode && (
+            <div className="text-xs text-cyan-400 mb-2 flex items-center gap-2">
+              <GripVertical className="w-4 h-4" />
+              Arrastra los widgets para reorganizar • Los cambios se guardan al bloquear
+            </div>
+          )}
+          <ResponsiveGridLayout
+            className="layout"
+            layout={visibleLayout}
+            cols={12}
+            rowHeight={80}
+            onLayoutChange={handleLayoutChange}
+            isDraggable={editMode}
+            isResizable={editMode}
+            draggableHandle=".drag-handle"
+            compactType="vertical"
+            preventCollision={false}
+            margin={[8, 8]}
+          >
+            {widgetVisibility.uptime !== false && (
+              <div key="uptime" className="overflow-hidden">
+                <UptimeWidget 
+                  uptimeData={uptimeData}
+                  timeRange={timeRange}
+                  setTimeRange={setTimeRange}
+                  onMaximize={() => handleMaximizeSection('uptime')}
+                  editMode={editMode}
+                />
+              </div>
+            )}
+            
+            {widgetVisibility.systemMonitor !== false && (
+              <div key="systemMonitor" className="overflow-hidden">
+                <SystemMonitorWidget 
+                  stats={stats}
+                  devicesByIsland={devicesByIsland}
+                  getBubbleSize={getBubbleSize}
+                  editMode={editMode}
+                />
+              </div>
+            )}
+            
+            {widgetVisibility.cra !== false && (
+              <div key="cra" className="overflow-hidden">
+                <CRAWidget 
+                  craDevices={craDevices}
+                  onMaximize={() => handleMaximizeSection('cra')}
+                  onDeviceClick={onDeviceClick}
+                  editMode={editMode}
+                />
+              </div>
+            )}
+            
+            {widgetVisibility.organizations !== false && (
+              <div key="organizations" className="overflow-hidden">
+                <OrganizationsWidget 
+                  devicesByOrg={devicesByOrg}
+                  onMaximize={() => handleMaximizeSection('organizations')}
+                  editMode={editMode}
+                />
+              </div>
+            )}
+            
+            {widgetVisibility.offline !== false && (
+              <div key="offline" className="overflow-hidden">
+                <OfflineWidget 
+                  offlineDevices={offlineDevices}
+                  deviceTypes={deviceTypes}
+                  stats={stats}
+                  onMaximize={() => handleMaximizeSection('offline')}
+                  onDeviceClick={onDeviceClick}
+                  formatTimeSince={formatTimeSince}
+                  editMode={editMode}
+                />
+              </div>
+            )}
+            
+            {widgetVisibility.history !== false && (
+              <div key="history" className="overflow-hidden">
+                <HistoryWidget 
+                  downtimeHistory={downtimeHistory}
+                  onMaximize={() => handleMaximizeSection('history')}
+                  editMode={editMode}
+                />
+              </div>
+            )}
+            
+            {widgetVisibility.alerts !== false && (
+              <div key="alerts" className="overflow-hidden">
+                <AlertsWidget 
+                  recentAlerts={recentAlertsList}
+                  stats={stats}
+                  formatTimeSince={formatTimeSince}
+                  onMaximize={() => handleMaximizeSection('alerts')}
+                  editMode={editMode}
+                />
+              </div>
+            )}
+          </ResponsiveGridLayout>
+        </div>
+      </div>
+    );
+  };
+
   // Normal view rendering
   const renderNormalView = () => (
     <>
