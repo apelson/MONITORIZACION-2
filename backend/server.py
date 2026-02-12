@@ -288,6 +288,9 @@ async def download_file(path: str):
         "NOCMapSection.jsx": "/app/frontend/src/components/noc/NOCMapSection.jsx",
         "NOCOrganizationsSection.jsx": "/app/frontend/src/components/noc/NOCOrganizationsSection.jsx",
         "noc_index.js": "/app/frontend/src/components/noc/index.js",
+        # AI and SLA components
+        "AIInsightsPanel.jsx": "/app/frontend/src/components/settings/AIInsightsPanel.jsx",
+        "SLAReportsPanel.jsx": "/app/frontend/src/components/settings/SLAReportsPanel.jsx",
     }
     
     if path not in allowed_files:
