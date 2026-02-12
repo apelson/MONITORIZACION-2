@@ -401,7 +401,7 @@ const NOCDashboard = ({
       </div>
       <div className="bg-slate-800/80 border border-slate-700/50 rounded-lg px-3 py-1.5 flex items-center justify-between">
         <div>
-          <p className="text-[8px] text-purple-400 uppercase">CENTROS</p>
+          <p className="text-[7px] text-purple-400 uppercase">CENTROS/GRUPOS</p>
           <p className="text-lg font-bold text-purple-400">{organizations.length} <span className="text-sm opacity-70">/ {groups.length}</span></p>
         </div>
         <Building2 className="w-5 h-5 text-purple-400 opacity-50" />
