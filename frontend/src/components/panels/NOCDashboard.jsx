@@ -850,7 +850,7 @@ const NOCDashboard = ({
   const renderNormalView = () => (
     <>
       {/* Stats Row */}
-      <div className="grid grid-cols-7 gap-2 shrink-0">
+      <div className="grid grid-cols-8 gap-2 shrink-0">
         <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex items-center justify-between">
           <div>
             <p className="text-[9px] text-slate-400 uppercase">TOTAL</p>
