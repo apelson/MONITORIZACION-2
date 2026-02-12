@@ -904,9 +904,6 @@ const NOCDashboard = ({
               </Button>
             </div>
           </div>
-              <Button variant={timeRange === '7d' ? 'default' : 'ghost'} size="sm" className="h-6 px-2 text-[10px]" onClick={() => setTimeRange('7d')}>7d</Button>
-            </div>
-          </div>
           <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={uptimeData}>
