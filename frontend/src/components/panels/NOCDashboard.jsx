@@ -741,12 +741,13 @@ const NOCDashboard = ({
       case 'offline':
         return (
           <div className="flex-1 flex flex-col gap-4 p-4 bg-slate-900/50 rounded-xl">
+            {renderCompactStatsBar()}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <WifiOff className="w-8 h-8 text-red-400" />
                 <div>
-                  <h2 className="text-2xl font-bold text-white">Dispositivos Offline</h2>
-                  <p className="text-slate-400">{offlineDevices.length} dispositivos requieren atención</p>
+                  <h2 className="text-2xl font-bold text-white">{t('noc.offlineDevices', 'Dispositivos Offline')}</h2>
+                  <p className="text-slate-400">{offlineDevices.length} {t('noc.devicesNeedAttention', 'dispositivos requieren atención')}</p>
                 </div>
               </div>
               <Button variant="ghost" size="sm" onClick={() => setManualExpandedSection(null)}>
@@ -756,7 +757,7 @@ const NOCDashboard = ({
             {offlineDevices.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center">
                 <CheckCircle className="w-32 h-32 text-emerald-500 mb-4" />
-                <p className="text-2xl text-emerald-400">Todos los dispositivos online</p>
+                <p className="text-2xl text-emerald-400">{t('noc.allOnline', 'Todos los dispositivos online')}</p>
               </div>
             ) : (
               <ScrollArea className="flex-1">
