@@ -147,6 +147,7 @@ const DraggableGrid = ({
 
   return (
     <div ref={containerRef} className={cn("w-full h-full", className)}>
+      <style>{gridStyles}</style>
       {editMode && (
         <div className="mb-2 px-3 py-2 bg-cyan-500/10 rounded-lg border border-cyan-500/30 flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
