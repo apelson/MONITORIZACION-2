@@ -91,7 +91,22 @@ const NOCDashboard = ({
   const [presentationIndex, setPresentationIndex] = useState(0);
   const [manualExpandedSection, setManualExpandedSection] = useState(null);
   const [editMode, setEditMode] = useState(false); // For drag & drop editing
-  const [layout, setLayout] = useState(DEFAULT_LAYOUT);
+  const [layout, setLayout] = useState(INITIAL_LAYOUT);
+  const [widgetVisibility, setWidgetVisibility] = useState({
+    stats: true,
+    uptime: true,
+    systemMonitor: true,
+    cra: true,
+    organizations: true,
+    offline: true,
+    history: true,
+    alerts: true
+  });
+  const [dashboardFilters, setDashboardFilters] = useState({
+    organizationId: 'all',
+    groupId: 'all'
+  });
+  const [savingPrefs, setSavingPrefs] = useState(false);
   const audioRef = useRef(null);
   const presentationRef = useRef(null);
   const containerRef = useRef(null);
