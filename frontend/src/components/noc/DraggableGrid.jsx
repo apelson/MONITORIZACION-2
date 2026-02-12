@@ -186,7 +186,7 @@ const DraggableGrid = ({
         preventCollision={false}
       >
         {visibleChildren.map(child => (
-          <div key={child.key} className="overflow-hidden">
+          <div key={child.key} className="overflow-hidden h-full">
             <WidgetContainer
               id={child.key}
               editMode={editMode}
