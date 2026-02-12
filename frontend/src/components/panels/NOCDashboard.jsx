@@ -137,7 +137,22 @@ const NOCDashboard = ({
     const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const recentAlerts = alerts.filter(a => new Date(a.timestamp) > last24h);
     const criticalAlerts = recentAlerts.filter(a => a.alert_type === 'device_down' || a.alert_type === 'nas_disconnected');
-    return { total, online, offline, uptimePercent, recentAlerts: recentAlerts.length, criticalAlerts: criticalAlerts.length };
+    
+    // Calculate average latency from online devices
+    const devicesWithLatency = devices.filter(d => d.status === 'online' && d.response_time_ms);
+    const avgLatency = devicesWithLatency.length > 0 
+      ? Math.round(devicesWithLatency.reduce((sum, d) => sum + d.response_time_ms, 0) / devicesWithLatency.length)
+      : null;
+    const maxLatency = devicesWithLatency.length > 0 
+      ? Math.round(Math.max(...devicesWithLatency.map(d => d.response_time_ms)))
+      : null;
+    const slowDevices = devicesWithLatency.filter(d => d.response_time_ms > 500).length;
+    
+    return { 
+      total, online, offline, uptimePercent, 
+      recentAlerts: recentAlerts.length, criticalAlerts: criticalAlerts.length,
+      avgLatency, maxLatency, slowDevices
+    };
   }, [devices, alerts]);
 
   // Devices by organization
