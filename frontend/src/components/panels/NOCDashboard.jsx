@@ -1085,7 +1085,8 @@ const NOCDashboard = ({
               healthPercent={stats.uptimePercent}
               hasAlerts={stats.offline > 0 || stats.criticalAlerts > 0}
               isAnalyzing={true}
-              className="h-28 rounded-lg border border-slate-700/50 bg-slate-950/50 overflow-hidden"
+              lastIncidentTime={stats.lastIncidentTime}
+              className="rounded-lg border border-slate-700/50 bg-slate-950/50 overflow-hidden"
             />
             
             {/* Mini Map below ECG */}
