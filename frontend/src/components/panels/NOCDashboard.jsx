@@ -1231,7 +1231,7 @@ const NOCDashboard = ({
 
       {/* Main Content */}
       <div className="flex-1 p-3 flex flex-col gap-3 overflow-hidden">
-        {presentationMode ? renderExpandedSection() : renderNormalView()}
+        {manualExpandedSection ? renderManualExpandedSection() : (presentationMode ? renderExpandedSection() : renderNormalView())}
       </div>
       
       <audio ref={audioRef} src="/alert.mp3" preload="auto" />
