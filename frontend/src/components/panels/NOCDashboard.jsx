@@ -6,12 +6,9 @@
  */
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import RGL, { WidthProvider } from 'react-grid-layout';
+import { GridLayout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
-
-// Create responsive grid layout
-const ResponsiveGridLayout = WidthProvider(RGL);
 import { 
   Monitor, Wifi, WifiOff, AlertTriangle, Building2, Clock, 
   TrendingUp, Activity, X, ChevronRight, RefreshCw, Eye, Server,
