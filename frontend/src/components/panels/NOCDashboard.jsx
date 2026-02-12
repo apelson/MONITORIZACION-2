@@ -795,12 +795,13 @@ const NOCDashboard = ({
       case 'history':
         return (
           <div className="flex-1 flex flex-col gap-4 p-4 bg-slate-900/50 rounded-xl">
+            {renderCompactStatsBar()}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <History className="w-8 h-8 text-orange-400" />
                 <div>
-                  <h2 className="text-2xl font-bold text-white">Historial de Caídas (7 días)</h2>
-                  <p className="text-slate-400">{downtimeHistory.length} dispositivos con incidencias</p>
+                  <h2 className="text-2xl font-bold text-white">{t('noc.downtimeHistory', 'Historial de Caídas')} (7 {t('noc.days', 'días')})</h2>
+                  <p className="text-slate-400">{downtimeHistory.length} {t('noc.devicesWithIncidents', 'dispositivos con incidencias')}</p>
                 </div>
               </div>
               <Button variant="ghost" size="sm" onClick={() => setManualExpandedSection(null)}>
@@ -810,7 +811,7 @@ const NOCDashboard = ({
             {downtimeHistory.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center">
                 <CheckCircle className="w-32 h-32 text-emerald-500/50 mb-4" />
-                <p className="text-xl text-slate-400">Sin caídas en los últimos 7 días</p>
+                <p className="text-xl text-slate-400">{t('noc.noDowntime', 'Sin caídas en los últimos 7 días')}</p>
               </div>
             ) : (
               <ScrollArea className="flex-1">
@@ -824,11 +825,11 @@ const NOCDashboard = ({
                           </div>
                           <div>
                             <p className="text-lg font-semibold text-white">{item.name}</p>
-                            <p className="text-xs text-slate-400">Última caída: {item.lastDown ? new Date(item.lastDown).toLocaleString('es-ES') : 'N/A'}</p>
+                            <p className="text-xs text-slate-400">{t('noc.lastDown', 'Última caída')}: {item.lastDown ? new Date(item.lastDown).toLocaleString('es-ES') : 'N/A'}</p>
                           </div>
                         </div>
                         <Badge className={cn("text-lg px-3 py-1", item.count > 3 ? "bg-red-500" : "bg-amber-500")}>
-                          {item.count} caídas
+                          {item.count} {t('noc.drops', 'caídas')}
                         </Badge>
                       </div>
                       <div className="mt-2 flex flex-wrap gap-1">
