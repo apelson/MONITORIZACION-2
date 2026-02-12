@@ -1213,6 +1213,23 @@ const NOCDashboard = ({
               <TooltipContent>{presentationMode ? 'Detener Presentación' : 'Iniciar Presentación'}</TooltipContent>
             </Tooltip>
           </TooltipProvider>
+
+          {/* Open in New Window */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => window.open(`${window.location.origin}?nocFullscreen=true`, '_blank')}
+                  className="h-8 w-8 p-0 text-slate-400 hover:text-cyan-400"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Abrir en nueva ventana</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           
           {/* Refresh */}
           <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={refreshing} className="text-slate-400 hover:text-white h-8 w-8 p-0">
