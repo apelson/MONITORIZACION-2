@@ -285,7 +285,24 @@ const NOCDashboard = ({
             {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           </Button>
 
-          {/* Presentation mode */}
+          {/* Play - Presentation mode */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleOpenNewWindow} 
+                  className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 h-8 w-8 p-0"
+                >
+                  <Play className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Modo Presentación</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Open in new window */}
           <Button variant="ghost" size="sm" onClick={handleOpenNewWindow} className="text-slate-400 hover:text-white h-8 w-8 p-0">
             <ExternalLink className="w-4 h-4" />
           </Button>
