@@ -144,6 +144,10 @@ async def lifespan(app: FastAPI):
     from config import create_indexes
     await create_indexes()
     
+    # Initialize WebSocket manager for real-time alerts
+    set_websocket_manager(websocket_manager)
+    logger.info("WebSocket manager initialized for real-time alerts")
+    
     await init_default_data()
     asyncio.create_task(periodic_device_check())
     
@@ -158,7 +162,7 @@ async def lifespan(app: FastAPI):
     scheduler.start()
     logger.info("Scheduler started for daily reports")
     
-    logger.info("Siempria Network Monitor API started - OPTIMIZED")
+    logger.info("Siempria Network Monitor API started - OPTIMIZED with WebSockets")
     yield
     scheduler.shutdown()
     logger.info("Siempria Network Monitor API stopped")
