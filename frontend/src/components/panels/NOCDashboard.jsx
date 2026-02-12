@@ -533,10 +533,10 @@ const NOCDashboard = ({
                     <CardHeader className="pb-2">
                       <CardTitle className="text-lg text-white flex items-center gap-2">
                         <Shield className="w-5 h-5 text-amber-400" />
-                        Estado CRA (Central Receptora de Alarmas)
+                        {t('noc.craStatus', 'Estado CRA (Central Receptora de Alarmas)')}
                       </CardTitle>
                       <CardDescription className="text-slate-400">
-                        Dispositivos de la central de alarmas
+                        {t('noc.craDevices', 'Dispositivos de la central de alarmas')}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
