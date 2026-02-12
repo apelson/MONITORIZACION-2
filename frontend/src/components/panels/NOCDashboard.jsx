@@ -1520,21 +1520,41 @@ const NOCDashboard = ({
                   variant="ghost" 
                   size="sm" 
                   onClick={() => {
-                    setEditMode(!editMode);
-                    if (!editMode) {
-                      toast.info('Modo edición activado - Arrastra los widgets para reorganizar');
+                    if (editMode) {
+                      // Saliendo de modo edición - guardar
+                      savePreferences();
                     } else {
-                      toast.success('Cambios guardados');
+                      toast.info('Modo edición activado - Arrastra los widgets para reorganizar');
                     }
+                    setEditMode(!editMode);
                   }} 
                   className={cn("h-8 w-8 p-0", editMode ? "text-cyan-400 bg-cyan-500/20" : "text-slate-400 hover:text-cyan-400")}
                 >
                   {editMode ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>{editMode ? 'Bloquear Layout' : 'Editar Layout'}</TooltipContent>
+              <TooltipContent>{editMode ? 'Guardar y Bloquear' : 'Editar Layout'}</TooltipContent>
             </Tooltip>
           </TooltipProvider>
+
+          {/* Reset Layout */}
+          {editMode && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={resetLayout}
+                    className="h-8 w-8 p-0 text-orange-400 hover:bg-orange-500/20"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Restaurar Layout</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
 
           {/* Play/Pause Presentation */}
           <TooltipProvider>
