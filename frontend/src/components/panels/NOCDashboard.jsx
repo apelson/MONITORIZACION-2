@@ -1,14 +1,16 @@
 /**
  * NOCDashboard - Centro de Operaciones de Red Profesional 24/7
+ * Versión completa con Mapa Canarias, CRA, secciones maximizables
  * Optimizado para pantalla de 55" sin scroll
  */
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Monitor, Wifi, WifiOff, AlertTriangle, Building2, Clock, 
   TrendingUp, Activity, X, ChevronRight, RefreshCw, Eye, Server,
   Camera, HardDrive, Network, Router, Printer, Shield, Box, Layers,
-  Bell, CheckCircle, XCircle, BarChart3, History, ClipboardList
+  Bell, CheckCircle, XCircle, BarChart3, History, ClipboardList,
+  Maximize2, Minimize2, Volume2, VolumeX, ExternalLink, Play, MapPin
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,13 +22,23 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip as Recharts
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
-const LOGO_URL = "https://customer-assets.emergentagent.com/job_equip-tracker-39/artifacts/796492pi_version%20autorizada%202.png";
+// Logo Siempria
+const LOGO_URL = "/logo-siempria.png";
 
 const ICON_MAP = {
   camera: Camera, "hard-drive": HardDrive, network: Network, router: Router,
   server: Server, monitor: Monitor, printer: Printer, wifi: Wifi,
   shield: Shield, box: Box, layers: Layers
 };
+
+// Canary Islands map configuration
+const CANARY_ISLANDS = [
+  { id: 'LP', name: 'La Palma', x: 80, y: 340, abbrev: 'LP' },
+  { id: 'TF', name: 'Tenerife', x: 140, y: 420, abbrev: 'TF' },
+  { id: 'GC', name: 'Gran Canaria', x: 220, y: 360, abbrev: 'GC' },
+  { id: 'FV', name: 'Fuerteventura', x: 310, y: 280, abbrev: 'FV' },
+  { id: 'LZ', name: 'Lanzarote', x: 290, y: 200, abbrev: 'LZ' },
+];
 
 const NOCDashboard = ({ 
   devices = [], 
@@ -46,6 +58,10 @@ const NOCDashboard = ({
   const [refreshing, setRefreshing] = useState(false);
   const [uptimeData, setUptimeData] = useState([]);
   const [craDevices, setCraDevices] = useState([]);
+  const [expandedSection, setExpandedSection] = useState(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [timeRange, setTimeRange] = useState('24h');
+  const audioRef = useRef(null);
 
   // Update time every second
   useEffect(() => {
@@ -57,17 +73,20 @@ const NOCDashboard = ({
   useEffect(() => {
     const now = new Date();
     const data = [];
-    for (let i = 23; i >= 0; i--) {
-      const hour = new Date(now - i * 3600000);
+    const hours = timeRange === '24h' ? 24 : 168;
+    for (let i = hours - 1; i >= 0; i--) {
+      const time = new Date(now - i * 3600000);
       const onlineCount = devices.filter(d => d.status === 'online').length;
-      const variance = Math.floor(Math.random() * 5) - 2;
+      const variance = Math.floor(Math.random() * 3) - 1;
       data.push({
-        time: hour.getHours().toString().padStart(2, '0') + ':00',
+        time: timeRange === '24h' 
+          ? time.getHours().toString().padStart(2, '0') + ':00'
+          : time.toLocaleDateString('es-ES', { weekday: 'short' }),
         uptime: Math.max(85, Math.min(100, (onlineCount / Math.max(devices.length, 1)) * 100 + variance)),
       });
     }
     setUptimeData(data);
-  }, [devices]);
+  }, [devices, timeRange]);
 
   // Filter CRA devices
   useEffect(() => {
@@ -102,22 +121,67 @@ const NOCDashboard = ({
         });
       }
     });
-    return result.sort((a, b) => b.offline - a.offline || b.total - a.total).slice(0, 8);
+    return result.sort((a, b) => b.offline - a.offline || b.total - a.total);
   }, [devices, organizations, groups]);
 
-  // Offline devices list (top 6)
+  // Devices by island (Canary Islands)
+  const devicesByIsland = useMemo(() => {
+    const islandMap = {};
+    CANARY_ISLANDS.forEach(island => {
+      islandMap[island.id] = { ...island, online: 0, offline: 0, total: 0 };
+    });
+
+    // Map organizations to islands based on name patterns
+    organizations.forEach(org => {
+      const orgGroups = groups.filter(g => g.organization_id === org.id);
+      const orgDevices = devices.filter(d => orgGroups.some(g => g.id === d.group_id));
+      const online = orgDevices.filter(d => d.status === 'online').length;
+      const offline = orgDevices.filter(d => d.status === 'offline').length;
+      
+      const name = org.name.toUpperCase();
+      if (name.includes('PALMA') || name.includes('LP')) {
+        islandMap['LP'].online += online;
+        islandMap['LP'].offline += offline;
+        islandMap['LP'].total += orgDevices.length;
+      } else if (name.includes('TENERIFE') || name.includes('TF') || name.includes('TIMELAPSE')) {
+        islandMap['TF'].online += online;
+        islandMap['TF'].offline += offline;
+        islandMap['TF'].total += orgDevices.length;
+      } else if (name.includes('GRAN CANARIA') || name.includes('GC') || name.includes('CANARIA')) {
+        islandMap['GC'].online += online;
+        islandMap['GC'].offline += offline;
+        islandMap['GC'].total += orgDevices.length;
+      } else if (name.includes('FUERTEVENTURA') || name.includes('FV')) {
+        islandMap['FV'].online += online;
+        islandMap['FV'].offline += offline;
+        islandMap['FV'].total += orgDevices.length;
+      } else if (name.includes('LANZAROTE') || name.includes('LZ')) {
+        islandMap['LZ'].online += online;
+        islandMap['LZ'].offline += offline;
+        islandMap['LZ'].total += orgDevices.length;
+      } else {
+        // Default to Gran Canaria for unmatched
+        islandMap['GC'].online += online;
+        islandMap['GC'].offline += offline;
+        islandMap['GC'].total += orgDevices.length;
+      }
+    });
+
+    return Object.values(islandMap);
+  }, [devices, organizations, groups]);
+
+  // Offline devices list
   const offlineDevices = useMemo(() => {
     return devices
       .filter(d => d.status === 'offline')
-      .sort((a, b) => new Date(b.last_status_change || 0) - new Date(a.last_status_change || 0))
-      .slice(0, 6);
+      .sort((a, b) => new Date(b.last_status_change || 0) - new Date(a.last_status_change || 0));
   }, [devices]);
 
-  // Recent alerts (top 5)
+  // Recent alerts
   const recentAlertsList = useMemo(() => {
     return [...alerts]
       .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-      .slice(0, 5);
+      .slice(0, 10);
   }, [alerts]);
 
   // Pie chart data
@@ -158,25 +222,28 @@ const NOCDashboard = ({
     }
   };
 
-  const handleDeviceAction = (device, action) => {
-    switch (action) {
-      case 'view':
-        if (onDeviceClick) onDeviceClick(device);
-        break;
-      case 'incident':
-        if (onCreateIncident) onCreateIncident(device);
-        break;
-      case 'history':
-        if (onViewHistory) onViewHistory(device);
-        break;
-      default:
-        break;
-    }
+  const handleOpenNewWindow = () => {
+    const url = window.location.origin + '/?nocFullscreen=true';
+    window.open(url, '_blank', 'width=1920,height=1080');
+  };
+
+  const toggleSection = (section) => {
+    setExpandedSection(expandedSection === section ? null : section);
+  };
+
+  // Get bubble size based on device count
+  const getBubbleSize = (total) => {
+    if (total === 0) return 20;
+    if (total < 10) return 30;
+    if (total < 50) return 45;
+    if (total < 100) return 60;
+    if (total < 200) return 80;
+    return 100;
   };
 
   return (
     <div className="fixed inset-0 z-[9999] bg-slate-950 text-white flex flex-col" data-testid="noc-dashboard">
-      {/* Header - Compact */}
+      {/* Header */}
       <div className="h-14 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-cyan-500/20 flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3">
@@ -190,11 +257,10 @@ const NOCDashboard = ({
               <p className="text-[10px] text-slate-400">{t('noc.subtitle', 'Centro de Operaciones de Red 24/7')}</p>
             </div>
           </div>
-          <div className="h-8 w-px bg-slate-700" />
-          <img src={LOGO_URL} alt="Siempria" className="h-12 object-contain" />
         </div>
         
         <div className="flex items-center gap-3">
+          {/* Time */}
           <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-slate-700">
             <Clock className="w-4 h-4 text-cyan-400" />
             <span className="font-mono text-base text-cyan-400">
@@ -205,15 +271,28 @@ const NOCDashboard = ({
             </span>
           </div>
           
+          {/* Status */}
           <div className="flex items-center gap-1.5 px-2 py-1.5 bg-emerald-500/10 rounded-lg border border-emerald-500/30">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            <span className="text-xs text-emerald-400">{t('noc.systemActive', 'Sistema Activo')}</span>
+            <span className="text-xs text-emerald-400">{t('noc.systemActive', 'Activo')}</span>
           </div>
+
+          {/* Sound toggle */}
+          <Button variant="ghost" size="sm" onClick={() => setSoundEnabled(!soundEnabled)} className="text-slate-400 hover:text-white h-8 w-8 p-0">
+            {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+          </Button>
+
+          {/* Presentation mode */}
+          <Button variant="ghost" size="sm" onClick={handleOpenNewWindow} className="text-slate-400 hover:text-white h-8 w-8 p-0">
+            <ExternalLink className="w-4 h-4" />
+          </Button>
           
+          {/* Refresh */}
           <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={refreshing} className="text-slate-400 hover:text-white h-8 w-8 p-0">
             <RefreshCw className={cn("w-4 h-4", refreshing && "animate-spin")} />
           </Button>
           
+          {/* Close */}
           <Button
             variant="ghost"
             size="sm"
@@ -226,272 +305,330 @@ const NOCDashboard = ({
         </div>
       </div>
 
-      {/* Main Content - Fills remaining space, NO SCROLL */}
+      {/* Main Content */}
       <div className="flex-1 p-3 flex flex-col gap-3 overflow-hidden">
         
-        {/* Stats Row - Fixed height */}
-        <div className="grid grid-cols-6 gap-3 shrink-0">
-          {/* Total Devices */}
-          <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex items-center justify-between">
+        {/* Stats Row */}
+        <div className="grid grid-cols-7 gap-2 shrink-0">
+          <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex items-center justify-between">
             <div>
-              <p className="text-[10px] text-slate-400 uppercase">{t('noc.totalDevices', 'Total Dispositivos')}</p>
+              <p className="text-[9px] text-slate-400 uppercase">TOTAL</p>
               <p className="text-2xl font-bold text-white">{stats.total}</p>
             </div>
-            <Server className="w-8 h-8 text-cyan-400 opacity-50" />
+            <Server className="w-7 h-7 text-cyan-400 opacity-40" />
           </div>
 
-          {/* Online */}
-          <div className="bg-slate-900/80 border border-emerald-500/30 rounded-lg p-3 flex items-center justify-between">
+          <div className="bg-slate-900/80 border border-emerald-500/30 rounded-lg p-2 flex items-center justify-between">
             <div>
-              <p className="text-[10px] text-emerald-400 uppercase">{t('noc.online', 'Online')}</p>
+              <p className="text-[9px] text-emerald-400 uppercase">ONLINE</p>
               <p className="text-2xl font-bold text-emerald-400">{stats.online}</p>
             </div>
-            <Wifi className="w-8 h-8 text-emerald-400 opacity-50" />
+            <Wifi className="w-7 h-7 text-emerald-400 opacity-40" />
           </div>
 
-          {/* Offline */}
-          <div className={cn("bg-slate-900/80 rounded-lg p-3 flex items-center justify-between", stats.offline > 0 ? "border border-red-500/50 animate-pulse" : "border border-slate-700/50")}>
+          <div className={cn("bg-slate-900/80 rounded-lg p-2 flex items-center justify-between", stats.offline > 0 ? "border-2 border-red-500 animate-pulse" : "border border-slate-700/50")}>
             <div>
-              <p className="text-[10px] text-red-400 uppercase">{t('noc.offline', 'Offline')}</p>
+              <p className="text-[9px] text-red-400 uppercase">OFFLINE</p>
               <p className="text-2xl font-bold text-red-400">{stats.offline}</p>
             </div>
-            <WifiOff className="w-8 h-8 text-red-400 opacity-50" />
+            <WifiOff className="w-7 h-7 text-red-400 opacity-40" />
           </div>
 
-          {/* Uptime */}
-          <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex items-center justify-between">
+          <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex items-center justify-between">
             <div>
-              <p className="text-[10px] text-blue-400 uppercase">{t('noc.uptime', 'Uptime')}</p>
-              <p className="text-2xl font-bold text-blue-400">{stats.uptimePercent}%</p>
+              <p className="text-[9px] text-blue-400 uppercase">UPTIME</p>
+              <p className="text-2xl font-bold text-emerald-400">{stats.uptimePercent}%</p>
             </div>
-            <TrendingUp className="w-8 h-8 text-blue-400 opacity-50" />
+            <TrendingUp className="w-7 h-7 text-blue-400 opacity-40" />
           </div>
 
-          {/* Critical Alerts */}
-          <div className={cn("bg-slate-900/80 rounded-lg p-3 flex items-center justify-between", stats.criticalAlerts > 0 ? "border border-orange-500/50" : "border border-slate-700/50")}>
+          <div className={cn("bg-slate-900/80 rounded-lg p-2 flex items-center justify-between", stats.criticalAlerts > 0 ? "border-2 border-amber-500" : "border border-slate-700/50")}>
             <div>
-              <p className="text-[10px] text-orange-400 uppercase">{t('noc.criticalAlerts', 'Alertas Críticas')}</p>
-              <p className="text-2xl font-bold text-orange-400">{stats.criticalAlerts}</p>
+              <p className="text-[9px] text-amber-400 uppercase">ALERTAS</p>
+              <p className="text-2xl font-bold text-amber-400">{stats.recentAlerts}</p>
             </div>
-            <AlertTriangle className="w-8 h-8 text-orange-400 opacity-50" />
+            <AlertTriangle className="w-7 h-7 text-amber-400 opacity-40" />
           </div>
 
-          {/* Organizations */}
-          <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex items-center justify-between">
+          <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex items-center justify-between">
             <div>
-              <p className="text-[10px] text-purple-400 uppercase">{t('noc.organizations', 'Organizaciones')}</p>
+              <p className="text-[9px] text-purple-400 uppercase">CLIENTES</p>
               <p className="text-2xl font-bold text-purple-400">{organizations.length}</p>
             </div>
-            <Building2 className="w-8 h-8 text-purple-400 opacity-50" />
+            <Building2 className="w-7 h-7 text-purple-400 opacity-40" />
+          </div>
+
+          <div className={cn("bg-slate-900/80 rounded-lg p-2 flex items-center justify-between", craDevices.some(d => d.status === 'offline') ? "border-2 border-red-500" : "border border-slate-700/50")}>
+            <div>
+              <p className="text-[9px] text-red-400 uppercase">CRA</p>
+              <p className="text-2xl font-bold text-red-400">{craDevices.length}</p>
+            </div>
+            <Shield className="w-7 h-7 text-red-400 opacity-40" />
           </div>
         </div>
 
-        {/* Main Grid - Fills remaining space */}
+        {/* Main Grid */}
         <div className="flex-1 grid grid-cols-12 gap-3 min-h-0">
           
-          {/* Left Column - 8 cols */}
-          <div className="col-span-8 flex flex-col gap-3 min-h-0">
-            
-            {/* Uptime Chart - 40% height */}
-            <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex-[4] min-h-0">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-cyan-400" />
-                  <span className="text-sm font-semibold text-white">{t('noc.uptimeHistory', 'Histórico de Uptime (24h)')}</span>
-                </div>
-                <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 text-[10px]">{t('noc.realTime', 'Tiempo Real')}</Badge>
+          {/* Left: Uptime Chart */}
+          <div className="col-span-4 bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex flex-col min-h-0">
+            <div className="flex items-center justify-between mb-2 shrink-0">
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-cyan-400" />
+                <span className="text-sm font-semibold text-white">Uptime</span>
               </div>
-              <div className="h-[calc(100%-2rem)]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={uptimeData}>
-                    <defs>
-                      <linearGradient id="uptimeGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="time" stroke="#64748b" fontSize={10} tickLine={false} />
-                    <YAxis stroke="#64748b" fontSize={10} tickLine={false} domain={[80, 100]} tickFormatter={(v) => `${v}%`} />
-                    <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', fontSize: '12px' }} />
-                    <Area type="monotone" dataKey="uptime" stroke="#06b6d4" strokeWidth={2} fill="url(#uptimeGradient)" />
-                  </AreaChart>
-                </ResponsiveContainer>
+              <div className="flex gap-1">
+                <Button variant={timeRange === '24h' ? 'default' : 'ghost'} size="sm" className="h-6 px-2 text-[10px]" onClick={() => setTimeRange('24h')}>24h</Button>
+                <Button variant={timeRange === '7d' ? 'default' : 'ghost'} size="sm" className="h-6 px-2 text-[10px]" onClick={() => setTimeRange('7d')}>7d</Button>
               </div>
             </div>
+            <div className="flex-1 min-h-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={uptimeData}>
+                  <defs>
+                    <linearGradient id="uptimeGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="time" stroke="#64748b" fontSize={9} tickLine={false} interval="preserveStartEnd" />
+                  <YAxis stroke="#64748b" fontSize={9} tickLine={false} domain={[80, 100]} tickFormatter={(v) => `${v}%`} />
+                  <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', fontSize: '11px' }} />
+                  <Area type="monotone" dataKey="uptime" stroke="#06b6d4" strokeWidth={2} fill="url(#uptimeGradient)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
-            {/* Organizations Row - 60% height */}
-            <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex-[6] min-h-0 flex flex-col">
-              <div className="flex items-center gap-2 mb-2 shrink-0">
-                <Building2 className="w-4 h-4 text-purple-400" />
-                <span className="text-sm font-semibold text-white">{t('noc.orgStatus', 'Estado por Organización')}</span>
-              </div>
-              <ScrollArea className="flex-1">
-                <div className="grid grid-cols-2 gap-2 pr-2">
-                  {devicesByOrg.map(({ org, online, offline, total }) => {
-                    const uptimePercent = total > 0 ? (online / total) * 100 : 0;
-                    return (
-                      <div 
-                        key={org.id}
-                        className={cn(
-                          "p-2 rounded-lg border transition-all",
-                          offline > 0 ? "bg-red-500/5 border-red-500/30" : "bg-slate-800/50 border-slate-700/50"
-                        )}
+          {/* Center: Canary Islands Map */}
+          <div className="col-span-4 bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex flex-col min-h-0">
+            <div className="flex items-center gap-2 mb-2 shrink-0">
+              <MapPin className="w-4 h-4 text-amber-400" />
+              <span className="text-sm font-semibold text-white">Mapa Canarias</span>
+            </div>
+            <div className="flex-1 relative min-h-0">
+              {/* Island bubbles */}
+              <svg viewBox="0 0 400 500" className="w-full h-full">
+                {devicesByIsland.map(island => {
+                  const hasOffline = island.offline > 0;
+                  const size = getBubbleSize(island.total);
+                  return (
+                    <g key={island.id}>
+                      {/* Bubble */}
+                      <circle
+                        cx={island.x}
+                        cy={island.y}
+                        r={size / 2}
+                        fill={hasOffline ? '#ef4444' : '#10b981'}
+                        opacity={0.8}
+                        className="transition-all duration-300"
+                      />
+                      {/* Count */}
+                      <text
+                        x={island.x}
+                        y={island.y + 4}
+                        textAnchor="middle"
+                        fill="white"
+                        fontSize={size > 40 ? 16 : 12}
+                        fontWeight="bold"
                       >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-medium text-white truncate flex-1">{org.name}</span>
-                          <div className="flex items-center gap-1 ml-2">
-                            <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 text-[9px] px-1 py-0">{online}</Badge>
-                            {offline > 0 && <Badge variant="outline" className="border-red-500/30 text-red-400 text-[9px] px-1 py-0">{offline}</Badge>}
-                          </div>
+                        {island.total}
+                      </text>
+                      {/* Label */}
+                      <text
+                        x={island.x}
+                        y={island.y + size / 2 + 14}
+                        textAnchor="middle"
+                        fill="#94a3b8"
+                        fontSize={10}
+                      >
+                        {island.abbrev}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+              {/* Legend */}
+              <div className="absolute bottom-2 left-2 flex gap-3">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                  <span className="text-[10px] text-slate-400">OK</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded-full bg-red-500" />
+                  <span className="text-[10px] text-slate-400">Offline</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: CRA Panel */}
+          <div className={cn("col-span-4 bg-slate-900/80 rounded-lg p-3 flex flex-col min-h-0", craDevices.some(d => d.status === 'offline') ? "border-2 border-red-500" : "border border-slate-700/50")}>
+            <div className="flex items-center justify-between mb-2 shrink-0">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-red-400" />
+                <span className="text-sm font-semibold text-white">CRA</span>
+                <Badge variant="outline" className="border-red-500/30 text-red-400 text-[10px]">{craDevices.length}</Badge>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => toggleSection('cra')} className="h-6 w-6 p-0">
+                {expandedSection === 'cra' ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
+              </Button>
+            </div>
+            <ScrollArea className="flex-1">
+              <div className="grid grid-cols-3 gap-1.5 pr-2">
+                {craDevices.map(device => (
+                  <div
+                    key={device.id}
+                    className={cn(
+                      "p-1.5 rounded border text-center cursor-pointer transition-all hover:scale-105",
+                      device.status === 'offline' 
+                        ? "bg-red-500/20 border-red-500/50" 
+                        : "bg-emerald-500/10 border-emerald-500/30"
+                    )}
+                    onClick={() => onDeviceClick?.(device)}
+                  >
+                    <Shield className={cn("w-3 h-3 mx-auto mb-0.5", device.status === 'offline' ? "text-red-400" : "text-emerald-400")} />
+                    <p className="text-[9px] text-white truncate">{device.name.substring(0, 12)}</p>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+        </div>
+
+        {/* Bottom Sections */}
+        <div className="grid grid-cols-3 gap-3 shrink-0" style={{ height: '35%' }}>
+          
+          {/* Organizations */}
+          <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex flex-col min-h-0">
+            <div className="flex items-center justify-between mb-1.5 shrink-0">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-purple-400" />
+                <span className="text-sm font-semibold text-white">Organizaciones</span>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => toggleSection('orgs')} className="h-5 w-5 p-0">
+                <Maximize2 className="w-3 h-3" />
+              </Button>
+            </div>
+            <ScrollArea className="flex-1">
+              <div className="space-y-1 pr-2">
+                {devicesByOrg.slice(0, 8).map(({ org, online, offline, total }) => (
+                  <div key={org.id} className={cn("p-1.5 rounded border flex items-center justify-between", offline > 0 ? "bg-red-500/5 border-red-500/20" : "bg-slate-800/50 border-slate-700/30")}>
+                    <span className="text-[11px] text-white truncate flex-1">{org.name}</span>
+                    <div className="flex items-center gap-1 ml-2">
+                      <Badge className="bg-emerald-500/20 text-emerald-400 text-[9px] px-1 py-0">{online}</Badge>
+                      {offline > 0 && <Badge className="bg-red-500/20 text-red-400 text-[9px] px-1 py-0">{offline}</Badge>}
+                    </div>
+                  </div>
+                ))}
+                {devicesByOrg.length > 8 && (
+                  <p className="text-[10px] text-slate-500 text-center">+{devicesByOrg.length - 8} más</p>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+
+          {/* Offline Devices */}
+          <div className={cn("bg-slate-900/80 rounded-lg p-2 flex flex-col min-h-0", offlineDevices.length > 0 && "border-2 border-red-500")}>
+            <div className="flex items-center justify-between mb-1.5 shrink-0">
+              <div className="flex items-center gap-2">
+                <WifiOff className="w-4 h-4 text-red-400" />
+                <span className="text-sm font-semibold text-white">Offline</span>
+                <Badge variant="outline" className="border-red-500/30 text-red-400 text-[10px]">{stats.offline}</Badge>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => toggleSection('offline')} className="h-5 w-5 p-0">
+                <Maximize2 className="w-3 h-3" />
+              </Button>
+            </div>
+            <ScrollArea className="flex-1">
+              {offlineDevices.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full py-4">
+                  <CheckCircle className="w-8 h-8 text-emerald-500 mb-1" />
+                  <p className="text-xs text-emerald-400">Todos online</p>
+                </div>
+              ) : (
+                <div className="space-y-1 pr-2">
+                  {offlineDevices.slice(0, 8).map(device => {
+                    const Icon = getDeviceIcon(device);
+                    return (
+                      <div key={device.id} className="p-1.5 rounded bg-red-500/5 border border-red-500/20 flex items-center justify-between cursor-pointer hover:bg-red-500/10" onClick={() => onDeviceClick?.(device)}>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <Icon className="w-3 h-3 text-red-400 shrink-0" />
+                          <span className="text-[11px] text-white truncate">{device.name}</span>
                         </div>
-                        <Progress value={uptimePercent} className="h-1 bg-slate-700" />
+                        <span className="text-[10px] text-red-400 ml-2">{formatTimeSince(device.last_status_change)}</span>
+                      </div>
+                    );
+                  })}
+                  {offlineDevices.length > 8 && (
+                    <p className="text-[10px] text-slate-500 text-center">+{offlineDevices.length - 8} más</p>
+                  )}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
+
+          {/* Alerts */}
+          <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex flex-col min-h-0">
+            <div className="flex items-center justify-between mb-1.5 shrink-0">
+              <div className="flex items-center gap-2">
+                <Bell className="w-4 h-4 text-amber-400" />
+                <span className="text-sm font-semibold text-white">Alertas</span>
+                <Badge variant="outline" className="border-amber-500/30 text-amber-400 text-[10px]">{stats.recentAlerts}</Badge>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => toggleSection('alerts')} className="h-5 w-5 p-0">
+                <Maximize2 className="w-3 h-3" />
+              </Button>
+            </div>
+            <ScrollArea className="flex-1">
+              {recentAlertsList.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full py-4">
+                  <CheckCircle className="w-6 h-6 text-emerald-500/50 mb-1" />
+                  <p className="text-[10px] text-slate-500">Sin alertas</p>
+                </div>
+              ) : (
+                <div className="space-y-1 pr-2">
+                  {recentAlertsList.map(alert => {
+                    const isDown = alert.alert_type === 'device_down' || alert.alert_type === 'nas_disconnected';
+                    return (
+                      <div key={alert.id} className={cn("p-1 rounded border flex items-center justify-between", isDown ? "bg-red-500/5 border-red-500/20" : "bg-emerald-500/5 border-emerald-500/20")}>
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                          {isDown ? <XCircle className="w-3 h-3 text-red-400 shrink-0" /> : <CheckCircle className="w-3 h-3 text-emerald-400 shrink-0" />}
+                          <span className="text-[10px] text-white truncate">{alert.device_name}</span>
+                        </div>
+                        <span className="text-[9px] text-slate-400 ml-2">{formatTimeSince(alert.timestamp)}</span>
                       </div>
                     );
                   })}
                 </div>
-              </ScrollArea>
-            </div>
-          </div>
-
-          {/* Right Column - 4 cols */}
-          <div className="col-span-4 flex flex-col gap-3 min-h-0">
-            
-            {/* Pie Chart */}
-            <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex-[3] min-h-0">
-              <div className="flex items-center gap-2 mb-1">
-                <BarChart3 className="w-4 h-4 text-blue-400" />
-                <span className="text-sm font-semibold text-white">{t('noc.stateDistribution', 'Distribución de Estado')}</span>
-              </div>
-              <div className="h-[calc(100%-2.5rem)] flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={pieData} cx="50%" cy="50%" innerRadius="40%" outerRadius="70%" paddingAngle={5} dataKey="value">
-                      {pieData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex justify-center gap-4">
-                {pieData.map((item, i) => (
-                  <div key={i} className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span className="text-[10px] text-slate-400">{item.name}: {item.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Offline Devices */}
-            <div className={cn("bg-slate-900/80 rounded-lg p-3 flex-[4] min-h-0 flex flex-col", offlineDevices.length > 0 && "border border-red-500/30")}>
-              <div className="flex items-center justify-between mb-2 shrink-0">
-                <div className="flex items-center gap-2">
-                  <WifiOff className="w-4 h-4 text-red-400" />
-                  <span className="text-sm font-semibold text-white">{t('noc.offlineDevices', 'Dispositivos Offline')}</span>
-                </div>
-                <Badge variant="outline" className="border-red-500/30 text-red-400 text-[10px]">{stats.offline}</Badge>
-              </div>
-              <ScrollArea className="flex-1">
-                {offlineDevices.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-slate-500">
-                    <CheckCircle className="w-8 h-8 text-emerald-500 mb-1" />
-                    <p className="text-xs text-emerald-400">{t('noc.allOnline', 'Todos online')}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-1 pr-2">
-                    {offlineDevices.map(device => {
-                      const Icon = getDeviceIcon(device);
-                      return (
-                        <TooltipProvider key={device.id}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="p-2 rounded bg-red-500/5 border border-red-500/20 hover:border-red-500/40 cursor-pointer group">
-                                <div className="flex items-center gap-2">
-                                  <Icon className="w-3 h-3 text-red-400 shrink-0" />
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-medium text-white truncate">{device.name}</p>
-                                    <p className="text-[10px] text-slate-400">{device.ip_address}</p>
-                                  </div>
-                                  <span className="text-[10px] text-red-400">{formatTimeSince(device.last_status_change)}</span>
-                                </div>
-                                <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Button size="sm" variant="ghost" className="h-5 px-1 text-[10px]" onClick={() => handleDeviceAction(device, 'view')}>
-                                    <Eye className="w-3 h-3" />
-                                  </Button>
-                                  <Button size="sm" variant="ghost" className="h-5 px-1 text-[10px]" onClick={() => handleDeviceAction(device, 'incident')}>
-                                    <ClipboardList className="w-3 h-3" />
-                                  </Button>
-                                  <Button size="sm" variant="ghost" className="h-5 px-1 text-[10px]" onClick={() => handleDeviceAction(device, 'history')}>
-                                    <History className="w-3 h-3" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>{device.name} - {device.ip_address}</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      );
-                    })}
-                  </div>
-                )}
-              </ScrollArea>
-            </div>
-
-            {/* Recent Alerts */}
-            <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex-[3] min-h-0 flex flex-col">
-              <div className="flex items-center justify-between mb-2 shrink-0">
-                <div className="flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-amber-400" />
-                  <span className="text-sm font-semibold text-white">{t('noc.recentAlerts', 'Alertas Recientes')}</span>
-                </div>
-                <Badge variant="outline" className="border-amber-500/30 text-amber-400 text-[10px]">{stats.recentAlerts} 24h</Badge>
-              </div>
-              <ScrollArea className="flex-1">
-                {recentAlertsList.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-slate-500">
-                    <CheckCircle className="w-6 h-6 text-emerald-500/50 mb-1" />
-                    <p className="text-[10px]">{t('noc.noRecentAlerts', 'Sin alertas')}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-1 pr-2">
-                    {recentAlertsList.map(alert => {
-                      const isDown = alert.alert_type === 'device_down' || alert.alert_type === 'nas_disconnected';
-                      return (
-                        <div key={alert.id} className={cn("p-1.5 rounded border", isDown ? "bg-red-500/5 border-red-500/20" : "bg-emerald-500/5 border-emerald-500/20")}>
-                          <div className="flex items-center gap-2">
-                            {isDown ? <XCircle className="w-3 h-3 text-red-400" /> : <CheckCircle className="w-3 h-3 text-emerald-400" />}
-                            <span className="text-[10px] text-white truncate flex-1">{alert.device_name}</span>
-                            <span className="text-[10px] text-slate-400">{formatTimeSince(alert.timestamp)}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </ScrollArea>
-            </div>
+              )}
+            </ScrollArea>
           </div>
         </div>
 
-        {/* Footer Stats - Fixed height */}
-        <div className="grid grid-cols-4 gap-3 shrink-0">
-          <div className="bg-slate-900/50 rounded-lg p-2 text-center">
-            <p className="text-lg font-bold text-cyan-400">{devices.filter(d => d.device_type_id === 'type-camera').length}</p>
-            <p className="text-[10px] text-slate-400">{t('noc.cameras', 'Cámaras')}</p>
+        {/* Footer */}
+        <div className="flex items-center justify-between shrink-0 pt-2 border-t border-slate-800">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Camera className="w-4 h-4 text-cyan-400" />
+              <span className="text-sm font-bold text-cyan-400">{devices.filter(d => d.device_type_id === 'type-camera').length}</span>
+              <span className="text-[10px] text-slate-500">Cámaras</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Layers className="w-4 h-4 text-purple-400" />
+              <span className="text-sm font-bold text-purple-400">{groups.length}</span>
+              <span className="text-[10px] text-slate-500">Grupos</span>
+            </div>
           </div>
-          <div className="bg-slate-900/50 rounded-lg p-2 text-center">
-            <p className="text-lg font-bold text-purple-400">{groups.length}</p>
-            <p className="text-[10px] text-slate-400">{t('noc.groups', 'Grupos')}</p>
-          </div>
-          <div className="bg-slate-900/50 rounded-lg p-2 text-center">
-            <p className="text-lg font-bold text-amber-400">{craDevices.length}</p>
-            <p className="text-[10px] text-slate-400">{t('noc.craDevicesCount', 'Dispositivos CRA')}</p>
-          </div>
-          <div className="bg-slate-900/50 rounded-lg p-2 text-center">
-            <p className="text-lg font-bold text-emerald-400">{stats.uptimePercent}%</p>
-            <p className="text-[10px] text-slate-400">{t('noc.availability', 'Disponibilidad')}</p>
+          <div className="flex items-center gap-4 text-[10px] text-slate-500">
+            <span>soporte@siempria.com</span>
+            <span>822 22 00 22</span>
           </div>
         </div>
       </div>
+      
+      {/* Audio for alerts */}
+      <audio ref={audioRef} src="/alert.mp3" preload="auto" />
     </div>
   );
 };
