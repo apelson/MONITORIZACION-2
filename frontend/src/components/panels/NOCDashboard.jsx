@@ -1120,11 +1120,12 @@ const NOCDashboard = ({
               Arrastra los widgets para reorganizar • Los cambios se guardan al bloquear
             </div>
           )}
-          <ResponsiveGridLayout
+          <GridLayout
             className="layout"
             layout={visibleLayout}
             cols={12}
             rowHeight={80}
+            width={containerRef.current?.offsetWidth || 1200}
             onLayoutChange={handleLayoutChange}
             isDraggable={editMode}
             isResizable={editMode}
