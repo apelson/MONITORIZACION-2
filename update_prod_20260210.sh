@@ -18,7 +18,7 @@ cp "$FRONTEND_DIR/App.js" /var/www/siempria-monitor/backups/$(date +%Y%m%d)/
 mkdir -p "$FRONTEND_DIR/components/panels"
 
 # 3. Descargar archivos desde el preview
-BASE_URL="https://alert-hub-32.preview.emergentagent.com"
+BASE_URL="https://noc-debug.preview.emergentagent.com"
 
 echo "⬇️ Descargando componentes..."
 
