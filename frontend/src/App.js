@@ -52,6 +52,8 @@ import NOCFloatingButton from "@/components/common/NOCFloatingButton";
 import NOCDashboard from "@/components/panels/NOCDashboard";
 import NotificationSettings from "@/components/settings/NotificationSettings";
 import ReportSettings from "@/components/settings/ReportSettings";
+import AIInsightsPanel from "@/components/settings/AIInsightsPanel";
+import SLAReportsPanel from "@/components/settings/SLAReportsPanel";
 import SystemStatusDashboard from "@/components/settings/SystemStatusDashboard";
 import RolesManager from "@/components/settings/RolesManager";
 import SuperAdminTab from "@/components/settings/SuperAdminTab";
