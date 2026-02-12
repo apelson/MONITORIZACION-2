@@ -187,12 +187,12 @@ ssh usuario@siempriapp.com
 cd /opt/siempria-monitor/frontend
 
 # Download updated files
-curl -o src/components/panels/CRADashboard.jsx "https://react-refactor-18.preview.emergentagent.com/api/download-file?path=CRADashboard.jsx"
-curl -o src/components/common/LiveViewerFloatingButton.jsx "https://react-refactor-18.preview.emergentagent.com/api/download-file?path=LiveViewerFloatingButton.jsx"
-curl -o src/components/common/SectionLoader.jsx "https://react-refactor-18.preview.emergentagent.com/api/download-file?path=SectionLoader.jsx"
-curl -o src/components/panels/AlertsPanel.jsx "https://react-refactor-18.preview.emergentagent.com/api/download-file?path=AlertsPanel.jsx"
-curl -o src/components/panels/LiveViewer.jsx "https://react-refactor-18.preview.emergentagent.com/api/download-file?path=LiveViewer.jsx"
-curl -o src/App.js "https://react-refactor-18.preview.emergentagent.com/api/download-file?path=App.js"
+curl -o src/components/panels/CRADashboard.jsx "https://stability-push.preview.emergentagent.com/api/download-file?path=CRADashboard.jsx"
+curl -o src/components/common/LiveViewerFloatingButton.jsx "https://stability-push.preview.emergentagent.com/api/download-file?path=LiveViewerFloatingButton.jsx"
+curl -o src/components/common/SectionLoader.jsx "https://stability-push.preview.emergentagent.com/api/download-file?path=SectionLoader.jsx"
+curl -o src/components/panels/AlertsPanel.jsx "https://stability-push.preview.emergentagent.com/api/download-file?path=AlertsPanel.jsx"
+curl -o src/components/panels/LiveViewer.jsx "https://stability-push.preview.emergentagent.com/api/download-file?path=LiveViewer.jsx"
+curl -o src/App.js "https://stability-push.preview.emergentagent.com/api/download-file?path=App.js"
 
 # Rebuild frontend
 yarn build
