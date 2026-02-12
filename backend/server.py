@@ -296,6 +296,16 @@ async def download_file(path: str):
         "PWAInstallPrompt.jsx": "/app/frontend/src/components/common/PWAInstallPrompt.jsx",
         # Dashboard widgets
         "DashboardWidgets.jsx": "/app/frontend/src/components/dashboard/DashboardWidgets.jsx",
+        # NOC Widgets
+        "widgets_index.js": "/app/frontend/src/components/noc/widgets/index.js",
+        "StatsWidget.jsx": "/app/frontend/src/components/noc/widgets/StatsWidget.jsx",
+        "UptimeWidget.jsx": "/app/frontend/src/components/noc/widgets/UptimeWidget.jsx",
+        "SystemMonitorWidget.jsx": "/app/frontend/src/components/noc/widgets/SystemMonitorWidget.jsx",
+        "CRAWidget.jsx": "/app/frontend/src/components/noc/widgets/CRAWidget.jsx",
+        "OrganizationsWidget.jsx": "/app/frontend/src/components/noc/widgets/OrganizationsWidget.jsx",
+        "OfflineWidget.jsx": "/app/frontend/src/components/noc/widgets/OfflineWidget.jsx",
+        "HistoryWidget.jsx": "/app/frontend/src/components/noc/widgets/HistoryWidget.jsx",
+        "AlertsWidget.jsx": "/app/frontend/src/components/noc/widgets/AlertsWidget.jsx",
         # Backend routes
         "users.py": "/app/backend/routes/users.py",
         "auth.py": "/app/backend/routes/auth.py",
