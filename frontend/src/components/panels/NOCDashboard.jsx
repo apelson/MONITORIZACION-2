@@ -278,12 +278,18 @@ const NOCDashboard = ({
 
   const togglePresentationMode = () => {
     setPresentationMode(!presentationMode);
+    setManualExpandedSection(null); // Close any manual expanded section
     if (!presentationMode) {
       setPresentationIndex(0);
       toast.info('Modo Presentación Activado');
     } else {
       toast.info('Modo Presentación Desactivado');
     }
+  };
+
+  const handleMaximizeSection = (section) => {
+    setPresentationMode(false); // Stop presentation mode
+    setManualExpandedSection(manualExpandedSection === section ? null : section);
   };
 
   const nextSlide = () => {
