@@ -3572,6 +3572,7 @@ const Dashboard = () => {
               <SystemStatusDashboard authAxios={authAxios} />
               <SettingsPanel settings={settings} onSave={handleSaveSettings} />
               <NotificationSettings />
+              <ReportSettings authAxios={authAxios} />
               <SecurityPanel />
               <ScheduledReportsPanel organizations={organizations} authAxios={authAxios} />
               <DailyReportPanel authAxios={authAxios} />
