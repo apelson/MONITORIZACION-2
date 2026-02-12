@@ -88,6 +88,18 @@ const NOCDashboard = ({
     return () => clearInterval(interval);
   }, []);
 
+  // Measure container width for grid
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth - 32); // Minus padding
+      }
+    };
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
   // Presentation mode auto-rotation
   useEffect(() => {
     if (presentationMode) {
