@@ -3,40 +3,53 @@
 ## Original Problem Statement
 Build and deploy "Siempria Network Monitor," a full-stack network monitoring application pivoted into a multi-tenant SaaS platform named "Siempriapp." The application monitors Mobotix cameras, VMware ESXi servers, QNAP, Synology NAS devices, and OpenVPN servers.
 
-## Latest Session: 2026-02-12 - Logo, Latencia y Mejoras
+## Latest Session: 2026-02-12 - Dashboard Personalizable (Drag & Drop)
 
 ### Correcciones y Nuevas Funcionalidades ✅
 
-#### 1. Logo Corregido
-- **Archivo modificado**: `/app/frontend/src/App.js`
-- Logo ahora usa `/logo512.png` (hexágono azul de Siempria)
-- Eliminadas las URLs externas del logo antiguo
+#### 1. Arreglado Backend en Producción
+- **Problema**: El archivo `users.py` se corrompió durante un deploy anterior
+- **Solución**: Restaurado el archivo con el router correcto y endpoint de preferencias
+- **Comando para usuario**: El backend ahora arranca correctamente con uvicorn
 
-#### 2. Monitoreo de Latencia/Ping ✅
-- **Backend**: `/app/backend/services/device_service.py`
-  - Función `check_device_status` ahora devuelve `(status, response_time_ms)`
-  - `response_time_ms` guardado en dispositivos y en historial
-- **Frontend**: `/app/frontend/src/components/panels/NOCDashboard.jsx`
-  - Nueva tarjeta "LATENCIA" con promedio de latencia
-  - Latencia individual visible en cada tarjeta CRA (ej: "125ms")
-  - Alertas visuales cuando latencia > 500ms (color naranja)
+#### 2. Dashboard Personalizable - Fundamentos ✅
+- **Librería instalada**: `react-grid-layout` v2.2.2
+- **Widgets modulares creados** en `/app/frontend/src/components/noc/widgets/`:
+  - `StatsWidget.jsx` - Barra de estadísticas
+  - `UptimeWidget.jsx` - Gráfico de uptime
+  - `SystemMonitorWidget.jsx` - ECG + Mapa
+  - `CRAWidget.jsx` - Central Receptora de Alarmas
+  - `OrganizationsWidget.jsx` - Lista de organizaciones
+  - `OfflineWidget.jsx` - Dispositivos offline
+  - `HistoryWidget.jsx` - Historial de caídas
+  - `AlertsWidget.jsx` - Alertas recientes
 
-#### 3. NOC Dashboard Mejorado
-- 8 tarjetas de estadísticas: TOTAL, ONLINE, OFFLINE, UPTIME, ALERTAS, CLIENTES, LATENCIA, CRA
-- Botones de maximizar en todas las secciones
-- Sección "Historial de Caídas" (7 días)
-- Botón "Abrir en Nueva Ventana"
+#### 3. Modo Edición del Dashboard ✅
+- **Botón de candado** en el header del NOC Dashboard
+- Al activar modo edición: toast "Modo edición activado - Arrastra los widgets"
+- Bordes cyan en widgets editables
+- Botón de reset layout disponible en modo edición
 
-### Tests Verificados (100% éxito):
-- Logo hexágono azul correcto ✅
-- NOC NO se abre automáticamente ✅
-- Latencia visible en dashboard ✅
-- Latencia en tarjetas CRA ✅
-- Maximizar/Minimizar funciona ✅
+#### 4. Guardado de Preferencias ✅
+- **Endpoint**: `PUT /api/users/{id}/dashboard-preferences`
+- Guarda: layout, widgets visibles, filtros
+- Se carga automáticamente al iniciar sesión
+
+### Archivos Modificados:
+- `/app/frontend/src/components/panels/NOCDashboard.jsx` - Imports, estado, funciones de guardado
+- `/app/backend/routes/users.py` - Restaurado con endpoint de preferencias
+- `/app/backend/server.py` - Añadidos archivos widgets al endpoint de descarga
+
+### Tests Verificados ✅
+- Login funciona correctamente
+- NOC Dashboard carga con todas las secciones
+- ECG animado funcionando con contador de tiempo
+- Modo edición se activa (bordes visuales)
+- Estadísticas muestran datos reales (6 total, 4 online, 2 offline)
 
 ---
 
-## Previous Session: 2026-02-12 - NOC Dashboard Mejoras
+## Previous Session: 2026-02-12 - Logo, Latencia y Mejoras
 
 ### NOC Dashboard (Centro de Operaciones de Red 24/7) ✅
 - **Archivo**: `/app/frontend/src/components/panels/NOCDashboard.jsx`
