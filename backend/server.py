@@ -296,6 +296,9 @@ async def download_file(path: str):
         "PWAInstallPrompt.jsx": "/app/frontend/src/components/common/PWAInstallPrompt.jsx",
         # Dashboard widgets
         "DashboardWidgets.jsx": "/app/frontend/src/components/dashboard/DashboardWidgets.jsx",
+        # Backend routes
+        "users.py": "/app/backend/routes/users.py",
+        "auth.py": "/app/backend/routes/auth.py",
     }
     
     if path not in allowed_files:
