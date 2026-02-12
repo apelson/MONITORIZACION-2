@@ -733,10 +733,10 @@ const NOCDashboard = ({
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg text-white flex items-center gap-2">
                         <Bell className="w-5 h-5 text-amber-400" />
-                        Alertas Recientes
+                        {t('noc.recentAlerts', 'Alertas Recientes')}
                       </CardTitle>
                       <Badge variant="outline" className="border-amber-500/30 text-amber-400">
-                        {stats.recentAlerts} últimas 24h
+                        {stats.recentAlerts} {t('noc.last24h', 'últimas 24h')}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -745,7 +745,7 @@ const NOCDashboard = ({
                       {recentAlerts.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-slate-500 py-8">
                           <CheckCircle className="w-10 h-10 mb-2 text-emerald-500/50" />
-                          <p className="text-sm">Sin alertas recientes</p>
+                          <p className="text-sm">{t('noc.noRecentAlerts', 'Sin alertas recientes')}</p>
                         </div>
                       ) : (
                         <div className="space-y-2">
