@@ -116,17 +116,37 @@ const NOCDashboard = ({
     setUptimeData(data);
   }, [devices, timeRange]);
 
-  // Filter CRA devices - Offline primero, luego online
+  // Fetch CRA devices from dedicated endpoint
   useEffect(() => {
-    const cra = devices
-      .filter(d => d.is_cra === true)
-      .sort((a, b) => {
-        if (a.status === 'offline' && b.status !== 'offline') return -1;
-        if (a.status !== 'offline' && b.status === 'offline') return 1;
-        return (a.name || '').localeCompare(b.name || '');
-      });
-    setCraDevices(cra);
-  }, [devices]);
+    const fetchCraDevices = async () => {
+      if (!authAxios) return;
+      try {
+        const res = await authAxios.get('/cra/devices');
+        const cra = (res.data.devices || [])
+          .sort((a, b) => {
+            if (a.status === 'offline' && b.status !== 'offline') return -1;
+            if (a.status !== 'offline' && b.status === 'offline') return 1;
+            return (a.name || '').localeCompare(b.name || '');
+          });
+        setCraDevices(cra);
+      } catch (error) {
+        console.error('Error fetching CRA devices:', error);
+        // Fallback: filter from devices prop
+        const cra = devices
+          .filter(d => d.is_cra === true)
+          .sort((a, b) => {
+            if (a.status === 'offline' && b.status !== 'offline') return -1;
+            if (a.status !== 'offline' && b.status === 'offline') return 1;
+            return (a.name || '').localeCompare(b.name || '');
+          });
+        setCraDevices(cra);
+      }
+    };
+    fetchCraDevices();
+    // Refresh CRA devices every 60 seconds
+    const interval = setInterval(fetchCraDevices, 60000);
+    return () => clearInterval(interval);
+  }, [authAxios, devices]);
 
   // Statistics calculations
   const stats = useMemo(() => {
