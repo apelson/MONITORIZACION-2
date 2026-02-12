@@ -793,19 +793,19 @@ const NOCDashboard = ({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-slate-700/50">
               <div className="text-center">
                 <p className="text-2xl font-bold text-cyan-400">{devices.filter(d => d.device_type_id === 'type-camera').length}</p>
-                <p className="text-xs text-slate-400">Cámaras</p>
+                <p className="text-xs text-slate-400">{t('noc.cameras', 'Cámaras')}</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-purple-400">{groups.length}</p>
-                <p className="text-xs text-slate-400">Grupos</p>
+                <p className="text-xs text-slate-400">{t('noc.groups', 'Grupos')}</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-amber-400">{craDevices.length}</p>
-                <p className="text-xs text-slate-400">Dispositivos CRA</p>
+                <p className="text-xs text-slate-400">{t('noc.craDevicesCount', 'Dispositivos CRA')}</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-emerald-400">{stats.uptimePercent}%</p>
-                <p className="text-xs text-slate-400">Disponibilidad</p>
+                <p className="text-xs text-slate-400">{t('noc.availability', 'Disponibilidad')}</p>
               </div>
             </div>
           </div>
