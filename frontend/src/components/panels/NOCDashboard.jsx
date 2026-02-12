@@ -228,9 +228,9 @@ const NOCDashboard = ({
             </div>
             <div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 text-transparent bg-clip-text">
-                NOC Dashboard
+                {t('noc.title', 'NOC Dashboard')}
               </h1>
-              <p className="text-xs text-slate-400">Centro de Operaciones de Red 24/7</p>
+              <p className="text-xs text-slate-400">{t('noc.subtitle', 'Centro de Operaciones de Red 24/7')}</p>
             </div>
           </div>
           <div className="h-8 w-px bg-slate-700 mx-2" />
@@ -252,7 +252,7 @@ const NOCDashboard = ({
           {/* Status Indicator */}
           <div className="flex items-center gap-2 px-3 py-2 bg-emerald-500/10 rounded-lg border border-emerald-500/30">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            <span className="text-sm text-emerald-400">Sistema Activo</span>
+            <span className="text-sm text-emerald-400">{t('noc.systemActive', 'Sistema Activo')}</span>
           </div>
           
           <Button
@@ -289,7 +289,7 @@ const NOCDashboard = ({
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-slate-400 uppercase tracking-wider">Total Dispositivos</p>
+                      <p className="text-xs text-slate-400 uppercase tracking-wider">{t('noc.totalDevices', 'Total Dispositivos')}</p>
                       <p className="text-3xl font-bold text-white mt-1">{stats.total}</p>
                     </div>
                     <div className="p-3 bg-cyan-500/10 rounded-lg">
@@ -304,7 +304,7 @@ const NOCDashboard = ({
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-emerald-400 uppercase tracking-wider">Online</p>
+                      <p className="text-xs text-emerald-400 uppercase tracking-wider">{t('noc.online', 'Online')}</p>
                       <p className="text-3xl font-bold text-emerald-400 mt-1">{stats.online}</p>
                     </div>
                     <div className="p-3 bg-emerald-500/10 rounded-lg">
@@ -322,7 +322,7 @@ const NOCDashboard = ({
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-red-400 uppercase tracking-wider">Offline</p>
+                      <p className="text-xs text-red-400 uppercase tracking-wider">{t('noc.offline', 'Offline')}</p>
                       <p className="text-3xl font-bold text-red-400 mt-1">{stats.offline}</p>
                     </div>
                     <div className="p-3 bg-red-500/10 rounded-lg">
@@ -337,7 +337,7 @@ const NOCDashboard = ({
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-blue-400 uppercase tracking-wider">Uptime</p>
+                      <p className="text-xs text-blue-400 uppercase tracking-wider">{t('noc.uptime', 'Uptime')}</p>
                       <p className="text-3xl font-bold text-blue-400 mt-1">{stats.uptimePercent}%</p>
                     </div>
                     <div className="p-3 bg-blue-500/10 rounded-lg">
@@ -355,7 +355,7 @@ const NOCDashboard = ({
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-orange-400 uppercase tracking-wider">Alertas Críticas</p>
+                      <p className="text-xs text-orange-400 uppercase tracking-wider">{t('noc.criticalAlerts', 'Alertas Críticas')}</p>
                       <p className="text-3xl font-bold text-orange-400 mt-1">{stats.criticalAlerts}</p>
                     </div>
                     <div className="p-3 bg-orange-500/10 rounded-lg">
@@ -370,7 +370,7 @@ const NOCDashboard = ({
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-purple-400 uppercase tracking-wider">Organizaciones</p>
+                      <p className="text-xs text-purple-400 uppercase tracking-wider">{t('noc.organizations', 'Organizaciones')}</p>
                       <p className="text-3xl font-bold text-purple-400 mt-1">{organizations.length}</p>
                     </div>
                     <div className="p-3 bg-purple-500/10 rounded-lg">
