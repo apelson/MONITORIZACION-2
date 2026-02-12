@@ -3,47 +3,40 @@
 ## Original Problem Statement
 Build and deploy "Siempria Network Monitor," a full-stack network monitoring application pivoted into a multi-tenant SaaS platform named "Siempriapp." The application monitors Mobotix cameras, VMware ESXi servers, QNAP, Synology NAS devices, and OpenVPN servers.
 
-## Latest Session: 2026-02-12 - NOC Dashboard Mejoras
+## Latest Session: 2026-02-12 - Logo, Latencia y Mejoras
 
-### NOC Dashboard - Maximizar Secciones y Historial de Caídas ✅
-- **Archivos modificados**: 
-  - `/app/frontend/src/App.js` - Añadido useEffect para nocFullscreen parameter
-  - `/app/frontend/src/components/panels/NOCDashboard.jsx` - Nuevas funcionalidades
+### Correcciones y Nuevas Funcionalidades ✅
 
-#### Nuevas características:
-1. **Botones de Maximizar** en cada sección del NOC:
-   - Uptime, CRA, Organizaciones, Offline, Historial, Alertas
-   - 7 botones de maximizar en total
-   - Vista expandida a pantalla completa cuando se maximiza
-   - Botón de minimizar para volver a la vista normal
+#### 1. Logo Corregido
+- **Archivo modificado**: `/app/frontend/src/App.js`
+- Logo ahora usa `/logo512.png` (hexágono azul de Siempria)
+- Eliminadas las URLs externas del logo antiguo
 
-2. **Nueva Sección "Historial de Caídas"**:
-   - Muestra los últimos 7 días de incidencias
-   - Conteo de caídas por dispositivo
-   - Timestamp de última caída
-   - Lista de eventos de cada dispositivo
-   - Vista expandida con detalles completos
+#### 2. Monitoreo de Latencia/Ping ✅
+- **Backend**: `/app/backend/services/device_service.py`
+  - Función `check_device_status` ahora devuelve `(status, response_time_ms)`
+  - `response_time_ms` guardado en dispositivos y en historial
+- **Frontend**: `/app/frontend/src/components/panels/NOCDashboard.jsx`
+  - Nueva tarjeta "LATENCIA" con promedio de latencia
+  - Latencia individual visible en cada tarjeta CRA (ej: "125ms")
+  - Alertas visuales cuando latencia > 500ms (color naranja)
 
-3. **Botón "Abrir en Nueva Ventana"**:
-   - Icono de flecha externa en el header
-   - Abre el NOC en nueva pestaña con parámetro `?nocFullscreen=true`
-   - App.js detecta el parámetro y abre el NOC automáticamente
-
-4. **Bug Fix - NOC NO se abre automáticamente**:
-   - Estado `nocDashboardOpen` inicializado como `false`
-   - Solo se abre cuando el usuario hace clic en el botón flotante
-   - Parámetro nocFullscreen para abrir desde nueva ventana
+#### 3. NOC Dashboard Mejorado
+- 8 tarjetas de estadísticas: TOTAL, ONLINE, OFFLINE, UPTIME, ALERTAS, CLIENTES, LATENCIA, CRA
+- Botones de maximizar en todas las secciones
+- Sección "Historial de Caídas" (7 días)
+- Botón "Abrir en Nueva Ventana"
 
 ### Tests Verificados (100% éxito):
-- Login con admin/admin123 ✅
+- Logo hexágono azul correcto ✅
 - NOC NO se abre automáticamente ✅
-- Botón flotante NOC funciona ✅
-- Botones de maximizar (7) ✅
-- Sección Historial visible ✅
+- Latencia visible en dashboard ✅
+- Latencia en tarjetas CRA ✅
 - Maximizar/Minimizar funciona ✅
-- Visor en Directo funciona ✅
 
-## Previous Session: 2026-02-12 - NOC Dashboard Traducciones
+---
+
+## Previous Session: 2026-02-12 - NOC Dashboard Mejoras
 
 ### NOC Dashboard (Centro de Operaciones de Red 24/7) ✅
 - **Archivo**: `/app/frontend/src/components/panels/NOCDashboard.jsx`
