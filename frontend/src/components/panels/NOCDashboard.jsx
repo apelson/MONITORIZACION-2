@@ -1727,9 +1727,7 @@ const NOCDashboard = ({
           ? renderManualExpandedSection() 
           : presentationMode 
             ? renderExpandedSection() 
-            : editMode 
-              ? renderGridView() 
-              : renderNormalView()
+            : renderNormalView()
         }
       </div>
       
