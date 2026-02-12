@@ -6,12 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from bson import ObjectId
 import io
 import logging
 
-from config import get_db
-from routes.devices import get_current_user
+from config import devices_collection, alerts_collection, organizations_collection
+from services.auth_service import get_current_user
 from services.sla_report_service import sla_report_generator
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,6 @@ async def generate_sla_report(
     organization_id: Optional[str] = Query(None, description="Filter by organization"),
     period: str = Query("month", description="Period: week, month, quarter"),
     sla_target: float = Query(99.9, description="SLA target percentage"),
-    db: AsyncIOMotorDatabase = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     """
@@ -45,21 +44,25 @@ async def generate_sla_report(
         device_filter = {}
         
         if organization_id:
-            from bson import ObjectId
-            org = await db.organizations.find_one({"_id": ObjectId(organization_id)})
+            org = await organizations_collection.find_one({"id": organization_id})
+            if not org:
+                try:
+                    org = await organizations_collection.find_one({"_id": ObjectId(organization_id)})
+                except:
+                    pass
             if org:
                 org_name = org.get("name", "Organización")
                 device_filter["organization_id"] = organization_id
         
         # Get devices
-        devices = await db.devices.find(device_filter).to_list(1000)
+        devices = await devices_collection.find(device_filter).to_list(1000)
         
         # Add organization names to devices
         org_cache = {}
         for device in devices:
             org_id = device.get("organization_id")
             if org_id and org_id not in org_cache:
-                org = await db.organizations.find_one({"_id": org_id}) if isinstance(org_id, str) == False else await db.organizations.find_one({"id": org_id})
+                org = await organizations_collection.find_one({"id": org_id})
                 org_cache[org_id] = org.get("name", "Sin organización") if org else "Sin organización"
             device["organization_name"] = org_cache.get(org_id, "Sin organización")
             device["_id"] = str(device["_id"])
@@ -75,7 +78,7 @@ async def generate_sla_report(
         avg_latency = sum(latencies) / len(latencies) if latencies else 0
         
         # Get alerts for period
-        alerts = await db.alerts.find({
+        alerts = await alerts_collection.find({
             "timestamp": {"$gte": period_start.isoformat()}
         }).to_list(1000)
         
@@ -85,20 +88,21 @@ async def generate_sla_report(
         mttr_minutes = 0
         
         if down_events and up_events:
-            # Simple MTTR calculation
             total_down_time = 0
             recovery_count = 0
             for down in down_events:
                 device_name = down.get("device_name")
-                down_time = datetime.fromisoformat(down.get("timestamp", "").replace("Z", ""))
-                # Find corresponding up event
-                for up in up_events:
-                    if up.get("device_name") == device_name:
-                        up_time = datetime.fromisoformat(up.get("timestamp", "").replace("Z", ""))
-                        if up_time > down_time:
-                            total_down_time += (up_time - down_time).total_seconds() / 60
-                            recovery_count += 1
-                            break
+                try:
+                    down_time = datetime.fromisoformat(down.get("timestamp", "").replace("Z", ""))
+                    for up in up_events:
+                        if up.get("device_name") == device_name:
+                            up_time = datetime.fromisoformat(up.get("timestamp", "").replace("Z", ""))
+                            if up_time > down_time:
+                                total_down_time += (up_time - down_time).total_seconds() / 60
+                                recovery_count += 1
+                                break
+                except:
+                    continue
             
             mttr_minutes = total_down_time / recovery_count if recovery_count > 0 else 0
         
@@ -125,7 +129,7 @@ async def generate_sla_report(
             {"$limit": 20}
         ]
         
-        downtime_agg = await db.alerts.aggregate(pipeline).to_list(20)
+        downtime_agg = await alerts_collection.aggregate(pipeline).to_list(20)
         downtime_history = [{"name": d["_id"], "count": d["count"], "lastDown": d["lastDown"]} for d in downtime_agg]
         
         # Generate PDF
@@ -161,7 +165,6 @@ async def generate_sla_report(
 async def preview_sla_data(
     organization_id: Optional[str] = Query(None),
     period: str = Query("month"),
-    db: AsyncIOMotorDatabase = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
@@ -181,12 +184,12 @@ async def preview_sla_data(
         if organization_id:
             device_filter["organization_id"] = organization_id
         
-        devices = await db.devices.find(device_filter).to_list(1000)
+        devices = await devices_collection.find(device_filter).to_list(1000)
         total = len(devices)
         online = sum(1 for d in devices if d.get("status") == "online")
         
         # Get alerts
-        alerts = await db.alerts.find({
+        alerts = await alerts_collection.find({
             "timestamp": {"$gte": period_start.isoformat()}
         }).to_list(1000)
         
