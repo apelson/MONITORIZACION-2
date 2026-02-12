@@ -1000,8 +1000,8 @@ const NOCDashboard = ({
         </div>
         <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex items-center justify-between">
           <div>
-            <p className="text-[9px] text-purple-400 uppercase">CENTROS / GRUPOS</p>
-            <p className="text-2xl font-bold text-purple-400">{organizations.length} <span className="text-lg opacity-70">/ {groups.length}</span></p>
+            <p className="text-[9px] text-purple-400 uppercase">GRUPOS / CENTROS</p>
+            <p className="text-2xl font-bold text-purple-400">{groups.length} <span className="text-lg opacity-70">/ {organizations.length}</span></p>
           </div>
           <Building2 className="w-7 h-7 text-purple-400 opacity-40" />
         </div>
