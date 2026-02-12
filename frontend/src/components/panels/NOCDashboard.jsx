@@ -995,6 +995,11 @@ const NOCDashboard = ({
                   </div>
                   <p className="text-[9px] text-white truncate">{device.name}</p>
                   <p className="text-[8px] text-slate-500 truncate">{device.ip_address}</p>
+                  {device.response_time_ms && (
+                    <p className={cn("text-[8px] mt-0.5", device.response_time_ms > 500 ? "text-orange-400" : "text-cyan-400")}>
+                      {device.response_time_ms}ms
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
