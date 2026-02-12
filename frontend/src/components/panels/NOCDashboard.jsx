@@ -524,6 +524,313 @@ const NOCDashboard = ({
     }
   };
 
+  // Render manually expanded section (when user clicks maximize)
+  const renderManualExpandedSection = () => {
+    switch (manualExpandedSection) {
+      case 'uptime':
+        return (
+          <div className="flex-1 flex flex-col gap-4 p-4 bg-slate-900/50 rounded-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Activity className="w-8 h-8 text-cyan-400" />
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Uptime - {stats.uptimePercent}%</h2>
+                  <p className="text-slate-400">Disponibilidad del sistema en tiempo real</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant={timeRange === '24h' ? 'default' : 'ghost'} size="sm" onClick={() => setTimeRange('24h')}>24h</Button>
+                <Button variant={timeRange === '7d' ? 'default' : 'ghost'} size="sm" onClick={() => setTimeRange('7d')}>7 días</Button>
+                <Button variant="ghost" size="sm" onClick={() => setManualExpandedSection(null)}>
+                  <Minimize2 className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex-1 bg-slate-800/50 rounded-lg p-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={uptimeData}>
+                  <defs>
+                    <linearGradient id="uptimeGradientMax" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.5}/>
+                      <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="time" stroke="#64748b" fontSize={12} />
+                  <YAxis stroke="#64748b" fontSize={12} domain={[80, 100]} tickFormatter={(v) => `${v}%`} />
+                  <RechartsTooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
+                    labelStyle={{ color: '#94a3b8' }}
+                  />
+                  <Area type="monotone" dataKey="uptime" stroke="#06b6d4" strokeWidth={3} fill="url(#uptimeGradientMax)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        );
+
+      case 'cra':
+        return (
+          <div className="flex-1 flex flex-col gap-4 p-4 bg-slate-900/50 rounded-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Shield className="w-8 h-8 text-red-400" />
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Central Receptora de Alarmas (CRA)</h2>
+                  <p className="text-slate-400">{craDevices.length} dispositivos monitorizados</p>
+                </div>
+                {craDevices.some(d => d.status === 'offline') && (
+                  <Badge className="bg-red-500 text-white text-lg px-4 py-1 animate-pulse ml-4">
+                    {craDevices.filter(d => d.status === 'offline').length} OFFLINE
+                  </Badge>
+                )}
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setManualExpandedSection(null)}>
+                <Minimize2 className="w-5 h-5" />
+              </Button>
+            </div>
+            <ScrollArea className="flex-1">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 p-2">
+                {craDevices.map(device => (
+                  <div
+                    key={device.id}
+                    className={cn(
+                      "p-4 rounded-lg border text-center transition-all cursor-pointer hover:scale-105",
+                      device.status === 'offline' 
+                        ? "bg-red-500/20 border-red-500 animate-pulse" 
+                        : "bg-emerald-500/10 border-emerald-500/30"
+                    )}
+                    onClick={() => onDeviceClick?.(device)}
+                  >
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <Shield className={cn("w-6 h-6", device.status === 'offline' ? "text-red-400" : "text-emerald-400")} />
+                      <div className={cn("w-3 h-3 rounded-full", device.status === 'offline' ? "bg-red-500 animate-ping" : "bg-emerald-500")} />
+                    </div>
+                    <p className="text-sm font-semibold text-white">{device.name}</p>
+                    <p className="text-xs text-slate-400">{device.ip_address}</p>
+                    {device.last_check && (
+                      <p className="text-[10px] text-slate-500 mt-1">Último check: {formatTimeSince(device.last_check)}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+        );
+
+      case 'offline':
+        return (
+          <div className="flex-1 flex flex-col gap-4 p-4 bg-slate-900/50 rounded-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <WifiOff className="w-8 h-8 text-red-400" />
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Dispositivos Offline</h2>
+                  <p className="text-slate-400">{offlineDevices.length} dispositivos requieren atención</p>
+                </div>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setManualExpandedSection(null)}>
+                <Minimize2 className="w-5 h-5" />
+              </Button>
+            </div>
+            {offlineDevices.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center">
+                <CheckCircle className="w-32 h-32 text-emerald-500 mb-4" />
+                <p className="text-2xl text-emerald-400">Todos los dispositivos online</p>
+              </div>
+            ) : (
+              <ScrollArea className="flex-1">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-2">
+                  {offlineDevices.map(device => {
+                    const Icon = getDeviceIcon(device);
+                    return (
+                      <div 
+                        key={device.id} 
+                        className="p-4 rounded-lg bg-red-500/10 border-2 border-red-500 cursor-pointer hover:bg-red-500/20 transition-all"
+                        onClick={() => onDeviceClick?.(device)}
+                      >
+                        <div className="flex items-center gap-3 mb-2">
+                          <Icon className="w-8 h-8 text-red-400" />
+                          <div className="flex-1">
+                            <p className="text-lg font-semibold text-white">{device.name}</p>
+                            <p className="text-sm text-slate-400">{device.ip_address}:{device.port}</p>
+                          </div>
+                          <Badge className="bg-red-500 text-white">{formatTimeSince(device.last_status_change)}</Badge>
+                        </div>
+                        {device.location && (
+                          <p className="text-xs text-slate-500 flex items-center gap-1">
+                            <MapPin className="w-3 h-3" /> {device.location}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            )}
+          </div>
+        );
+
+      case 'history':
+        return (
+          <div className="flex-1 flex flex-col gap-4 p-4 bg-slate-900/50 rounded-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <History className="w-8 h-8 text-orange-400" />
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Historial de Caídas (7 días)</h2>
+                  <p className="text-slate-400">{downtimeHistory.length} dispositivos con incidencias</p>
+                </div>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setManualExpandedSection(null)}>
+                <Minimize2 className="w-5 h-5" />
+              </Button>
+            </div>
+            {downtimeHistory.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center">
+                <CheckCircle className="w-32 h-32 text-emerald-500/50 mb-4" />
+                <p className="text-xl text-slate-400">Sin caídas en los últimos 7 días</p>
+              </div>
+            ) : (
+              <ScrollArea className="flex-1">
+                <div className="space-y-3 p-2">
+                  {downtimeHistory.map((item, idx) => (
+                    <div key={idx} className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className={cn("p-2 rounded-lg", item.count > 3 ? "bg-red-500/20" : "bg-amber-500/20")}>
+                            <AlertTriangle className={cn("w-5 h-5", item.count > 3 ? "text-red-400" : "text-amber-400")} />
+                          </div>
+                          <div>
+                            <p className="text-lg font-semibold text-white">{item.name}</p>
+                            <p className="text-xs text-slate-400">Última caída: {item.lastDown ? new Date(item.lastDown).toLocaleString('es-ES') : 'N/A'}</p>
+                          </div>
+                        </div>
+                        <Badge className={cn("text-lg px-3 py-1", item.count > 3 ? "bg-red-500" : "bg-amber-500")}>
+                          {item.count} caídas
+                        </Badge>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {item.events.slice(0, 5).map((event, i) => (
+                          <span key={i} className="px-2 py-0.5 text-xs bg-slate-700 rounded text-slate-300">
+                            {new Date(event.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        ))}
+                        {item.events.length > 5 && (
+                          <span className="px-2 py-0.5 text-xs bg-slate-700 rounded text-slate-400">
+                            +{item.events.length - 5} más
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </div>
+        );
+
+      case 'alerts':
+        return (
+          <div className="flex-1 flex flex-col gap-4 p-4 bg-slate-900/50 rounded-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Bell className="w-8 h-8 text-amber-400" />
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Alertas Recientes</h2>
+                  <p className="text-slate-400">{stats.recentAlerts} alertas en las últimas 24 horas</p>
+                </div>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setManualExpandedSection(null)}>
+                <Minimize2 className="w-5 h-5" />
+              </Button>
+            </div>
+            {recentAlertsList.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center">
+                <CheckCircle className="w-32 h-32 text-emerald-500/50 mb-4" />
+                <p className="text-xl text-slate-400">Sin alertas recientes</p>
+              </div>
+            ) : (
+              <ScrollArea className="flex-1">
+                <div className="space-y-2 p-2">
+                  {recentAlertsList.map(alert => {
+                    const isDown = alert.alert_type === 'device_down' || alert.alert_type === 'nas_disconnected';
+                    return (
+                      <div 
+                        key={alert.id} 
+                        className={cn(
+                          "p-4 rounded-lg border flex items-center justify-between",
+                          isDown ? "bg-red-500/10 border-red-500/30" : "bg-emerald-500/10 border-emerald-500/30"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          {isDown ? <XCircle className="w-6 h-6 text-red-400" /> : <CheckCircle className="w-6 h-6 text-emerald-400" />}
+                          <div>
+                            <p className="text-lg font-semibold text-white">{alert.device_name}</p>
+                            <p className="text-sm text-slate-400">{alert.message || (isDown ? 'Dispositivo desconectado' : 'Dispositivo conectado')}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-slate-400">{formatTimeSince(alert.timestamp)}</p>
+                          <p className="text-xs text-slate-500">{new Date(alert.timestamp).toLocaleString('es-ES')}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            )}
+          </div>
+        );
+
+      case 'organizations':
+        return (
+          <div className="flex-1 flex flex-col gap-4 p-4 bg-slate-900/50 rounded-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Building2 className="w-8 h-8 text-purple-400" />
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Estado por Organización</h2>
+                  <p className="text-slate-400">{devicesByOrg.length} organizaciones activas</p>
+                </div>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setManualExpandedSection(null)}>
+                <Minimize2 className="w-5 h-5" />
+              </Button>
+            </div>
+            <ScrollArea className="flex-1">
+              <div className="grid grid-cols-2 gap-4 p-2">
+                {devicesByOrg.map(({ org, online, offline, total }) => {
+                  const uptimePercent = total > 0 ? (online / total) * 100 : 0;
+                  return (
+                    <div 
+                      key={org.id}
+                      className={cn(
+                        "p-4 rounded-lg border transition-all",
+                        offline > 0 ? "bg-red-500/10 border-red-500/50" : "bg-slate-800/50 border-slate-700"
+                      )}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-lg font-semibold text-white">{org.name}</span>
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-emerald-500/20 text-emerald-400">{online} online</Badge>
+                          {offline > 0 && <Badge className="bg-red-500/20 text-red-400 animate-pulse">{offline} offline</Badge>}
+                        </div>
+                      </div>
+                      <Progress value={uptimePercent} className="h-3 bg-slate-700" />
+                      <p className="text-sm text-slate-400 mt-2">{total} dispositivos - {uptimePercent.toFixed(1)}% disponibilidad</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   // Normal view rendering
   const renderNormalView = () => (
     <>
