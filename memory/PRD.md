@@ -148,6 +148,7 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 - [x] AlertsPanel refactored
 - [x] All hemispheric camera models supported
 - [x] AccessLogsPanel refactored (Session 2026-02-10)
+- [x] Nueva UI de Alertas con campana, sidebar y mosaico (Session 2026-02-12)
 
 ### P1 - High Priority
 - [x] Continue App.js Refactoring
