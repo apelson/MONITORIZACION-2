@@ -1055,12 +1055,12 @@ const NOCDashboard = ({
           </div>
         </div>
 
-        {/* Center: Canary Islands Map */}
+        {/* Center: System ECG Monitor + Map */}
         <div className="col-span-4 bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex flex-col min-h-0">
           <div className="flex items-center justify-between mb-2 shrink-0">
             <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-amber-400" />
-              <span className="text-sm font-semibold text-white">Mapa Canarias</span>
+              <Activity className="w-4 h-4 text-cyan-400" />
+              <span className="text-sm font-semibold text-white">Monitor del Sistema</span>
             </div>
             {/* Global stats badge */}
             <div className={cn("px-3 py-1 rounded-full text-sm font-bold", 
@@ -1071,23 +1071,37 @@ const NOCDashboard = ({
               {stats.uptimePercent}% Operativo
             </div>
           </div>
-          <div className="flex-1 relative min-h-0">
-            <svg viewBox="0 0 400 500" className="w-full h-full">
-              {devicesByIsland.map(island => {
-                const hasOffline = island.offline > 0;
-                const size = getBubbleSize(island.total);
-                return (
-                  <g key={island.id}>
-                    <circle cx={island.x} cy={island.y} r={size / 2} fill={hasOffline ? '#ef4444' : '#10b981'} opacity={0.8} />
-                    <text x={island.x} y={island.y + 4} textAnchor="middle" fill="white" fontSize={size > 40 ? 16 : 12} fontWeight="bold">{island.total}</text>
-                    <text x={island.x} y={island.y + size / 2 + 14} textAnchor="middle" fill="#94a3b8" fontSize={10}>{island.abbrev}</text>
-                  </g>
-                );
-              })}
-            </svg>
-            <div className="absolute bottom-2 left-2 flex gap-3">
-              <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-emerald-500" /><span className="text-[10px] text-slate-400">OK</span></div>
-              <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-red-500" /><span className="text-[10px] text-slate-400">Offline</span></div>
+          
+          {/* ECG Monitor */}
+          <div className="flex-1 relative min-h-0 flex flex-col">
+            <SystemECG 
+              healthPercent={stats.uptimePercent}
+              hasAlerts={stats.offline > 0 || stats.criticalAlerts > 0}
+              isAnalyzing={true}
+              className="h-28 rounded-lg border border-slate-700/50 bg-slate-950/50 overflow-hidden"
+            />
+            
+            {/* Mini Map below ECG */}
+            <div className="flex-1 relative mt-2">
+              <svg viewBox="0 0 400 200" className="w-full h-full">
+                {devicesByIsland.map(island => {
+                  const hasOffline = island.offline > 0;
+                  const size = Math.min(getBubbleSize(island.total), 35);
+                  // Adjust positions for smaller viewbox
+                  const adjustedY = island.y * 0.4;
+                  return (
+                    <g key={island.id}>
+                      <circle cx={island.x} cy={adjustedY} r={size / 2} fill={hasOffline ? '#ef4444' : '#10b981'} opacity={0.7} />
+                      <text x={island.x} y={adjustedY + 3} textAnchor="middle" fill="white" fontSize={size > 25 ? 11 : 9} fontWeight="bold">{island.total}</text>
+                      <text x={island.x} y={adjustedY + size / 2 + 10} textAnchor="middle" fill="#94a3b8" fontSize={7}>{island.abbrev}</text>
+                    </g>
+                  );
+                })}
+              </svg>
+              <div className="absolute bottom-1 left-2 flex gap-2">
+                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-500" /><span className="text-[8px] text-slate-400">OK</span></div>
+                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500" /><span className="text-[8px] text-slate-400">OFF</span></div>
+              </div>
             </div>
           </div>
         </div>
