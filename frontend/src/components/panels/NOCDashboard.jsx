@@ -22,8 +22,8 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip as Recharts
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
-// Logo Siempria
-const LOGO_URL = "/logo-siempria.png";
+// Logo Siempria (hexágono azul)
+const LOGO_URL = "https://customer-assets.emergentagent.com/job_bd3cf608-7344-4385-a96f-f4dc04839f9f/artifacts/t15tym24_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png";
 
 const ICON_MAP = {
   camera: Camera, "hard-drive": HardDrive, network: Network, router: Router,
