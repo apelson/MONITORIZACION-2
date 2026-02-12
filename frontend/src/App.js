@@ -3247,6 +3247,18 @@ const Dashboard = () => {
               {/* Utilities - Separator with glow */}
               <div className="flex items-center gap-2 border-l border-slate-700/50 pl-4 ml-2">
                 <LanguageSelector />
+                {/* Alert Bell with sidebar */}
+                <AlertBell 
+                  alerts={alerts}
+                  onAlertClick={(alert) => {
+                    const device = devices.find(d => d.id === alert.device_id);
+                    if (device) {
+                      setHistoryModalDevice(device);
+                      setHistoryModalOpen(true);
+                    }
+                  }}
+                  onViewAll={() => setActiveTab('alerts')}
+                />
                 <Button 
                   variant="ghost" 
                   size="sm" 
