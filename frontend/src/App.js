@@ -3829,6 +3829,27 @@ const Dashboard = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Device History Modal */}
+      <DeviceHistoryModal
+        device={historyModalDevice}
+        isOpen={historyModalOpen}
+        onClose={() => {
+          setHistoryModalOpen(false);
+          setHistoryModalDevice(null);
+        }}
+        alerts={alerts}
+        authAxios={authAxios}
+        onRefresh={async (deviceId) => {
+          try {
+            await authAxios.post(`/devices/${deviceId}/check`);
+            toast.success('Verificación iniciada');
+            fetchAll();
+          } catch (e) {
+            toast.error('Error al verificar dispositivo');
+          }
+        }}
+      />
+
       {/* Footer */}
       <footer className="border-t bg-muted/30 mt-auto">
         <div className="container mx-auto max-w-7xl px-6 py-4">
