@@ -62,6 +62,11 @@ from routes.tenant_devices import router as tenant_devices_router
 from routes.superadmin import router as superadmin_router
 from routes.billing import router as billing_router
 
+# WebSocket router
+from routes.websocket import router as websocket_router
+from services.websocket_service import websocket_manager
+from services.device_service import set_websocket_manager
+
 # ============ SCHEDULER FOR DAILY REPORTS ============
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
