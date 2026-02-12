@@ -31,6 +31,14 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import SystemECG from '@/components/common/SystemECG';
 import { DashboardConfigPanel, useDashboardPreferences, WidgetWrapper, DEFAULT_LAYOUT, DEFAULT_WIDGETS } from '@/components/dashboard/DashboardWidgets';
+import StatsWidget from '@/components/noc/widgets/StatsWidget';
+import UptimeWidget from '@/components/noc/widgets/UptimeWidget';
+import SystemMonitorWidget from '@/components/noc/widgets/SystemMonitorWidget';
+import CRAWidget from '@/components/noc/widgets/CRAWidget';
+import OrganizationsWidget from '@/components/noc/widgets/OrganizationsWidget';
+import OfflineWidget from '@/components/noc/widgets/OfflineWidget';
+import HistoryWidget from '@/components/noc/widgets/HistoryWidget';
+import AlertsWidget from '@/components/noc/widgets/AlertsWidget';
 
 // Logo Siempria (hexágono azul)
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_bd3cf608-7344-4385-a96f-f4dc04839f9f/artifacts/t15tym24_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png";
