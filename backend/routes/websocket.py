@@ -4,19 +4,16 @@ WebSocket routes for real-time notifications
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 from typing import Optional
 import jwt
-import os
 
-from config import logger
+from config import logger, SECRET_KEY, ALGORITHM
 from services.websocket_service import websocket_manager
 
 router = APIRouter(prefix="/ws", tags=["websocket"])
 
-SECRET_KEY = os.environ.get("JWT_SECRET", "siempria-secret-key-2024")
-
 def get_user_from_token(token: str) -> Optional[str]:
     """Extract user ID from JWT token"""
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload.get("sub") or payload.get("user_id") or "authenticated"
     except Exception as e:
         logger.warning(f"[WS] Invalid token: {e}")
