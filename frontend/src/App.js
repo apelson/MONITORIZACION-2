@@ -48,6 +48,8 @@ import DailyReportPanel from "@/components/panels/DailyReportPanel";
 import ScheduledReportsPanel from "@/components/panels/ScheduledReportsPanel";
 import CRAFloatingButton from "@/components/common/CRAFloatingButton";
 import LiveViewerFloatingButton from "@/components/common/LiveViewerFloatingButton";
+import NOCFloatingButton from "@/components/common/NOCFloatingButton";
+import NOCDashboard from "@/components/panels/NOCDashboard";
 import NotificationSettings from "@/components/settings/NotificationSettings";
 import SystemStatusDashboard from "@/components/settings/SystemStatusDashboard";
 import RolesManager from "@/components/settings/RolesManager";
