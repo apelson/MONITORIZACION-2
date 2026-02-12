@@ -294,6 +294,8 @@ async def download_file(path: str):
         # Common components
         "SystemECG.jsx": "/app/frontend/src/components/common/SystemECG.jsx",
         "PWAInstallPrompt.jsx": "/app/frontend/src/components/common/PWAInstallPrompt.jsx",
+        # Dashboard widgets
+        "DashboardWidgets.jsx": "/app/frontend/src/components/dashboard/DashboardWidgets.jsx",
     }
     
     if path not in allowed_files:
