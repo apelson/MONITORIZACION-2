@@ -210,6 +210,7 @@ export const useWebSocketAlerts = (backendUrl, token, onNewAlert) => {
       disconnect();
       setTimeout(connect, 500);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   return {
