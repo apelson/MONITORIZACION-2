@@ -291,6 +291,9 @@ async def download_file(path: str):
         # AI and SLA components
         "AIInsightsPanel.jsx": "/app/frontend/src/components/settings/AIInsightsPanel.jsx",
         "SLAReportsPanel.jsx": "/app/frontend/src/components/settings/SLAReportsPanel.jsx",
+        # Common components
+        "SystemECG.jsx": "/app/frontend/src/components/common/SystemECG.jsx",
+        "PWAInstallPrompt.jsx": "/app/frontend/src/components/common/PWAInstallPrompt.jsx",
     }
     
     if path not in allowed_files:
