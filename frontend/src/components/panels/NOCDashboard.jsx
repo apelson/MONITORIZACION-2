@@ -68,6 +68,7 @@ const NOCDashboard = ({
   const [timeRange, setTimeRange] = useState('24h');
   const [presentationMode, setPresentationMode] = useState(false);
   const [presentationIndex, setPresentationIndex] = useState(0);
+  const [manualExpandedSection, setManualExpandedSection] = useState(null); // For manual maximize
   const audioRef = useRef(null);
   const presentationRef = useRef(null);
 
