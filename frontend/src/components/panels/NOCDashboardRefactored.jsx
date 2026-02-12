@@ -496,7 +496,7 @@ const NOCDashboardRefactored = ({
       </div>
 
       {/* Footer */}
-      <div className="h-8 bg-slate-900/80 border-t border-slate-700/30 flex items-center justify-between px-4 text-[10px] text-slate-500 shrink-0">
+      <div className="h-10 bg-slate-900/90 border-t border-slate-700/30 flex items-center justify-between px-4 text-[10px] text-slate-500 shrink-0">
         <div className="flex items-center gap-4">
           <span>📹 {filteredDevices.filter(d => deviceTypes.find(t => t.id === d.device_type_id)?.name?.toLowerCase().includes('camera')).length} Cámaras</span>
           <span>📁 {groups.length} Grupos</span>
@@ -504,6 +504,21 @@ const NOCDashboardRefactored = ({
             <span className="text-cyan-400">Filtrado: {organizations.find(o => o.id === filters.organizationId)?.name}</span>
           )}
         </div>
+        
+        {/* Desarrollado por SIEMPRIA */}
+        <div className="flex items-center gap-2">
+          <span className="text-slate-400 text-[11px]">Desarrollado por</span>
+          <div className="flex items-center gap-1.5">
+            <img 
+              src="/siempria-logo.png" 
+              alt="SIEMPRIA" 
+              className="h-5 w-auto"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+            <span className="text-cyan-400 font-semibold text-[12px] tracking-wide">SIEMPRIA</span>
+          </div>
+        </div>
+        
         <div className="flex items-center gap-4">
           <span>soporte@siempria.com</span>
           <span>822 22 00 22</span>
