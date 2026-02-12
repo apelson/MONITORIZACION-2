@@ -2866,10 +2866,10 @@ const Dashboard = () => {
     
     fetchingRef.current = true;
     try {
-      // Load stats separately (fast, cached) and devices paginated
+      // Load stats separately (fast, cached) and ALL devices
       const [statsRes, devRes, orgRes, grpRes, typeRes, alertRes] = await Promise.all([
         authAxios.get("/devices/stats"),
-        authAxios.get("/devices?limit=50&page=1"), 
+        authAxios.get("/devices?limit=1000"), 
         authAxios.get("/organizations"), 
         authAxios.get("/groups"),
         authAxios.get("/device-types"), 
