@@ -359,22 +359,85 @@ const NOCDashboard = ({
 
   const currentSection = PRESENTATION_SECTIONS[presentationIndex];
 
+  // Compact stats bar for presentation/expanded modes
+  const renderCompactStatsBar = () => (
+    <div className="grid grid-cols-8 gap-2 shrink-0 mb-3">
+      <div className="bg-slate-800/80 border border-slate-700/50 rounded-lg px-3 py-1.5 flex items-center justify-between">
+        <div>
+          <p className="text-[8px] text-slate-400 uppercase">TOTAL</p>
+          <p className="text-lg font-bold text-white">{stats.total}</p>
+        </div>
+        <Server className="w-5 h-5 text-cyan-400 opacity-50" />
+      </div>
+      <div className="bg-slate-800/80 border border-emerald-500/30 rounded-lg px-3 py-1.5 flex items-center justify-between">
+        <div>
+          <p className="text-[8px] text-emerald-400 uppercase">ONLINE</p>
+          <p className="text-lg font-bold text-emerald-400">{stats.online}</p>
+        </div>
+        <Wifi className="w-5 h-5 text-emerald-400 opacity-50" />
+      </div>
+      <div className={cn("bg-slate-800/80 rounded-lg px-3 py-1.5 flex items-center justify-between", stats.offline > 0 ? "border-2 border-red-500" : "border border-slate-700/50")}>
+        <div>
+          <p className="text-[8px] text-red-400 uppercase">OFFLINE</p>
+          <p className="text-lg font-bold text-red-400">{stats.offline}</p>
+        </div>
+        <WifiOff className="w-5 h-5 text-red-400 opacity-50" />
+      </div>
+      <div className="bg-slate-800/80 border border-slate-700/50 rounded-lg px-3 py-1.5 flex items-center justify-between">
+        <div>
+          <p className="text-[8px] text-blue-400 uppercase">UPTIME</p>
+          <p className="text-lg font-bold text-emerald-400">{stats.uptimePercent}%</p>
+        </div>
+        <TrendingUp className="w-5 h-5 text-blue-400 opacity-50" />
+      </div>
+      <div className={cn("bg-slate-800/80 rounded-lg px-3 py-1.5 flex items-center justify-between", stats.criticalAlerts > 0 ? "border border-amber-500" : "border border-slate-700/50")}>
+        <div>
+          <p className="text-[8px] text-amber-400 uppercase">ALERTAS</p>
+          <p className="text-lg font-bold text-amber-400">{stats.recentAlerts}</p>
+        </div>
+        <AlertTriangle className="w-5 h-5 text-amber-400 opacity-50" />
+      </div>
+      <div className="bg-slate-800/80 border border-slate-700/50 rounded-lg px-3 py-1.5 flex items-center justify-between">
+        <div>
+          <p className="text-[8px] text-purple-400 uppercase">CENTROS</p>
+          <p className="text-lg font-bold text-purple-400">{organizations.length} <span className="text-sm opacity-70">/ {groups.length}</span></p>
+        </div>
+        <Building2 className="w-5 h-5 text-purple-400 opacity-50" />
+      </div>
+      <div className={cn("bg-slate-800/80 rounded-lg px-3 py-1.5 flex items-center justify-between", stats.avgLatency && stats.avgLatency > 300 ? "border border-orange-500" : "border border-slate-700/50")}>
+        <div>
+          <p className="text-[8px] text-cyan-400 uppercase">LATENCIA</p>
+          <p className="text-lg font-bold text-cyan-400">{stats.avgLatency ? `${stats.avgLatency}ms` : '--'}</p>
+        </div>
+        <Gauge className="w-5 h-5 text-cyan-400 opacity-50" />
+      </div>
+      <div className={cn("bg-slate-800/80 rounded-lg px-3 py-1.5 flex items-center justify-between", craDevices.some(d => d.status === 'offline') ? "border border-red-500" : "border border-slate-700/50")}>
+        <div>
+          <p className="text-[8px] text-red-400 uppercase">CRA</p>
+          <p className="text-lg font-bold text-red-400">{craDevices.length}</p>
+        </div>
+        <Shield className="w-5 h-5 text-red-400 opacity-50" />
+      </div>
+    </div>
+  );
+
   // Render expanded section for presentation mode
   const renderExpandedSection = () => {
     switch (currentSection) {
       case 'overview':
         return (
           <div className="flex-1 flex flex-col gap-4 p-4">
-            <div className="text-center mb-4">
-              <h2 className="text-3xl font-bold text-cyan-400">Resumen General</h2>
-              <p className="text-slate-400">Estado actual de la infraestructura</p>
+            {renderCompactStatsBar()}
+            <div className="text-center mb-2">
+              <h2 className="text-3xl font-bold text-cyan-400">{t('noc.overview', 'Resumen General')}</h2>
+              <p className="text-slate-400">{t('noc.overviewSubtitle', 'Estado actual de la infraestructura')}</p>
             </div>
             <div className="grid grid-cols-3 gap-6 flex-1">
               {/* Stats grandes */}
               <div className="bg-slate-800/50 rounded-xl p-6 flex flex-col items-center justify-center border border-slate-700">
                 <Server className="w-16 h-16 text-cyan-400 mb-4" />
                 <p className="text-6xl font-bold text-white">{stats.total}</p>
-                <p className="text-xl text-slate-400 mt-2">Total Dispositivos</p>
+                <p className="text-xl text-slate-400 mt-2">{t('noc.totalDevices', 'Total Dispositivos')}</p>
               </div>
               <div className="bg-emerald-500/10 rounded-xl p-6 flex flex-col items-center justify-center border border-emerald-500/30">
                 <Wifi className="w-16 h-16 text-emerald-400 mb-4" />
@@ -388,12 +451,12 @@ const NOCDashboard = ({
               </div>
             </div>
             {/* Uptime grande */}
-            <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700 h-64">
+            <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700 h-48">
               <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                 <Activity className="w-6 h-6 text-cyan-400" />
                 Uptime (24h) - {stats.uptimePercent}%
               </h3>
-              <ResponsiveContainer width="100%" height="80%">
+              <ResponsiveContainer width="100%" height="70%">
                 <AreaChart data={uptimeData}>
                   <defs>
                     <linearGradient id="uptimeGradientExp" x1="0" y1="0" x2="0" y2="1">
@@ -413,12 +476,13 @@ const NOCDashboard = ({
       case 'cra':
         return (
           <div className="flex-1 flex flex-col gap-4 p-4">
-            <div className="text-center mb-4">
+            {renderCompactStatsBar()}
+            <div className="text-center mb-2">
               <h2 className="text-3xl font-bold text-red-400 flex items-center justify-center gap-3">
                 <Shield className="w-10 h-10" />
-                Central Receptora de Alarmas (CRA)
+                {t('noc.cra', 'Central Receptora de Alarmas (CRA)')}
               </h2>
-              <p className="text-slate-400">{craDevices.length} dispositivos monitorizados</p>
+              <p className="text-slate-400">{craDevices.length} {t('noc.devicesMonitored', 'dispositivos monitorizados')}</p>
               {craDevices.some(d => d.status === 'offline') && (
                 <Badge className="bg-red-500 text-white text-lg px-4 py-1 mt-2 animate-pulse">
                   {craDevices.filter(d => d.status === 'offline').length} OFFLINE
