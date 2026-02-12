@@ -3,7 +3,7 @@
  * Versión compatible con react-grid-layout v2.x
  */
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { GridLayout } from 'react-grid-layout';
+import GridLayout from 'react-grid-layout';
 import { GripVertical, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
