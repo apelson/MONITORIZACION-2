@@ -125,10 +125,24 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
   - Timeline visual de estados
   - Botón "Verificar Ahora" para check manual
 
-- **Integración en App.js**:
-  - AlertBell añadido al header junto al icono de sonido
-  - DeviceStatusGrid añadido al tab de Alertas
-  - DeviceHistoryModal para click en dispositivos
+- **WebSocket para Alertas en Tiempo Real**:
+  - Backend: `services/websocket_service.py` - WebSocketManager class
+  - Backend: `routes/websocket.py` - Endpoint `/api/ws/alerts`
+  - Frontend: `hooks/useWebSocketAlerts.js` - Hook con auto-reconnect
+  - Alertas se envían instantáneamente a todos los clientes
+  - Toast notifications + sonido automático
+
+- **Logging Mejorado en device_service.py**:
+  - [SCHEDULER] logs para ciclos de verificación
+  - [CHECK] logs para cada dispositivo
+  - [STATUS CHANGE] logs para cambios detectados
+  - [ALERT] logs para alertas creadas
+  - [WEBSOCKET] logs para notificaciones enviadas
+
+- **Lazy Loading Component** (`/components/common/LazyImage.jsx`):
+  - IntersectionObserver para carga diferida
+  - Solo carga imágenes visibles en viewport
+  - Placeholder mientras carga
 
 ### Previous Sessions
 - Role-Based Access Control (RBAC)
