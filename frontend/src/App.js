@@ -3572,6 +3572,8 @@ const Dashboard = () => {
           {isAdmin && <TabsContent value="settings">
             <div className="space-y-6">
               <SystemStatusDashboard authAxios={authAxios} />
+              <AIInsightsPanel authAxios={authAxios} />
+              <SLAReportsPanel authAxios={authAxios} organizations={organizations} />
               <SettingsPanel settings={settings} onSave={handleSaveSettings} />
               <NotificationSettings />
               <ReportSettings authAxios={authAxios} />
