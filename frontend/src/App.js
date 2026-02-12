@@ -3589,6 +3589,45 @@ const Dashboard = () => {
         isActive={activeTab === 'live'}
       />
 
+      {/* NOC Dashboard Floating Button */}
+      <NOCFloatingButton 
+        onClick={() => setNocDashboardOpen(true)}
+        offlineCount={deviceStats.offline}
+      />
+
+      {/* NOC Dashboard Full Screen */}
+      {nocDashboardOpen && (
+        <NOCDashboard
+          devices={devices}
+          organizations={organizations}
+          groups={groups}
+          alerts={alerts}
+          deviceTypes={deviceTypes}
+          authAxios={authAxios}
+          onClose={() => setNocDashboardOpen(false)}
+          onDeviceClick={(device) => {
+            setNocDashboardOpen(false);
+            setSelectedDevice(device);
+            setActiveTab('devices');
+          }}
+          onCreateIncident={(device) => {
+            setNocDashboardOpen(false);
+            setSelectedDevice(device);
+            setActiveTab('incidents');
+            // Optionally trigger incident creation dialog
+          }}
+          onViewLive={(device) => {
+            setNocDashboardOpen(false);
+            setSelectedDevice(device);
+            setActiveTab('live');
+          }}
+          onViewHistory={(device) => {
+            setHistoryModalDevice(device);
+            setHistoryModalOpen(true);
+          }}
+        />
+      )}
+
       {/* Logo fijo en la parte inferior para móvil - solo el logo, sin fondo */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 flex justify-center py-2 bg-white/95 backdrop-blur-sm border-t border-gray-100" style={{ zIndex: 9999 }}>
         <img src={LOGO_HORIZONTAL_URL} alt="Siempria" className="h-8 object-contain" />
