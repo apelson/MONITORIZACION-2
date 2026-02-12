@@ -18,18 +18,24 @@ def set_websocket_manager(manager):
     global websocket_manager
     websocket_manager = manager
 
-async def check_device_status(ip: str, port: int, timeout: float = 2.0) -> str:
-    """Check if device is online with optimized timeout"""
+async def check_device_status(ip: str, port: int, timeout: float = 2.0) -> tuple:
+    """Check if device is online with optimized timeout. Returns (status, response_time_ms)"""
     try:
         loop = asyncio.get_event_loop()
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(timeout)
+        
+        start_time = asyncio.get_event_loop().time()
         result = await loop.run_in_executor(None, lambda: sock.connect_ex((ip, port)))
+        end_time = asyncio.get_event_loop().time()
+        
+        response_time_ms = round((end_time - start_time) * 1000, 2) if result == 0 else None
         sock.close()
-        return "online" if result == 0 else "offline"
+        
+        return ("online", response_time_ms) if result == 0 else ("offline", None)
     except Exception as e:
         logger.warning(f"Error checking {ip}:{port}: {e}")
-        return "offline"
+        return ("offline", None)
 
 async def check_single_device(device_id: str, background_alert: bool = True):
     """Check a single device and create alerts on status change"""
