@@ -306,6 +306,11 @@ async def download_file(path: str):
         "OfflineWidget.jsx": "/app/frontend/src/components/noc/widgets/OfflineWidget.jsx",
         "HistoryWidget.jsx": "/app/frontend/src/components/noc/widgets/HistoryWidget.jsx",
         "AlertsWidget.jsx": "/app/frontend/src/components/noc/widgets/AlertsWidget.jsx",
+        # NOC Refactored components
+        "NOCDashboardRefactored.jsx": "/app/frontend/src/components/panels/NOCDashboardRefactored.jsx",
+        "DraggableGrid.jsx": "/app/frontend/src/components/noc/DraggableGrid.jsx",
+        "DashboardFilters.jsx": "/app/frontend/src/components/noc/DashboardFilters.jsx",
+        "NOCHeader.jsx": "/app/frontend/src/components/noc/NOCHeader.jsx",
         # Backend routes
         "users.py": "/app/backend/routes/users.py",
         "auth.py": "/app/backend/routes/auth.py",
