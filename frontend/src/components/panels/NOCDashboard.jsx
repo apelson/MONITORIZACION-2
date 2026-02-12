@@ -564,15 +564,15 @@ const NOCDashboard = ({
                 Dispositivos Offline
               </h2>
               {offlineDevices.length > 0 ? (
-                <Badge className="bg-red-500 text-white text-lg px-4 py-1 mt-2">{offlineDevices.length} dispositivos requieren atención</Badge>
+                <Badge className="bg-red-500 text-white text-lg px-4 py-1 mt-2">{offlineDevices.length} {t('noc.devicesNeedAttention', 'dispositivos requieren atención')}</Badge>
               ) : (
-                <p className="text-emerald-400 text-xl mt-2">Todos los dispositivos online</p>
+                <p className="text-emerald-400 text-xl mt-2">{t('noc.allOnline', 'Todos los dispositivos online')}</p>
               )}
             </div>
             {offlineDevices.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center">
                 <CheckCircle className="w-32 h-32 text-emerald-500 mb-4" />
-                <p className="text-2xl text-emerald-400">Sistema Operativo al 100%</p>
+                <p className="text-2xl text-emerald-400">{t('noc.system100', 'Sistema Operativo al 100%')}</p>
               </div>
             ) : (
               <ScrollArea className="flex-1">
@@ -601,17 +601,18 @@ const NOCDashboard = ({
       case 'alerts':
         return (
           <div className="flex-1 flex flex-col gap-4 p-4">
-            <div className="text-center mb-4">
+            {renderCompactStatsBar()}
+            <div className="text-center mb-2">
               <h2 className="text-3xl font-bold text-amber-400 flex items-center justify-center gap-3">
                 <Bell className="w-10 h-10" />
-                Alertas Recientes (24h)
+                {t('noc.recentAlerts', 'Alertas Recientes')} (24h)
               </h2>
-              <p className="text-slate-400">{stats.recentAlerts} alertas en las últimas 24 horas</p>
+              <p className="text-slate-400">{stats.recentAlerts} {t('noc.alertsLast24h', 'alertas en las últimas 24 horas')}</p>
             </div>
             {recentAlertsList.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center">
                 <CheckCircle className="w-32 h-32 text-emerald-500/50 mb-4" />
-                <p className="text-xl text-slate-400">Sin alertas recientes</p>
+                <p className="text-xl text-slate-400">{t('noc.noRecentAlerts', 'Sin alertas recientes')}</p>
               </div>
             ) : (
               <ScrollArea className="flex-1">
@@ -624,7 +625,7 @@ const NOCDashboard = ({
                           {isDown ? <XCircle className="w-6 h-6 text-red-400" /> : <CheckCircle className="w-6 h-6 text-emerald-400" />}
                           <div>
                             <p className="text-lg font-semibold text-white">{alert.device_name}</p>
-                            <p className="text-sm text-slate-400">{alert.message || (isDown ? 'Dispositivo desconectado' : 'Dispositivo conectado')}</p>
+                            <p className="text-sm text-slate-400">{alert.message || (isDown ? t('noc.deviceDisconnected', 'Dispositivo desconectado') : t('noc.deviceConnected', 'Dispositivo conectado'))}</p>
                           </div>
                         </div>
                         <span className="text-slate-400">{formatTimeSince(alert.timestamp)}</span>
