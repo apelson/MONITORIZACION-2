@@ -64,6 +64,10 @@ from routes.billing import router as billing_router
 
 # WebSocket router
 from routes.websocket import router as websocket_router
+
+# AI and SLA routes
+from routes.ai_analysis import router as ai_router
+from routes.sla_reports import router as sla_reports_router
 from services.websocket_service import websocket_manager
 from services.device_service import set_websocket_manager
 
