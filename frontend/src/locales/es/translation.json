@@ -680,6 +680,23 @@
     "craDevicesCount": "Dispositivos CRA",
     "availability": "Disponibilidad",
     "unknown": "Desconocido",
-    "noOrganization": "Sin Organización"
+    "noOrganization": "Sin Organización",
+    "overview": "Resumen General",
+    "overviewSubtitle": "Estado actual de la infraestructura",
+    "cra": "Central Receptora de Alarmas (CRA)",
+    "devicesMonitored": "dispositivos monitorizados",
+    "activeOrgs": "organizaciones activas",
+    "devicesNeedAttention": "dispositivos requieren atención",
+    "system100": "Sistema Operativo al 100%",
+    "alertsLast24h": "alertas en las últimas 24 horas",
+    "deviceDisconnected": "Dispositivo desconectado",
+    "deviceConnected": "Dispositivo conectado",
+    "systemAvailability": "Disponibilidad del sistema en tiempo real",
+    "days": "días",
+    "downtimeHistory": "Historial de Caídas",
+    "devicesWithIncidents": "dispositivos con incidencias",
+    "noDowntime": "Sin caídas en los últimos 7 días",
+    "lastDown": "Última caída",
+    "drops": "caídas"
   }
 }
