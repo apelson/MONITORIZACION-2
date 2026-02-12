@@ -59,8 +59,9 @@ import { AlertBell, DeviceStatusGrid, DeviceHistoryModal } from "@/components/al
 import useWebSocketAlerts from "@/hooks/useWebSocketAlerts";
 
 import { API_URL as BACKEND_URL, API } from './config';
-const LOGO_URL = "https://customer-assets.emergentagent.com/job_equip-tracker-39/artifacts/796492pi_version%20autorizada%202.png";
-const LOGO_HORIZONTAL_URL = "https://customer-assets.emergentagent.com/job_monitorsys-2/artifacts/qs1jn738_logo%20principal.png";
+// Logo principal de Siempria (hexágono azul)
+const LOGO_URL = "/logo512.png";
+const LOGO_HORIZONTAL_URL = "/logo512.png";
 const MOBOTIX_LOGO_URL = "https://www.mobotix.com/sites/default/files/2019-10/MOBOTIX-Logo.svg";
 
 // ============ PWA INSTALL PROMPT ============
