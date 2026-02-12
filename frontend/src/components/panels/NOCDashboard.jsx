@@ -962,6 +962,9 @@ const NOCDashboard = ({
                 <Badge className="bg-red-500/20 text-red-400 text-[10px] animate-pulse">{craDevices.filter(d => d.status === 'offline').length} OFFLINE</Badge>
               )}
             </div>
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-slate-400 hover:text-red-400" onClick={() => handleMaximizeSection('cra')} title="Maximizar">
+              <Maximize2 className="w-3 h-3" />
+            </Button>
           </div>
           <ScrollArea className="flex-1">
             <div className={cn("grid gap-1.5 pr-2", craDevices.length > 20 ? "grid-cols-4" : "grid-cols-3")}>
