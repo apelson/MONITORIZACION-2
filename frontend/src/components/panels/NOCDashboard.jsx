@@ -896,8 +896,14 @@ const NOCDashboard = ({
               <Activity className="w-4 h-4 text-cyan-400" />
               <span className="text-sm font-semibold text-white">Uptime</span>
             </div>
-            <div className="flex gap-1">
+            <div className="flex gap-1 items-center">
               <Button variant={timeRange === '24h' ? 'default' : 'ghost'} size="sm" className="h-6 px-2 text-[10px]" onClick={() => setTimeRange('24h')}>24h</Button>
+              <Button variant={timeRange === '7d' ? 'default' : 'ghost'} size="sm" className="h-6 px-2 text-[10px]" onClick={() => setTimeRange('7d')}>7d</Button>
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-slate-400 hover:text-cyan-400" onClick={() => handleMaximizeSection('uptime')} title="Maximizar">
+                <Maximize2 className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
               <Button variant={timeRange === '7d' ? 'default' : 'ghost'} size="sm" className="h-6 px-2 text-[10px]" onClick={() => setTimeRange('7d')}>7d</Button>
             </div>
           </div>
