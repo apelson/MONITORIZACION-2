@@ -119,26 +119,43 @@ const NOCDashboard = ({
   // Fetch CRA devices from dedicated endpoint
   useEffect(() => {
     const fetchCraDevices = async () => {
-      if (!authAxios) return;
+      console.log('NOC: Fetching CRA devices, authAxios:', !!authAxios);
+      if (!authAxios) {
+        console.log('NOC: No authAxios, using fallback from devices prop');
+        // Fallback: filter from devices prop by organization or is_cra flag
+        const cra = devices
+          .filter(d => d.is_cra === true || d.device_type === 'cra')
+          .sort((a, b) => {
+            if (a.status === 'offline' && b.status !== 'offline') return -1;
+            if (a.status !== 'offline' && b.status === 'offline') return 1;
+            return (a.name || '').localeCompare(b.name || '');
+          });
+        console.log('NOC: CRA from devices prop:', cra.length);
+        setCraDevices(cra);
+        return;
+      }
       try {
         const res = await authAxios.get('/cra/devices');
+        console.log('NOC: CRA API response:', res.data);
         const cra = (res.data.devices || [])
           .sort((a, b) => {
             if (a.status === 'offline' && b.status !== 'offline') return -1;
             if (a.status !== 'offline' && b.status === 'offline') return 1;
             return (a.name || '').localeCompare(b.name || '');
           });
+        console.log('NOC: CRA devices loaded:', cra.length);
         setCraDevices(cra);
       } catch (error) {
-        console.error('Error fetching CRA devices:', error);
+        console.error('NOC: Error fetching CRA devices:', error);
         // Fallback: filter from devices prop
         const cra = devices
-          .filter(d => d.is_cra === true)
+          .filter(d => d.is_cra === true || d.device_type === 'cra')
           .sort((a, b) => {
             if (a.status === 'offline' && b.status !== 'offline') return -1;
             if (a.status !== 'offline' && b.status === 'offline') return 1;
             return (a.name || '').localeCompare(b.name || '');
           });
+        console.log('NOC: CRA fallback from devices:', cra.length);
         setCraDevices(cra);
       }
     };
