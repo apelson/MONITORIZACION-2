@@ -53,7 +53,7 @@ import SystemStatusDashboard from "@/components/settings/SystemStatusDashboard";
 import RolesManager from "@/components/settings/RolesManager";
 import SuperAdminTab from "@/components/settings/SuperAdminTab";
 import SectionLoader, { useDelayedLoading } from "@/components/common/SectionLoader";
-
+import { AlertBell, DeviceStatusGrid, DeviceHistoryModal } from "@/components/alerts";
 
 import { API_URL as BACKEND_URL, API } from './config';
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_equip-tracker-39/artifacts/796492pi_version%20autorizada%202.png";
