@@ -1213,7 +1213,7 @@ const NOCDashboard = ({
                 />
               </div>
             )}
-          </ResponsiveGridLayout>
+          </GridLayout>
         </div>
       </div>
     );
