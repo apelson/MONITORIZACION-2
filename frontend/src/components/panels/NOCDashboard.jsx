@@ -963,22 +963,55 @@ const NOCDashboard = ({
           </div>
         </div>
 
-        {/* Center: Canary Islands Map */}
+        {/* Center: Canary Islands Map with Global Stats */}
         <div className="col-span-4 bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex flex-col min-h-0">
           <div className="flex items-center gap-2 mb-2 shrink-0">
             <MapPin className="w-4 h-4 text-amber-400" />
             <span className="text-sm font-semibold text-white">Mapa Canarias</span>
           </div>
-          <div className="flex-1 relative min-h-0">
-            <svg viewBox="0 0 400 500" className="w-full h-full">
+          <div className="flex-1 relative min-h-0 flex items-center justify-center">
+            {/* Central Global Stats Circle */}
+            <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+              <div className="relative">
+                <svg width="180" height="180" viewBox="0 0 180 180">
+                  {/* Background circle */}
+                  <circle cx="90" cy="90" r="80" fill="none" stroke="#334155" strokeWidth="12" />
+                  {/* Progress arc */}
+                  <circle 
+                    cx="90" cy="90" r="80" 
+                    fill="none" 
+                    stroke={stats.uptimePercent >= 95 ? '#10b981' : stats.uptimePercent >= 80 ? '#f59e0b' : '#ef4444'}
+                    strokeWidth="12" 
+                    strokeLinecap="round"
+                    strokeDasharray={`${(stats.uptimePercent / 100) * 502.65} 502.65`}
+                    transform="rotate(-90 90 90)"
+                    className="transition-all duration-1000"
+                  />
+                  {/* Inner glow */}
+                  <circle cx="90" cy="90" r="65" fill="rgba(15, 23, 42, 0.9)" />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className={cn("text-4xl font-bold", stats.uptimePercent >= 95 ? 'text-emerald-400' : stats.uptimePercent >= 80 ? 'text-amber-400' : 'text-red-400')}>
+                    {stats.uptimePercent}%
+                  </span>
+                  <span className="text-xs text-slate-400 mt-1">OPERATIVO</span>
+                  <div className="flex gap-3 mt-2 text-[10px]">
+                    <span className="text-emerald-400">{stats.online} ON</span>
+                    <span className="text-red-400">{stats.offline} OFF</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Island bubbles around the circle */}
+            <svg viewBox="0 0 400 500" className="w-full h-full opacity-60">
               {devicesByIsland.map(island => {
                 const hasOffline = island.offline > 0;
                 const size = getBubbleSize(island.total);
                 return (
                   <g key={island.id}>
-                    <circle cx={island.x} cy={island.y} r={size / 2} fill={hasOffline ? '#ef4444' : '#10b981'} opacity={0.8} />
-                    <text x={island.x} y={island.y + 4} textAnchor="middle" fill="white" fontSize={size > 40 ? 16 : 12} fontWeight="bold">{island.total}</text>
-                    <text x={island.x} y={island.y + size / 2 + 14} textAnchor="middle" fill="#94a3b8" fontSize={10}>{island.abbrev}</text>
+                    <circle cx={island.x} cy={island.y} r={size / 2} fill={hasOffline ? '#ef4444' : '#10b981'} opacity={0.7} />
+                    <text x={island.x} y={island.y + 4} textAnchor="middle" fill="white" fontSize={size > 40 ? 14 : 10} fontWeight="bold">{island.total}</text>
+                    <text x={island.x} y={island.y + size / 2 + 12} textAnchor="middle" fill="#94a3b8" fontSize={8}>{island.abbrev}</text>
                   </g>
                 );
               })}
