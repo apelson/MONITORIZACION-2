@@ -310,12 +310,12 @@ ssh usuario@siempriapp.com
 cd /opt/siempria-monitor/frontend
 
 # Download updated files
-curl -o src/components/panels/CRADashboard.jsx "https://noc-debug.preview.emergentagent.com/api/download-file?path=CRADashboard.jsx"
-curl -o src/components/common/LiveViewerFloatingButton.jsx "https://noc-debug.preview.emergentagent.com/api/download-file?path=LiveViewerFloatingButton.jsx"
-curl -o src/components/common/SectionLoader.jsx "https://noc-debug.preview.emergentagent.com/api/download-file?path=SectionLoader.jsx"
-curl -o src/components/panels/AlertsPanel.jsx "https://noc-debug.preview.emergentagent.com/api/download-file?path=AlertsPanel.jsx"
-curl -o src/components/panels/LiveViewer.jsx "https://noc-debug.preview.emergentagent.com/api/download-file?path=LiveViewer.jsx"
-curl -o src/App.js "https://noc-debug.preview.emergentagent.com/api/download-file?path=App.js"
+curl -o src/components/panels/CRADashboard.jsx "https://device-monitor-49.preview.emergentagent.com/api/download-file?path=CRADashboard.jsx"
+curl -o src/components/common/LiveViewerFloatingButton.jsx "https://device-monitor-49.preview.emergentagent.com/api/download-file?path=LiveViewerFloatingButton.jsx"
+curl -o src/components/common/SectionLoader.jsx "https://device-monitor-49.preview.emergentagent.com/api/download-file?path=SectionLoader.jsx"
+curl -o src/components/panels/AlertsPanel.jsx "https://device-monitor-49.preview.emergentagent.com/api/download-file?path=AlertsPanel.jsx"
+curl -o src/components/panels/LiveViewer.jsx "https://device-monitor-49.preview.emergentagent.com/api/download-file?path=LiveViewer.jsx"
+curl -o src/App.js "https://device-monitor-49.preview.emergentagent.com/api/download-file?path=App.js"
 
 # Rebuild frontend
 yarn build
