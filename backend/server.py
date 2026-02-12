@@ -919,3 +919,67 @@ async def download_appjs():
             content = f.read()
         return {"content": content}
     return {"error": "File not found"}
+
+# Endpoint para descargar archivos del frontend para producción
+@app.get("/api/download-frontend/{filepath:path}")
+async def download_frontend_file(filepath: str):
+    """Download frontend files for production update"""
+    import os
+    
+    # Map of allowed paths
+    base_paths = {
+        "components/noc": "/app/frontend/src/components/noc",
+        "components/panels": "/app/frontend/src/components/panels", 
+        "components/common": "/app/frontend/src/components/common",
+        "routes": "/app/backend/routes",
+        "services": "/app/backend/services",
+    }
+    
+    # Find the file
+    for prefix, base in base_paths.items():
+        if filepath.startswith(prefix):
+            full_path = f"/app/frontend/src/{filepath}"
+            if os.path.exists(full_path):
+                with open(full_path, 'r') as f:
+                    return PlainTextResponse(f.read(), media_type="text/plain")
+    
+    # Try direct backend path
+    backend_path = f"/app/backend/{filepath}"
+    if os.path.exists(backend_path):
+        with open(backend_path, 'r') as f:
+            return PlainTextResponse(f.read(), media_type="text/plain")
+            
+    # Try direct frontend path
+    frontend_path = f"/app/frontend/src/{filepath}"
+    if os.path.exists(frontend_path):
+        with open(frontend_path, 'r') as f:
+            return PlainTextResponse(f.read(), media_type="text/plain")
+    
+    return PlainTextResponse(f"File not found: {filepath}", status_code=404)
+
+# List all downloadable NOC files
+@app.get("/api/list-noc-files")
+async def list_noc_files():
+    """List all NOC dashboard files available for download"""
+    import os
+    files = []
+    
+    # NOC components
+    noc_path = "/app/frontend/src/components/noc"
+    if os.path.exists(noc_path):
+        for root, dirs, filenames in os.walk(noc_path):
+            for f in filenames:
+                if f.endswith('.jsx') or f.endswith('.js'):
+                    rel_path = os.path.relpath(os.path.join(root, f), "/app/frontend/src")
+                    files.append(rel_path)
+    
+    # NOC panels
+    panels_path = "/app/frontend/src/components/panels"
+    for f in ["NOCDashboard.jsx", "NOCDashboardRefactored.jsx"]:
+        if os.path.exists(os.path.join(panels_path, f)):
+            files.append(f"components/panels/{f}")
+    
+    # Backend websocket
+    files.append("routes/websocket.py")
+    
+    return {"files": files}
