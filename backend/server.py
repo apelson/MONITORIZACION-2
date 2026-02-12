@@ -205,6 +205,10 @@ api_router.include_router(billing_router)
 # Include WebSocket router
 api_router.include_router(websocket_router)
 
+# Include AI and SLA routes
+api_router.include_router(ai_router)
+api_router.include_router(sla_reports_router)
+
 # ============ ROOT & IMAGE PROXY ============
 
 @api_router.get("/")
