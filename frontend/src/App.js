@@ -1514,10 +1514,10 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle>{organization ? t('organizations.editOrganization', 'Editar Organización') : t('organizations.addOrganization', 'Nueva Organización')}</DialogTitle></DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="shrink-0"><DialogTitle>{organization ? t('organizations.editOrganization', 'Editar Organización') : t('organizations.addOrganization', 'Nueva Organización')}</DialogTitle></DialogHeader>
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="space-y-4 py-4 overflow-y-auto flex-1 pr-2">
             <div className="space-y-2"><Label>{t('common.name', 'Nombre')} *</Label><Input data-testid="org-name-input" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
             <div className="space-y-2"><Label>{t('common.description', 'Descripción')}</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
             
