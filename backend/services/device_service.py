@@ -59,13 +59,13 @@ async def check_single_device(device_id: str, background_alert: bool = True):
     # Log status check for debugging
     logger.debug(f"[CHECK] {device_name} ({ip_address}:{port}) - Old: {old_status}, New: {new_status}")
     
-    # Record history entry
+    # Record history entry with response time
     history_entry = {
         "id": str(uuid.uuid4()),
         "device_id": device_id,
         "status": new_status,
         "timestamp": now,
-        "response_time": None
+        "response_time": response_time_ms
     }
     await history_collection.insert_one(history_entry)
     
