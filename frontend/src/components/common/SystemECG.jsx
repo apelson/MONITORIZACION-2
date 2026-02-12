@@ -4,16 +4,19 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { Shield, Trophy, Clock } from 'lucide-react';
 
 const SystemECG = ({ 
   healthPercent = 100, 
   hasAlerts = false,
   isAnalyzing = true,
+  lastIncidentTime = null, // ISO timestamp of last incident
   className 
 }) => {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
   const [pulse, setPulse] = useState(0);
+  const [uptimeCounter, setUptimeCounter] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   // Determine color based on health
   const getColor = () => {
@@ -22,12 +25,52 @@ const SystemECG = ({
     return '#ef4444'; // Red
   };
 
-  // Determine pulse rate based on health (lower health = faster pulse = more stress)
+  // Determine pulse rate based on health
   const getPulseRate = () => {
-    if (healthPercent >= 95) return 60; // Normal
-    if (healthPercent >= 80) return 80; // Elevated
-    return 100; // Critical
+    if (healthPercent >= 95) return 60;
+    if (healthPercent >= 80) return 80;
+    return 100;
   };
+
+  // Calculate uptime counter
+  useEffect(() => {
+    const calculateUptime = () => {
+      if (!lastIncidentTime) {
+        // If no incident, show time since start of day or a default
+        const now = new Date();
+        const startOfDay = new Date(now);
+        startOfDay.setHours(0, 0, 0, 0);
+        const diff = now - startOfDay;
+        
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        setUptimeCounter({ days: 0, hours, minutes, seconds });
+        return;
+      }
+
+      const now = new Date();
+      const incident = new Date(lastIncidentTime);
+      const diff = now - incident;
+
+      if (diff < 0) {
+        setUptimeCounter({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      setUptimeCounter({ days, hours, minutes, seconds });
+    };
+
+    calculateUptime();
+    const interval = setInterval(calculateUptime, 1000);
+    return () => clearInterval(interval);
+  }, [lastIncidentTime]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -42,51 +85,42 @@ const SystemECG = ({
     const color = getColor();
     const pulseRate = getPulseRate();
     
-    // ECG waveform points (normalized)
     const generateECGBeat = (progress) => {
-      // Simulate QRS complex of ECG
       if (progress < 0.1) return 0;
       if (progress < 0.15) return -0.1;
       if (progress < 0.2) return 0.05;
-      if (progress < 0.25) return -0.3; // P wave
+      if (progress < 0.25) return -0.3;
       if (progress < 0.3) return 0;
-      if (progress < 0.35) return 0.1; // Q
-      if (progress < 0.4) return 0.9; // R peak
-      if (progress < 0.45) return -0.4; // S
+      if (progress < 0.35) return 0.1;
+      if (progress < 0.4) return 0.9;
+      if (progress < 0.45) return -0.4;
       if (progress < 0.5) return 0;
-      if (progress < 0.6) return 0.15; // T wave
+      if (progress < 0.6) return 0.15;
       if (progress < 0.7) return 0.05;
       return 0;
     };
 
-    // Add noise for realism
     const addNoise = () => (Math.random() - 0.5) * 2;
 
     const animate = () => {
-      // Clear with trail effect
       ctx.fillStyle = 'rgba(15, 23, 42, 0.1)';
       ctx.fillRect(0, 0, width, height);
 
-      // Calculate beat progress
-      const beatDuration = 60000 / pulseRate; // ms per beat
+      const beatDuration = 60000 / pulseRate;
       const now = Date.now();
       const beatProgress = (now % beatDuration) / beatDuration;
 
-      // Calculate Y position
       const ecgValue = generateECGBeat(beatProgress);
       const amplitude = height * 0.35;
       const baseY = height / 2;
       let y = baseY - (ecgValue * amplitude);
       
-      // Add subtle noise
       y += addNoise();
 
-      // Add extra spike if there are alerts
       if (hasAlerts && beatProgress > 0.7 && beatProgress < 0.8) {
         y -= amplitude * 0.3;
       }
 
-      // Draw line segment
       ctx.beginPath();
       ctx.strokeStyle = color;
       ctx.lineWidth = 2;
@@ -96,7 +130,6 @@ const SystemECG = ({
       ctx.lineTo(x, y);
       ctx.stroke();
 
-      // Draw glow dot at current position
       ctx.beginPath();
       ctx.fillStyle = color;
       ctx.shadowColor = color;
@@ -107,14 +140,12 @@ const SystemECG = ({
       lastY = y;
       x += 2;
 
-      // Reset when reaching end
       if (x > width) {
         x = 0;
         ctx.fillStyle = 'rgba(15, 23, 42, 1)';
         ctx.fillRect(0, 0, width, height);
       }
 
-      // Update pulse counter
       if (beatProgress < 0.05) {
         setPulse(pulseRate);
       }
@@ -132,6 +163,8 @@ const SystemECG = ({
       }
     };
   }, [healthPercent, hasAlerts, isAnalyzing]);
+
+  const formatNumber = (num) => String(num).padStart(2, '0');
 
   return (
     <div className={cn("relative", className)}>
@@ -151,42 +184,103 @@ const SystemECG = ({
       <canvas 
         ref={canvasRef}
         width={400}
-        height={120}
-        className="w-full h-full"
+        height={80}
+        className="w-full h-20"
       />
 
       {/* Overlay info */}
-      <div className="absolute top-2 left-3 flex items-center gap-2">
+      <div className="absolute top-1 left-3 flex items-center gap-2">
         <div 
           className="w-2 h-2 rounded-full animate-pulse"
           style={{ backgroundColor: getColor() }}
         />
-        <span className="text-[10px] font-mono" style={{ color: getColor() }}>
+        <span className="text-[9px] font-mono" style={{ color: getColor() }}>
           SYSTEM MONITOR
         </span>
       </div>
 
       {/* Pulse rate */}
-      <div className="absolute top-2 right-3 text-right">
-        <span className="text-2xl font-bold font-mono" style={{ color: getColor() }}>
+      <div className="absolute top-1 right-3 text-right">
+        <span className="text-xl font-bold font-mono" style={{ color: getColor() }}>
           {pulse}
         </span>
-        <span className="text-[10px] text-slate-400 ml-1">BPM</span>
+        <span className="text-[9px] text-slate-400 ml-1">BPM</span>
       </div>
 
-      {/* Health indicator */}
-      <div className="absolute bottom-2 left-3">
-        <span className="text-[10px] text-slate-400">HEALTH:</span>
-        <span className="text-sm font-bold ml-1" style={{ color: getColor() }}>
-          {healthPercent}%
-        </span>
+      {/* Uptime Counter - Main Feature */}
+      <div className="border-t border-slate-700/50 bg-slate-950/80 px-3 py-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="w-4 h-4 text-emerald-400" />
+            <span className="text-[10px] text-slate-400 uppercase tracking-wider">Tiempo sin incidencias</span>
+          </div>
+          
+          {/* Achievement badge for long uptimes */}
+          {uptimeCounter.days >= 1 && (
+            <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-500/20 rounded-full">
+              <Trophy className="w-3 h-3 text-amber-400" />
+              <span className="text-[9px] text-amber-400 font-medium">
+                {uptimeCounter.days >= 7 ? '¡Récord!' : uptimeCounter.days >= 3 ? '¡Excelente!' : '¡Bien!'}
+              </span>
+            </div>
+          )}
+        </div>
+        
+        {/* Counter Display */}
+        <div className="flex items-center justify-center gap-1 mt-1">
+          {/* Days */}
+          <div className="flex flex-col items-center">
+            <div className="bg-slate-800 border border-slate-700 rounded px-2 py-1 min-w-[40px]">
+              <span className="text-xl font-bold font-mono text-emerald-400">
+                {formatNumber(uptimeCounter.days)}
+              </span>
+            </div>
+            <span className="text-[8px] text-slate-500 mt-0.5">DÍAS</span>
+          </div>
+          
+          <span className="text-emerald-400 text-lg font-bold mb-3">:</span>
+          
+          {/* Hours */}
+          <div className="flex flex-col items-center">
+            <div className="bg-slate-800 border border-slate-700 rounded px-2 py-1 min-w-[40px]">
+              <span className="text-xl font-bold font-mono text-emerald-400">
+                {formatNumber(uptimeCounter.hours)}
+              </span>
+            </div>
+            <span className="text-[8px] text-slate-500 mt-0.5">HORAS</span>
+          </div>
+          
+          <span className="text-emerald-400 text-lg font-bold mb-3">:</span>
+          
+          {/* Minutes */}
+          <div className="flex flex-col items-center">
+            <div className="bg-slate-800 border border-slate-700 rounded px-2 py-1 min-w-[40px]">
+              <span className="text-xl font-bold font-mono text-cyan-400">
+                {formatNumber(uptimeCounter.minutes)}
+              </span>
+            </div>
+            <span className="text-[8px] text-slate-500 mt-0.5">MIN</span>
+          </div>
+          
+          <span className="text-cyan-400 text-lg font-bold mb-3">:</span>
+          
+          {/* Seconds */}
+          <div className="flex flex-col items-center">
+            <div className="bg-slate-800 border border-slate-700 rounded px-2 py-1 min-w-[40px]">
+              <span className="text-xl font-bold font-mono text-cyan-400 animate-pulse">
+                {formatNumber(uptimeCounter.seconds)}
+              </span>
+            </div>
+            <span className="text-[8px] text-slate-500 mt-0.5">SEG</span>
+          </div>
+        </div>
       </div>
 
-      {/* Status */}
-      <div className="absolute bottom-2 right-3">
+      {/* Status indicator */}
+      <div className="absolute top-1 left-1/2 -translate-x-1/2">
         <span 
           className={cn(
-            "text-[10px] font-mono px-2 py-0.5 rounded",
+            "text-[8px] font-mono px-2 py-0.5 rounded",
             healthPercent >= 95 ? "bg-emerald-500/20 text-emerald-400" :
             healthPercent >= 80 ? "bg-amber-500/20 text-amber-400" :
             "bg-red-500/20 text-red-400 animate-pulse"
