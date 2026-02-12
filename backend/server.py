@@ -254,6 +254,19 @@ async def download_file(path: str):
         "NOCFloatingButton.jsx": "/app/frontend/src/components/common/NOCFloatingButton.jsx",
         "translation_es.json": "/app/frontend/src/locales/es/translation.json",
         "translation_de.json": "/app/frontend/src/locales/de/translation.json",
+        "favicon.ico": "/app/frontend/public/favicon.ico",
+        "logo192.png": "/app/frontend/public/logo192.png",
+        "logo512.png": "/app/frontend/public/logo512.png",
+        "favicon-16x16.png": "/app/frontend/public/icons/favicon-16x16.png",
+        "favicon-32x32.png": "/app/frontend/public/icons/favicon-32x32.png",
+        "icon-72x72.png": "/app/frontend/public/icons/icon-72x72.png",
+        "icon-96x96.png": "/app/frontend/public/icons/icon-96x96.png",
+        "icon-128x128.png": "/app/frontend/public/icons/icon-128x128.png",
+        "icon-144x144.png": "/app/frontend/public/icons/icon-144x144.png",
+        "icon-152x152.png": "/app/frontend/public/icons/icon-152x152.png",
+        "icon-192x192.png": "/app/frontend/public/icons/icon-192x192.png",
+        "icon-384x384.png": "/app/frontend/public/icons/icon-384x384.png",
+        "icon-512x512.png": "/app/frontend/public/icons/icon-512x512.png",
     }
     
     if path not in allowed_files:
