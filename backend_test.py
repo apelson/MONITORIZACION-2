@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 class SiempriaAPITester:
-    def __init__(self, base_url: str = "https://noc-monitoring.preview.emergentagent.com"):
+    def __init__(self, base_url: str = "https://noc-dashboard-prod.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
