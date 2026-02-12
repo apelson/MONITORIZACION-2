@@ -2742,6 +2742,14 @@ const Dashboard = () => {
   // NOC Dashboard state
   const [nocDashboardOpen, setNocDashboardOpen] = useState(false);
   
+  // Check for nocFullscreen parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('nocFullscreen') === 'true') {
+      setNocDashboardOpen(true);
+    }
+  }, []);
+  
   const audioRef = useRef(null);
   const fetchingRef = useRef(false); // Prevent concurrent API calls
   
