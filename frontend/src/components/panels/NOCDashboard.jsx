@@ -1049,12 +1049,16 @@ const NOCDashboard = ({
         </div>
       </div>
 
-      {/* Main Grid */}
-      <div className="flex-1 grid grid-cols-12 gap-3 min-h-0">
+      {/* Main Grid - With edit mode indication */}
+      <div ref={containerRef} className="flex-1 grid grid-cols-12 gap-3 min-h-0">
         {/* Left: Uptime Chart */}
-        <div className="col-span-4 bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex flex-col min-h-0">
+        <div className={cn(
+          "col-span-4 bg-slate-900/80 border rounded-lg p-3 flex flex-col min-h-0 transition-all",
+          editMode ? "border-cyan-500/50 cursor-move ring-1 ring-cyan-500/30" : "border-slate-700/50"
+        )}>
           <div className="flex items-center justify-between mb-2 shrink-0">
             <div className="flex items-center gap-2">
+              {editMode && <GripVertical className="w-4 h-4 text-cyan-400 cursor-grab" />}
               <Activity className="w-4 h-4 text-cyan-400" />
               <span className="text-sm font-semibold text-white">Uptime</span>
             </div>
@@ -1084,9 +1088,13 @@ const NOCDashboard = ({
         </div>
 
         {/* Center: System ECG Monitor + Map */}
-        <div className="col-span-4 bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex flex-col min-h-0">
+        <div className={cn(
+          "col-span-4 bg-slate-900/80 border rounded-lg p-2 flex flex-col min-h-0 transition-all",
+          editMode ? "border-cyan-500/50 cursor-move ring-1 ring-cyan-500/30" : "border-slate-700/50"
+        )}>
           <div className="flex items-center justify-between mb-1 shrink-0">
             <div className="flex items-center gap-2">
+              {editMode && <GripVertical className="w-4 h-4 text-cyan-400 cursor-grab" />}
               <Activity className="w-4 h-4 text-cyan-400" />
               <span className="text-sm font-semibold text-white">Monitor del Sistema</span>
             </div>
@@ -1133,9 +1141,13 @@ const NOCDashboard = ({
         </div>
 
         {/* Right: CRA Panel */}
-        <div className={cn("col-span-4 bg-slate-900/80 rounded-lg p-3 flex flex-col min-h-0", craDevices.some(d => d.status === 'offline') ? "border-2 border-red-500 animate-pulse" : "border border-slate-700/50")}>
+        <div className={cn(
+          "col-span-4 bg-slate-900/80 rounded-lg p-3 flex flex-col min-h-0 transition-all",
+          editMode ? "border-cyan-500/50 cursor-move ring-1 ring-cyan-500/30" : craDevices.some(d => d.status === 'offline') ? "border-2 border-red-500 animate-pulse" : "border border-slate-700/50"
+        )}>
           <div className="flex items-center justify-between mb-2 shrink-0">
             <div className="flex items-center gap-2">
+              {editMode && <GripVertical className="w-4 h-4 text-cyan-400 cursor-grab" />}
               <Shield className="w-4 h-4 text-red-400" />
               <span className="text-sm font-semibold text-white">CRA</span>
               <Badge variant="outline" className="border-red-500/30 text-red-400 text-[10px]">{craDevices.length}</Badge>
