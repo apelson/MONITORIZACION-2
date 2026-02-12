@@ -116,6 +116,21 @@ const NOCDashboard = ({
     setUptimeData(data);
   }, [devices, timeRange]);
 
+  // Sort CRA devices: offline first, then by highest latency
+  const sortCraDevices = (devices) => {
+    return devices.sort((a, b) => {
+      // Offline devices first
+      if (a.status === 'offline' && b.status !== 'offline') return -1;
+      if (a.status !== 'offline' && b.status === 'offline') return 1;
+      // Then by latency (higher first)
+      const latencyA = a.response_time_ms || 0;
+      const latencyB = b.response_time_ms || 0;
+      if (latencyA !== latencyB) return latencyB - latencyA;
+      // Finally by name
+      return (a.name || '').localeCompare(b.name || '');
+    });
+  };
+
   // Fetch CRA devices from dedicated endpoint
   useEffect(() => {
     const fetchCraDevices = async () => {
@@ -123,13 +138,9 @@ const NOCDashboard = ({
       if (!authAxios) {
         console.log('NOC: No authAxios, using fallback from devices prop');
         // Fallback: filter from devices prop by organization or is_cra flag
-        const cra = devices
-          .filter(d => d.is_cra === true || d.device_type === 'cra')
-          .sort((a, b) => {
-            if (a.status === 'offline' && b.status !== 'offline') return -1;
-            if (a.status !== 'offline' && b.status === 'offline') return 1;
-            return (a.name || '').localeCompare(b.name || '');
-          });
+        const cra = sortCraDevices(
+          devices.filter(d => d.is_cra === true || d.device_type === 'cra')
+        );
         console.log('NOC: CRA from devices prop:', cra.length);
         setCraDevices(cra);
         return;
@@ -137,24 +148,15 @@ const NOCDashboard = ({
       try {
         const res = await authAxios.get('/cra/devices');
         console.log('NOC: CRA API response:', res.data);
-        const cra = (res.data.devices || [])
-          .sort((a, b) => {
-            if (a.status === 'offline' && b.status !== 'offline') return -1;
-            if (a.status !== 'offline' && b.status === 'offline') return 1;
-            return (a.name || '').localeCompare(b.name || '');
-          });
+        const cra = sortCraDevices(res.data.devices || []);
         console.log('NOC: CRA devices loaded:', cra.length);
         setCraDevices(cra);
       } catch (error) {
         console.error('NOC: Error fetching CRA devices:', error);
         // Fallback: filter from devices prop
-        const cra = devices
-          .filter(d => d.is_cra === true || d.device_type === 'cra')
-          .sort((a, b) => {
-            if (a.status === 'offline' && b.status !== 'offline') return -1;
-            if (a.status !== 'offline' && b.status === 'offline') return 1;
-            return (a.name || '').localeCompare(b.name || '');
-          });
+        const cra = sortCraDevices(
+          devices.filter(d => d.is_cra === true || d.device_type === 'cra')
+        );
         console.log('NOC: CRA fallback from devices:', cra.length);
         setCraDevices(cra);
       }
