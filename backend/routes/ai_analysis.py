@@ -5,11 +5,10 @@ Endpoints for AI-powered device monitoring analysis
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict, Any, List
 from datetime import datetime, timedelta
-from motor.motor_asyncio import AsyncIOMotorDatabase
 import logging
 
-from config import get_db
-from routes.devices import get_current_user
+from config import devices_collection, alerts_collection, incidents_collection
+from services.auth_service import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +19,6 @@ from services.ai_analysis_service import ai_service
 
 @router.get("/predictions")
 async def get_failure_predictions(
-    db: AsyncIOMotorDatabase = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
@@ -30,7 +28,7 @@ async def get_failure_predictions(
         # Get alerts from last 7 days
         seven_days_ago = datetime.utcnow() - timedelta(days=7)
         
-        alerts = await db.alerts.find({
+        alerts = await alerts_collection.find({
             "timestamp": {"$gte": seven_days_ago.isoformat()}
         }).sort("timestamp", -1).limit(500).to_list(500)
         
@@ -56,7 +54,6 @@ async def get_failure_predictions(
 
 @router.get("/anomalies")
 async def detect_anomalies(
-    db: AsyncIOMotorDatabase = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
@@ -64,8 +61,8 @@ async def detect_anomalies(
     """
     try:
         # Get current stats
-        total = await db.devices.count_documents({})
-        online = await db.devices.count_documents({"status": "online"})
+        total = await devices_collection.count_documents({})
+        online = await devices_collection.count_documents({"status": "online"})
         offline = total - online
         
         # Get average latency
@@ -73,7 +70,7 @@ async def detect_anomalies(
             {"$match": {"response_time_ms": {"$gt": 0}}},
             {"$group": {"_id": None, "avg_latency": {"$avg": "$response_time_ms"}}}
         ]
-        latency_result = await db.devices.aggregate(pipeline).to_list(1)
+        latency_result = await devices_collection.aggregate(pipeline).to_list(1)
         avg_latency = latency_result[0]["avg_latency"] if latency_result else 0
         
         current_metrics = {
@@ -85,10 +82,10 @@ async def detect_anomalies(
             "timestamp": datetime.utcnow().isoformat()
         }
         
-        # Historical averages (mock for now - could be stored in DB)
+        # Historical averages (could be stored in DB)
         historical_avg = {
-            "offline_percent": 5.0,  # Typically 5% offline
-            "avg_latency_ms": 100.0,  # Typically 100ms
+            "offline_percent": 5.0,
+            "avg_latency_ms": 100.0,
         }
         
         result = await ai_service.detect_anomalies(current_metrics, historical_avg)
@@ -103,7 +100,6 @@ async def detect_anomalies(
 
 @router.get("/smart-alerts")
 async def get_smart_alerts(
-    db: AsyncIOMotorDatabase = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
@@ -113,7 +109,7 @@ async def get_smart_alerts(
         # Get recent alerts
         twenty_four_hours_ago = datetime.utcnow() - timedelta(hours=24)
         
-        alerts = await db.alerts.find({
+        alerts = await alerts_collection.find({
             "timestamp": {"$gte": twenty_four_hours_ago.isoformat()}
         }).sort("timestamp", -1).limit(100).to_list(100)
         
@@ -134,7 +130,6 @@ async def get_smart_alerts(
 
 @router.get("/daily-summary")
 async def get_daily_summary(
-    db: AsyncIOMotorDatabase = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
@@ -142,8 +137,8 @@ async def get_daily_summary(
     """
     try:
         # Get current stats
-        total = await db.devices.count_documents({})
-        online = await db.devices.count_documents({"status": "online"})
+        total = await devices_collection.count_documents({})
+        online = await devices_collection.count_documents({"status": "online"})
         
         stats = {
             "total": total,
@@ -154,14 +149,18 @@ async def get_daily_summary(
         
         # Get alerts from last 24h
         twenty_four_hours_ago = datetime.utcnow() - timedelta(hours=24)
-        alerts = await db.alerts.find({
+        alerts = await alerts_collection.find({
             "timestamp": {"$gte": twenty_four_hours_ago.isoformat()}
         }).to_list(200)
         
         # Get open incidents
-        incidents = await db.incidents.find({
-            "status": {"$ne": "resolved"}
-        }).to_list(50)
+        incidents = []
+        try:
+            incidents = await incidents_collection.find({
+                "status": {"$ne": "resolved"}
+            }).to_list(50)
+        except:
+            pass
         
         result = await ai_service.generate_daily_summary(stats, alerts, incidents)
         
@@ -169,51 +168,4 @@ async def get_daily_summary(
         
     except Exception as e:
         logger.error(f"Error generating daily summary: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/analyze-device/{device_id}")
-async def analyze_single_device(
-    device_id: str,
-    db: AsyncIOMotorDatabase = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-) -> Dict[str, Any]:
-    """
-    Get AI analysis for a specific device
-    """
-    try:
-        from bson import ObjectId
-        
-        # Get device
-        device = await db.devices.find_one({"_id": ObjectId(device_id)})
-        if not device:
-            raise HTTPException(status_code=404, detail="Device not found")
-        
-        device_name = device.get("name", "Unknown")
-        
-        # Get device history
-        seven_days_ago = datetime.utcnow() - timedelta(days=7)
-        
-        alerts = await db.alerts.find({
-            "device_id": device_id,
-            "timestamp": {"$gte": seven_days_ago.isoformat()}
-        }).sort("timestamp", -1).to_list(100)
-        
-        history = [{
-            "device_name": device_name,
-            "alert_type": a.get("alert_type", ""),
-            "timestamp": a.get("timestamp", ""),
-            "response_time_ms": a.get("response_time_ms", 0)
-        } for a in alerts]
-        
-        result = await ai_service.analyze_device_patterns(history)
-        result["device_name"] = device_name
-        result["device_id"] = device_id
-        
-        return result
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error analyzing device: {e}")
         raise HTTPException(status_code=500, detail=str(e))
