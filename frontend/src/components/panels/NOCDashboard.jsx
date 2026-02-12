@@ -11,7 +11,7 @@ import {
   Camera, HardDrive, Network, Router, Printer, Shield, Box, Layers,
   Bell, CheckCircle, XCircle, BarChart3, History, ClipboardList,
   Maximize2, Minimize2, Volume2, VolumeX, ExternalLink, Play, MapPin,
-  Pause, SkipForward
+  Pause, SkipForward, Gauge, Zap
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
