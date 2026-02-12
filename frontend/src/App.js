@@ -2732,6 +2732,10 @@ const Dashboard = () => {
     const saved = localStorage.getItem('alertSoundEnabled');
     return saved !== null ? JSON.parse(saved) : true;
   });
+  // New: Device history modal state
+  const [historyModalDevice, setHistoryModalDevice] = useState(null);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  
   const audioRef = useRef(null);
   const fetchingRef = useRef(false); // Prevent concurrent API calls
   
