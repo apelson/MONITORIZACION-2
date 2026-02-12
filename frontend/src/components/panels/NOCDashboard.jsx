@@ -74,9 +74,13 @@ const NOCDashboard = ({
   const [timeRange, setTimeRange] = useState('24h');
   const [presentationMode, setPresentationMode] = useState(false);
   const [presentationIndex, setPresentationIndex] = useState(0);
-  const [manualExpandedSection, setManualExpandedSection] = useState(null); // For manual maximize
+  const [manualExpandedSection, setManualExpandedSection] = useState(null);
+  const [editMode, setEditMode] = useState(false); // For drag & drop editing
+  const [layout, setLayout] = useState(DEFAULT_LAYOUT);
   const audioRef = useRef(null);
   const presentationRef = useRef(null);
+  const containerRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(1200);
 
   // Update time every second
   useEffect(() => {
