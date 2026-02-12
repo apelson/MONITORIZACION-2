@@ -198,11 +198,14 @@ api_router.include_router(tenant_devices_router)
 api_router.include_router(superadmin_router)
 api_router.include_router(billing_router)
 
+# Include WebSocket router
+api_router.include_router(websocket_router)
+
 # ============ ROOT & IMAGE PROXY ============
 
 @api_router.get("/")
 async def root():
-    return {"message": "Siempria Network Monitor API v3.0 (Refactored)"}
+    return {"message": "Siempria Network Monitor API v3.1 (with WebSockets)"}
 
 @api_router.get("/download-build")
 async def download_build():
