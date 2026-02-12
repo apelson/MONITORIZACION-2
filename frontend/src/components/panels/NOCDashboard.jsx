@@ -30,10 +30,22 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip as Recharts
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import SystemECG from '@/components/common/SystemECG';
-import { DashboardConfigPanel, useDashboardPreferences, WidgetWrapper, DEFAULT_LAYOUT } from '@/components/dashboard/DashboardWidgets';
+import { DashboardConfigPanel, useDashboardPreferences, WidgetWrapper, DEFAULT_LAYOUT, DEFAULT_WIDGETS } from '@/components/dashboard/DashboardWidgets';
 
 // Logo Siempria (hexágono azul)
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_bd3cf608-7344-4385-a96f-f4dc04839f9f/artifacts/t15tym24_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png";
+
+// Widget layout for customizable dashboard
+const INITIAL_LAYOUT = [
+  { i: 'stats', x: 0, y: 0, w: 12, h: 1, static: true },
+  { i: 'uptime', x: 0, y: 1, w: 4, h: 3, minW: 2, minH: 2 },
+  { i: 'systemMonitor', x: 4, y: 1, w: 4, h: 3, minW: 3, minH: 2 },
+  { i: 'cra', x: 8, y: 1, w: 4, h: 3, minW: 2, minH: 2 },
+  { i: 'organizations', x: 0, y: 4, w: 3, h: 3, minW: 2, minH: 2 },
+  { i: 'offline', x: 3, y: 4, w: 3, h: 3, minW: 2, minH: 2 },
+  { i: 'history', x: 6, y: 4, w: 3, h: 3, minW: 2, minH: 2 },
+  { i: 'alerts', x: 9, y: 4, w: 3, h: 3, minW: 2, minH: 2 },
+];
 
 const ICON_MAP = {
   camera: Camera, "hard-drive": HardDrive, network: Network, router: Router,
