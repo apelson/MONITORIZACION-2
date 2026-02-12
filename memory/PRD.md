@@ -3,53 +3,91 @@
 ## Original Problem Statement
 Build and deploy "Siempria Network Monitor," a full-stack network monitoring application pivoted into a multi-tenant SaaS platform named "Siempriapp." The application monitors Mobotix cameras, VMware ESXi servers, QNAP, Synology NAS devices, and OpenVPN servers.
 
-## Latest Session: 2026-02-12 - Dashboard Personalizable (Drag & Drop)
+## Latest Session: 2026-02-12 - Dashboard Refactorizado con Drag & Drop + Filtros
 
-### Correcciones y Nuevas Funcionalidades ✅
+### Implementación Completa ✅
 
-#### 1. Arreglado Backend en Producción
-- **Problema**: El archivo `users.py` se corrompió durante un deploy anterior
-- **Solución**: Restaurado el archivo con el router correcto y endpoint de preferencias
-- **Comando para usuario**: El backend ahora arranca correctamente con uvicorn
+#### 1. Dashboard Refactorizado
+- **Nuevo componente principal**: `NOCDashboardRefactored.jsx`
+- Arquitectura modular con componentes separados
+- Código más limpio y mantenible
 
-#### 2. Dashboard Personalizable - Fundamentos ✅
-- **Librería instalada**: `react-grid-layout` v2.2.2
-- **Widgets modulares creados** en `/app/frontend/src/components/noc/widgets/`:
-  - `StatsWidget.jsx` - Barra de estadísticas
-  - `UptimeWidget.jsx` - Gráfico de uptime
-  - `SystemMonitorWidget.jsx` - ECG + Mapa
-  - `CRAWidget.jsx` - Central Receptora de Alarmas
-  - `OrganizationsWidget.jsx` - Lista de organizaciones
-  - `OfflineWidget.jsx` - Dispositivos offline
-  - `HistoryWidget.jsx` - Historial de caídas
-  - `AlertsWidget.jsx` - Alertas recientes
+#### 2. Sistema de Drag & Drop con react-grid-layout
+- **Componente**: `DraggableGrid.jsx`
+- Grid responsive de 12 columnas
+- Widgets arrastrables y redimensionables en modo edición
+- Persistencia del layout en el servidor
+- Placeholder visual cyan durante el arrastre
 
-#### 3. Modo Edición del Dashboard ✅
-- **Botón de candado** en el header del NOC Dashboard
-- Al activar modo edición: toast "Modo edición activado - Arrastra los widgets"
-- Bordes cyan en widgets editables
-- Botón de reset layout disponible en modo edición
+#### 3. Filtros por Organización y Grupo
+- **Componente**: `DashboardFilters.jsx`
+- Dropdowns en el header para filtrar por organización y grupo
+- Filtrado en tiempo real de todos los widgets
+- Indicador "Filtrado" cuando hay filtros activos
+- Botón "Limpiar" para resetear filtros
 
-#### 4. Guardado de Preferencias ✅
+#### 4. Header Modular del NOC
+- **Componente**: `NOCHeader.jsx`
+- Controles: sonido, modo edición, presentación, nueva ventana, refresh, cerrar
+- Filtros integrados en el header
+- Reloj en tiempo real
+- Indicador de estado "Activo"
+
+#### 5. Widgets Modulares (8 widgets)
+Todos en `/app/frontend/src/components/noc/widgets/`:
+- `StatsWidget.jsx` - Barra de estadísticas (Total, Online, Offline, Uptime, Alertas, etc.)
+- `UptimeWidget.jsx` - Gráfico de uptime con selector 24h/7d
+- `SystemMonitorWidget.jsx` - ECG del sistema + mapa de Canarias
+- `CRAWidget.jsx` - Central Receptora de Alarmas con latencias
+- `OrganizationsWidget.jsx` - Lista de organizaciones con estados
+- `OfflineWidget.jsx` - Dispositivos offline con tiempo desde caída
+- `HistoryWidget.jsx` - Historial de caídas (7 días)
+- `AlertsWidget.jsx` - Alertas recientes (24h)
+
+#### 6. Preferencias de Usuario
 - **Endpoint**: `PUT /api/users/{id}/dashboard-preferences`
-- Guarda: layout, widgets visibles, filtros
-- Se carga automáticamente al iniciar sesión
+- Guarda: layouts, widgets visibles, filtros
+- Se carga automáticamente al login
 
-### Archivos Modificados:
-- `/app/frontend/src/components/panels/NOCDashboard.jsx` - Imports, estado, funciones de guardado
-- `/app/backend/routes/users.py` - Restaurado con endpoint de preferencias
-- `/app/backend/server.py` - Añadidos archivos widgets al endpoint de descarga
+### Archivos Creados/Modificados:
+```
+frontend/src/
+├── App.js (modificado - usa NOCDashboardRefactored)
+├── components/
+│   ├── noc/
+│   │   ├── DraggableGrid.jsx (NUEVO)
+│   │   ├── DashboardFilters.jsx (NUEVO)
+│   │   ├── NOCHeader.jsx (NUEVO)
+│   │   └── widgets/
+│   │       ├── index.js (actualizado)
+│   │       ├── StatsWidget.jsx
+│   │       ├── UptimeWidget.jsx
+│   │       ├── SystemMonitorWidget.jsx
+│   │       ├── CRAWidget.jsx
+│   │       ├── OrganizationsWidget.jsx
+│   │       ├── OfflineWidget.jsx
+│   │       ├── HistoryWidget.jsx
+│   │       └── AlertsWidget.jsx
+│   └── panels/
+│       └── NOCDashboardRefactored.jsx (NUEVO)
+backend/
+├── routes/users.py (restaurado)
+└── server.py (actualizado - archivos de descarga)
+```
 
 ### Tests Verificados ✅
-- Login funciona correctamente
-- NOC Dashboard carga con todas las secciones
-- ECG animado funcionando con contador de tiempo
-- Modo edición se activa (bordes visuales)
-- Estadísticas muestran datos reales (6 total, 4 online, 2 offline)
+- Login API funciona (curl)
+- NOC Dashboard carga correctamente
+- Filtros de organización/grupo funcionan
+- Widgets muestran datos reales
+- Modo edición se activa correctamente
+
+### Script de Despliegue
+Archivo: `/app/deploy_v3.sh`
 
 ---
 
-## Previous Session: 2026-02-12 - Logo, Latencia y Mejoras
+## Session Anterior: Dashboard Personalizable - Fundamentos
 
 ### NOC Dashboard (Centro de Operaciones de Red 24/7) ✅
 - **Archivo**: `/app/frontend/src/components/panels/NOCDashboard.jsx`
