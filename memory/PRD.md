@@ -3,28 +3,47 @@
 ## Original Problem Statement
 Build and deploy "Siempria Network Monitor," a full-stack network monitoring application pivoted into a multi-tenant SaaS platform named "Siempriapp." The application monitors Mobotix cameras, VMware ESXi servers, QNAP, Synology NAS devices, and OpenVPN servers.
 
-## Latest Session: 2026-02-12 - NOC Dashboard Traducciones
+## Latest Session: 2026-02-12 - NOC Dashboard Mejoras
 
-### Traducciones del NOC Dashboard ✅
+### NOC Dashboard - Maximizar Secciones y Historial de Caídas ✅
 - **Archivos modificados**: 
-  - `/app/frontend/src/components/panels/NOCDashboard.jsx` - Traducción completa con i18n
-  - `/app/frontend/src/locales/es/translation.json` - Nuevas claves de traducción
-  - `/app/frontend/src/locales/de/translation.json` - Nuevas claves de traducción
+  - `/app/frontend/src/App.js` - Añadido useEffect para nocFullscreen parameter
+  - `/app/frontend/src/components/panels/NOCDashboard.jsx` - Nuevas funcionalidades
 
-#### Textos traducidos:
-- Título y subtítulo del dashboard
-- Tarjetas de estadísticas (Total Dispositivos, Online, Offline, Uptime, Alertas Críticas, Organizaciones)
-- Histórico de Uptime (24h)
-- Estado por Organización
-- Estado CRA (Central Receptora de Alarmas)
-- Distribución de Estado
-- Dispositivos Offline
-- Alertas Recientes
-- Footer stats (Cámaras, Grupos, Dispositivos CRA, Disponibilidad)
-- Indicador "Sistema Activo"
-- Badge "Tiempo Real"
+#### Nuevas características:
+1. **Botones de Maximizar** en cada sección del NOC:
+   - Uptime, CRA, Organizaciones, Offline, Historial, Alertas
+   - 7 botones de maximizar en total
+   - Vista expandida a pantalla completa cuando se maximiza
+   - Botón de minimizar para volver a la vista normal
 
-## Previous Session: 2026-02-12 - NOC Dashboard Professional
+2. **Nueva Sección "Historial de Caídas"**:
+   - Muestra los últimos 7 días de incidencias
+   - Conteo de caídas por dispositivo
+   - Timestamp de última caída
+   - Lista de eventos de cada dispositivo
+   - Vista expandida con detalles completos
+
+3. **Botón "Abrir en Nueva Ventana"**:
+   - Icono de flecha externa en el header
+   - Abre el NOC en nueva pestaña con parámetro `?nocFullscreen=true`
+   - App.js detecta el parámetro y abre el NOC automáticamente
+
+4. **Bug Fix - NOC NO se abre automáticamente**:
+   - Estado `nocDashboardOpen` inicializado como `false`
+   - Solo se abre cuando el usuario hace clic en el botón flotante
+   - Parámetro nocFullscreen para abrir desde nueva ventana
+
+### Tests Verificados (100% éxito):
+- Login con admin/admin123 ✅
+- NOC NO se abre automáticamente ✅
+- Botón flotante NOC funciona ✅
+- Botones de maximizar (7) ✅
+- Sección Historial visible ✅
+- Maximizar/Minimizar funciona ✅
+- Visor en Directo funciona ✅
+
+## Previous Session: 2026-02-12 - NOC Dashboard Traducciones
 
 ### NOC Dashboard (Centro de Operaciones de Red 24/7) ✅
 - **Archivo**: `/app/frontend/src/components/panels/NOCDashboard.jsx`
