@@ -271,6 +271,15 @@ async def download_file(path: str):
         "icon-192x192.png": "/app/frontend/public/icons/icon-192x192.png",
         "icon-384x384.png": "/app/frontend/public/icons/icon-384x384.png",
         "icon-512x512.png": "/app/frontend/public/icons/icon-512x512.png",
+        # New NOC components
+        "ReportSettings.jsx": "/app/frontend/src/components/settings/ReportSettings.jsx",
+        "NOCStatsBar.jsx": "/app/frontend/src/components/noc/NOCStatsBar.jsx",
+        "NOCCRASection.jsx": "/app/frontend/src/components/noc/NOCCRASection.jsx",
+        "NOCHistorySection.jsx": "/app/frontend/src/components/noc/NOCHistorySection.jsx",
+        "NOCAlertsSection.jsx": "/app/frontend/src/components/noc/NOCAlertsSection.jsx",
+        "NOCMapSection.jsx": "/app/frontend/src/components/noc/NOCMapSection.jsx",
+        "NOCOrganizationsSection.jsx": "/app/frontend/src/components/noc/NOCOrganizationsSection.jsx",
+        "noc_index.js": "/app/frontend/src/components/noc/index.js",
     }
     
     if path not in allowed_files:
