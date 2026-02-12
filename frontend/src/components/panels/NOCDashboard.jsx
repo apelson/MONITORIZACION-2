@@ -855,12 +855,13 @@ const NOCDashboard = ({
       case 'alerts':
         return (
           <div className="flex-1 flex flex-col gap-4 p-4 bg-slate-900/50 rounded-xl">
+            {renderCompactStatsBar()}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Bell className="w-8 h-8 text-amber-400" />
                 <div>
-                  <h2 className="text-2xl font-bold text-white">Alertas Recientes</h2>
-                  <p className="text-slate-400">{stats.recentAlerts} alertas en las últimas 24 horas</p>
+                  <h2 className="text-2xl font-bold text-white">{t('noc.recentAlerts', 'Alertas Recientes')}</h2>
+                  <p className="text-slate-400">{stats.recentAlerts} {t('noc.alertsLast24h', 'alertas en las últimas 24 horas')}</p>
                 </div>
               </div>
               <Button variant="ghost" size="sm" onClick={() => setManualExpandedSection(null)}>
@@ -870,7 +871,7 @@ const NOCDashboard = ({
             {recentAlertsList.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center">
                 <CheckCircle className="w-32 h-32 text-emerald-500/50 mb-4" />
-                <p className="text-xl text-slate-400">Sin alertas recientes</p>
+                <p className="text-xl text-slate-400">{t('noc.noRecentAlerts', 'Sin alertas recientes')}</p>
               </div>
             ) : (
               <ScrollArea className="flex-1">
@@ -889,7 +890,7 @@ const NOCDashboard = ({
                           {isDown ? <XCircle className="w-6 h-6 text-red-400" /> : <CheckCircle className="w-6 h-6 text-emerald-400" />}
                           <div>
                             <p className="text-lg font-semibold text-white">{alert.device_name}</p>
-                            <p className="text-sm text-slate-400">{alert.message || (isDown ? 'Dispositivo desconectado' : 'Dispositivo conectado')}</p>
+                            <p className="text-sm text-slate-400">{alert.message || (isDown ? t('noc.deviceDisconnected', 'Dispositivo desconectado') : t('noc.deviceConnected', 'Dispositivo conectado'))}</p>
                           </div>
                         </div>
                         <div className="text-right">
@@ -908,12 +909,13 @@ const NOCDashboard = ({
       case 'organizations':
         return (
           <div className="flex-1 flex flex-col gap-4 p-4 bg-slate-900/50 rounded-xl">
+            {renderCompactStatsBar()}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Building2 className="w-8 h-8 text-purple-400" />
                 <div>
-                  <h2 className="text-2xl font-bold text-white">Estado por Organización</h2>
-                  <p className="text-slate-400">{devicesByOrg.length} organizaciones activas</p>
+                  <h2 className="text-2xl font-bold text-white">{t('noc.organizations', 'Estado por Organización')}</h2>
+                  <p className="text-slate-400">{devicesByOrg.length} {t('noc.activeOrgs', 'organizaciones activas')}</p>
                 </div>
               </div>
               <Button variant="ghost" size="sm" onClick={() => setManualExpandedSection(null)}>
