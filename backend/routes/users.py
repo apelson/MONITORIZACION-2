@@ -65,3 +65,37 @@ async def set_user_password(user_id: str, data: AdminSetPassword, current_user: 
         raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 6 caracteres")
     await users_collection.update_one({"id": user_id}, {"$set": {"password_hash": get_password_hash(data.new_password)}})
     return {"message": "Contraseña actualizada correctamente"}
+
+
+# Dashboard Preferences
+@router.get("/{user_id}/dashboard-preferences")
+async def get_dashboard_preferences(user_id: str, current_user: dict = Depends(get_current_user)):
+    """Get user's dashboard preferences"""
+    # User can only get their own preferences (unless admin)
+    if current_user.get("id") != user_id and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="No autorizado")
+    
+    user = await users_collection.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    return user.get("dashboard_preferences", {})
+
+@router.put("/{user_id}/dashboard-preferences")
+async def update_dashboard_preferences(user_id: str, preferences: dict, current_user: dict = Depends(get_current_user)):
+    """Update user's dashboard preferences"""
+    # User can only update their own preferences
+    if current_user.get("id") != user_id and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="No autorizado")
+    
+    user = await users_collection.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    await users_collection.update_one(
+        {"id": user_id}, 
+        {"$set": {"dashboard_preferences": preferences}}
+    )
+    
+    return {"message": "Preferencias guardadas", "preferences": preferences}
+
