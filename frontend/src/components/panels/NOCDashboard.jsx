@@ -1,25 +1,22 @@
 /**
  * NOCDashboard - Centro de Operaciones de Red Profesional 24/7
- * Dashboard completo para monitoreo en tiempo real de toda la infraestructura
+ * Optimizado para pantalla de 55" sin scroll
  */
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Monitor, Wifi, WifiOff, AlertTriangle, Building2, Clock, 
-  TrendingUp, TrendingDown, Activity, X, ChevronRight, 
-  RefreshCw, ExternalLink, ClipboardList, Eye, Server,
+  TrendingUp, Activity, X, ChevronRight, RefreshCw, Eye, Server,
   Camera, HardDrive, Network, Router, Printer, Shield, Box, Layers,
-  Bell, CheckCircle, XCircle, Calendar, BarChart3, Zap, Globe,
-  MapPin, Phone, ArrowRight, Play, History, Settings
+  Bell, CheckCircle, XCircle, BarChart3, History, ClipboardList
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, PieChart, Pie, Cell } from 'recharts';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -46,8 +43,6 @@ const NOCDashboard = ({
 }) => {
   const { t } = useTranslation();
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [selectedOrg, setSelectedOrg] = useState('all');
-  const [activeTab, setActiveTab] = useState('overview');
   const [refreshing, setRefreshing] = useState(false);
   const [uptimeData, setUptimeData] = useState([]);
   const [craDevices, setCraDevices] = useState([]);
@@ -58,7 +53,7 @@ const NOCDashboard = ({
     return () => clearInterval(interval);
   }, []);
 
-  // Generate uptime data for charts (simulated for last 24h)
+  // Generate uptime data for charts
   useEffect(() => {
     const now = new Date();
     const data = [];
@@ -69,8 +64,6 @@ const NOCDashboard = ({
       data.push({
         time: hour.getHours().toString().padStart(2, '0') + ':00',
         uptime: Math.max(85, Math.min(100, (onlineCount / Math.max(devices.length, 1)) * 100 + variance)),
-        online: Math.max(0, onlineCount + variance),
-        offline: Math.max(0, devices.length - onlineCount - variance)
       });
     }
     setUptimeData(data);
@@ -87,75 +80,50 @@ const NOCDashboard = ({
     const total = devices.length;
     const online = devices.filter(d => d.status === 'online').length;
     const offline = devices.filter(d => d.status === 'offline').length;
-    const unknown = devices.filter(d => !d.status || d.status === 'unknown').length;
     const uptimePercent = total > 0 ? ((online / total) * 100).toFixed(1) : 0;
-    
-    // Recent alerts (last 24h)
     const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const recentAlerts = alerts.filter(a => new Date(a.timestamp) > last24h);
     const criticalAlerts = recentAlerts.filter(a => a.alert_type === 'device_down' || a.alert_type === 'nas_disconnected');
-    
-    return { total, online, offline, unknown, uptimePercent, recentAlerts: recentAlerts.length, criticalAlerts: criticalAlerts.length };
+    return { total, online, offline, uptimePercent, recentAlerts: recentAlerts.length, criticalAlerts: criticalAlerts.length };
   }, [devices, alerts]);
 
   // Devices by organization
   const devicesByOrg = useMemo(() => {
-    const result = {};
+    const result = [];
     organizations.forEach(org => {
       const orgGroups = groups.filter(g => g.organization_id === org.id);
-      const orgDevices = devices.filter(d => 
-        orgGroups.some(g => g.id === d.group_id)
-      );
-      result[org.id] = {
-        org,
-        devices: orgDevices,
-        online: orgDevices.filter(d => d.status === 'online').length,
-        offline: orgDevices.filter(d => d.status === 'offline').length,
-        total: orgDevices.length
-      };
+      const orgDevices = devices.filter(d => orgGroups.some(g => g.id === d.group_id));
+      if (orgDevices.length > 0) {
+        result.push({
+          org,
+          online: orgDevices.filter(d => d.status === 'online').length,
+          offline: orgDevices.filter(d => d.status === 'offline').length,
+          total: orgDevices.length
+        });
+      }
     });
-    
-    // Devices without organization
-    const unassignedDevices = devices.filter(d => 
-      !groups.some(g => g.id === d.group_id) || 
-      !organizations.some(org => groups.filter(g => g.organization_id === org.id).some(g => g.id === d.group_id))
-    );
-    if (unassignedDevices.length > 0) {
-      result['unassigned'] = {
-        org: { id: 'unassigned', name: 'Sin Organización' },
-        devices: unassignedDevices,
-        online: unassignedDevices.filter(d => d.status === 'online').length,
-        offline: unassignedDevices.filter(d => d.status === 'offline').length,
-        total: unassignedDevices.length
-      };
-    }
-    
-    return result;
+    return result.sort((a, b) => b.offline - a.offline || b.total - a.total).slice(0, 8);
   }, [devices, organizations, groups]);
 
-  // Offline devices list
+  // Offline devices list (top 6)
   const offlineDevices = useMemo(() => {
     return devices
       .filter(d => d.status === 'offline')
-      .sort((a, b) => {
-        const aTime = new Date(a.last_status_change || 0);
-        const bTime = new Date(b.last_status_change || 0);
-        return bTime - aTime;
-      });
+      .sort((a, b) => new Date(b.last_status_change || 0) - new Date(a.last_status_change || 0))
+      .slice(0, 6);
   }, [devices]);
 
-  // Recent alerts (last 10)
-  const recentAlerts = useMemo(() => {
+  // Recent alerts (top 5)
+  const recentAlertsList = useMemo(() => {
     return [...alerts]
       .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-      .slice(0, 10);
+      .slice(0, 5);
   }, [alerts]);
 
   // Pie chart data
   const pieData = useMemo(() => [
     { name: 'Online', value: stats.online, color: '#10b981' },
-    { name: 'Offline', value: stats.offline, color: '#ef4444' },
-    { name: 'Desconocido', value: stats.unknown, color: '#64748b' }
+    { name: 'Offline', value: stats.offline, color: '#ef4444' }
   ].filter(d => d.value > 0), [stats]);
 
   const getDeviceIcon = (device) => {
@@ -164,47 +132,36 @@ const NOCDashboard = ({
     return ICON_MAP[iconName] || Server;
   };
 
-  const getGroupName = (groupId) => {
-    return groups.find(g => g.id === groupId)?.name || 'Sin grupo';
-  };
-
-  const getOrgName = (device) => {
-    const group = groups.find(g => g.id === device.group_id);
-    if (!group) return 'Sin organización';
-    const org = organizations.find(o => o.id === group.organization_id);
-    return org?.name || 'Sin organización';
-  };
-
   const formatTimeSince = (timestamp) => {
-    if (!timestamp) return 'Desconocido';
+    if (!timestamp) return '?';
     const diff = Date.now() - new Date(timestamp).getTime();
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
-    
-    if (minutes < 1) return 'Ahora';
     if (minutes < 60) return `${minutes}m`;
     if (hours < 24) return `${hours}h`;
     return `${days}d`;
   };
 
-  const handleRefresh = async () => {
+  const handleRefresh = () => {
     setRefreshing(true);
-    toast.info('Actualizando datos...');
-    // Trigger a refresh via parent component
+    toast.info(t('noc.updatingData', 'Actualizando datos...'));
     setTimeout(() => {
       setRefreshing(false);
-      toast.success('Datos actualizados');
+      toast.success(t('noc.dataUpdated', 'Datos actualizados'));
     }, 1500);
+  };
+
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    }
   };
 
   const handleDeviceAction = (device, action) => {
     switch (action) {
       case 'view':
         if (onDeviceClick) onDeviceClick(device);
-        break;
-      case 'live':
-        if (onViewLive) onViewLive(device);
         break;
       case 'incident':
         if (onCreateIncident) onCreateIncident(device);
@@ -218,58 +175,50 @@ const NOCDashboard = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-slate-950 text-white overflow-hidden" data-testid="noc-dashboard">
-      {/* Header */}
-      <div className="h-16 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-cyan-500/20 flex items-center justify-between px-6">
+    <div className="fixed inset-0 z-[9999] bg-slate-950 text-white flex flex-col" data-testid="noc-dashboard">
+      {/* Header - Compact */}
+      <div className="h-14 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-cyan-500/20 flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
-              <Monitor className="w-6 h-6 text-cyan-400" />
+            <div className="p-1.5 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
+              <Monitor className="w-5 h-5 text-cyan-400" />
             </div>
             <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 text-transparent bg-clip-text">
+              <h1 className="text-lg font-bold bg-gradient-to-r from-cyan-400 to-blue-400 text-transparent bg-clip-text">
                 {t('noc.title', 'NOC Dashboard')}
               </h1>
-              <p className="text-xs text-slate-400">{t('noc.subtitle', 'Centro de Operaciones de Red 24/7')}</p>
+              <p className="text-[10px] text-slate-400">{t('noc.subtitle', 'Centro de Operaciones de Red 24/7')}</p>
             </div>
           </div>
-          <div className="h-8 w-px bg-slate-700 mx-2" />
-          <img src={LOGO_URL} alt="Siempria" className="h-10 object-contain opacity-80" />
+          <div className="h-8 w-px bg-slate-700" />
+          <img src={LOGO_URL} alt="Siempria" className="h-12 object-contain" />
         </div>
         
-        <div className="flex items-center gap-4">
-          {/* Live Clock */}
-          <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 rounded-lg border border-slate-700">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-slate-700">
             <Clock className="w-4 h-4 text-cyan-400" />
-            <span className="font-mono text-lg text-cyan-400">
+            <span className="font-mono text-base text-cyan-400">
               {currentTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
             </span>
-            <span className="text-xs text-slate-500">
+            <span className="text-[10px] text-slate-500">
               {currentTime.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}
             </span>
           </div>
           
-          {/* Status Indicator */}
-          <div className="flex items-center gap-2 px-3 py-2 bg-emerald-500/10 rounded-lg border border-emerald-500/30">
+          <div className="flex items-center gap-1.5 px-2 py-1.5 bg-emerald-500/10 rounded-lg border border-emerald-500/30">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            <span className="text-sm text-emerald-400">{t('noc.systemActive', 'Sistema Activo')}</span>
+            <span className="text-xs text-emerald-400">{t('noc.systemActive', 'Sistema Activo')}</span>
           </div>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="text-slate-400 hover:text-white"
-          >
+          <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={refreshing} className="text-slate-400 hover:text-white h-8 w-8 p-0">
             <RefreshCw className={cn("w-4 h-4", refreshing && "animate-spin")} />
           </Button>
           
           <Button
             variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="text-slate-400 hover:text-white hover:bg-red-500/10"
+            size="sm"
+            onClick={handleClose}
+            className="text-slate-400 hover:text-white hover:bg-red-500/20 h-8 w-8 p-0"
             data-testid="noc-close-btn"
           >
             <X className="w-5 h-5" />
@@ -277,539 +226,271 @@ const NOCDashboard = ({
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="h-[calc(100vh-4rem)] overflow-hidden">
-        <ScrollArea className="h-full">
-          <div className="p-6 space-y-6">
+      {/* Main Content - Fills remaining space, NO SCROLL */}
+      <div className="flex-1 p-3 flex flex-col gap-3 overflow-hidden">
+        
+        {/* Stats Row - Fixed height */}
+        <div className="grid grid-cols-6 gap-3 shrink-0">
+          {/* Total Devices */}
+          <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] text-slate-400 uppercase">{t('noc.totalDevices', 'Total Dispositivos')}</p>
+              <p className="text-2xl font-bold text-white">{stats.total}</p>
+            </div>
+            <Server className="w-8 h-8 text-cyan-400 opacity-50" />
+          </div>
+
+          {/* Online */}
+          <div className="bg-slate-900/80 border border-emerald-500/30 rounded-lg p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] text-emerald-400 uppercase">{t('noc.online', 'Online')}</p>
+              <p className="text-2xl font-bold text-emerald-400">{stats.online}</p>
+            </div>
+            <Wifi className="w-8 h-8 text-emerald-400 opacity-50" />
+          </div>
+
+          {/* Offline */}
+          <div className={cn("bg-slate-900/80 rounded-lg p-3 flex items-center justify-between", stats.offline > 0 ? "border border-red-500/50 animate-pulse" : "border border-slate-700/50")}>
+            <div>
+              <p className="text-[10px] text-red-400 uppercase">{t('noc.offline', 'Offline')}</p>
+              <p className="text-2xl font-bold text-red-400">{stats.offline}</p>
+            </div>
+            <WifiOff className="w-8 h-8 text-red-400 opacity-50" />
+          </div>
+
+          {/* Uptime */}
+          <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] text-blue-400 uppercase">{t('noc.uptime', 'Uptime')}</p>
+              <p className="text-2xl font-bold text-blue-400">{stats.uptimePercent}%</p>
+            </div>
+            <TrendingUp className="w-8 h-8 text-blue-400 opacity-50" />
+          </div>
+
+          {/* Critical Alerts */}
+          <div className={cn("bg-slate-900/80 rounded-lg p-3 flex items-center justify-between", stats.criticalAlerts > 0 ? "border border-orange-500/50" : "border border-slate-700/50")}>
+            <div>
+              <p className="text-[10px] text-orange-400 uppercase">{t('noc.criticalAlerts', 'Alertas Críticas')}</p>
+              <p className="text-2xl font-bold text-orange-400">{stats.criticalAlerts}</p>
+            </div>
+            <AlertTriangle className="w-8 h-8 text-orange-400 opacity-50" />
+          </div>
+
+          {/* Organizations */}
+          <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] text-purple-400 uppercase">{t('noc.organizations', 'Organizaciones')}</p>
+              <p className="text-2xl font-bold text-purple-400">{organizations.length}</p>
+            </div>
+            <Building2 className="w-8 h-8 text-purple-400 opacity-50" />
+          </div>
+        </div>
+
+        {/* Main Grid - Fills remaining space */}
+        <div className="flex-1 grid grid-cols-12 gap-3 min-h-0">
+          
+          {/* Left Column - 8 cols */}
+          <div className="col-span-8 flex flex-col gap-3 min-h-0">
             
-            {/* Stats Cards Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {/* Total Devices */}
-              <Card className="bg-slate-900/80 border-slate-700/50 hover:border-cyan-500/30 transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-slate-400 uppercase tracking-wider">{t('noc.totalDevices', 'Total Dispositivos')}</p>
-                      <p className="text-3xl font-bold text-white mt-1">{stats.total}</p>
-                    </div>
-                    <div className="p-3 bg-cyan-500/10 rounded-lg">
-                      <Server className="w-6 h-6 text-cyan-400" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Online */}
-              <Card className="bg-slate-900/80 border-emerald-500/30 hover:border-emerald-500/50 transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-emerald-400 uppercase tracking-wider">{t('noc.online', 'Online')}</p>
-                      <p className="text-3xl font-bold text-emerald-400 mt-1">{stats.online}</p>
-                    </div>
-                    <div className="p-3 bg-emerald-500/10 rounded-lg">
-                      <Wifi className="w-6 h-6 text-emerald-400" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Offline */}
-              <Card className={cn(
-                "bg-slate-900/80 transition-colors",
-                stats.offline > 0 ? "border-red-500/50 animate-pulse" : "border-slate-700/50"
-              )}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-red-400 uppercase tracking-wider">{t('noc.offline', 'Offline')}</p>
-                      <p className="text-3xl font-bold text-red-400 mt-1">{stats.offline}</p>
-                    </div>
-                    <div className="p-3 bg-red-500/10 rounded-lg">
-                      <WifiOff className="w-6 h-6 text-red-400" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Uptime */}
-              <Card className="bg-slate-900/80 border-slate-700/50 hover:border-blue-500/30 transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-blue-400 uppercase tracking-wider">{t('noc.uptime', 'Uptime')}</p>
-                      <p className="text-3xl font-bold text-blue-400 mt-1">{stats.uptimePercent}%</p>
-                    </div>
-                    <div className="p-3 bg-blue-500/10 rounded-lg">
-                      <TrendingUp className="w-6 h-6 text-blue-400" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Critical Alerts */}
-              <Card className={cn(
-                "bg-slate-900/80 transition-colors",
-                stats.criticalAlerts > 0 ? "border-orange-500/50" : "border-slate-700/50"
-              )}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-orange-400 uppercase tracking-wider">{t('noc.criticalAlerts', 'Alertas Críticas')}</p>
-                      <p className="text-3xl font-bold text-orange-400 mt-1">{stats.criticalAlerts}</p>
-                    </div>
-                    <div className="p-3 bg-orange-500/10 rounded-lg">
-                      <AlertTriangle className="w-6 h-6 text-orange-400" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Organizations */}
-              <Card className="bg-slate-900/80 border-slate-700/50 hover:border-purple-500/30 transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-purple-400 uppercase tracking-wider">{t('noc.organizations', 'Organizaciones')}</p>
-                      <p className="text-3xl font-bold text-purple-400 mt-1">{organizations.length}</p>
-                    </div>
-                    <div className="p-3 bg-purple-500/10 rounded-lg">
-                      <Building2 className="w-6 h-6 text-purple-400" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Uptime Chart - 40% height */}
+            <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex-[4] min-h-0">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-cyan-400" />
+                  <span className="text-sm font-semibold text-white">{t('noc.uptimeHistory', 'Histórico de Uptime (24h)')}</span>
+                </div>
+                <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 text-[10px]">{t('noc.realTime', 'Tiempo Real')}</Badge>
+              </div>
+              <div className="h-[calc(100%-2rem)]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={uptimeData}>
+                    <defs>
+                      <linearGradient id="uptimeGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="time" stroke="#64748b" fontSize={10} tickLine={false} />
+                    <YAxis stroke="#64748b" fontSize={10} tickLine={false} domain={[80, 100]} tickFormatter={(v) => `${v}%`} />
+                    <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', fontSize: '12px' }} />
+                    <Area type="monotone" dataKey="uptime" stroke="#06b6d4" strokeWidth={2} fill="url(#uptimeGradient)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
-            {/* Main Panels Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
-              {/* Left Column - Uptime Chart & Org Breakdown */}
-              <div className="lg:col-span-2 space-y-6">
-                
-                {/* Uptime Chart */}
-                <Card className="bg-slate-900/80 border-slate-700/50">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-lg text-white flex items-center gap-2">
-                          <Activity className="w-5 h-5 text-cyan-400" />
-                          {t('noc.uptimeHistory', 'Histórico de Uptime (24h)')}
-                        </CardTitle>
-                        <CardDescription className="text-slate-400">
-                          {t('noc.deviceStateEvolution', 'Evolución del estado de dispositivos')}
-                        </CardDescription>
-                      </div>
-                      <Badge variant="outline" className="border-cyan-500/30 text-cyan-400">
-                        {t('noc.realTime', 'Tiempo Real')}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={uptimeData}>
-                          <defs>
-                            <linearGradient id="uptimeGradient" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3}/>
-                              <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
-                            </linearGradient>
-                          </defs>
-                          <XAxis 
-                            dataKey="time" 
-                            stroke="#64748b" 
-                            fontSize={12}
-                            tickLine={false}
-                          />
-                          <YAxis 
-                            stroke="#64748b" 
-                            fontSize={12}
-                            tickLine={false}
-                            domain={[0, 100]}
-                            tickFormatter={(v) => `${v}%`}
-                          />
-                          <RechartsTooltip
-                            contentStyle={{ 
-                              backgroundColor: '#1e293b', 
-                              border: '1px solid #334155',
-                              borderRadius: '8px'
-                            }}
-                            labelStyle={{ color: '#94a3b8' }}
-                            formatter={(value) => [`${value.toFixed(1)}%`, 'Uptime']}
-                          />
-                          <Area
-                            type="monotone"
-                            dataKey="uptime"
-                            stroke="#06b6d4"
-                            strokeWidth={2}
-                            fill="url(#uptimeGradient)"
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Organizations Breakdown */}
-                <Card className="bg-slate-900/80 border-slate-700/50">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg text-white flex items-center gap-2">
-                      <Building2 className="w-5 h-5 text-purple-400" />
-                      {t('noc.orgStatus', 'Estado por Organización')}
-                    </CardTitle>
-                    <CardDescription className="text-slate-400">
-                      {t('noc.orgBreakdown', 'Desglose de dispositivos por cliente')}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {Object.values(devicesByOrg).map(({ org, devices: orgDevices, online, offline, total }) => {
-                        const uptimePercent = total > 0 ? (online / total) * 100 : 0;
-                        const isHealthy = uptimePercent >= 90;
-                        const isWarning = uptimePercent >= 50 && uptimePercent < 90;
-                        
-                        return (
-                          <div 
-                            key={org.id}
-                            className={cn(
-                              "p-4 rounded-lg border transition-all cursor-pointer hover:scale-[1.01]",
-                              offline > 0 
-                                ? "bg-red-500/5 border-red-500/30 hover:border-red-500/50" 
-                                : "bg-slate-800/50 border-slate-700/50 hover:border-cyan-500/30"
-                            )}
-                            onClick={() => setSelectedOrg(org.id)}
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-3">
-                                <div className={cn(
-                                  "p-2 rounded-lg",
-                                  isHealthy ? "bg-emerald-500/10" : isWarning ? "bg-yellow-500/10" : "bg-red-500/10"
-                                )}>
-                                  <Building2 className={cn(
-                                    "w-5 h-5",
-                                    isHealthy ? "text-emerald-400" : isWarning ? "text-yellow-400" : "text-red-400"
-                                  )} />
-                                </div>
-                                <div>
-                                  <h4 className="font-semibold text-white">{org.name}</h4>
-                                  <p className="text-xs text-slate-400">{total} {t('noc.devices', 'dispositivos')}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-4">
-                                <div className="text-right">
-                                  <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 text-xs">
-                                      {online} online
-                                    </Badge>
-                                    {offline > 0 && (
-                                      <Badge variant="outline" className="border-red-500/30 text-red-400 text-xs animate-pulse">
-                                        {offline} offline
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                                <ChevronRight className="w-5 h-5 text-slate-500" />
-                              </div>
-                            </div>
-                            <div className="relative">
-                              <Progress 
-                                value={uptimePercent} 
-                                className="h-2 bg-slate-700"
-                              />
-                              <span className="absolute right-0 -top-5 text-xs text-slate-400">
-                                {uptimePercent.toFixed(0)}%
-                              </span>
-                            </div>
+            {/* Organizations Row - 60% height */}
+            <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex-[6] min-h-0 flex flex-col">
+              <div className="flex items-center gap-2 mb-2 shrink-0">
+                <Building2 className="w-4 h-4 text-purple-400" />
+                <span className="text-sm font-semibold text-white">{t('noc.orgStatus', 'Estado por Organización')}</span>
+              </div>
+              <ScrollArea className="flex-1">
+                <div className="grid grid-cols-2 gap-2 pr-2">
+                  {devicesByOrg.map(({ org, online, offline, total }) => {
+                    const uptimePercent = total > 0 ? (online / total) * 100 : 0;
+                    return (
+                      <div 
+                        key={org.id}
+                        className={cn(
+                          "p-2 rounded-lg border transition-all",
+                          offline > 0 ? "bg-red-500/5 border-red-500/30" : "bg-slate-800/50 border-slate-700/50"
+                        )}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-medium text-white truncate flex-1">{org.name}</span>
+                          <div className="flex items-center gap-1 ml-2">
+                            <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 text-[9px] px-1 py-0">{online}</Badge>
+                            {offline > 0 && <Badge variant="outline" className="border-red-500/30 text-red-400 text-[9px] px-1 py-0">{offline}</Badge>}
                           </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* CRA Status Panel */}
-                {craDevices.length > 0 && (
-                  <Card className="bg-slate-900/80 border-slate-700/50">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg text-white flex items-center gap-2">
-                        <Shield className="w-5 h-5 text-amber-400" />
-                        {t('noc.craStatus', 'Estado CRA (Central Receptora de Alarmas)')}
-                      </CardTitle>
-                      <CardDescription className="text-slate-400">
-                        {t('noc.craDevices', 'Dispositivos de la central de alarmas')}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {craDevices.map(device => {
-                          const Icon = getDeviceIcon(device);
-                          return (
-                            <div
-                              key={device.id}
-                              className={cn(
-                                "p-3 rounded-lg border transition-all cursor-pointer hover:scale-105",
-                                device.status === 'online' 
-                                  ? "bg-emerald-500/5 border-emerald-500/30" 
-                                  : "bg-red-500/10 border-red-500/50 animate-pulse"
-                              )}
-                              onClick={() => handleDeviceAction(device, 'view')}
-                            >
-                              <div className="flex items-center gap-2 mb-2">
-                                <Icon className={cn(
-                                  "w-5 h-5",
-                                  device.status === 'online' ? "text-emerald-400" : "text-red-400"
-                                )} />
-                                <span className={cn(
-                                  "w-2 h-2 rounded-full",
-                                  device.status === 'online' ? "bg-emerald-500" : "bg-red-500 animate-pulse"
-                                )} />
-                              </div>
-                              <p className="text-sm font-medium text-white truncate">{device.name}</p>
-                              <p className="text-xs text-slate-400 truncate">{device.ip_address}</p>
-                            </div>
-                          );
-                        })}
+                        </div>
+                        <Progress value={uptimePercent} className="h-1 bg-slate-700" />
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-
-              {/* Right Column - Offline Devices & Alerts */}
-              <div className="space-y-6">
-                
-                {/* Pie Chart */}
-                <Card className="bg-slate-900/80 border-slate-700/50">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg text-white flex items-center gap-2">
-                      <BarChart3 className="w-5 h-5 text-blue-400" />
-                      {t('noc.stateDistribution', 'Distribución de Estado')}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-48">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={pieData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={50}
-                            outerRadius={70}
-                            paddingAngle={5}
-                            dataKey="value"
-                          >
-                            {pieData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <RechartsTooltip
-                            contentStyle={{ 
-                              backgroundColor: '#1e293b', 
-                              border: '1px solid #334155',
-                              borderRadius: '8px'
-                            }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="flex justify-center gap-4 mt-2">
-                      {pieData.map((item, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                          <span className="text-xs text-slate-400">{item.name}: {item.value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Offline Devices List */}
-                <Card className={cn(
-                  "bg-slate-900/80 border-slate-700/50",
-                  offlineDevices.length > 0 && "border-red-500/30"
-                )}>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg text-white flex items-center gap-2">
-                        <WifiOff className="w-5 h-5 text-red-400" />
-                        {t('noc.offlineDevices', 'Dispositivos Offline')}
-                      </CardTitle>
-                      <Badge variant="outline" className="border-red-500/30 text-red-400">
-                        {offlineDevices.length}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <ScrollArea className="h-64">
-                      {offlineDevices.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-slate-500 py-8">
-                          <CheckCircle className="w-12 h-12 mb-3 text-emerald-500" />
-                          <p className="text-sm text-emerald-400">{t('noc.allOnline', 'Todos los dispositivos online')}</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          {offlineDevices.map(device => {
-                            const Icon = getDeviceIcon(device);
-                            return (
-                              <div
-                                key={device.id}
-                                className="p-3 rounded-lg bg-red-500/5 border border-red-500/20 hover:border-red-500/40 transition-all group"
-                              >
-                                <div className="flex items-start justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-red-500/10 rounded-lg">
-                                      <Icon className="w-4 h-4 text-red-400" />
-                                    </div>
-                                    <div>
-                                      <p className="font-medium text-white text-sm">{device.name}</p>
-                                      <p className="text-xs text-slate-400">{device.ip_address}:{device.port}</p>
-                                      <p className="text-xs text-red-400 mt-1">
-                                        <Clock className="w-3 h-3 inline mr-1" />
-                                        Offline hace {formatTimeSince(device.last_status_change)}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                                
-                                {/* Action Buttons */}
-                                <div className="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          size="sm"
-                                          variant="ghost"
-                                          className="h-8 px-2 text-slate-400 hover:text-white hover:bg-slate-700"
-                                          onClick={() => handleDeviceAction(device, 'view')}
-                                        >
-                                          <Eye className="w-4 h-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>Ver dispositivo</TooltipContent>
-                                    </Tooltip>
-                                    
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          size="sm"
-                                          variant="ghost"
-                                          className="h-8 px-2 text-slate-400 hover:text-orange-400 hover:bg-orange-500/10"
-                                          onClick={() => handleDeviceAction(device, 'incident')}
-                                        >
-                                          <ClipboardList className="w-4 h-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>Crear incidencia</TooltipContent>
-                                    </Tooltip>
-                                    
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          size="sm"
-                                          variant="ghost"
-                                          className="h-8 px-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10"
-                                          onClick={() => handleDeviceAction(device, 'history')}
-                                        >
-                                          <History className="w-4 h-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>Ver historial</TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </ScrollArea>
-                  </CardContent>
-                </Card>
-
-                {/* Recent Alerts */}
-                <Card className="bg-slate-900/80 border-slate-700/50">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg text-white flex items-center gap-2">
-                        <Bell className="w-5 h-5 text-amber-400" />
-                        {t('noc.recentAlerts', 'Alertas Recientes')}
-                      </CardTitle>
-                      <Badge variant="outline" className="border-amber-500/30 text-amber-400">
-                        {stats.recentAlerts} {t('noc.last24h', 'últimas 24h')}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <ScrollArea className="h-48">
-                      {recentAlerts.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-slate-500 py-8">
-                          <CheckCircle className="w-10 h-10 mb-2 text-emerald-500/50" />
-                          <p className="text-sm">{t('noc.noRecentAlerts', 'Sin alertas recientes')}</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          {recentAlerts.map(alert => {
-                            const isDown = alert.alert_type === 'device_down' || alert.alert_type === 'nas_disconnected';
-                            const device = devices.find(d => d.id === alert.device_id);
-                            
-                            return (
-                              <div
-                                key={alert.id}
-                                className={cn(
-                                  "p-2 rounded-lg border transition-all cursor-pointer hover:scale-[1.02]",
-                                  isDown 
-                                    ? "bg-red-500/5 border-red-500/20 hover:border-red-500/40" 
-                                    : "bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/40"
-                                )}
-                                onClick={() => device && handleDeviceAction(device, 'view')}
-                              >
-                                <div className="flex items-center gap-2">
-                                  {isDown ? (
-                                    <XCircle className="w-4 h-4 text-red-400 shrink-0" />
-                                  ) : (
-                                    <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-                                  )}
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-white truncate">{alert.device_name}</p>
-                                    <p className="text-xs text-slate-400">
-                                      {formatTimeSince(alert.timestamp)}
-                                    </p>
-                                  </div>
-                                  <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </ScrollArea>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-
-            {/* Footer Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-slate-700/50">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-cyan-400">{devices.filter(d => d.device_type_id === 'type-camera').length}</p>
-                <p className="text-xs text-slate-400">{t('noc.cameras', 'Cámaras')}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-purple-400">{groups.length}</p>
-                <p className="text-xs text-slate-400">{t('noc.groups', 'Grupos')}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-amber-400">{craDevices.length}</p>
-                <p className="text-xs text-slate-400">{t('noc.craDevicesCount', 'Dispositivos CRA')}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-emerald-400">{stats.uptimePercent}%</p>
-                <p className="text-xs text-slate-400">{t('noc.availability', 'Disponibilidad')}</p>
-              </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
             </div>
           </div>
-        </ScrollArea>
+
+          {/* Right Column - 4 cols */}
+          <div className="col-span-4 flex flex-col gap-3 min-h-0">
+            
+            {/* Pie Chart */}
+            <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex-[3] min-h-0">
+              <div className="flex items-center gap-2 mb-1">
+                <BarChart3 className="w-4 h-4 text-blue-400" />
+                <span className="text-sm font-semibold text-white">{t('noc.stateDistribution', 'Distribución de Estado')}</span>
+              </div>
+              <div className="h-[calc(100%-2.5rem)] flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={pieData} cx="50%" cy="50%" innerRadius="40%" outerRadius="70%" paddingAngle={5} dataKey="value">
+                      {pieData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex justify-center gap-4">
+                {pieData.map((item, i) => (
+                  <div key={i} className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="text-[10px] text-slate-400">{item.name}: {item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Offline Devices */}
+            <div className={cn("bg-slate-900/80 rounded-lg p-3 flex-[4] min-h-0 flex flex-col", offlineDevices.length > 0 && "border border-red-500/30")}>
+              <div className="flex items-center justify-between mb-2 shrink-0">
+                <div className="flex items-center gap-2">
+                  <WifiOff className="w-4 h-4 text-red-400" />
+                  <span className="text-sm font-semibold text-white">{t('noc.offlineDevices', 'Dispositivos Offline')}</span>
+                </div>
+                <Badge variant="outline" className="border-red-500/30 text-red-400 text-[10px]">{stats.offline}</Badge>
+              </div>
+              <ScrollArea className="flex-1">
+                {offlineDevices.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-slate-500">
+                    <CheckCircle className="w-8 h-8 text-emerald-500 mb-1" />
+                    <p className="text-xs text-emerald-400">{t('noc.allOnline', 'Todos online')}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1 pr-2">
+                    {offlineDevices.map(device => {
+                      const Icon = getDeviceIcon(device);
+                      return (
+                        <TooltipProvider key={device.id}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="p-2 rounded bg-red-500/5 border border-red-500/20 hover:border-red-500/40 cursor-pointer group">
+                                <div className="flex items-center gap-2">
+                                  <Icon className="w-3 h-3 text-red-400 shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium text-white truncate">{device.name}</p>
+                                    <p className="text-[10px] text-slate-400">{device.ip_address}</p>
+                                  </div>
+                                  <span className="text-[10px] text-red-400">{formatTimeSince(device.last_status_change)}</span>
+                                </div>
+                                <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button size="sm" variant="ghost" className="h-5 px-1 text-[10px]" onClick={() => handleDeviceAction(device, 'view')}>
+                                    <Eye className="w-3 h-3" />
+                                  </Button>
+                                  <Button size="sm" variant="ghost" className="h-5 px-1 text-[10px]" onClick={() => handleDeviceAction(device, 'incident')}>
+                                    <ClipboardList className="w-3 h-3" />
+                                  </Button>
+                                  <Button size="sm" variant="ghost" className="h-5 px-1 text-[10px]" onClick={() => handleDeviceAction(device, 'history')}>
+                                    <History className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>{device.name} - {device.ip_address}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      );
+                    })}
+                  </div>
+                )}
+              </ScrollArea>
+            </div>
+
+            {/* Recent Alerts */}
+            <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-3 flex-[3] min-h-0 flex flex-col">
+              <div className="flex items-center justify-between mb-2 shrink-0">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-amber-400" />
+                  <span className="text-sm font-semibold text-white">{t('noc.recentAlerts', 'Alertas Recientes')}</span>
+                </div>
+                <Badge variant="outline" className="border-amber-500/30 text-amber-400 text-[10px]">{stats.recentAlerts} 24h</Badge>
+              </div>
+              <ScrollArea className="flex-1">
+                {recentAlertsList.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-slate-500">
+                    <CheckCircle className="w-6 h-6 text-emerald-500/50 mb-1" />
+                    <p className="text-[10px]">{t('noc.noRecentAlerts', 'Sin alertas')}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1 pr-2">
+                    {recentAlertsList.map(alert => {
+                      const isDown = alert.alert_type === 'device_down' || alert.alert_type === 'nas_disconnected';
+                      return (
+                        <div key={alert.id} className={cn("p-1.5 rounded border", isDown ? "bg-red-500/5 border-red-500/20" : "bg-emerald-500/5 border-emerald-500/20")}>
+                          <div className="flex items-center gap-2">
+                            {isDown ? <XCircle className="w-3 h-3 text-red-400" /> : <CheckCircle className="w-3 h-3 text-emerald-400" />}
+                            <span className="text-[10px] text-white truncate flex-1">{alert.device_name}</span>
+                            <span className="text-[10px] text-slate-400">{formatTimeSince(alert.timestamp)}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </ScrollArea>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Stats - Fixed height */}
+        <div className="grid grid-cols-4 gap-3 shrink-0">
+          <div className="bg-slate-900/50 rounded-lg p-2 text-center">
+            <p className="text-lg font-bold text-cyan-400">{devices.filter(d => d.device_type_id === 'type-camera').length}</p>
+            <p className="text-[10px] text-slate-400">{t('noc.cameras', 'Cámaras')}</p>
+          </div>
+          <div className="bg-slate-900/50 rounded-lg p-2 text-center">
+            <p className="text-lg font-bold text-purple-400">{groups.length}</p>
+            <p className="text-[10px] text-slate-400">{t('noc.groups', 'Grupos')}</p>
+          </div>
+          <div className="bg-slate-900/50 rounded-lg p-2 text-center">
+            <p className="text-lg font-bold text-amber-400">{craDevices.length}</p>
+            <p className="text-[10px] text-slate-400">{t('noc.craDevicesCount', 'Dispositivos CRA')}</p>
+          </div>
+          <div className="bg-slate-900/50 rounded-lg p-2 text-center">
+            <p className="text-lg font-bold text-emerald-400">{stats.uptimePercent}%</p>
+            <p className="text-[10px] text-slate-400">{t('noc.availability', 'Disponibilidad')}</p>
+          </div>
+        </div>
       </div>
     </div>
   );
