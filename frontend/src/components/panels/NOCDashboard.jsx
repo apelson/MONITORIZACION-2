@@ -517,12 +517,13 @@ const NOCDashboard = ({
       case 'organizations':
         return (
           <div className="flex-1 flex flex-col gap-4 p-4">
-            <div className="text-center mb-4">
+            {renderCompactStatsBar()}
+            <div className="text-center mb-2">
               <h2 className="text-3xl font-bold text-purple-400 flex items-center justify-center gap-3">
                 <Building2 className="w-10 h-10" />
-                Estado por Organización
+                {t('noc.organizations', 'Estado por Organización')}
               </h2>
-              <p className="text-slate-400">{devicesByOrg.length} organizaciones activas</p>
+              <p className="text-slate-400">{devicesByOrg.length} {t('noc.activeOrgs', 'organizaciones activas')}</p>
             </div>
             <ScrollArea className="flex-1">
               <div className="grid grid-cols-2 gap-4 p-2">
@@ -544,7 +545,7 @@ const NOCDashboard = ({
                         </div>
                       </div>
                       <Progress value={uptimePercent} className="h-3 bg-slate-700" />
-                      <p className="text-sm text-slate-400 mt-2">{total} dispositivos - {uptimePercent.toFixed(1)}% disponibilidad</p>
+                      <p className="text-sm text-slate-400 mt-2">{total} {t('noc.devices', 'dispositivos')} - {uptimePercent.toFixed(1)}% {t('noc.availability', 'disponibilidad')}</p>
                     </div>
                   );
                 })}
@@ -556,7 +557,8 @@ const NOCDashboard = ({
       case 'offline':
         return (
           <div className="flex-1 flex flex-col gap-4 p-4">
-            <div className="text-center mb-4">
+            {renderCompactStatsBar()}
+            <div className="text-center mb-2">
               <h2 className={cn("text-3xl font-bold flex items-center justify-center gap-3", offlineDevices.length > 0 ? "text-red-400" : "text-emerald-400")}>
                 <WifiOff className="w-10 h-10" />
                 Dispositivos Offline
