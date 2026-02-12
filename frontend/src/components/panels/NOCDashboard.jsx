@@ -394,14 +394,14 @@ const NOCDashboard = ({
                       <div>
                         <CardTitle className="text-lg text-white flex items-center gap-2">
                           <Activity className="w-5 h-5 text-cyan-400" />
-                          Histórico de Uptime (24h)
+                          {t('noc.uptimeHistory', 'Histórico de Uptime (24h)')}
                         </CardTitle>
                         <CardDescription className="text-slate-400">
-                          Evolución del estado de dispositivos
+                          {t('noc.deviceStateEvolution', 'Evolución del estado de dispositivos')}
                         </CardDescription>
                       </div>
                       <Badge variant="outline" className="border-cyan-500/30 text-cyan-400">
-                        Tiempo Real
+                        {t('noc.realTime', 'Tiempo Real')}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -455,10 +455,10 @@ const NOCDashboard = ({
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg text-white flex items-center gap-2">
                       <Building2 className="w-5 h-5 text-purple-400" />
-                      Estado por Organización
+                      {t('noc.orgStatus', 'Estado por Organización')}
                     </CardTitle>
                     <CardDescription className="text-slate-400">
-                      Desglose de dispositivos por cliente
+                      {t('noc.orgBreakdown', 'Desglose de dispositivos por cliente')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -492,7 +492,7 @@ const NOCDashboard = ({
                                 </div>
                                 <div>
                                   <h4 className="font-semibold text-white">{org.name}</h4>
-                                  <p className="text-xs text-slate-400">{total} dispositivos</p>
+                                  <p className="text-xs text-slate-400">{total} {t('noc.devices', 'dispositivos')}</p>
                                 </div>
                               </div>
                               <div className="flex items-center gap-4">
@@ -583,7 +583,7 @@ const NOCDashboard = ({
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg text-white flex items-center gap-2">
                       <BarChart3 className="w-5 h-5 text-blue-400" />
-                      Distribución de Estado
+                      {t('noc.stateDistribution', 'Distribución de Estado')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -633,7 +633,7 @@ const NOCDashboard = ({
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg text-white flex items-center gap-2">
                         <WifiOff className="w-5 h-5 text-red-400" />
-                        Dispositivos Offline
+                        {t('noc.offlineDevices', 'Dispositivos Offline')}
                       </CardTitle>
                       <Badge variant="outline" className="border-red-500/30 text-red-400">
                         {offlineDevices.length}
@@ -645,7 +645,7 @@ const NOCDashboard = ({
                       {offlineDevices.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-slate-500 py-8">
                           <CheckCircle className="w-12 h-12 mb-3 text-emerald-500" />
-                          <p className="text-sm text-emerald-400">Todos los dispositivos online</p>
+                          <p className="text-sm text-emerald-400">{t('noc.allOnline', 'Todos los dispositivos online')}</p>
                         </div>
                       ) : (
                         <div className="space-y-2">
