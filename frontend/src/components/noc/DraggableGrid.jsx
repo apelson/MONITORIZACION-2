@@ -10,6 +10,18 @@ import { cn } from '@/lib/utils';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
+// Custom styles for grid items
+const gridStyles = `
+  .react-grid-item > div {
+    height: 100%;
+  }
+  .react-grid-item.react-grid-placeholder {
+    background: rgba(6, 182, 212, 0.2);
+    border: 2px dashed rgba(6, 182, 212, 0.5);
+    border-radius: 8px;
+  }
+`;
+
 // Default layout configuration
 export const DEFAULT_LAYOUTS = {
   lg: [
