@@ -210,10 +210,10 @@ const LiveViewer = ({ authAxios, devices = [], organizations = [], groups = [], 
                   onClick={() => toggleOrg(org.id)}
                   className="flex items-center gap-1 w-full p-2 text-sm font-medium hover:bg-muted rounded"
                 >
-                  {expandedOrgs[org.id] ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                  <Building2 className="w-4 h-4" style={{ color: org.color }} />
-                  <span className="truncate">{org.name}</span>
-                  <Badge variant="secondary" className="ml-auto text-xs">
+                  {expandedOrgs[org.id] ? <ChevronDown className="w-4 h-4 shrink-0" /> : <ChevronRight className="w-4 h-4 shrink-0" />}
+                  <Building2 className="w-4 h-4 shrink-0" style={{ color: org.color }} />
+                  <span className="truncate flex-1">{org.name}</span>
+                  <Badge variant="secondary" className="text-xs shrink-0 min-w-[24px] justify-center">
                     {org.groups.reduce((acc, g) => acc + g.devices.length, 0)}
                   </Badge>
                 </button>
