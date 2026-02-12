@@ -2,14 +2,12 @@
  * DraggableGrid - Grid Layout con Drag & Drop real para el NOC Dashboard
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Responsive, WidthProvider } from 'react-grid-layout';
+import { ResponsiveGridLayout, useContainerWidth } from 'react-grid-layout';
 import { GripVertical, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
-
-const ResponsiveGridLayout = WidthProvider(Responsive);
 
 // Default layout configuration
 export const DEFAULT_LAYOUTS = {
