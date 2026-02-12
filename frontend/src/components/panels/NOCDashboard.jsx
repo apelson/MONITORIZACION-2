@@ -188,10 +188,16 @@ const NOCDashboard = ({
       : null;
     const slowDevices = devicesWithLatency.filter(d => d.response_time_ms > 500).length;
     
+    // Find the most recent device_down alert to calculate uptime
+    const downAlerts = alerts
+      .filter(a => a.alert_type === 'device_down' || a.alert_type === 'nas_disconnected')
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const lastIncidentTime = downAlerts.length > 0 ? downAlerts[0].timestamp : null;
+    
     return { 
       total, online, offline, uptimePercent, 
       recentAlerts: recentAlerts.length, criticalAlerts: criticalAlerts.length,
-      avgLatency, maxLatency, slowDevices
+      avgLatency, maxLatency, slowDevices, lastIncidentTime
     };
   }, [devices, alerts]);
 
