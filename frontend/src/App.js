@@ -3506,7 +3506,23 @@ const Dashboard = () => {
               onFilterByType={(typeId) => { setFilterTypeId(typeId); setActiveTab("devices"); }} />
           </TabsContent>
 
-          <TabsContent value="alerts"><AlertsPanel alerts={alerts} organizations={organizations} devices={devices} groups={groups} authAxios={authAxios} /></TabsContent>
+          <TabsContent value="alerts">
+            <div className="space-y-6">
+              {/* Device Status Grid - Visual mosaic */}
+              <DeviceStatusGrid 
+                devices={devices}
+                groups={groups}
+                organizations={organizations}
+                deviceTypes={deviceTypes}
+                onDeviceClick={(device) => {
+                  setHistoryModalDevice(device);
+                  setHistoryModalOpen(true);
+                }}
+              />
+              {/* Existing Alerts Panel */}
+              <AlertsPanel alerts={alerts} organizations={organizations} devices={devices} groups={groups} authAxios={authAxios} />
+            </div>
+          </TabsContent>
           {!isOperator && <TabsContent value="gallery"><DeviceGallery authAxios={authAxios} devices={devices} organizations={organizations} groups={groups} /></TabsContent>}
           {!isOperator && <TabsContent value="cra"><CRADashboard authAxios={authAxios} onOpenLiveView={(device) => { setActiveTab('live'); }} /></TabsContent>}
           {!isOperator && <TabsContent value="live" className="h-[calc(100vh-200px)]"><LiveViewer authAxios={authAxios} devices={devices} organizations={organizations} groups={groups} /></TabsContent>}
