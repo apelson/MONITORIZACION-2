@@ -99,6 +99,37 @@ Build and deploy "Siempria Network Monitor," a full-stack network monitoring app
 - Fixed duplicate `if (loading)` in CRADashboard.jsx
 - Fixed AlertsPanel AuthContext issue
 
+### Session: 2026-02-12 - Nueva UI de Alertas ✅
+
+#### Sistema de Alertas Mejorado
+- **AlertBell Component** (`/components/alerts/AlertBell.jsx`):
+  - Campana de notificaciones con contador de alertas no leídas
+  - Panel lateral deslizable que se abre desde la derecha
+  - Lista de alertas con colores por tipo (rojo=caída, verde=recuperado)
+  - Indicador de tiempo relativo (9m, 1d, 2d)
+  - Botón "Marcar leídas" y "Ver todas las alertas"
+  - Persistencia de alertas leídas en localStorage
+
+- **DeviceStatusGrid Component** (`/components/alerts/DeviceStatusGrid.jsx`):
+  - Mosaico visual de dispositivos con colores por estado
+  - Verde=Online, Rojo=Offline (pulsante), Gris=Desconocido
+  - Filtros: búsqueda por nombre/IP, estado, grupo
+  - Tamaños de grid configurables (S, M, L)
+  - Tooltips con información del dispositivo
+  - Badges de estadísticas (X Online, Y Offline, Z Total)
+
+- **DeviceHistoryModal Component** (`/components/alerts/DeviceHistoryModal.jsx`):
+  - Modal con historial de un dispositivo específico
+  - Stats: Último Check, Uptime 24h (%), Alertas
+  - Tabs: Alertas y Historial
+  - Timeline visual de estados
+  - Botón "Verificar Ahora" para check manual
+
+- **Integración en App.js**:
+  - AlertBell añadido al header junto al icono de sonido
+  - DeviceStatusGrid añadido al tab de Alertas
+  - DeviceHistoryModal para click en dispositivos
+
 ### Previous Sessions
 - Role-Based Access Control (RBAC)
 - CRA Dashboard filters (ARMADO/DESARMADO)
