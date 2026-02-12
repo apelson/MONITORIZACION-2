@@ -1386,6 +1386,30 @@ const NOCDashboard = ({
             {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           </Button>
 
+          {/* Edit Layout toggle */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => {
+                    setEditMode(!editMode);
+                    if (!editMode) {
+                      toast.info('Modo edición activado - Arrastra los widgets para reorganizar');
+                    } else {
+                      toast.success('Cambios guardados');
+                    }
+                  }} 
+                  className={cn("h-8 w-8 p-0", editMode ? "text-cyan-400 bg-cyan-500/20" : "text-slate-400 hover:text-cyan-400")}
+                >
+                  {editMode ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{editMode ? 'Bloquear Layout' : 'Editar Layout'}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           {/* Play/Pause Presentation */}
           <TooltipProvider>
             <Tooltip>
