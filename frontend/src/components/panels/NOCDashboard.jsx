@@ -216,6 +216,30 @@ const NOCDashboard = ({
       .slice(0, 20);
   }, [alerts]);
 
+  // Downtime history - group by device
+  const downtimeHistory = useMemo(() => {
+    const deviceDowntimes = {};
+    const last7Days = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    
+    alerts
+      .filter(a => new Date(a.timestamp) > last7Days)
+      .forEach(alert => {
+        if (alert.alert_type === 'device_down' || alert.alert_type === 'nas_disconnected') {
+          const deviceName = alert.device_name || 'Unknown';
+          if (!deviceDowntimes[deviceName]) {
+            deviceDowntimes[deviceName] = { name: deviceName, count: 0, lastDown: null, events: [] };
+          }
+          deviceDowntimes[deviceName].count++;
+          if (!deviceDowntimes[deviceName].lastDown || new Date(alert.timestamp) > new Date(deviceDowntimes[deviceName].lastDown)) {
+            deviceDowntimes[deviceName].lastDown = alert.timestamp;
+          }
+          deviceDowntimes[deviceName].events.push(alert);
+        }
+      });
+    
+    return Object.values(deviceDowntimes).sort((a, b) => b.count - a.count);
+  }, [alerts]);
+
   // Pie chart data
   const pieData = useMemo(() => [
     { name: 'Online', value: stats.online, color: '#10b981' },
