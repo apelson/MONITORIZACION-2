@@ -490,33 +490,46 @@ const NOCDashboard = ({
             </div>
           </div>
 
-          {/* Right: CRA Panel */}
-          <div className={cn("col-span-4 bg-slate-900/80 rounded-lg p-3 flex flex-col min-h-0", craDevices.some(d => d.status === 'offline') ? "border-2 border-red-500" : "border border-slate-700/50")}>
+          {/* Right: CRA Panel - Autoescalable */}
+          <div className={cn("col-span-4 bg-slate-900/80 rounded-lg p-3 flex flex-col min-h-0", craDevices.some(d => d.status === 'offline') ? "border-2 border-red-500 animate-pulse" : "border border-slate-700/50")}>
             <div className="flex items-center justify-between mb-2 shrink-0">
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-red-400" />
                 <span className="text-sm font-semibold text-white">CRA</span>
                 <Badge variant="outline" className="border-red-500/30 text-red-400 text-[10px]">{craDevices.length}</Badge>
+                {craDevices.some(d => d.status === 'offline') && (
+                  <Badge className="bg-red-500/20 text-red-400 text-[10px] animate-pulse">
+                    {craDevices.filter(d => d.status === 'offline').length} OFFLINE
+                  </Badge>
+                )}
               </div>
               <Button variant="ghost" size="sm" onClick={() => toggleSection('cra')} className="h-6 w-6 p-0">
                 {expandedSection === 'cra' ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
               </Button>
             </div>
             <ScrollArea className="flex-1">
-              <div className="grid grid-cols-3 gap-1.5 pr-2">
+              {/* Grid autoescalable: 4 columnas si hay muchos, 3 si hay pocos */}
+              <div className={cn(
+                "grid gap-1.5 pr-2",
+                craDevices.length > 20 ? "grid-cols-4" : craDevices.length > 9 ? "grid-cols-3" : "grid-cols-3"
+              )}>
                 {craDevices.map(device => (
                   <div
                     key={device.id}
                     className={cn(
                       "p-1.5 rounded border text-center cursor-pointer transition-all hover:scale-105",
                       device.status === 'offline' 
-                        ? "bg-red-500/20 border-red-500/50" 
+                        ? "bg-red-500/20 border-red-500/50 animate-pulse" 
                         : "bg-emerald-500/10 border-emerald-500/30"
                     )}
                     onClick={() => onDeviceClick?.(device)}
                   >
-                    <Shield className={cn("w-3 h-3 mx-auto mb-0.5", device.status === 'offline' ? "text-red-400" : "text-emerald-400")} />
-                    <p className="text-[9px] text-white truncate">{device.name.substring(0, 12)}</p>
+                    <div className="flex items-center justify-center gap-1 mb-0.5">
+                      <Shield className={cn("w-3 h-3", device.status === 'offline' ? "text-red-400" : "text-emerald-400")} />
+                      <div className={cn("w-1.5 h-1.5 rounded-full", device.status === 'offline' ? "bg-red-500" : "bg-emerald-500")} />
+                    </div>
+                    <p className="text-[9px] text-white truncate">{device.name}</p>
+                    <p className="text-[8px] text-slate-500 truncate">{device.ip_address}</p>
                   </div>
                 ))}
               </div>
