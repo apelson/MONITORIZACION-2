@@ -2740,28 +2740,7 @@ const Dashboard = () => {
   const audioRef = useRef(null);
   const fetchingRef = useRef(false); // Prevent concurrent API calls
   
-  // WebSocket for real-time alerts
-  const handleNewWebSocketAlert = useCallback((alertData) => {
-    // Add new alert to the beginning of the list
-    setAlerts(prev => {
-      const exists = prev.some(a => a.id === alertData.id);
-      if (exists) return prev;
-      return [alertData, ...prev];
-    });
-    
-    // Play sound for critical alerts
-    if (alertData.alert_type === 'device_down' || alertData.alert_type === 'nas_disconnected') {
-      playAlertSound();
-    }
-  }, []);
-  
-  const { isConnected: wsConnected, connectionStatus: wsStatus } = useWebSocketAlerts(
-    BACKEND_URL,
-    localStorage.getItem('token'),
-    handleNewWebSocketAlert
-  );
-  
-  // Alert sound function
+  // Alert sound function (defined early for WebSocket hook)
   const playAlertSound = useCallback(() => {
     if (!soundEnabled) return;
     try {
@@ -2790,6 +2769,27 @@ const Dashboard = () => {
       console.warn('Could not play alert sound:', e);
     }
   }, [soundEnabled]);
+  
+  // WebSocket for real-time alerts
+  const handleNewWebSocketAlert = useCallback((alertData) => {
+    // Add new alert to the beginning of the list
+    setAlerts(prev => {
+      const exists = prev.some(a => a.id === alertData.id);
+      if (exists) return prev;
+      return [alertData, ...prev];
+    });
+    
+    // Play sound for critical alerts
+    if (alertData.alert_type === 'device_down' || alertData.alert_type === 'nas_disconnected') {
+      playAlertSound();
+    }
+  }, [playAlertSound]);
+  
+  const { isConnected: wsConnected, connectionStatus: wsStatus } = useWebSocketAlerts(
+    BACKEND_URL,
+    localStorage.getItem('token'),
+    handleNewWebSocketAlert
+  );
 
   // Toggle sound and save preference
   const toggleAlertSound = useCallback(() => {
