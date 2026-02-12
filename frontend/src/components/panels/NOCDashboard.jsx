@@ -112,6 +112,82 @@ const NOCDashboard = ({
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(1200);
 
+  // Load dashboard preferences from server
+  useEffect(() => {
+    const loadPreferences = async () => {
+      if (!authAxios) return;
+      try {
+        const res = await authAxios.get('/auth/me');
+        const userId = res.data?.user?.id;
+        if (!userId) return;
+        
+        const prefsRes = await authAxios.get(`/users/${userId}/dashboard-preferences`);
+        if (prefsRes.data) {
+          if (prefsRes.data.layout && Array.isArray(prefsRes.data.layout)) {
+            setLayout(prefsRes.data.layout);
+          }
+          if (prefsRes.data.widgets) {
+            setWidgetVisibility(prev => ({ ...prev, ...prefsRes.data.widgets }));
+          }
+          if (prefsRes.data.filters) {
+            setDashboardFilters(prefsRes.data.filters);
+          }
+        }
+      } catch (error) {
+        // Use defaults on first load
+        console.log('Using default dashboard layout');
+      }
+    };
+    loadPreferences();
+  }, [authAxios]);
+
+  // Save preferences to server
+  const savePreferences = async () => {
+    if (!authAxios) return;
+    setSavingPrefs(true);
+    try {
+      const res = await authAxios.get('/auth/me');
+      const userId = res.data?.user?.id;
+      if (!userId) return;
+      
+      await authAxios.put(`/users/${userId}/dashboard-preferences`, {
+        layout,
+        widgets: widgetVisibility,
+        filters: dashboardFilters
+      });
+      toast.success('Layout guardado');
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      toast.error('Error al guardar');
+    } finally {
+      setSavingPrefs(false);
+    }
+  };
+
+  // Handle layout change (when user drags/resizes widgets)
+  const handleLayoutChange = (newLayout) => {
+    if (!editMode) return;
+    setLayout(newLayout);
+  };
+
+  // Toggle widget visibility
+  const toggleWidget = (widgetId) => {
+    setWidgetVisibility(prev => ({
+      ...prev,
+      [widgetId]: !prev[widgetId]
+    }));
+  };
+
+  // Reset layout to defaults
+  const resetLayout = () => {
+    setLayout(INITIAL_LAYOUT);
+    setWidgetVisibility({
+      stats: true, uptime: true, systemMonitor: true, cra: true,
+      organizations: true, offline: true, history: true, alerts: true
+    });
+    toast.info('Layout restaurado');
+  };
+
   // Update time every second
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 1000);
