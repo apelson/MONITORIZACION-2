@@ -224,12 +224,12 @@ const LiveViewer = ({ authAxios, devices = [], organizations = [], groups = [], 
                       <div key={grp.id} className="mb-1">
                         <button
                           onClick={() => toggleGroup(grp.id)}
-                          className="flex items-center gap-1 w-full p-1.5 text-xs hover:bg-muted rounded"
+                          className="flex items-center gap-2 w-full p-1.5 text-xs hover:bg-muted rounded"
                         >
                           {expandedGroups[grp.id] ? <ChevronDown className="w-3 h-3 shrink-0" /> : <ChevronRight className="w-3 h-3 shrink-0" />}
                           <Users className="w-3 h-3 shrink-0" />
-                          <span className="truncate flex-1">{grp.name}</span>
-                          <Badge variant="outline" className="text-xs h-5 shrink-0 min-w-[20px] justify-center">
+                          <span className="truncate flex-1 text-left max-w-[140px]">{grp.name}</span>
+                          <Badge variant="outline" className="text-xs h-5 shrink-0 ml-auto px-2">
                             {grp.devices.length}
                           </Badge>
                         </button>
