@@ -88,9 +88,17 @@ const NOCDashboard = ({
     setUptimeData(data);
   }, [devices, timeRange]);
 
-  // Filter CRA devices
+  // Filter CRA devices - Offline primero, luego online
   useEffect(() => {
-    const cra = devices.filter(d => d.is_cra === true);
+    const cra = devices
+      .filter(d => d.is_cra === true)
+      .sort((a, b) => {
+        // Offline primero
+        if (a.status === 'offline' && b.status !== 'offline') return -1;
+        if (a.status !== 'offline' && b.status === 'offline') return 1;
+        // Luego por nombre
+        return (a.name || '').localeCompare(b.name || '');
+      });
     setCraDevices(cra);
   }, [devices]);
 
