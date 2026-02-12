@@ -161,7 +161,7 @@ const LiveViewer = ({ authAxios, devices = [], organizations = [], groups = [], 
   return (
     <div ref={containerRef} className={`flex h-full ${isPopup ? 'min-h-screen' : ''} bg-background`}>
       {/* Sidebar - Camera selector */}
-      <div className={`w-72 border-r flex flex-col ${isFullscreen ? 'hidden' : ''}`}>
+      <div className={`w-80 border-r flex flex-col ${isFullscreen ? 'hidden' : ''}`}>
         <div className="p-4 border-b">
           <h2 className="font-semibold flex items-center gap-2">
             <Video className="w-5 h-5" />
@@ -208,12 +208,12 @@ const LiveViewer = ({ authAxios, devices = [], organizations = [], groups = [], 
               <div key={org.id} className="mb-2">
                 <button
                   onClick={() => toggleOrg(org.id)}
-                  className="flex items-center gap-1 w-full p-2 text-sm font-medium hover:bg-muted rounded"
+                  className="flex items-center gap-2 w-full p-2 text-sm font-medium hover:bg-muted rounded"
                 >
                   {expandedOrgs[org.id] ? <ChevronDown className="w-4 h-4 shrink-0" /> : <ChevronRight className="w-4 h-4 shrink-0" />}
                   <Building2 className="w-4 h-4 shrink-0" style={{ color: org.color }} />
-                  <span className="truncate flex-1">{org.name}</span>
-                  <Badge variant="secondary" className="text-xs shrink-0 min-w-[24px] justify-center">
+                  <span className="truncate flex-1 text-left max-w-[160px]">{org.name}</span>
+                  <Badge variant="secondary" className="text-xs shrink-0 ml-auto px-2">
                     {org.groups.reduce((acc, g) => acc + g.devices.length, 0)}
                   </Badge>
                 </button>
