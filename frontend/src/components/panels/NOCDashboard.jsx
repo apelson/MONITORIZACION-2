@@ -984,12 +984,17 @@ const NOCDashboard = ({
       </div>
 
       {/* Bottom Sections */}
-      <div className="grid grid-cols-3 gap-3 shrink-0" style={{ height: '35%' }}>
+      <div className="grid grid-cols-4 gap-3 shrink-0" style={{ height: '35%' }}>
         {/* Organizations */}
         <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex flex-col min-h-0">
-          <div className="flex items-center gap-2 mb-1.5 shrink-0">
-            <Building2 className="w-4 h-4 text-purple-400" />
-            <span className="text-sm font-semibold text-white">Organizaciones</span>
+          <div className="flex items-center justify-between mb-1.5 shrink-0">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-purple-400" />
+              <span className="text-sm font-semibold text-white">Organizaciones</span>
+            </div>
+            <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-slate-400 hover:text-purple-400" onClick={() => handleMaximizeSection('organizations')} title="Maximizar">
+              <Maximize2 className="w-3 h-3" />
+            </Button>
           </div>
           <ScrollArea className="flex-1">
             <div className="space-y-1 pr-2">
@@ -1008,10 +1013,15 @@ const NOCDashboard = ({
 
         {/* Offline Devices */}
         <div className={cn("bg-slate-900/80 rounded-lg p-2 flex flex-col min-h-0", offlineDevices.length > 0 && "border-2 border-red-500")}>
-          <div className="flex items-center gap-2 mb-1.5 shrink-0">
-            <WifiOff className="w-4 h-4 text-red-400" />
-            <span className="text-sm font-semibold text-white">Offline</span>
-            <Badge variant="outline" className="border-red-500/30 text-red-400 text-[10px]">{stats.offline}</Badge>
+          <div className="flex items-center justify-between mb-1.5 shrink-0">
+            <div className="flex items-center gap-2">
+              <WifiOff className="w-4 h-4 text-red-400" />
+              <span className="text-sm font-semibold text-white">Offline</span>
+              <Badge variant="outline" className="border-red-500/30 text-red-400 text-[10px]">{stats.offline}</Badge>
+            </div>
+            <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-slate-400 hover:text-red-400" onClick={() => handleMaximizeSection('offline')} title="Maximizar">
+              <Maximize2 className="w-3 h-3" />
+            </Button>
           </div>
           <ScrollArea className="flex-1">
             {offlineDevices.length === 0 ? (
@@ -1038,12 +1048,53 @@ const NOCDashboard = ({
           </ScrollArea>
         </div>
 
+        {/* Downtime History */}
+        <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex flex-col min-h-0">
+          <div className="flex items-center justify-between mb-1.5 shrink-0">
+            <div className="flex items-center gap-2">
+              <History className="w-4 h-4 text-orange-400" />
+              <span className="text-sm font-semibold text-white">Historial</span>
+              <Badge variant="outline" className="border-orange-500/30 text-orange-400 text-[10px]">{downtimeHistory.length}</Badge>
+            </div>
+            <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-slate-400 hover:text-orange-400" onClick={() => handleMaximizeSection('history')} title="Maximizar">
+              <Maximize2 className="w-3 h-3" />
+            </Button>
+          </div>
+          <ScrollArea className="flex-1">
+            {downtimeHistory.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full py-4">
+                <CheckCircle className="w-6 h-6 text-emerald-500/50 mb-1" />
+                <p className="text-[10px] text-slate-500">Sin caídas</p>
+              </div>
+            ) : (
+              <div className="space-y-1 pr-2">
+                {downtimeHistory.slice(0, 6).map((item, idx) => (
+                  <div key={idx} className={cn("p-1.5 rounded border flex items-center justify-between", item.count > 3 ? "bg-red-500/5 border-red-500/20" : "bg-orange-500/5 border-orange-500/20")}>
+                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                      <AlertTriangle className={cn("w-3 h-3 shrink-0", item.count > 3 ? "text-red-400" : "text-orange-400")} />
+                      <span className="text-[10px] text-white truncate">{item.name}</span>
+                    </div>
+                    <Badge className={cn("text-[9px] px-1 py-0", item.count > 3 ? "bg-red-500/20 text-red-400" : "bg-orange-500/20 text-orange-400")}>
+                      {item.count}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </div>
+
         {/* Alerts */}
         <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex flex-col min-h-0">
-          <div className="flex items-center gap-2 mb-1.5 shrink-0">
-            <Bell className="w-4 h-4 text-amber-400" />
-            <span className="text-sm font-semibold text-white">Alertas</span>
-            <Badge variant="outline" className="border-amber-500/30 text-amber-400 text-[10px]">{stats.recentAlerts}</Badge>
+          <div className="flex items-center justify-between mb-1.5 shrink-0">
+            <div className="flex items-center gap-2">
+              <Bell className="w-4 h-4 text-amber-400" />
+              <span className="text-sm font-semibold text-white">Alertas</span>
+              <Badge variant="outline" className="border-amber-500/30 text-amber-400 text-[10px]">{stats.recentAlerts}</Badge>
+            </div>
+            <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-slate-400 hover:text-amber-400" onClick={() => handleMaximizeSection('alerts')} title="Maximizar">
+              <Maximize2 className="w-3 h-3" />
+            </Button>
           </div>
           <ScrollArea className="flex-1">
             {recentAlertsList.length === 0 ? (
