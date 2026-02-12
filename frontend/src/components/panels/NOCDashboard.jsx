@@ -649,17 +649,18 @@ const NOCDashboard = ({
       case 'uptime':
         return (
           <div className="flex-1 flex flex-col gap-4 p-4 bg-slate-900/50 rounded-xl">
+            {renderCompactStatsBar()}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Activity className="w-8 h-8 text-cyan-400" />
                 <div>
                   <h2 className="text-2xl font-bold text-white">Uptime - {stats.uptimePercent}%</h2>
-                  <p className="text-slate-400">Disponibilidad del sistema en tiempo real</p>
+                  <p className="text-slate-400">{t('noc.systemAvailability', 'Disponibilidad del sistema en tiempo real')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Button variant={timeRange === '24h' ? 'default' : 'ghost'} size="sm" onClick={() => setTimeRange('24h')}>24h</Button>
-                <Button variant={timeRange === '7d' ? 'default' : 'ghost'} size="sm" onClick={() => setTimeRange('7d')}>7 días</Button>
+                <Button variant={timeRange === '7d' ? 'default' : 'ghost'} size="sm" onClick={() => setTimeRange('7d')}>7 {t('noc.days', 'días')}</Button>
                 <Button variant="ghost" size="sm" onClick={() => setManualExpandedSection(null)}>
                   <Minimize2 className="w-5 h-5" />
                 </Button>
@@ -690,12 +691,13 @@ const NOCDashboard = ({
       case 'cra':
         return (
           <div className="flex-1 flex flex-col gap-4 p-4 bg-slate-900/50 rounded-xl">
+            {renderCompactStatsBar()}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Shield className="w-8 h-8 text-red-400" />
                 <div>
-                  <h2 className="text-2xl font-bold text-white">Central Receptora de Alarmas (CRA)</h2>
-                  <p className="text-slate-400">{craDevices.length} dispositivos monitorizados</p>
+                  <h2 className="text-2xl font-bold text-white">{t('noc.cra', 'Central Receptora de Alarmas (CRA)')}</h2>
+                  <p className="text-slate-400">{craDevices.length} {t('noc.devicesMonitored', 'dispositivos monitorizados')}</p>
                 </div>
                 {craDevices.some(d => d.status === 'offline') && (
                   <Badge className="bg-red-500 text-white text-lg px-4 py-1 animate-pulse ml-4">
