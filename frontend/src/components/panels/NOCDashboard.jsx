@@ -2,16 +2,20 @@
  * NOCDashboard - Centro de Operaciones de Red Profesional 24/7
  * Con modo presentación automática de secciones
  * Optimizado para pantalla de 55" sin scroll
+ * Soporta personalización drag & drop de widgets
  */
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import GridLayout from 'react-grid-layout';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
 import { 
   Monitor, Wifi, WifiOff, AlertTriangle, Building2, Clock, 
   TrendingUp, Activity, X, ChevronRight, RefreshCw, Eye, Server,
   Camera, HardDrive, Network, Router, Printer, Shield, Box, Layers,
   Bell, CheckCircle, XCircle, BarChart3, History, ClipboardList,
   Maximize2, Minimize2, Volume2, VolumeX, ExternalLink, Play, MapPin,
-  Pause, SkipForward, Gauge, Zap
+  Pause, SkipForward, Gauge, Zap, Settings, GripVertical, Lock, Unlock
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +27,7 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip as Recharts
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import SystemECG from '@/components/common/SystemECG';
+import { DashboardConfigPanel, useDashboardPreferences, WidgetWrapper, DEFAULT_LAYOUT } from '@/components/dashboard/DashboardWidgets';
 
 // Logo Siempria (hexágono azul)
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_bd3cf608-7344-4385-a96f-f4dc04839f9f/artifacts/t15tym24_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png";
