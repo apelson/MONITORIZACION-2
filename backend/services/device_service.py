@@ -48,13 +48,13 @@ async def check_single_device(device_id: str, background_alert: bool = True):
     ip_address = device.get("ip_address", "N/A")
     port = device.get("port", 80)
     
-    # Get current status from check
-    new_status = await check_device_status(ip_address, port)
+    # Get current status and response time from check
+    new_status, response_time_ms = await check_device_status(ip_address, port)
     old_status = device.get("status", "unknown")
     now = datetime.now(timezone.utc).isoformat()
     
-    # Prepare update data
-    update_data = {"status": new_status, "last_check": now}
+    # Prepare update data - include response_time
+    update_data = {"status": new_status, "last_check": now, "response_time_ms": response_time_ms}
     
     # Log status check for debugging
     logger.debug(f"[CHECK] {device_name} ({ip_address}:{port}) - Old: {old_status}, New: {new_status}")
