@@ -250,6 +250,10 @@ async def download_file(path: str):
         "LiveViewerFloatingButton.jsx": "/app/frontend/src/components/common/LiveViewerFloatingButton.jsx",
         "SectionLoader.jsx": "/app/frontend/src/components/common/SectionLoader.jsx",
         "App.js": "/app/frontend/src/App.js",
+        "NOCDashboard.jsx": "/app/frontend/src/components/panels/NOCDashboard.jsx",
+        "NOCFloatingButton.jsx": "/app/frontend/src/components/common/NOCFloatingButton.jsx",
+        "translation_es.json": "/app/frontend/src/locales/es/translation.json",
+        "translation_de.json": "/app/frontend/src/locales/de/translation.json",
     }
     
     if path not in allowed_files:
