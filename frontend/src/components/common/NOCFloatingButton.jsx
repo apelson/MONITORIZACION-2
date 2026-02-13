@@ -1,16 +1,43 @@
 /**
  * NOCFloatingButton - Botón flotante para abrir el Centro de Operaciones de Red
  * Diseñado para acceso rápido al dashboard NOC 24/7
+ * Solo visible en tablet (768px) y superior - oculto en móviles
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Monitor, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
+// Custom hook to detect if screen is at least tablet size (768px)
+const useIsTabletOrLarger = () => {
+  const [isTablet, setIsTablet] = useState(false);
+  
+  useEffect(() => {
+    const checkSize = () => {
+      setIsTablet(window.innerWidth >= 768);
+    };
+    
+    // Check on mount
+    checkSize();
+    
+    // Listen for resize
+    window.addEventListener('resize', checkSize);
+    return () => window.removeEventListener('resize', checkSize);
+  }, []);
+  
+  return isTablet;
+};
+
 const NOCFloatingButton = ({ onClick, offlineCount = 0, className }) => {
   const [isHovered, setIsHovered] = useState(false);
   const hasIssues = offlineCount > 0;
+  const isTabletOrLarger = useIsTabletOrLarger();
+
+  // Don't render on mobile devices (less than 768px)
+  if (!isTabletOrLarger) {
+    return null;
+  }
 
   return (
     <TooltipProvider>
