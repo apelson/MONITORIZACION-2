@@ -1,6 +1,7 @@
 /**
  * Organizations Widget
  */
+import { useTranslation } from 'react-i18next';
 import { Building2, Maximize2, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +13,8 @@ const OrganizationsWidget = ({
   onMaximize,
   editMode = false 
 }) => {
+  const { t } = useTranslation();
+  
   return (
     <div className={cn(
       "h-full bg-slate-900/80 border rounded-lg p-2 flex flex-col transition-all",
@@ -21,7 +24,7 @@ const OrganizationsWidget = ({
         <div className="flex items-center gap-2">
           {editMode && <GripVertical className="w-4 h-4 text-cyan-400 cursor-grab" />}
           <Building2 className="w-4 h-4 text-purple-400" />
-          <span className="text-sm font-semibold text-white">Organizaciones</span>
+          <span className="text-sm font-semibold text-white">{t('noc.organizations', 'Organizations')}</span>
         </div>
         {onMaximize && (
           <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-slate-400 hover:text-purple-400" onClick={onMaximize}>
