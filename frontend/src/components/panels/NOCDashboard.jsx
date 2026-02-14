@@ -1421,7 +1421,7 @@ const NOCDashboard = ({
           <div className="flex items-center justify-between mb-1.5 shrink-0">
             <div className="flex items-center gap-2">
               <Building2 className="w-4 h-4 text-purple-400" />
-              <span className="text-sm font-semibold text-white">Organizaciones</span>
+              <span className="text-sm font-semibold text-white">{t('noc.organizations', 'Organizaciones')}</span>
             </div>
             <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-slate-400 hover:text-purple-400" onClick={() => handleMaximizeSection('organizations')} title="Maximizar">
               <Maximize2 className="w-3 h-3" />
@@ -1484,7 +1484,7 @@ const NOCDashboard = ({
           <div className="flex items-center justify-between mb-1.5 shrink-0">
             <div className="flex items-center gap-2">
               <History className="w-4 h-4 text-orange-400" />
-              <span className="text-sm font-semibold text-white">Historial</span>
+              <span className="text-sm font-semibold text-white">{t('noc.downtimeHistory', 'Historial')}</span>
               <Badge variant="outline" className="border-orange-500/30 text-orange-400 text-[10px]">{downtimeHistory.length}</Badge>
             </div>
             <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-slate-400 hover:text-orange-400" onClick={() => handleMaximizeSection('history')} title="Maximizar">
@@ -1520,7 +1520,7 @@ const NOCDashboard = ({
           <div className="flex items-center justify-between mb-1.5 shrink-0">
             <div className="flex items-center gap-2">
               <Bell className="w-4 h-4 text-amber-400" />
-              <span className="text-sm font-semibold text-white">Alertas</span>
+              <span className="text-sm font-semibold text-white">{t('noc.recentAlerts', 'Alertas')}</span>
               <Badge variant="outline" className="border-amber-500/30 text-amber-400 text-[10px]">{stats.recentAlerts}</Badge>
             </div>
             <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-slate-400 hover:text-amber-400" onClick={() => handleMaximizeSection('alerts')} title="Maximizar">
