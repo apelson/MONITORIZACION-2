@@ -1458,7 +1458,7 @@ const NOCDashboard = ({
             {offlineDevices.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full py-4">
                 <CheckCircle className="w-8 h-8 text-emerald-500 mb-1" />
-                <p className="text-xs text-emerald-400">Todos online</p>
+                <p className="text-xs text-emerald-400">{t('noc.allOnline', 'Todos online')}</p>
               </div>
             ) : (
               <div className="space-y-1 pr-2">
@@ -1495,7 +1495,7 @@ const NOCDashboard = ({
             {downtimeHistory.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full py-4">
                 <CheckCircle className="w-6 h-6 text-emerald-500/50 mb-1" />
-                <p className="text-[10px] text-slate-500">Sin caídas</p>
+                <p className="text-[10px] text-slate-500">{t('noc.noDowntime', 'Sin caídas')}</p>
               </div>
             ) : (
               <div className="space-y-1 pr-2">
@@ -1531,7 +1531,7 @@ const NOCDashboard = ({
             {recentAlertsList.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full py-4">
                 <CheckCircle className="w-6 h-6 text-emerald-500/50 mb-1" />
-                <p className="text-[10px] text-slate-500">Sin alertas</p>
+                <p className="text-[10px] text-slate-500">{t('noc.noRecentAlerts', 'Sin alertas')}</p>
               </div>
             ) : (
               <div className="space-y-1 pr-2">
