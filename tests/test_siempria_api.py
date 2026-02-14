@@ -7,7 +7,7 @@ import requests
 import os
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://noc-fixes.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://noc-stabilize.preview.emergentagent.com').rstrip('/')
 
 class TestAuthentication:
     """Authentication endpoint tests"""
