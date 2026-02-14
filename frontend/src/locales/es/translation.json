@@ -697,6 +697,8 @@
     "devicesWithIncidents": "dispositivos con incidencias",
     "noDowntime": "Sin caídas en los últimos 7 días",
     "lastDown": "Última caída",
-    "drops": "caídas"
+    "drops": "caídas",
+    "desktopRecommended": "Vista completa en desktop",
+    "desktopRecommendedDesc": "Para ver todos los widgets y el mapa interactivo, usa una pantalla más grande"
   }
 }
