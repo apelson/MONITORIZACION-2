@@ -6,6 +6,10 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { X, Wifi, WifiOff, AlertTriangle, Activity, Building2, Shield, Clock, Monitor, ChevronRight, Bell, History, Server } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Import modular components
 import NOCHeader from '../noc/NOCHeader';
