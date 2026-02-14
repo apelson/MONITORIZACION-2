@@ -3377,6 +3377,28 @@ const Dashboard = () => {
               </Button>
             </div>
             
+            {/* NOC Quick Access Button - Prominent at top */}
+            <div className="px-3 pt-3 pb-2">
+              <button
+                onClick={() => { setNocDashboardOpen(true); setMobileMenuOpen(false); }}
+                className="w-full flex items-center gap-3 px-4 py-4 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-semibold shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all"
+              >
+                <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                  <Monitor className="w-6 h-6" />
+                </div>
+                <div className="flex-1 text-left">
+                  <span className="block text-sm font-bold">NOC Dashboard</span>
+                  <span className="block text-xs text-cyan-200 opacity-80">{t('noc.subtitle', 'Centro de Operaciones 24/7')}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {deviceStats.offline > 0 && (
+                    <Badge className="bg-red-500 text-white animate-pulse">{deviceStats.offline}</Badge>
+                  )}
+                  <ChevronRight className="w-5 h-5 opacity-60" />
+                </div>
+              </button>
+            </div>
+            
             {/* Navigation Items */}
             <nav className="p-3 space-y-1">
               {canAccessSection('devices') && (
