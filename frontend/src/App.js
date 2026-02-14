@@ -3350,6 +3350,189 @@ const Dashboard = () => {
         </div>
       </header>
 
+      {/* Mobile Navigation Menu - Slide-out */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-50" onClick={() => setMobileMenuOpen(false)}>
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          
+          {/* Menu Panel */}
+          <div 
+            className="absolute left-0 top-0 bottom-0 w-72 bg-slate-900 border-r border-slate-700 shadow-2xl overflow-y-auto animate-in slide-in-from-left duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Menu Header */}
+            <div className="sticky top-0 bg-slate-900/95 backdrop-blur-sm p-4 border-b border-slate-700 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <img src={LOGO_URL} alt="Siempria" className="h-8 object-contain" />
+                <span className="font-bold text-white text-sm">MENÚ</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-1 text-slate-400 hover:text-white"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            
+            {/* Navigation Items */}
+            <nav className="p-3 space-y-1">
+              {canAccessSection('devices') && (
+                <button
+                  onClick={() => { setActiveTab('devices'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'devices' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}
+                >
+                  <Server className="w-5 h-5" />
+                  <span>{t('nav.devices', 'Dispositivos')}</span>
+                </button>
+              )}
+              {canAccessSection('statistics') && (
+                <button
+                  onClick={() => { setActiveTab('statistics'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'statistics' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}
+                >
+                  <BarChart3 className="w-5 h-5" />
+                  <span>{t('stats.title', 'Estadísticas')}</span>
+                </button>
+              )}
+              {canAccessSection('organizations') && (
+                <button
+                  onClick={() => { setActiveTab('structure'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'structure' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}
+                >
+                  <Building2 className="w-5 h-5" />
+                  <span>{t('nav.structure', 'Estructura')}</span>
+                </button>
+              )}
+              {canAccessSection('devices') && (
+                <button
+                  onClick={() => { setActiveTab('types'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'types' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}
+                >
+                  <Tag className="w-5 h-5" />
+                  <span>{t('nav.types', 'Tipos')}</span>
+                </button>
+              )}
+              {canAccessSection('alerts') && (
+                <button
+                  onClick={() => { setActiveTab('alerts'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'alerts' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}
+                >
+                  <Bell className="w-5 h-5" />
+                  <span>{t('nav.alerts', 'Alertas')}</span>
+                  {alerts.length > 0 && <Badge className="ml-auto bg-red-500 text-white">{alerts.length}</Badge>}
+                </button>
+              )}
+              {canAccessSection('gallery') && (
+                <button
+                  onClick={() => { setActiveTab('gallery'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'gallery' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}
+                >
+                  <Camera className="w-5 h-5" />
+                  <span>Galería</span>
+                </button>
+              )}
+              {canAccessSection('cra') && (
+                <button
+                  onClick={() => { setActiveTab('cra'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'cra' ? 'bg-red-500/20 text-red-400' : 'text-slate-300 hover:bg-slate-800'}`}
+                >
+                  <Shield className="w-5 h-5 text-red-500" />
+                  <span>CRA</span>
+                </button>
+              )}
+              {canAccessSection('live') && (
+                <button
+                  onClick={() => { setActiveTab('live'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'live' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}
+                >
+                  <Video className="w-5 h-5" />
+                  <span>En Directo</span>
+                </button>
+              )}
+              {isAdmin && (
+                <button
+                  onClick={() => { setActiveTab('infrastructure'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'infrastructure' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}
+                >
+                  <Server className="w-5 h-5" />
+                  <span>{t('nav.infrastructure', 'Infraestructura')}</span>
+                </button>
+              )}
+              {canAccessSection('users') && (
+                <button
+                  onClick={() => { setActiveTab('users'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'users' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}
+                >
+                  <Users className="w-5 h-5" />
+                  <span>{t('nav.users', 'Usuarios')}</span>
+                </button>
+              )}
+              {isAdmin && (
+                <button
+                  onClick={() => { setActiveTab('logs'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'logs' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}
+                >
+                  <FileSearch className="w-5 h-5" />
+                  <span>Logs</span>
+                </button>
+              )}
+              {canAccessSection('incidents') && (
+                <button
+                  onClick={() => { setActiveTab('incidents'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'incidents' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}
+                >
+                  <ClipboardList className="w-5 h-5" />
+                  <span>{t('nav.incidents', 'Incidencias')}</span>
+                </button>
+              )}
+              {canAccessSection('settings') && (
+                <button
+                  onClick={() => { setActiveTab('settings'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'settings' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}
+                >
+                  <Settings className="w-5 h-5" />
+                  <span>{t('nav.settings', 'Configuración')}</span>
+                </button>
+              )}
+              {isAdmin && (
+                <button
+                  onClick={() => { setActiveTab('superadmin'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'superadmin' ? 'bg-purple-500/20 text-purple-400' : 'text-slate-300 hover:bg-slate-800'}`}
+                >
+                  <Shield className="w-5 h-5 text-purple-500" />
+                  <span>Super Admin</span>
+                </button>
+              )}
+            </nav>
+            
+            {/* User Info at bottom */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700 bg-slate-900/95">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold">
+                  {user?.username?.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{user?.full_name || user?.username}</p>
+                  <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+                </div>
+              </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="w-full gap-2"
+                onClick={() => { logout(); setMobileMenuOpen(false); }}
+              >
+                <LogOut className="w-4 h-4" />
+                {t('auth.logout', 'Cerrar Sesión')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main */}
       <main className="container mx-auto max-w-7xl px-3 sm:px-6 py-4 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
