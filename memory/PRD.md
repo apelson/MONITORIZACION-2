@@ -1,396 +1,90 @@
-# Siempria Network Monitor - Product Requirements Document
+# Siempria Monitor - NOC Dashboard
 
 ## Original Problem Statement
-Build and deploy "Siempria Network Monitor," a full-stack network monitoring application pivoted into a multi-tenant SaaS platform named "Siempriapp." The application monitors Mobotix cameras, VMware ESXi servers, QNAP, Synology NAS devices, and OpenVPN servers.
-
-## Latest Session: 2026-02-12 - Dashboard Refactorizado con Drag & Drop + Filtros
-
-### Implementación Completa ✅
-
-#### 1. Dashboard Refactorizado
-- **Nuevo componente principal**: `NOCDashboardRefactored.jsx`
-- Arquitectura modular con componentes separados
-- Código más limpio y mantenible
-
-#### 2. Sistema de Drag & Drop con react-grid-layout
-- **Componente**: `DraggableGrid.jsx`
-- Grid responsive de 12 columnas
-- Widgets arrastrables y redimensionables en modo edición
-- Persistencia del layout en el servidor
-- Placeholder visual cyan durante el arrastre
-
-#### 3. Filtros por Organización y Grupo
-- **Componente**: `DashboardFilters.jsx`
-- Dropdowns en el header para filtrar por organización y grupo
-- Filtrado en tiempo real de todos los widgets
-- Indicador "Filtrado" cuando hay filtros activos
-- Botón "Limpiar" para resetear filtros
-
-#### 4. Header Modular del NOC
-- **Componente**: `NOCHeader.jsx`
-- Controles: sonido, modo edición, presentación, nueva ventana, refresh, cerrar
-- Filtros integrados en el header
-- Reloj en tiempo real
-- Indicador de estado "Activo"
-
-#### 5. Widgets Modulares (8 widgets)
-Todos en `/app/frontend/src/components/noc/widgets/`:
-- `StatsWidget.jsx` - Barra de estadísticas (Total, Online, Offline, Uptime, Alertas, etc.)
-- `UptimeWidget.jsx` - Gráfico de uptime con selector 24h/7d
-- `SystemMonitorWidget.jsx` - ECG del sistema + mapa de Canarias
-- `CRAWidget.jsx` - Central Receptora de Alarmas con latencias
-- `OrganizationsWidget.jsx` - Lista de organizaciones con estados
-- `OfflineWidget.jsx` - Dispositivos offline con tiempo desde caída
-- `HistoryWidget.jsx` - Historial de caídas (7 días)
-- `AlertsWidget.jsx` - Alertas recientes (24h)
-
-#### 6. Preferencias de Usuario
-- **Endpoint**: `PUT /api/users/{id}/dashboard-preferences`
-- Guarda: layouts, widgets visibles, filtros
-- Se carga automáticamente al login
-
-### Archivos Creados/Modificados:
-```
-frontend/src/
-├── App.js (modificado - usa NOCDashboardRefactored)
-├── components/
-│   ├── noc/
-│   │   ├── DraggableGrid.jsx (NUEVO)
-│   │   ├── DashboardFilters.jsx (NUEVO)
-│   │   ├── NOCHeader.jsx (NUEVO)
-│   │   └── widgets/
-│   │       ├── index.js (actualizado)
-│   │       ├── StatsWidget.jsx
-│   │       ├── UptimeWidget.jsx
-│   │       ├── SystemMonitorWidget.jsx
-│   │       ├── CRAWidget.jsx
-│   │       ├── OrganizationsWidget.jsx
-│   │       ├── OfflineWidget.jsx
-│   │       ├── HistoryWidget.jsx
-│   │       └── AlertsWidget.jsx
-│   └── panels/
-│       └── NOCDashboardRefactored.jsx (NUEVO)
-backend/
-├── routes/users.py (restaurado)
-└── server.py (actualizado - archivos de descarga)
-```
-
-### Tests Verificados ✅
-- Login API funciona (curl)
-- NOC Dashboard carga correctamente
-- Filtros de organización/grupo funcionan
-- Widgets muestran datos reales
-- Modo edición se activa correctamente
-
-### Script de Despliegue
-Archivo: `/app/deploy_v3.sh`
-
----
-
-## Session Anterior: Dashboard Personalizable - Fundamentos
-
-### NOC Dashboard (Centro de Operaciones de Red 24/7) ✅
-- **Archivo**: `/app/frontend/src/components/panels/NOCDashboard.jsx`
-- **Botón flotante**: `/app/frontend/src/components/common/NOCFloatingButton.jsx`
-
-#### Características implementadas:
-1. **Estadísticas en tiempo real**:
-   - Total dispositivos, Online, Offline, Uptime %, Alertas Críticas, Organizaciones
-   - Tarjetas con colores distintivos y animaciones
-
-2. **Gráfico histórico de Uptime (24h)**:
-   - AreaChart con gradiente cyan
-   - Tooltip interactivo
-   - Badge "Tiempo Real"
-
-3. **Estado por Organización**:
-   - Lista de todas las organizaciones con su estado
-   - Barra de progreso de uptime por organización
-   - Indicadores visuales (verde=sano, rojo=problemas)
-   - Badges de online/offline por organización
-
-4. **Distribución de Estado (Pie Chart)**:
-   - Gráfico circular Online/Offline/Desconocido
-   - Leyenda interactiva
-
-5. **Lista de Dispositivos Offline**:
-   - Muestra dispositivos offline ordenados por tiempo
-   - Botones de acción: Ver dispositivo, Crear incidencia, Ver historial
-   - Indicador de tiempo desde que está offline
-
-6. **Alertas Recientes**:
-   - Últimas 10 alertas
-   - Indicador de tipo (caída/recuperación)
-   - Clic para navegar al dispositivo
-
-7. **Estado CRA**:
-   - Panel dedicado para dispositivos de Central Receptora de Alarmas
-   - Grid visual con estado por dispositivo
-
-8. **Header profesional**:
-   - Reloj en tiempo real
-   - Indicador "Sistema Activo"
-   - Botón refrescar
-   - Logo Siempria
-
-9. **Navegación interactiva**:
-   - Clic en dispositivo offline → navega al dispositivo
-   - Clic en crear incidencia → abre panel de incidencias
-   - Clic en ver historial → abre modal de historial
-
-10. **Botón flotante NOC**:
-    - Muestra contador de dispositivos offline
-    - Animación de pulso cuando hay problemas
-    - Expande al hover mostrando "NOC 24/7"
-
-## User Personas
-- **Network Administrators**: Monitor cameras and infrastructure devices
-- **IT Managers**: View statistics, alerts, incidents, and reports
-- **End Users**: Access public dashboards (planned)
-- **SuperAdmin**: Manage multiple company tenants (multi-tenant SaaS)
-
-## Core Requirements
-- Multi-language support (ES, EN, DE, FR, IT, RU, ZH)
-- Real-time device monitoring with alerts
-- Infrastructure monitoring (ESXi, QNAP, Synology, OpenVPN)
-- NAS connection alerts for cameras
-- Audible alerts for critical events
-- Email notifications via SMTP
-- Push/Web notifications for real-time alerts
-- FTP status monitoring for CRA devices
-- Hemispheric camera view support (all models)
-- Role-Based Access Control (RBAC)
-
-## Architecture
-```
-/app/
-├── backend/              # FastAPI
-│   ├── server.py         # Main server (~820 lines)
-│   ├── routes/           # API endpoints
-│   └── services/         
-└── frontend/             # React + Craco
-    ├── src/
-    │   ├── App.js        # Main component (~4518 lines, refactored from 6463)
-    │   ├── contexts/     # AuthContext
-    │   ├── components/
-    │   │   ├── common/   # SectionLoader, CRAFloatingButton, LiveViewerFloatingButton
-    │   │   ├── panels/   # AlertsPanel, StatisticsPanel, IncidentsPanel, AccessLogsPanel, CRADashboard, LiveViewer, InfrastructurePanel
-    │   │   └── settings/ # RolesManager, SuperAdminTab, NotificationSettings
-    │   └── ...
-    └── public/
-        └── sounds/       # cra-alert.wav
-```
+Production NOC dashboard application with monitoring capabilities for network devices. The application had several issues including broken mobile responsiveness, incomplete translations, and WebSocket connection errors.
 
 ## What's Been Implemented
 
-### Session: 2026-02-10 (Fase 3 - Final)
+### Session - February 14, 2026
 
-#### Refactorización App.js - Fase 3 Completada ✅
-- **ScheduledReportsPanel extraído** - ~214 líneas movidas a `/components/panels/ScheduledReportsPanel.jsx`
-- App.js reducido de 4036 líneas a **3822 líneas**
-- **TOTAL REDUCCIÓN: 6463 → 3822 líneas (-40.9%, -2641 líneas)**
-- Testing agent verificó funcionamiento: 100% tests pasados
+#### Completed Fixes:
 
-#### Componentes extraídos (7 total):
-| Componente | Archivo | Líneas aprox |
-|------------|---------|--------------|
-| AlertsPanel | `/components/panels/AlertsPanel.jsx` | ~630 |
-| StatisticsPanel | `/components/panels/StatisticsPanel.jsx` | ~200 |
-| IncidentsPanel | `/components/panels/IncidentsPanel.jsx` | ~200 |
-| AccessLogsPanel | `/components/panels/AccessLogsPanel.jsx` | ~439 |
-| BackupPanel | `/components/panels/BackupPanel.jsx` | ~222 |
-| DailyReportPanel | `/components/panels/DailyReportPanel.jsx` | ~183 |
-| ScheduledReportsPanel | `/components/panels/ScheduledReportsPanel.jsx` | ~214 |
+1. **Translation System Fixed** ✅
+   - Fixed hardcoded Spanish text in NOC widget components
+   - Added `useTranslation` hook to:
+     - `/app/frontend/src/components/noc/widgets/OrganizationsWidget.jsx`
+     - `/app/frontend/src/components/noc/widgets/HistoryWidget.jsx`
+     - `/app/frontend/src/components/noc/widgets/AlertsWidget.jsx`
+   - Added complete NOC section to English translations (`/app/frontend/src/locales/en/translation.json`)
+   - All widget titles now translate correctly when changing language
 
-### Session: 2026-02-10 (Fase 2)
+2. **Mobile Hamburger Menu Implemented** ✅
+   - Added `mobileMenuOpen` state to App.js
+   - Created slide-out navigation menu for mobile devices
+   - Menu includes all navigation options with icons
+   - Shows user info and logout button at bottom
+   - Properly closes when selecting an item
+   - Desktop tabs hidden on mobile (uses hamburger instead)
 
-#### Refactorización App.js - Fase 2 ✅
-- **BackupPanel extraído** - ~222 líneas movidas a `/components/panels/BackupPanel.jsx`
-- **DailyReportPanel extraído** - ~183 líneas movidas a `/components/panels/DailyReportPanel.jsx`
-- **AccessLogsPanel extraído** - ~406 líneas movidas a `/components/panels/AccessLogsPanel.jsx`
-- App.js reducido de 4924 líneas a 4036 líneas
-- Testing agent verificó funcionamiento: 100% tests pasados
+3. **WebSocket Status Verified** ✅
+   - Backend WebSocket endpoint `/api/ws/alerts` is working
+   - Status endpoint `/api/ws/status` returns `{status: "running"}`
+   - Connection management properly handles ping/pong
 
-### Session: 2026-02-09
+### Architecture
 
-#### Refactorización App.js - Fase 1 ✅
-- **AlertsPanel extraído** - ~630 líneas movidas a `/components/panels/AlertsPanel.jsx`
-- **StatisticsPanel extraído** - componente de estadísticas
-- **IncidentsPanel extraído** - componente de incidentes
-- App.js reducido de 6463 líneas a 4924 líneas
-- Componente independiente con props: `alerts, organizations, devices, groups, authAxios`
-
-#### Soporte Cámaras Hemisféricas Ampliado ✅
-- Ahora incluye todos los modelos: **C25, C26, Q24, Q25, Q26, S14, S15, S16, M25, M26**
-- Actualizado en:
-  - `App.js` - DeviceCard component
-  - `LiveViewer.jsx` - Live view panel
-
-#### Global Section Loader ✅
-- `SectionLoader.jsx` component created
-- Shows loading overlay with company logo after 2 seconds
-- `useDelayedLoading` hook for integration
-
-#### Sound Alert Fix ✅
-- Fixed audio file format (.wav)
-- CRADashboard.jsx updated
-
-#### Bug Fixes ✅
-- Fixed duplicate `if (loading)` in CRADashboard.jsx
-- Fixed AlertsPanel AuthContext issue
-
-### Session: 2026-02-12 - Nueva UI de Alertas ✅
-
-#### Sistema de Alertas Mejorado
-- **AlertBell Component** (`/components/alerts/AlertBell.jsx`):
-  - Campana de notificaciones con contador de alertas no leídas
-  - Panel lateral deslizable que se abre desde la derecha
-  - Lista de alertas con colores por tipo (rojo=caída, verde=recuperado)
-  - Indicador de tiempo relativo (9m, 1d, 2d)
-  - Botón "Marcar leídas" y "Ver todas las alertas"
-  - Persistencia de alertas leídas en localStorage
-
-- **DeviceStatusGrid Component** (`/components/alerts/DeviceStatusGrid.jsx`):
-  - Mosaico visual de dispositivos con colores por estado
-  - Verde=Online, Rojo=Offline (pulsante), Gris=Desconocido
-  - Filtros: búsqueda por nombre/IP, estado, grupo
-  - Tamaños de grid configurables (S, M, L)
-  - Tooltips con información del dispositivo
-  - Badges de estadísticas (X Online, Y Offline, Z Total)
-
-- **DeviceHistoryModal Component** (`/components/alerts/DeviceHistoryModal.jsx`):
-  - Modal con historial de un dispositivo específico
-  - Stats: Último Check, Uptime 24h (%), Alertas
-  - Tabs: Alertas y Historial
-  - Timeline visual de estados
-  - Botón "Verificar Ahora" para check manual
-
-- **WebSocket para Alertas en Tiempo Real**:
-  - Backend: `services/websocket_service.py` - WebSocketManager class
-  - Backend: `routes/websocket.py` - Endpoint `/api/ws/alerts`
-  - Frontend: `hooks/useWebSocketAlerts.js` - Hook con auto-reconnect
-  - Alertas se envían instantáneamente a todos los clientes
-  - Toast notifications + sonido automático
-
-- **Logging Mejorado en device_service.py**:
-  - [SCHEDULER] logs para ciclos de verificación
-  - [CHECK] logs para cada dispositivo
-  - [STATUS CHANGE] logs para cambios detectados
-  - [ALERT] logs para alertas creadas
-  - [WEBSOCKET] logs para notificaciones enviadas
-
-- **Lazy Loading Component** (`/components/common/LazyImage.jsx`):
-  - IntersectionObserver para carga diferida
-  - Solo carga imágenes visibles en viewport
-  - Placeholder mientras carga
-
-### Previous Sessions
-- Role-Based Access Control (RBAC)
-- CRA Dashboard filters (ARMADO/DESARMADO)
-- Floating buttons color differentiation
-- FTP Status Badge in CRA Dashboard
-- All infrastructure features (ESXi, QNAP, Synology, alerts, i18n, etc.)
-
-## Prioritized Backlog
-
-### P0 - Critical
-- [x] RBAC system functional
-- [x] CRA filters (ARMADO/DESARMADO) working
-- [x] Floating button colors differentiated
-- [x] Global loading screen implemented
-- [x] Sound alert file fixed
-- [x] AlertsPanel refactored
-- [x] All hemispheric camera models supported
-- [x] AccessLogsPanel refactored (Session 2026-02-10)
-- [x] Nueva UI de Alertas con campana, sidebar y mosaico (Session 2026-02-12)
-
-### P1 - High Priority
-- [x] Continue App.js Refactoring
-  - [x] Extract StatisticsPanel - DONE
-  - [x] Extract IncidentsPanel - DONE
-  - [x] Extract AccessLogsPanel - DONE (2026-02-10)
-  - [x] Extract BackupPanel - DONE (2026-02-10)
-  - [x] Extract DailyReportPanel - DONE (2026-02-10)
-  - [x] Extract ScheduledReportsPanel - DONE (2026-02-10 Fase 3)
-  - [x] LoginPage - Ya existe en /components/auth/
-  - [x] DeviceFormDialog - Ya existe en /components/dialogs/
-- [ ] List virtualization with react-window for 5k+ devices
-
-### P2 - Medium Priority
-- [ ] Full Multi-Tenant (SaaS) Implementation
-- [ ] Backend stability improvements
-
-### P3 - Future/Backlog
-- [ ] Stripe payment integration checkout flow
-- [ ] Per-client subdomains
-- [ ] Public dashboards UI
-- [ ] Lazy loading for camera images
-- [ ] Public domain access fix (siempriapp.com)
-
-## Key API Endpoints
-
-### Roles & Permissions
-- `GET /api/roles` - Get all roles
-- `POST /api/roles` - Create new role
-- `GET /api/roles/my-permissions` - Get current user permissions
-- `GET /api/roles/available-permissions` - Get all available permissions
-
-### Camera & Hemispheric
-- `GET /api/camera-stream/hemispheric/{device_id}?view=full|panorama` - Hemispheric view
-- `GET /api/camera-stream/ftp-status/{device_id}` - FTP configuration status
-
-## Database Collections
-- `devices` - Device information
-- `roles` - Role definitions and permissions
-- `ftp_history` - FTP status change history
-- `users` - User accounts (includes role_id)
-- `organizations` - Multi-tenant organizations
-- `groups` - Device groups
-
-## Production Environment
-- **Development Source**: `/home/monitorizacion/Documentos/MONITORIZACION-main/`
-- **Production Running**: `/opt/siempria-monitor/`
-- **Domain**: siempriapp.com
-- **CRITICAL**: Frontend needs `.env` with `REACT_APP_BACKEND_URL=https://siempriapp.com`
-
-## Test Credentials
-- Admin: `admin` / `Spw@16071977`
-- Operador: `operador` / `operador`
-- Tecnico: `tecnico` / `tecnico123`
-
-## Key Files Modified This Session
-- `/app/frontend/src/App.js` - Refactored, added AlertsPanel import, hemispheric models
-- `/app/frontend/src/components/panels/AlertsPanel.jsx` - NEW: Extracted component (~630 lines)
-- `/app/frontend/src/components/panels/LiveViewer.jsx` - Added hemispheric models
-- `/app/frontend/src/components/panels/CRADashboard.jsx` - Fixed duplicate if, audio path
-- `/app/frontend/src/components/common/SectionLoader.jsx` - NEW: Global loading component
-- `/app/frontend/src/components/common/LiveViewerFloatingButton.jsx` - Purple/violet color
-
-## Production Update Commands
-```bash
-# Connect to production server
-ssh usuario@siempriapp.com
-cd /opt/siempria-monitor/frontend
-
-# Download updated files
-curl -o src/components/panels/CRADashboard.jsx "https://noc-responsive-build.preview.emergentagent.com/api/download-file?path=CRADashboard.jsx"
-curl -o src/components/common/LiveViewerFloatingButton.jsx "https://noc-responsive-build.preview.emergentagent.com/api/download-file?path=LiveViewerFloatingButton.jsx"
-curl -o src/components/common/SectionLoader.jsx "https://noc-responsive-build.preview.emergentagent.com/api/download-file?path=SectionLoader.jsx"
-curl -o src/components/panels/AlertsPanel.jsx "https://noc-responsive-build.preview.emergentagent.com/api/download-file?path=AlertsPanel.jsx"
-curl -o src/components/panels/LiveViewer.jsx "https://noc-responsive-build.preview.emergentagent.com/api/download-file?path=LiveViewer.jsx"
-curl -o src/App.js "https://noc-responsive-build.preview.emergentagent.com/api/download-file?path=App.js"
-
-# Rebuild frontend
-yarn build
-
-# Restart services
-sudo systemctl restart siempria-backend
-sudo systemctl reload nginx
+```
+/app/
+├── backend/
+│   ├── server.py                  # Main FastAPI server
+│   ├── routes/
+│   │   └── websocket.py           # WebSocket routes
+│   └── services/
+│       └── websocket_service.py   # WebSocket manager
+└── frontend/
+    ├── src/
+    │   ├── App.js                 # Main app with mobile menu
+    │   ├── components/
+    │   │   ├── noc/
+    │   │   │   └── widgets/       # NOC widget components (translated)
+    │   │   └── panels/
+    │   │       ├── NOCDashboard.jsx
+    │   │       └── NOCDashboardRefactored.jsx  # Currently used
+    │   └── locales/
+    │       ├── en/translation.json # English (with NOC section)
+    │       └── es/translation.json # Spanish
+    └── package.json
 ```
 
-## Hemispheric Camera Models Supported
-All Mobotix hemispheric models are now detected:
-- **C Series**: C25, C26
-- **Q Series**: Q24, Q25, Q26
-- **S Series**: S14, S15, S16
-- **M Series**: M25, M26
+### Key Technical Notes
+
+1. **App.js imports `NOCDashboardRefactored`** (line 52), NOT `NOCDashboard.jsx`
+2. The refactored dashboard uses modular widgets from `/components/noc/widgets/`
+3. Mobile menu visibility: `hidden md:block` for tabs, `md:hidden` for hamburger
+4. Translation keys use format `noc.keyName` (e.g., `noc.organizations`, `noc.recentAlerts`)
+
+## Credentials
+- **Admin User:** admin
+- **Password:** admin123
+
+## URL
+- Production Preview: https://noc-responsive-build.preview.emergentagent.com
+- NOC Fullscreen: Add `?nocFullscreen=true` parameter
+
+## Remaining Tasks (Backlog)
+
+### P2 - Medium Priority
+- [ ] Implement widget selector dropdowns (replace broken drag-and-drop)
+- [ ] Investigate "add device" error
+- [ ] Add more translation keys if needed
+
+### P3 - Future
+- [ ] Refactor App.js (reduce monolithic size)
+- [ ] Multi-tenant features
+- [ ] Slack/Teams integration for alerts
+- [ ] PagerDuty/OpsGenie integration
+
+## Known Issues Resolved This Session
+- Translation system now fully working with modular widgets
+- Mobile navigation functional with hamburger menu
+- WebSocket backend confirmed operational
