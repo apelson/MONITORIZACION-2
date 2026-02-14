@@ -3186,7 +3186,16 @@ const Dashboard = () => {
         <div className="container mx-auto max-w-7xl px-4 md:px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Logo Section - Left */}
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-3 md:gap-5">
+              {/* Mobile hamburger menu button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="md:hidden p-2 text-slate-300 hover:text-white hover:bg-slate-800/50"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                <Menu className="w-6 h-6" />
+              </Button>
               <img src={LOGO_URL} alt="Siempria" className="hidden md:block h-11 object-contain header-logo" />
               <div className="hidden md:block">
                 <h1 className="text-base font-bold tracking-wider header-brand-title" style={{fontFamily: "'JetBrains Mono', monospace"}}>
