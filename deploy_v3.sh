@@ -13,7 +13,7 @@ cd /opt/siempria-monitor
 # ============================================
 echo "📥 Descargando archivos..."
 
-BASE_URL="https://noc-responsive-build.preview.emergentagent.com/api/download-file"
+BASE_URL="https://noc-fixes.preview.emergentagent.com/api/download-file"
 
 # === FRONTEND ===
 
