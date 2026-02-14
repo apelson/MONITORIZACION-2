@@ -1,6 +1,7 @@
 /**
  * Alerts Widget - Recent Alerts
  */
+import { useTranslation } from 'react-i18next';
 import { Bell, XCircle, CheckCircle, Maximize2, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +15,8 @@ const AlertsWidget = ({
   onMaximize,
   editMode = false 
 }) => {
+  const { t } = useTranslation();
+  
   return (
     <div className={cn(
       "h-full bg-slate-900/80 border rounded-lg p-2 flex flex-col transition-all",
@@ -24,7 +27,7 @@ const AlertsWidget = ({
         <div className="flex items-center gap-2">
           {editMode && <GripVertical className="w-4 h-4 text-cyan-400 cursor-grab" />}
           <Bell className="w-4 h-4 text-amber-400" />
-          <span className="text-sm font-semibold text-white">Alertas</span>
+          <span className="text-sm font-semibold text-white">{t('noc.recentAlerts', 'Alerts')}</span>
           <Badge variant="outline" className="border-amber-500/30 text-amber-400 text-[10px]">{stats?.recentAlerts || 0}</Badge>
         </div>
         {onMaximize && (
@@ -37,7 +40,7 @@ const AlertsWidget = ({
         {recentAlerts.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-4">
             <CheckCircle className="w-8 h-8 text-emerald-500/50 mb-1" />
-            <p className="text-xs text-slate-400">Sin alertas (24h)</p>
+            <p className="text-xs text-slate-400">{t('noc.noRecentAlerts', 'No alerts (24h)')}</p>
           </div>
         ) : (
           <div className="space-y-1 pr-2">
