@@ -398,6 +398,245 @@ const NOCDashboardRefactored = ({
 
   // ==================== RENDER ====================
 
+  // Mobile View - Simplified NOC Dashboard
+  if (isMobile) {
+    return (
+      <div className="fixed inset-0 z-50 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex flex-col">
+        {/* Mobile Header */}
+        <div className="bg-slate-900/95 border-b border-slate-700/50 px-4 py-3 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+              <Monitor className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-white">NOC</h1>
+              <p className="text-xs text-slate-400">{t('noc.subtitle', 'Centro de Operaciones 24/7')}</p>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-slate-400 hover:text-white"
+            onClick={onClose}
+          >
+            <X className="w-6 h-6" />
+          </Button>
+        </div>
+
+        {/* Mobile Stats Cards */}
+        <ScrollArea className="flex-1">
+          <div className="p-4 space-y-4">
+            {/* Status Overview */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Online */}
+              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Wifi className="w-5 h-5 text-emerald-400" />
+                  <span className="text-xs text-emerald-400 font-medium">{t('noc.online', 'Online')}</span>
+                </div>
+                <p className="text-3xl font-bold text-emerald-400">{stats.online}</p>
+                <p className="text-xs text-slate-400 mt-1">{t('noc.devices', 'dispositivos')}</p>
+              </div>
+              
+              {/* Offline */}
+              <div className={cn(
+                "rounded-xl p-4 border",
+                stats.offline > 0 
+                  ? "bg-red-500/10 border-red-500/30" 
+                  : "bg-slate-800/50 border-slate-700/30"
+              )}>
+                <div className="flex items-center gap-2 mb-2">
+                  <WifiOff className={cn("w-5 h-5", stats.offline > 0 ? "text-red-400" : "text-slate-500")} />
+                  <span className={cn("text-xs font-medium", stats.offline > 0 ? "text-red-400" : "text-slate-500")}>
+                    {t('noc.offline', 'Offline')}
+                  </span>
+                </div>
+                <p className={cn("text-3xl font-bold", stats.offline > 0 ? "text-red-400" : "text-slate-500")}>
+                  {stats.offline}
+                </p>
+                <p className="text-xs text-slate-400 mt-1">{t('noc.devices', 'dispositivos')}</p>
+              </div>
+              
+              {/* Uptime */}
+              <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="w-5 h-5 text-cyan-400" />
+                  <span className="text-xs text-cyan-400 font-medium">{t('noc.uptime', 'Uptime')}</span>
+                </div>
+                <p className="text-3xl font-bold text-cyan-400">
+                  {stats.total > 0 ? ((stats.online / stats.total) * 100).toFixed(1) : 0}%
+                </p>
+                <p className="text-xs text-slate-400 mt-1">{t('noc.availability', 'disponibilidad')}</p>
+              </div>
+              
+              {/* Alerts */}
+              <div className={cn(
+                "rounded-xl p-4 border",
+                stats.recentAlerts > 0 
+                  ? "bg-amber-500/10 border-amber-500/30" 
+                  : "bg-slate-800/50 border-slate-700/30"
+              )}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Bell className={cn("w-5 h-5", stats.recentAlerts > 0 ? "text-amber-400" : "text-slate-500")} />
+                  <span className={cn("text-xs font-medium", stats.recentAlerts > 0 ? "text-amber-400" : "text-slate-500")}>
+                    {t('noc.recentAlerts', 'Alertas')}
+                  </span>
+                </div>
+                <p className={cn("text-3xl font-bold", stats.recentAlerts > 0 ? "text-amber-400" : "text-slate-500")}>
+                  {stats.recentAlerts}
+                </p>
+                <p className="text-xs text-slate-400 mt-1">{t('noc.last24h', 'últimas 24h')}</p>
+              </div>
+            </div>
+
+            {/* Offline Devices List */}
+            {stats.offline > 0 && (
+              <div className="bg-slate-900/80 border border-red-500/30 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <WifiOff className="w-5 h-5 text-red-400" />
+                  <span className="text-sm font-semibold text-white">{t('noc.offlineDevices', 'Dispositivos Offline')}</span>
+                  <Badge className="bg-red-500 text-white">{stats.offline}</Badge>
+                </div>
+                <div className="space-y-2">
+                  {offlineDevices.slice(0, 5).map(device => (
+                    <div 
+                      key={device.id}
+                      className="flex items-center justify-between p-3 bg-red-500/5 rounded-lg border border-red-500/20"
+                      onClick={() => onDeviceClick?.(device)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                        <div>
+                          <p className="text-sm font-medium text-white">{device.name}</p>
+                          <p className="text-xs text-slate-400">{device.ip_address}</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-500" />
+                    </div>
+                  ))}
+                  {stats.offline > 5 && (
+                    <p className="text-xs text-slate-400 text-center pt-2">
+                      +{stats.offline - 5} {t('noc.devices', 'dispositivos')} más
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Organizations Summary */}
+            <div className="bg-slate-900/80 border border-slate-700/30 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Building2 className="w-5 h-5 text-purple-400" />
+                <span className="text-sm font-semibold text-white">{t('noc.organizations', 'Organizaciones')}</span>
+              </div>
+              <div className="space-y-2">
+                {devicesByOrg.slice(0, 4).map(({ org, online, offline }) => (
+                  <div 
+                    key={org.id}
+                    className={cn(
+                      "flex items-center justify-between p-3 rounded-lg border",
+                      offline > 0 ? "bg-red-500/5 border-red-500/20" : "bg-slate-800/50 border-slate-700/30"
+                    )}
+                  >
+                    <span className="text-sm text-white truncate flex-1">{org.name}</span>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-emerald-500/20 text-emerald-400">{online}</Badge>
+                      {offline > 0 && <Badge className="bg-red-500/20 text-red-400">{offline}</Badge>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* CRA Status */}
+            <div className="bg-slate-900/80 border border-slate-700/30 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Shield className="w-5 h-5 text-red-400" />
+                <span className="text-sm font-semibold text-white">CRA</span>
+                <Badge className="bg-slate-700 text-slate-300">{craDevices.length}</Badge>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {craDevices.slice(0, 3).map(device => (
+                  <div 
+                    key={device.id}
+                    className={cn(
+                      "p-2 rounded-lg border text-center",
+                      device.status === 'online' 
+                        ? "bg-emerald-500/10 border-emerald-500/30" 
+                        : "bg-red-500/10 border-red-500/30"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-2 h-2 rounded-full mx-auto mb-1",
+                      device.status === 'online' ? "bg-emerald-500" : "bg-red-500 animate-pulse"
+                    )} />
+                    <p className="text-[10px] text-white truncate">{device.name}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Recent Alerts */}
+            {recentAlertsList.length > 0 && (
+              <div className="bg-slate-900/80 border border-amber-500/30 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Bell className="w-5 h-5 text-amber-400" />
+                  <span className="text-sm font-semibold text-white">{t('noc.recentAlerts', 'Alertas Recientes')}</span>
+                </div>
+                <div className="space-y-2">
+                  {recentAlertsList.slice(0, 4).map(alert => (
+                    <div 
+                      key={alert.id}
+                      className={cn(
+                        "flex items-center gap-3 p-3 rounded-lg border",
+                        alert.alert_type === 'device_down' 
+                          ? "bg-red-500/5 border-red-500/20" 
+                          : "bg-emerald-500/5 border-emerald-500/20"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-2 h-2 rounded-full",
+                        alert.alert_type === 'device_down' ? "bg-red-500" : "bg-emerald-500"
+                      )} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-white truncate">{alert.device_name}</p>
+                        <p className="text-xs text-slate-400">{formatTimeSince(alert.timestamp)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recommendation for desktop */}
+            <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4 flex items-center gap-3">
+              <Monitor className="w-8 h-8 text-cyan-400 shrink-0" />
+              <div>
+                <p className="text-sm text-white font-medium">{t('noc.desktopRecommended', 'Vista completa en desktop')}</p>
+                <p className="text-xs text-slate-400">{t('noc.desktopRecommendedDesc', 'Para ver todos los widgets y el mapa interactivo, usa una pantalla más grande')}</p>
+              </div>
+            </div>
+          </div>
+        </ScrollArea>
+
+        {/* Mobile Footer */}
+        <div className="bg-slate-900/95 border-t border-slate-700/30 px-4 py-3 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-slate-400" />
+            <span className="text-xs text-slate-400">
+              {currentTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500">SIEMPRIA</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop View
+
   return (
     <div className="fixed inset-0 z-50 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex flex-col">
       {/* Header */}
