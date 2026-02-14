@@ -3536,8 +3536,8 @@ const Dashboard = () => {
       {/* Main */}
       <main className="container mx-auto max-w-7xl px-3 sm:px-6 py-4 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          {/* Mobile-optimized tabs with horizontal scroll */}
-          <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 pb-2">
+          {/* Desktop tabs - hidden on mobile (hamburger menu used instead) */}
+          <div className="hidden md:block overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 pb-2">
             <TabsList className="mb-4 sm:mb-6 flex-nowrap sm:flex-wrap h-auto gap-1 min-w-max sm:min-w-0">
               {canAccessSection('devices') && (
                 <TabsTrigger data-testid="tab-devices" value="devices" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
