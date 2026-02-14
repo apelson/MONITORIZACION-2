@@ -665,6 +665,8 @@
     "devicesWithIncidents": "devices with incidents",
     "noDowntime": "No downtime in the last 7 days",
     "lastDown": "Last down",
-    "drops": "drops"
+    "drops": "drops",
+    "desktopRecommended": "Full view on desktop",
+    "desktopRecommendedDesc": "For all widgets and interactive map, use a larger screen"
   }
 }
