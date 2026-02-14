@@ -2746,6 +2746,9 @@ const Dashboard = () => {
   // NOC Dashboard state
   const [nocDashboardOpen, setNocDashboardOpen] = useState(false);
   
+  // Mobile menu state
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
   // Check for nocFullscreen parameter
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
