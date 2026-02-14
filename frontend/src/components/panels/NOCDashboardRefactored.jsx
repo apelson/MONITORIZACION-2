@@ -636,7 +636,6 @@ const NOCDashboardRefactored = ({
   }
 
   // Desktop View
-
   return (
     <div className="fixed inset-0 z-50 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex flex-col">
       {/* Header */}
