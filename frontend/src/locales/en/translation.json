@@ -667,6 +667,7 @@
     "lastDown": "Last down",
     "drops": "drops",
     "desktopRecommended": "Full view on desktop",
-    "desktopRecommendedDesc": "For all widgets and interactive map, use a larger screen"
+    "desktopRecommendedDesc": "For all widgets and interactive map, use a larger screen",
+    "developedBy": "Developed by SIEMPRIA"
   }
 }
