@@ -1,5 +1,6 @@
 /**
  * Login Page Component
+ * Receives login function as prop from parent AuthProvider
  */
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -15,16 +16,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { LanguageSelector } from '@/components/LanguageSelector';
-import { useAuth } from '@/contexts/AuthContext';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_equip-tracker-39/artifacts/796492pi_version%20autorizada%202.png";
 const MOBOTIX_LOGO_URL = "https://www.mobotix.com/sites/default/files/2019-10/MOBOTIX-Logo.svg";
 
-const LoginPage = () => {
+const LoginPage = ({ login }) => {
   const { t } = useTranslation();
-  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
