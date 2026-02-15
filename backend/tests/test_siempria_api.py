@@ -144,10 +144,12 @@ class TestDevices:
     
     def test_create_device_and_verify(self):
         """Test POST /api/devices - create new device"""
+        # Use unique IP to avoid conflicts
+        unique_suffix = uuid.uuid4().hex[:4]
         device_data = {
-            "name": f"TEST_Device_{uuid.uuid4().hex[:8]}",
-            "ip_address": "192.168.99.99",
-            "port": 9999,
+            "name": f"TEST_Device_{unique_suffix}",
+            "ip_address": f"192.168.{hash(unique_suffix) % 255}.{hash(unique_suffix[:2]) % 255}",
+            "port": 9900 + (hash(unique_suffix) % 99),
             "description": "Test device for automated testing",
             "device_type_id": "type-camera"
         }
