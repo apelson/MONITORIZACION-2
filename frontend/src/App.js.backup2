@@ -472,6 +472,275 @@ const RoleBadge = ({ role }) => {
   return <Badge variant="outline" className={`${cfg.cls} text-xs`}>{cfg.label}</Badge>;
 };
 
+// ============ LOGIN ============
+const LoginPage = () => {
+  const { t } = useTranslation();
+  const { login } = useAuth();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetting, setResetting] = useState(false);
+  const [loginError, setLoginError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoginError("");
+    if (!username || !password) { 
+      setLoginError(t('validation.required', 'Por favor completa todos los campos'));
+      toast.error(t('validation.required', 'Por favor completa todos los campos')); 
+      return; 
+    }
+    setLoading(true);
+    try { 
+      await login(username, password); 
+      toast.success(t('auth.welcomeBack', '¡Bienvenido de nuevo!')); 
+    } catch (e) { 
+      console.error('Login error:', e);
+      const errorMsg = e.response?.data?.detail || t('auth.invalidCredentials', 'Usuario o contraseña incorrectos');
+      setLoginError(errorMsg);
+      toast.error(errorMsg, { duration: 4000 });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    if (!resetEmail || !resetEmail.includes('@')) {
+      toast.error('Por favor ingresa un email válido');
+      return;
+    }
+    setResetting(true);
+    try {
+      await axios.post(`${API}/auth/forgot-password`, { email: resetEmail });
+      toast.success('Se ha enviado un email con instrucciones para recuperar tu contraseña');
+      setShowForgotPassword(false);
+      setResetEmail("");
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Error al enviar email de recuperación');
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+      {/* Language selector in top right */}
+      <div className="absolute top-4 right-4 z-50">
+        <LanguageSelector variant="outline" />
+      </div>
+      
+      {/* Background grid */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `linear-gradient(rgba(0,163,217,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(0,163,217,0.5) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px'
+        }} />
+      </div>
+      
+      {/* Left side - Info */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center p-12 relative">
+        <div className="max-w-md text-center">
+          {/* Camera animation */}
+          <div className="relative mb-8">
+            <div className="absolute inset-0 bg-cyan-500 rounded-full blur-3xl opacity-20 animate-pulse" style={{ transform: 'scale(2)' }} />
+            <div className="relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 p-8 rounded-full border border-cyan-500/30 shadow-2xl backdrop-blur-sm inline-block">
+              <Cctv className="w-24 h-24 text-cyan-400" style={{ animation: 'cameraMove 4s ease-in-out infinite' }} />
+            </div>
+            <div className="absolute top-4 right-4 flex items-center gap-1">
+              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+            </div>
+          </div>
+          
+          <img src={LOGO_URL} alt="Siempria" className="h-20 mx-auto mb-6 object-contain" style={{ filter: 'drop-shadow(0 0 20px rgba(0,163,217,0.3))' }} />
+          
+          <h1 className="text-3xl font-light text-white mb-2">{t('login.title', 'Network Monitor')}</h1>
+          <p className="text-cyan-400 mb-8">{t('login.subtitle', 'Sistema de Vigilancia Profesional')}</p>
+          
+          <div className="space-y-4 text-slate-400 text-sm">
+            <div className="flex items-center justify-center gap-3">
+              <Shield className="w-5 h-5 text-cyan-500" />
+              <span>{t('login.monitoring247', 'Monitoreo en tiempo real 24/7')}</span>
+            </div>
+            <div className="flex items-center justify-center gap-3">
+              <Bell className="w-5 h-5 text-cyan-500" />
+              <span>{t('login.instantAlerts', 'Alertas instantáneas por email')}</span>
+            </div>
+            <div className="flex items-center justify-center gap-3">
+              <Lock className="w-5 h-5 text-cyan-500" />
+              <span>{t('login.secureConnection', 'Conexión segura y encriptada')}</span>
+            </div>
+          </div>
+          
+          {/* Partner logo */}
+          <div className="mt-12 pt-8 border-t border-slate-700/50">
+            <p className="text-slate-500 text-xs mb-3">{t('login.authorizedDistributorShort', 'Distribuidor Autorizado')}</p>
+            <div className="bg-white rounded-lg px-4 py-2 inline-block">
+              <img src={MOBOTIX_LOGO_URL} alt="Mobotix" className="h-8 object-contain" onError={(e) => { e.target.parentElement.innerHTML = '<span class="text-lg font-bold text-slate-800">MOBOTIX</span>'; }} />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Right side - Login form */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8">
+        <div className="w-full max-w-md">
+          {/* Mobile logo and contact */}
+          <div className="lg:hidden text-center mb-8">
+            <img src={LOGO_URL} alt="Siempria" className="h-16 mx-auto mb-4 object-contain" />
+            <h1 className="text-xl font-light text-white mb-4">Network Monitor</h1>
+            <div className="flex items-center justify-center gap-4">
+              <a href="mailto:soporte@siempria.com" className="p-3 bg-cyan-500/20 rounded-full hover:bg-cyan-500/30 transition-colors" title="Email">
+                <Mail className="w-5 h-5 text-cyan-400" />
+              </a>
+              <a href="tel:+34822220022" className="p-3 bg-cyan-500/20 rounded-full hover:bg-cyan-500/30 transition-colors" title="Teléfono">
+                <Phone className="w-5 h-5 text-cyan-400" />
+              </a>
+            </div>
+          </div>
+          
+          <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur">
+            <CardHeader className="text-center pb-2">
+              <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Lock className="w-8 h-8 text-white" />
+              </div>
+              <CardTitle className="text-2xl font-semibold text-slate-800">{t('auth.login')}</CardTitle>
+              <CardDescription className="text-slate-500">{t('auth.loginDescription', 'Introduce tus credenciales para continuar')}</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-2">
+                  <Label className="text-slate-700">{t('auth.username')}</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input data-testid="login-username" value={username} onChange={(e) => { setUsername(e.target.value); setLoginError(""); }} className="pl-10" placeholder={t('auth.username')} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700">{t('auth.password')}</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input data-testid="login-password" type="password" value={password} onChange={(e) => { setPassword(e.target.value); setLoginError(""); }} className="pl-10" placeholder="••••••••" />
+                  </div>
+                </div>
+                {loginError && (
+                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 flex items-center gap-2 text-red-700 text-sm" data-testid="login-error">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>{loginError}</span>
+                  </div>
+                )}
+                <Button data-testid="login-submit" type="submit" className="w-full h-12 text-base bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700" disabled={loading}>
+                  {loading ? (
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Shield className="w-5 h-5 mr-2" />
+                      {t('auth.login')}
+                    </>
+                  )}
+                </Button>
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline transition-colors"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Forgot Password Dialog */}
+          <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Mail className="w-5 h-5" />
+                  Recuperar Contraseña
+                </DialogTitle>
+                <DialogDescription>
+                  Ingresa tu email y te enviaremos instrucciones para restablecer tu contraseña
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handlePasswordReset} className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    placeholder="tu@email.com"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setShowForgotPassword(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={resetting}>
+                    {resetting ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Enviar
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+          
+          {/* Contact info */}
+          <div className="mt-8 text-center space-y-3">
+            <p className="text-slate-400 text-sm font-medium">{t('common.needHelp', '¿Necesitas ayuda?')}</p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
+              <a href="mailto:soporte@siempria.com" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors">
+                <Mail className="w-4 h-4" />
+                soporte@siempria.com
+              </a>
+              <a href="tel:+34822220022" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors">
+                <Phone className="w-4 h-4" />
+                822 22 00 22
+              </a>
+            </div>
+          </div>
+          
+          {/* Footer */}
+          <div className="mt-8 pt-6 border-t border-slate-700/30 text-center text-slate-500 text-xs space-y-1">
+            <p>© {new Date().getFullYear()} Siempria - {t('saas.copyright', 'Todos los derechos reservados')}</p>
+            <p>{t('login.authorizedDistributor', 'Distribuidor Autorizado Mobotix para España y Portugal')}</p>
+          </div>
+          
+          {/* SaaS Portal Link */}
+          <div className="mt-6 text-center">
+            <button 
+              onClick={() => window.location.href = '/saas'}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 border border-cyan-500/30 hover:border-cyan-500/50 text-cyan-400 hover:text-cyan-300 transition-all text-sm"
+            >
+              <Globe className="w-4 h-4" />
+              {t('login.accessSaas', 'Acceder al Portal SaaS')}
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Corner decorations */}
+      <div className="absolute top-4 left-4 w-16 h-16 border-l-2 border-t-2 border-cyan-500/20" />
+      <div className="absolute top-4 right-4 w-16 h-16 border-r-2 border-t-2 border-cyan-500/20" />
+      <div className="absolute bottom-4 left-4 w-16 h-16 border-l-2 border-b-2 border-cyan-500/20" />
+      <div className="absolute bottom-4 right-4 w-16 h-16 border-r-2 border-b-2 border-cyan-500/20" />
+    </div>
+  );
+};
 
 // ============ SORTABLE CARD WRAPPER ============
 const SortableCard = ({ id, children }) => {
@@ -665,6 +934,271 @@ const FirmwareBadge = ({ device }) => {
   );
 };
 
+// ============ SERVER CARD ============
+const ServerCard = memo(({ device, group, deviceType, onCheck, onEdit, onDelete, onClone, onViewHistory, onMobotixInfo, onCreateIncident, onOpenLiveView, canEdit }) => {
+  const { t } = useTranslation();
+  const [isChecking, setIsChecking] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [imageData, setImageData] = useState(null);
+  const [imageLoading, setImageLoading] = useState(true);
+  const [captureTime, setCaptureTime] = useState(null);
+  const { authAxios } = useAuth();
+  const handleCheck = async () => { setIsChecking(true); await onCheck(device.id); setIsChecking(false); };
+  const TypeIcon = deviceType ? getIcon(deviceType.icon) : Server;
+
+  // Check if it's a camera type
+  const isCamera = device.device_type_id === "type-camera" || deviceType?.icon === "camera";
+  
+  // Check if device has camera credentials configured
+  const hasCameraConfig = !!(device.camera_user && device.camera_password && device.camera_path);
+
+  // Check if it's a hemispheric camera (C25, C26, Q24, Q25, Q26, S14, S15, S16, M25, M26 models)
+  const isHemispheric = device.model?.toLowerCase().includes('c25') || 
+    device.model?.toLowerCase().includes('c26') ||
+    device.model?.toLowerCase().includes('q24') ||
+    device.model?.toLowerCase().includes('q25') ||
+    device.model?.toLowerCase().includes('q26') ||
+    device.model?.toLowerCase().includes('s14') ||
+    device.model?.toLowerCase().includes('s15') ||
+    device.model?.toLowerCase().includes('s16') ||
+    device.model?.toLowerCase().includes('m25') ||
+    device.model?.toLowerCase().includes('m26');
+
+  // Reference for lazy loading
+  const cardRef = useCallback(node => {
+    if (!node) return;
+    
+    // Load image function defined inside callback to avoid hoisting issues
+    const loadImage = async () => {
+      if (imageData) return;
+      setImageLoading(true);
+      
+      if (hasCameraConfig && device.status === "online") {
+        try {
+          // Check if hemispheric camera inside the callback to ensure fresh value
+          const modelLower = (device.model || '').toLowerCase();
+          const isHemisphericCamera = modelLower.includes('c25') || 
+            modelLower.includes('c26') ||
+            modelLower.includes('q24') ||
+            modelLower.includes('q25') ||
+            modelLower.includes('q26') ||
+            modelLower.includes('s14') ||
+            modelLower.includes('s15') ||
+            modelLower.includes('s16') ||
+            modelLower.includes('m25') ||
+            modelLower.includes('m26');
+          
+          // Use hemispheric endpoint for 360° cameras to show full fisheye view
+          const endpoint = isHemisphericCamera 
+            ? `/camera-stream/hemispheric/${device.id}?view=full` 
+            : `/image-proxy/${device.id}`;
+          
+          console.log(`Loading image for ${device.name}: model=${device.model}, hemispheric=${isHemisphericCamera}, endpoint=${endpoint}`);
+          
+          const response = await authAxios.get(endpoint, { responseType: 'blob' });
+          if (response.data) {
+            const url = URL.createObjectURL(response.data);
+            setImageData(url);
+            setImageError(false);
+            setCaptureTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+          }
+        } catch (e) {
+          console.error(`Error loading image for ${device.name}:`, e);
+          setImageData(OFFLINE_PLACEHOLDER);
+          setImageError(true);
+          setCaptureTime(null);
+        }
+      }
+      setImageLoading(false);
+    };
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !imageData && isCamera && hasCameraConfig && device.status === "online") {
+            loadImage();
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    );
+    
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [imageData, isCamera, hasCameraConfig, device.status, device.id, device.name, device.model, authAxios]);
+
+  // Set placeholder for offline cameras immediately
+  useEffect(() => {
+    if (device.status === "offline" && isCamera) {
+      setImageData(OFFLINE_PLACEHOLDER);
+      setCaptureTime(null);
+      setImageLoading(false);
+    } else if (device.image_url && !isCamera) {
+      setImageData(device.image_url);
+      setImageLoading(false);
+    } else if (!isCamera) {
+      setImageLoading(false);
+    }
+  }, [device.status, device.image_url, isCamera]);
+
+  // Show image section ONLY for cameras
+  const showImage = isCamera && !imageLoading && (imageData || device.status === "offline");
+  const displayImage = imageData || OFFLINE_PLACEHOLDER;
+
+  // Build device web URL for direct access (works for all devices)
+  const deviceWebUrl = `http://${device.ip_address}:${device.port}`;
+  const cameraWebUrl = hasCameraConfig ? 
+    `${device.camera_protocol || 'http'}://${device.ip_address}:${device.port}` : deviceWebUrl;
+
+  const openDeviceInBrowser = () => {
+    window.open(cameraWebUrl, '_blank');
+  };
+
+  return (
+    <Card ref={cardRef} data-testid={`device-card-${device.id}`} className="server-card fade-in hover:-translate-y-0.5 transition-transform duration-200 overflow-hidden">
+      {showImage && (
+        <div className="aspect-[4/3] bg-muted overflow-hidden relative group">
+          {imageLoading ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <img 
+              src={displayImage} 
+              alt={device.name} 
+              className="w-full h-full object-cover"
+              loading="lazy"
+              onError={() => { setImageError(true); setImageData(OFFLINE_PLACEHOLDER); }}
+            />
+          )}
+          {hasCameraConfig && device.status === "online" && !imageLoading && (
+            <>
+              <div className="absolute bottom-1 left-1">
+                {captureTime && <Badge variant="secondary" className="text-xs opacity-75 font-mono">{captureTime}</Badge>}
+              </div>
+              <div className="absolute bottom-1 right-1">
+                <Badge variant="secondary" className="text-xs opacity-75"><Cctv className="w-3 h-3 mr-1" />Live</Badge>
+              </div>
+              <button 
+                onClick={openDeviceInBrowser}
+                className="absolute top-2 right-2 p-2 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                title="Abrir cámara en navegador"
+              >
+                <Globe className="w-4 h-4 text-white" />
+              </button>
+              {/* Botón descargar imagen - debajo del botón URL */}
+              {imageData && !imageError && (
+                <a 
+                  href={imageData}
+                  download={`${device.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.jpg`}
+                  className="absolute top-12 right-2 p-2 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                  title="Descargar imagen"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Download className="w-4 h-4 text-white" />
+                </a>
+              )}
+            </>
+          )}
+          {device.status === "offline" && isCamera && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+              <div className="text-center text-white">
+                <WifiOff className="w-8 h-8 mx-auto mb-1 opacity-75" />
+                <span className="text-xs">Sin conexión</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      <CardContent className={`p-5 ${showImage ? 'pt-4' : ''}`}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: deviceType?.color ? `${deviceType.color}20` : '#f4f4f5' }}>
+                <TypeIcon className="w-5 h-5" style={{ color: deviceType?.color || '#6b7280' }} />
+              </div>
+              <StatusDot status={device.status} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-foreground leading-tight">{device.name}</h3>
+                <StatusBadge status={device.status} />
+              </div>
+              <p className="ip-text mt-0.5">{device.ip_address}:{device.port}</p>
+            </div>
+          </div>
+        </div>
+
+        {(device.brand || device.model) && (
+          <div className="flex items-center gap-2 mt-2">
+            <p className="text-xs text-muted-foreground font-medium">{[device.brand, device.model].filter(Boolean).join(" • ")}</p>
+            <FirmwareBadge device={device} />
+          </div>
+        )}
+        {device.location && (
+          <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground"><MapPin className="w-3 h-3" />{device.location}</div>
+        )}
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
+          {group && (
+            <Badge variant="outline" className="text-xs" style={{ borderColor: group.color, color: group.color }}><FolderOpen className="w-3 h-3 mr-1" />{group.name}</Badge>
+          )}
+          {device.has_statistics && (
+            <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 border-purple-300"><BarChart3 className="w-3 h-3 mr-1" />Stats</Badge>
+          )}
+        </div>
+        {device.description && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{device.description}</p>}
+        
+        <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+          <Clock className="w-3 h-3" />
+          <span>{device.last_check ? new Date(device.last_check).toLocaleString() : "Sin verificar"}</span>
+        </div>
+
+        <Separator className="my-3" />
+
+        <div className="flex flex-col gap-2">
+          {/* WhatsApp alert button for offline devices */}
+          {device.status === 'offline' && (
+            <a 
+              href={`https://wa.me/${WHATSAPP_ALERT_NUMBER.replace('+', '')}?text=${encodeURIComponent(`🚨 *ALERTA - Dispositivo Offline*\n\n❌ *${device.name}*\nIP: ${device.ip_address}:${device.port}\n\n_Siempria Network Monitor_`)}`}
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md text-sm font-medium transition-colors"
+            >
+              <Phone className="w-4 h-4" />
+              {t('devices.alertWhatsApp', 'Avisar por WhatsApp')}
+            </a>
+          )}
+          <Button data-testid={`check-device-${device.id}`} variant="outline" size="sm" onClick={handleCheck} disabled={isChecking} className="w-full">
+            <RefreshCw className={`w-3 h-3 mr-1.5 ${isChecking ? 'animate-spin-slow' : ''}`} />{t('devices.check')}
+          </Button>
+          <div className="flex items-center justify-center gap-1">
+            <Button variant="ghost" size="sm" onClick={openDeviceInBrowser} title={t('devices.openInBrowser')}><Globe className="w-4 h-4" /></Button>
+            {isCamera && device.status === 'online' && onOpenLiveView && (
+              <Button variant="ghost" size="sm" onClick={() => onOpenLiveView(device)} title={t('devices.openLiveView', 'Ver en directo')} className="text-cyan-600 hover:text-cyan-700"><Video className="w-4 h-4" /></Button>
+            )}
+            {isCamera && (
+              <Button variant="ghost" size="sm" onClick={() => onMobotixInfo(device)} title={t('devices.cameraInfo')}><Info className="w-4 h-4" /></Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={() => onViewHistory(device)} title={t('devices.viewHistory')}><History className="w-4 h-4" /></Button>
+            {onCreateIncident && (
+              <Button variant="ghost" size="sm" onClick={() => onCreateIncident(device)} title={t('incidents.addIncident')} className="text-orange-600 hover:text-orange-700"><ClipboardList className="w-4 h-4" /></Button>
+            )}
+            {canEdit && (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => onClone(device)} title={t('devices.cloneDevice')} className="text-blue-600 hover:text-blue-700"><Copy className="w-4 h-4" /></Button>
+                <Button variant="ghost" size="sm" onClick={() => onEdit(device)} title="Editar"><Edit className="w-4 h-4" /></Button>
+                <Button variant="ghost" size="sm" onClick={() => onDelete(device)} title="Eliminar" className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+              </>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
+
+// Add display name for debugging
+ServerCard.displayName = 'ServerCard';
 
 // ============ DIALOGS ============
 const DeviceFormDialog = ({ open, onOpenChange, device, organizations, groups, deviceTypes, onSave }) => {
