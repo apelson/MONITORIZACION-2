@@ -472,18 +472,6 @@ const RoleBadge = ({ role }) => {
   return <Badge variant="outline" className={`${cfg.cls} text-xs`}>{cfg.label}</Badge>;
 };
 
-// ============ LOGIN ============
-const LoginPage = () => {
-  const { t } = useTranslation();
-  const { login } = useAuth();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
-  const [resetting, setResetting] = useState(false);
-  const [loginError, setLoginError] = useState("");
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoginError("");
