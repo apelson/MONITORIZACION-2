@@ -473,61 +473,7 @@ const RoleBadge = ({ role }) => {
 };
 
 // ============ SORTABLE CARD WRAPPER ============
-            <div className="bg-white rounded-lg px-4 py-2 inline-block">
-              <img src={MOBOTIX_LOGO_URL} alt="Mobotix" className="h-8 object-contain" onError={(e) => { e.target.parentElement.innerHTML = '<span class="text-lg font-bold text-slate-800">MOBOTIX</span>'; }} />
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Right side - Login form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8">
-        <div className="w-full max-w-md">
-          {/* Mobile logo and contact */}
-          <div className="lg:hidden text-center mb-8">
-            <img src={LOGO_URL} alt="Siempria" className="h-16 mx-auto mb-4 object-contain" />
-            <h1 className="text-xl font-light text-white mb-4">Network Monitor</h1>
-            <div className="flex items-center justify-center gap-4">
-              <a href="mailto:soporte@siempria.com" className="p-3 bg-cyan-500/20 rounded-full hover:bg-cyan-500/30 transition-colors" title="Email">
-                <Mail className="w-5 h-5 text-cyan-400" />
-              </a>
-              <a href="tel:+34822220022" className="p-3 bg-cyan-500/20 rounded-full hover:bg-cyan-500/30 transition-colors" title="Teléfono">
-                <Phone className="w-5 h-5 text-cyan-400" />
-              </a>
-            </div>
-          </div>
-          
-          <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur">
-            <CardHeader className="text-center pb-2">
-              <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <Lock className="w-8 h-8 text-white" />
-              </div>
-              <CardTitle className="text-2xl font-semibold text-slate-800">{t('auth.login')}</CardTitle>
-              <CardDescription className="text-slate-500">{t('auth.loginDescription', 'Introduce tus credenciales para continuar')}</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="space-y-2">
-                  <Label className="text-slate-700">{t('auth.username')}</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <Input data-testid="login-username" value={username} onChange={(e) => { setUsername(e.target.value); setLoginError(""); }} className="pl-10" placeholder={t('auth.username')} />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-slate-700">{t('auth.password')}</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <Input data-testid="login-password" type="password" value={password} onChange={(e) => { setPassword(e.target.value); setLoginError(""); }} className="pl-10" placeholder="••••••••" />
-                  </div>
-                </div>
-                {loginError && (
-                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 flex items-center gap-2 text-red-700 text-sm" data-testid="login-error">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                    <span>{loginError}</span>
-                  </div>
-                )}
-                <Button data-testid="login-submit" type="submit" className="w-full h-12 text-base bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700" disabled={loading}>
+const SortableCard = ({ id, children }) => {
                   {loading ? (
                     <RefreshCw className="w-5 h-5 animate-spin" />
                   ) : (
