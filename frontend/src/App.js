@@ -64,6 +64,8 @@ import SuperAdminTab from "@/components/settings/SuperAdminTab";
 import SectionLoader, { useDelayedLoading } from "@/components/common/SectionLoader";
 import { AlertBell, DeviceStatusGrid, DeviceHistoryModal } from "@/components/alerts";
 import useWebSocketAlerts from "@/hooks/useWebSocketAlerts";
+import LoginPage from "@/components/auth/LoginPage";
+import ServerCard from "@/components/devices/ServerCard";
 
 import { API_URL as BACKEND_URL, API } from './config';
 // Logo principal de Siempria (hexágono azul)
