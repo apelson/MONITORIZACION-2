@@ -130,6 +130,7 @@
     "datastores": "Datastores",
     "disks": "Disks",
     "volumes": "Volumes",
+    "services": "Services",
     "surveillance": "Surveillance",
     "camerasConfigured": "cameras configured",
     "systemInfo": "System Information",
