@@ -471,53 +471,6 @@ const RoleBadge = ({ role }) => {
   }[role] || { label: role, cls: "bg-gray-100" };
   return <Badge variant="outline" className={`${cfg.cls} text-xs`}>{cfg.label}</Badge>;
 };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoginError("");
-    if (!username || !password) { 
-      setLoginError(t('validation.required', 'Por favor completa todos los campos'));
-      toast.error(t('validation.required', 'Por favor completa todos los campos')); 
-      return; 
-    }
-    setLoading(true);
-    try { 
-      await login(username, password); 
-      toast.success(t('auth.welcomeBack', '¡Bienvenido de nuevo!')); 
-    } catch (e) { 
-      console.error('Login error:', e);
-      const errorMsg = e.response?.data?.detail || t('auth.invalidCredentials', 'Usuario o contraseña incorrectos');
-      setLoginError(errorMsg);
-      toast.error(errorMsg, { duration: 4000 });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePasswordReset = async (e) => {
-    e.preventDefault();
-    if (!resetEmail || !resetEmail.includes('@')) {
-      toast.error('Por favor ingresa un email válido');
-      return;
-    }
-    setResetting(true);
-    try {
-      await axios.post(`${API}/auth/forgot-password`, { email: resetEmail });
-      toast.success('Se ha enviado un email con instrucciones para recuperar tu contraseña');
-      setShowForgotPassword(false);
-      setResetEmail("");
-    } catch (e) {
-      toast.error(e.response?.data?.detail || 'Error al enviar email de recuperación');
-    } finally {
-      setResetting(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
-      {/* Language selector in top right */}
-      <div className="absolute top-4 right-4 z-50">
-        <LanguageSelector variant="outline" />
       </div>
       
       {/* Background grid */}
