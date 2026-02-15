@@ -471,15 +471,6 @@ const RoleBadge = ({ role }) => {
   }[role] || { label: role, cls: "bg-gray-100" };
   return <Badge variant="outline" className={`${cfg.cls} text-xs`}>{cfg.label}</Badge>;
 };
-      </div>
-      
-      {/* Background grid */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `linear-gradient(rgba(0,163,217,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(0,163,217,0.5) 1px, transparent 1px)`,
-          backgroundSize: '60px 60px'
-        }} />
-      </div>
       
       {/* Left side - Info */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center p-12 relative">
