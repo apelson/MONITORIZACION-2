@@ -11,7 +11,7 @@ import uuid
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
     # Fallback for local testing
-    BASE_URL = "https://siempria-monitor-ui.preview.emergentagent.com"
+    BASE_URL = "https://noc-quality-audit.preview.emergentagent.com"
 
 print(f"Testing against: {BASE_URL}")
 

@@ -68,7 +68,7 @@ Production NOC dashboard application with monitoring capabilities for network de
 - **Password:** admin123
 
 ## URL
-- Production Preview: https://siempria-monitor-ui.preview.emergentagent.com
+- Production Preview: https://noc-quality-audit.preview.emergentagent.com
 - NOC Fullscreen: Add `?nocFullscreen=true` parameter
 
 ## Remaining Tasks (Backlog)
