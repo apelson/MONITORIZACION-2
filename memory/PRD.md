@@ -82,7 +82,7 @@ Production NOC dashboard application for network device monitoring. Features rea
 - **SMTP:** network@siempria.com / Canarias@16071977
 
 ## URLs
-- Preview: https://noc-quality-audit.preview.emergentagent.com
+- Preview: https://dashboard-qa.preview.emergentagent.com
 - NOC Fullscreen: Add `?nocFullscreen=true`
 
 ## Test Reports
