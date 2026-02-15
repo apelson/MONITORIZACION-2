@@ -474,60 +474,29 @@ const RoleBadge = ({ role }) => {
 
 // ============ SORTABLE CARD WRAPPER ============
 const SortableCard = ({ id, children }) => {
-                  {loading ? (
-                    <RefreshCw className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <Shield className="w-5 h-5 mr-2" />
-                      {t('auth.login')}
-                    </>
-                  )}
-                </Button>
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={() => setShowForgotPassword(true)}
-                    className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline transition-colors"
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : 1,
+  };
 
-          {/* Forgot Password Dialog */}
-          <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Mail className="w-5 h-5" />
-                  Recuperar Contraseña
-                </DialogTitle>
-                <DialogDescription>
-                  Ingresa tu email y te enviaremos instrucciones para restablecer tu contraseña
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handlePasswordReset} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input
-                    type="email"
-                    placeholder="tu@email.com"
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setShowForgotPassword(false)}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit" disabled={resetting}>
-                    {resetting ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                        Enviando...
+  return (
+    <div ref={setNodeRef} style={style} className="relative">
+      <div 
+        {...attributes} 
+        {...listeners} 
+        className="absolute top-2 left-2 z-10 p-1.5 bg-white/80 rounded-md cursor-grab active:cursor-grabbing hover:bg-white shadow-sm opacity-0 hover:opacity-100 transition-opacity"
+        title="Arrastrar para reordenar"
+      >
+        <GripVertical className="w-4 h-4 text-gray-400" />
+      </div>
+      {children}
+    </div>
+  );
+};
                       </>
                     ) : (
                       <>
