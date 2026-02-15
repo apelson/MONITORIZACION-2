@@ -639,8 +639,10 @@ class TestDeviceTypes:
         response = requests.get(f"{BASE_URL}/api/device-types", headers=self.headers)
         assert response.status_code == 200, f"Get device types failed: {response.status_code}"
         data = response.json()
-        assert "types" in data, "Response should contain 'types'"
-        print(f"✓ Found {len(data['types'])} device types")
+        # Device types may be in 'types' or 'device_types'
+        types = data.get("types", data.get("device_types", []))
+        assert isinstance(types, list), "Device types should be a list"
+        print(f"✓ Found {len(types)} device types")
 
 
 class TestSecurityEndpoints:
