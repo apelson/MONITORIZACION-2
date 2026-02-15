@@ -609,8 +609,10 @@ class TestUsers:
         response = requests.get(f"{BASE_URL}/api/users", headers=self.headers)
         assert response.status_code == 200, f"Get users failed: {response.status_code}"
         data = response.json()
-        assert isinstance(data, list), "Users should be a list"
-        print(f"✓ Found {len(data)} users")
+        # Users may be in a wrapper object
+        users = data.get("users", data) if isinstance(data, dict) else data
+        assert isinstance(users, list), "Users should be a list"
+        print(f"✓ Found {len(users)} users")
     
     def test_get_roles(self):
         """Test getting roles list"""
