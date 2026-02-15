@@ -3295,7 +3295,7 @@ const Dashboard = () => {
 // ============ APP ============
 function App() { return <AuthProvider><AppContent /></AuthProvider>; }
 const AppContent = () => { 
-  const { user, loading } = useAuth(); 
+  const { user, loading, login } = useAuth(); 
   const [showLoading, setShowLoading] = useState(true);
   
   useEffect(() => {
@@ -3305,6 +3305,6 @@ const AppContent = () => {
   }, []);
   
   if (showLoading || loading) return <LoadingScreen />; 
-  return user ? <Dashboard /> : <LoginPage />; 
+  return user ? <Dashboard /> : <LoginPage login={login} />; 
 };
 export default App;
