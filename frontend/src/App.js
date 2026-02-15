@@ -2734,8 +2734,8 @@ const Dashboard = () => {
                     </button>
                   )}
                 </div>
-                {/* Mobile: Collapsible filters */}
-                <div className="flex gap-2 flex-wrap w-full sm:w-auto">
+                {/* Filter dropdowns */}
+                <div className="flex gap-2 flex-wrap w-full sm:w-auto sm:flex-1">
                   {uniqueCountries.length > 0 && (
                     <Select value={filterCountry || "all"} onValueChange={(v) => { setFilterCountry(v === "all" ? null : v); setFilterOrgId(null); setFilterGroupId(null); }}>
                       <SelectTrigger className="w-[calc(50%-4px)] sm:w-[150px] h-9 text-xs sm:text-sm"><SelectValue placeholder={t('common.country', 'País')} /></SelectTrigger>
@@ -2754,19 +2754,17 @@ const Dashboard = () => {
                     <SelectTrigger className="w-[calc(50%-4px)] sm:w-[180px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Tipo" /></SelectTrigger>
                     <SelectContent><SelectItem value="all">{t('filters.allTypes', 'Todos')}</SelectItem>{deviceTypes.map(dtype => { const Icon = getIcon(dtype.icon); return <SelectItem key={dtype.id} value={dtype.id}><div className="flex items-center gap-2"><Icon className="w-4 h-4" style={{ color: dtype.color }} />{dtype.name}</div></SelectItem>; })}</SelectContent>
                   </Select>
-                {/* NEW: Status filter */}
-                <Select value={filterStatus || "all"} onValueChange={(v) => setFilterStatus(v === "all" ? null : v)}>
-                  <SelectTrigger className="w-[calc(50%-4px)] sm:w-[140px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Estado" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('common.all', 'Todos')}</SelectItem>
-                    <SelectItem value="online"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" />{t('devices.online', 'Online')}</div></SelectItem>
-                    <SelectItem value="offline"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500" />{t('devices.offline', 'Offline')}</div></SelectItem>
-                    <SelectItem value="unknown"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-400" />{t('devices.unknown', 'Desconocido')}</div></SelectItem>
-                  </SelectContent>
-                </Select>
-                </div>
-                {/* Stats filter and clear button */}
-                <div className="flex gap-2 items-center w-full sm:w-auto justify-between sm:justify-start">
+                  {/* Status filter */}
+                  <Select value={filterStatus || "all"} onValueChange={(v) => setFilterStatus(v === "all" ? null : v)}>
+                    <SelectTrigger className="w-[calc(50%-4px)] sm:w-[140px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Estado" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t('common.all', 'Todos')}</SelectItem>
+                      <SelectItem value="online"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" />{t('devices.online', 'Online')}</div></SelectItem>
+                      <SelectItem value="offline"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500" />{t('devices.offline', 'Offline')}</div></SelectItem>
+                      <SelectItem value="unknown"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-400" />{t('devices.unknown', 'Desconocido')}</div></SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {/* Stats filter - moved inline with filters */}
                   <Button 
                     variant={filterStats ? "default" : "outline"} 
                     size="sm" 
@@ -2777,7 +2775,7 @@ const Dashboard = () => {
                     Stats
                   </Button>
                   {(searchQuery || filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus || filterStats) && <Button variant="ghost" size="sm" className="h-9 text-xs sm:text-sm" onClick={() => { setSearchQuery(""); setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); setFilterStats(false); }}>Limpiar</Button>}
-                  <span className="text-xs sm:text-sm text-muted-foreground">{filteredDevices.length} disp.</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground ml-auto">{filteredDevices.length} disp.</span>
                 </div>
               </div>
             )}
