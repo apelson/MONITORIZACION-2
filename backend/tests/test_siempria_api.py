@@ -509,5 +509,175 @@ class TestCleanup:
         print("✓ Cleanup complete")
 
 
+class TestSMTPSettings:
+    """SMTP Email Settings Tests"""
+    
+    @pytest.fixture(autouse=True)
+    def auth_token(self):
+        response = requests.post(
+            f"{BASE_URL}/api/auth/login",
+            json={"username": TEST_USERNAME, "password": TEST_PASSWORD}
+        )
+        if response.status_code == 200:
+            self.token = response.json()["token"]
+            self.headers = {"Authorization": f"Bearer {self.token}"}
+    
+    def test_get_settings(self):
+        """Test getting SMTP settings"""
+        response = requests.get(f"{BASE_URL}/api/settings", headers=self.headers)
+        assert response.status_code == 200, f"Get settings failed: {response.status_code}"
+        data = response.json()
+        assert "settings" in data
+        print(f"✓ Settings retrieved: SMTP host = {data['settings'].get('smtp_host', 'N/A')}")
+    
+    def test_get_settings_unauthorized(self):
+        """Test settings endpoint requires auth"""
+        response = requests.get(f"{BASE_URL}/api/settings")
+        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+        print("✓ Settings endpoint correctly requires authentication")
+
+
+class TestInfrastructure:
+    """Infrastructure endpoint tests"""
+    
+    @pytest.fixture(autouse=True)
+    def auth_token(self):
+        response = requests.post(
+            f"{BASE_URL}/api/auth/login",
+            json={"username": TEST_USERNAME, "password": TEST_PASSWORD}
+        )
+        if response.status_code == 200:
+            self.token = response.json()["token"]
+            self.headers = {"Authorization": f"Bearer {self.token}"}
+    
+    def test_infrastructure_summary(self):
+        """Test infrastructure summary endpoint"""
+        response = requests.get(f"{BASE_URL}/api/infrastructure/summary", headers=self.headers)
+        assert response.status_code == 200, f"Infrastructure summary failed: {response.status_code}"
+        data = response.json()
+        print(f"✓ Infrastructure summary retrieved")
+    
+    def test_infrastructure_devices(self):
+        """Test infrastructure devices endpoint"""
+        response = requests.get(f"{BASE_URL}/api/infrastructure/devices", headers=self.headers)
+        assert response.status_code == 200, f"Infrastructure devices failed: {response.status_code}"
+        print("✓ Infrastructure devices retrieved")
+
+
+class TestReports:
+    """Reports endpoint tests"""
+    
+    @pytest.fixture(autouse=True)
+    def auth_token(self):
+        response = requests.post(
+            f"{BASE_URL}/api/auth/login",
+            json={"username": TEST_USERNAME, "password": TEST_PASSWORD}
+        )
+        if response.status_code == 200:
+            self.token = response.json()["token"]
+            self.headers = {"Authorization": f"Bearer {self.token}"}
+    
+    def test_reports_settings(self):
+        """Test getting report settings"""
+        response = requests.get(f"{BASE_URL}/api/reports/settings", headers=self.headers)
+        # May return 200 or 404 depending on configuration
+        assert response.status_code in [200, 404], f"Reports settings failed: {response.status_code}"
+        print(f"✓ Reports settings endpoint status: {response.status_code}")
+    
+    def test_scheduled_reports(self):
+        """Test scheduled reports endpoint"""
+        response = requests.get(f"{BASE_URL}/api/scheduled-reports", headers=self.headers)
+        assert response.status_code == 200, f"Scheduled reports failed: {response.status_code}"
+        print("✓ Scheduled reports retrieved")
+
+
+class TestUsers:
+    """User management tests"""
+    
+    @pytest.fixture(autouse=True)
+    def auth_token(self):
+        response = requests.post(
+            f"{BASE_URL}/api/auth/login",
+            json={"username": TEST_USERNAME, "password": TEST_PASSWORD}
+        )
+        if response.status_code == 200:
+            self.token = response.json()["token"]
+            self.headers = {"Authorization": f"Bearer {self.token}"}
+    
+    def test_get_users(self):
+        """Test getting users list"""
+        response = requests.get(f"{BASE_URL}/api/users", headers=self.headers)
+        assert response.status_code == 200, f"Get users failed: {response.status_code}"
+        data = response.json()
+        assert isinstance(data, list), "Users should be a list"
+        print(f"✓ Found {len(data)} users")
+    
+    def test_get_roles(self):
+        """Test getting roles list"""
+        response = requests.get(f"{BASE_URL}/api/roles", headers=self.headers)
+        assert response.status_code == 200, f"Get roles failed: {response.status_code}"
+        print("✓ Roles retrieved")
+
+
+class TestDeviceTypes:
+    """Device types management tests"""
+    
+    @pytest.fixture(autouse=True)
+    def auth_token(self):
+        response = requests.post(
+            f"{BASE_URL}/api/auth/login",
+            json={"username": TEST_USERNAME, "password": TEST_PASSWORD}
+        )
+        if response.status_code == 200:
+            self.token = response.json()["token"]
+            self.headers = {"Authorization": f"Bearer {self.token}"}
+    
+    def test_get_device_types(self):
+        """Test getting device types"""
+        response = requests.get(f"{BASE_URL}/api/device-types", headers=self.headers)
+        assert response.status_code == 200, f"Get device types failed: {response.status_code}"
+        data = response.json()
+        assert "types" in data, "Response should contain 'types'"
+        print(f"✓ Found {len(data['types'])} device types")
+
+
+class TestSecurityEndpoints:
+    """Security-related endpoint tests"""
+    
+    @pytest.fixture(autouse=True)
+    def auth_token(self):
+        response = requests.post(
+            f"{BASE_URL}/api/auth/login",
+            json={"username": TEST_USERNAME, "password": TEST_PASSWORD}
+        )
+        if response.status_code == 200:
+            self.token = response.json()["token"]
+            self.headers = {"Authorization": f"Bearer {self.token}"}
+    
+    def test_protected_endpoints_require_auth(self):
+        """Test that protected endpoints require authentication"""
+        protected_endpoints = [
+            "/api/devices",
+            "/api/organizations",
+            "/api/groups",
+            "/api/alerts",
+            "/api/users",
+            "/api/settings"
+        ]
+        
+        for endpoint in protected_endpoints:
+            response = requests.get(f"{BASE_URL}{endpoint}")
+            assert response.status_code == 401, f"{endpoint} should require auth, got {response.status_code}"
+        
+        print(f"✓ All {len(protected_endpoints)} protected endpoints require authentication")
+    
+    def test_invalid_token_rejected(self):
+        """Test that invalid tokens are rejected"""
+        invalid_headers = {"Authorization": "Bearer invalid_token_12345"}
+        response = requests.get(f"{BASE_URL}/api/devices", headers=invalid_headers)
+        assert response.status_code == 401, f"Invalid token should be rejected, got {response.status_code}"
+        print("✓ Invalid tokens correctly rejected")
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])
