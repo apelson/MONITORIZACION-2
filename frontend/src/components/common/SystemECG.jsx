@@ -240,67 +240,116 @@ const SystemECG = ({
         <span className="text-[9px] text-slate-400 ml-1">BPM</span>
       </div>
 
-      {/* Uptime Counter - Compact */}
+      {/* Uptime Counter and Record - Side by Side */}
       <div className="border-t border-slate-700/50 bg-slate-950/80 px-2 py-1.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <Shield className="w-3 h-3 text-emerald-400" />
-            <span className="text-[8px] text-slate-400 uppercase">Sin incidencias</span>
+        <div className="flex gap-3">
+          {/* Current Uptime */}
+          <div className="flex-1">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Shield className="w-3 h-3 text-emerald-400" />
+              <span className="text-[8px] text-slate-400 uppercase">Sin incidencias</span>
+            </div>
+            
+            {/* Counter Display - Compact */}
+            <div className="flex items-center justify-center gap-0.5">
+              <div className="flex flex-col items-center">
+                <div className="bg-slate-800 border border-slate-700 rounded px-1 py-0.5">
+                  <span className="text-sm font-bold font-mono text-emerald-400">
+                    {formatNumber(uptimeCounter.days)}
+                  </span>
+                </div>
+                <span className="text-[5px] text-slate-500">DÍAS</span>
+              </div>
+              
+              <span className="text-emerald-400 text-xs font-bold">:</span>
+              
+              <div className="flex flex-col items-center">
+                <div className="bg-slate-800 border border-slate-700 rounded px-1 py-0.5">
+                  <span className="text-sm font-bold font-mono text-emerald-400">
+                    {formatNumber(uptimeCounter.hours)}
+                  </span>
+                </div>
+                <span className="text-[5px] text-slate-500">HRS</span>
+              </div>
+              
+              <span className="text-emerald-400 text-xs font-bold">:</span>
+              
+              <div className="flex flex-col items-center">
+                <div className="bg-slate-800 border border-slate-700 rounded px-1 py-0.5">
+                  <span className="text-sm font-bold font-mono text-cyan-400">
+                    {formatNumber(uptimeCounter.minutes)}
+                  </span>
+                </div>
+                <span className="text-[5px] text-slate-500">MIN</span>
+              </div>
+              
+              <span className="text-cyan-400 text-xs font-bold">:</span>
+              
+              <div className="flex flex-col items-center">
+                <div className="bg-slate-800 border border-slate-700 rounded px-1 py-0.5">
+                  <span className="text-sm font-bold font-mono text-cyan-400 animate-pulse">
+                    {formatNumber(uptimeCounter.seconds)}
+                  </span>
+                </div>
+                <span className="text-[5px] text-slate-500">SEG</span>
+              </div>
+            </div>
           </div>
-          
-          {/* Achievement badge */}
-          {uptimeCounter.days >= 1 && (
-            <div className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-500/20 rounded-full">
-              <Trophy className="w-2.5 h-2.5 text-amber-400" />
-              <span className="text-[7px] text-amber-400 font-medium">
-                {uptimeCounter.days >= 7 ? '¡Récord!' : uptimeCounter.days >= 3 ? '¡Excelente!' : '¡Bien!'}
-              </span>
+
+          {/* Divider */}
+          <div className="w-px bg-slate-700/50" />
+
+          {/* Record */}
+          <div className="flex-1">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Trophy className="w-3 h-3 text-amber-400" />
+              <span className="text-[8px] text-amber-400 uppercase font-semibold">RECORD</span>
             </div>
-          )}
-        </div>
-        
-        {/* Counter Display - Compact */}
-        <div className="flex items-center justify-center gap-0.5 mt-1">
-          <div className="flex flex-col items-center">
-            <div className="bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5">
-              <span className="text-base font-bold font-mono text-emerald-400">
-                {formatNumber(uptimeCounter.days)}
-              </span>
+            
+            {/* Record Counter Display */}
+            <div className="flex items-center justify-center gap-0.5">
+              <div className="flex flex-col items-center">
+                <div className="bg-amber-900/30 border border-amber-700/50 rounded px-1 py-0.5">
+                  <span className="text-sm font-bold font-mono text-amber-400">
+                    {formatNumber(recordCounter.days)}
+                  </span>
+                </div>
+                <span className="text-[5px] text-slate-500">DÍAS</span>
+              </div>
+              
+              <span className="text-amber-400 text-xs font-bold">:</span>
+              
+              <div className="flex flex-col items-center">
+                <div className="bg-amber-900/30 border border-amber-700/50 rounded px-1 py-0.5">
+                  <span className="text-sm font-bold font-mono text-amber-400">
+                    {formatNumber(recordCounter.hours)}
+                  </span>
+                </div>
+                <span className="text-[5px] text-slate-500">HRS</span>
+              </div>
+              
+              <span className="text-amber-400 text-xs font-bold">:</span>
+              
+              <div className="flex flex-col items-center">
+                <div className="bg-amber-900/30 border border-amber-700/50 rounded px-1 py-0.5">
+                  <span className="text-sm font-bold font-mono text-amber-400">
+                    {formatNumber(recordCounter.minutes)}
+                  </span>
+                </div>
+                <span className="text-[5px] text-slate-500">MIN</span>
+              </div>
+              
+              <span className="text-amber-400 text-xs font-bold">:</span>
+              
+              <div className="flex flex-col items-center">
+                <div className="bg-amber-900/30 border border-amber-700/50 rounded px-1 py-0.5">
+                  <span className="text-sm font-bold font-mono text-amber-400">
+                    {formatNumber(recordCounter.seconds)}
+                  </span>
+                </div>
+                <span className="text-[5px] text-slate-500">SEG</span>
+              </div>
             </div>
-            <span className="text-[6px] text-slate-500">DÍAS</span>
-          </div>
-          
-          <span className="text-emerald-400 text-sm font-bold">:</span>
-          
-          <div className="flex flex-col items-center">
-            <div className="bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5">
-              <span className="text-base font-bold font-mono text-emerald-400">
-                {formatNumber(uptimeCounter.hours)}
-              </span>
-            </div>
-            <span className="text-[6px] text-slate-500">HRS</span>
-          </div>
-          
-          <span className="text-emerald-400 text-sm font-bold">:</span>
-          
-          <div className="flex flex-col items-center">
-            <div className="bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5">
-              <span className="text-base font-bold font-mono text-cyan-400">
-                {formatNumber(uptimeCounter.minutes)}
-              </span>
-            </div>
-            <span className="text-[6px] text-slate-500">MIN</span>
-          </div>
-          
-          <span className="text-cyan-400 text-sm font-bold">:</span>
-          
-          <div className="flex flex-col items-center">
-            <div className="bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5">
-              <span className="text-base font-bold font-mono text-cyan-400 animate-pulse">
-                {formatNumber(uptimeCounter.seconds)}
-              </span>
-            </div>
-            <span className="text-[6px] text-slate-500">SEG</span>
           </div>
         </div>
       </div>
