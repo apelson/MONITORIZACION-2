@@ -1,110 +1,113 @@
-# Siempria Monitor - NOC Dashboard
+# NOC Dashboard - Product Requirements Document
 
 ## Original Problem Statement
-Production NOC dashboard application for network device monitoring. Features real-time monitoring, alerts management, CRA tracking, and responsive design for desktop (55" monitors) and mobile devices.
+Build and maintain a professional NOC (Network Operations Center) dashboard for real-time monitoring of network devices (cameras, NAS, alarm panels). The application must be stable, responsive, and fully translated for Spanish and English users.
 
-## Session - February 15, 2026
+## User Personas
+- **NOC Operators**: Monitor devices 24/7 on large screens (55")
+- **Technicians**: Field access via mobile devices
+- **Administrators**: Full system configuration and management
 
-### Completed Work
+## Core Requirements
+1. Real-time device monitoring with status indicators
+2. Alert system with email notifications
+3. CRA (Central Alarm Receiver) panel monitoring with armed/disarmed states
+4. Multi-language support (Spanish/English)
+5. Responsive design for desktop and mobile
 
-#### 1. ✅ App.js Refactoring Complete
-**Before:** 4186 lines
-**After:** 3843 lines
-**Reduction:** 343 lines (8.2%)
-
-**Extracted to external components:**
-- `OrganizationsPanel.jsx` - Organization/Group management
-- `DeviceTypesPanel.jsx` - Device type management
-- `UsersPanel.jsx` - User management with roles
-- `SettingsPanel.jsx` - SMTP email configuration
-
-**Total panel components:** 17 in `/components/panels/`
-
-#### 2. ✅ Automated Tests (pytest)
-**Test file:** `/app/backend/tests/test_siempria_api.py`
-**Total tests:** 34
-**Last run:** 33 passed, 3 warnings
-
-**Test Categories:**
-- Authentication (login, token, /me endpoint)
-- Device CRUD (create, read, update, delete)
-- Organizations and Groups management
-- Alerts and CRA endpoints
-- WebSocket status
-- SMTP Settings
-- Infrastructure endpoints
-- Reports endpoints
-- Users management
-- Device Types
-- Security (auth enforcement)
-
-#### 3. ✅ i18n Translations Complete
-- ES: 705 lines
-- EN: 673 lines
-- **Synchronized:** All keys present in both languages
-- Added missing: `infra.services`, `infra.systemInfo`
-
-#### 4. ✅ Previous Session Work (Preserved)
-- SMTP Email: Working with siempria-com.correoseguro.dinaserver.com:465
-- Auth 401 fix: /api/auth/me returns proper 401 without token
-- NOC Mobile Footer: "Desarrollado por SIEMPRIA"
-- Web Push Notifications: Enabled via Service Worker
+## Technology Stack
+- **Frontend**: React with Tailwind CSS, Shadcn/UI components
+- **Backend**: FastAPI (Python)
+- **Database**: MongoDB
+- **i18n**: react-i18next
 
 ## Architecture
-
 ```
-/app/
-├── backend/
-│   ├── server.py
-│   ├── routes/ (14 route files)
+/app
+├── backend
+│   ├── routes/
+│   │   ├── devices.py
+│   │   ├── settings.py
+│   │   └── ...
 │   ├── services/
-│   │   └── auth_service.py (401 fix)
 │   └── tests/
-│       └── test_siempria_api.py (34 tests)
-└── frontend/
-    ├── public/
-    │   └── service-worker.js
-    └── src/
-        ├── App.js (3843 lines - refactored)
-        ├── components/
-        │   └── panels/ (17 components)
-        │       ├── OrganizationsPanel.jsx (extracted)
-        │       ├── DeviceTypesPanel.jsx (extracted)
-        │       ├── UsersPanel.jsx (extracted)
-        │       └── SettingsPanel.jsx (extracted)
-        └── locales/
-            ├── es/translation.json (synchronized)
-            └── en/translation.json (synchronized)
+└── frontend
+    ├── src/
+    │   ├── components/
+    │   │   ├── auth/LoginPage.jsx
+    │   │   ├── noc/widgets/
+    │   │   ├── common/SystemECG.jsx
+    │   │   └── panels/NOCDashboardRefactored.jsx
+    │   └── locales/
+    │       ├── en/translation.json
+    │       └── es/translation.json
+    └── package.json
 ```
 
-## Credentials
-- **Admin:** admin / admin123
-- **SMTP:** network@siempria.com / Canarias@16071977
+---
 
-## URLs
-- Preview: https://dashboard-qa.preview.emergentagent.com
-- NOC Fullscreen: Add `?nocFullscreen=true`
+# What's Been Implemented
 
-## Test Reports
-- Backend tests: `/app/backend/tests/test_siempria_api.py`
-- Latest iteration: `/app/test_reports/iteration_15.json`
+## Session: February 16, 2026
 
-## Current Status
-- **Backend Tests:** 33/34 passed
-- **Frontend:** Working
-- **SMTP:** Working
-- **Translations:** Complete
+### NOC Dashboard Enhancements
+- ✅ Added RECORD counter next to "Sin Incidencias" in SystemECG component
+- ✅ Added armed/disarmed states to CRA Widget with Lock/Unlock icons
+- ✅ Created `/api/settings/uptime-record` endpoint for saving/getting uptime records
+- ✅ Added translations for CRA and NOC features (es/en)
 
-## Remaining Backlog
+### Code Refactoring
+- ✅ Removed duplicate LoginPage definition from App.js (was causing build error)
+- ✅ Removed duplicate ServerCard definition from App.js
+- ✅ LoginPage now receives `login` prop instead of using useAuth directly
+- ✅ App.js reduced by ~500 lines
 
-### P1 - High Priority
-- [ ] Further App.js reduction (extract more components like LoginPage, ServerCard)
-- [ ] Slack/Teams integration (POSTPONED per user request)
+### Bug Fixes
+- ✅ Fixed build error caused by duplicate component declarations
+- ✅ Fixed LoginPage context issue by passing login as prop
 
-### P2 - Medium Priority
-- [ ] Add Jest frontend tests
-- [ ] Add edge case tests
+---
 
-### P3 - Low/Future
-- [ ] WhatsApp integration
-- [ ] PagerDuty/OpsGenie integration
+# Prioritized Backlog
+
+## P0 - Critical
+- None currently
+
+## P1 - High Priority
+- Add more backend tests for edge cases
+- Verify CRA armed/disarmed states work with production devices
+
+## P2 - Medium Priority
+- Implement frontend tests with Jest
+- Final verification of all i18n translations
+
+## P3 - Future
+- Slack/Microsoft Teams integration for alerts (user postponed)
+- White-labeling features
+- Billing integration
+
+---
+
+# API Endpoints
+
+## Settings
+- `GET /api/settings/uptime-record` - Get current uptime record
+- `POST /api/settings/uptime-record` - Save new uptime record (if better)
+- `GET /api/settings/test-email` - Test SMTP configuration
+- `GET /api/settings/system-status` - System health check
+
+## Devices
+- `GET /api/devices` - List all devices
+- `POST /api/devices` - Create new device
+- `PUT /api/devices/{id}` - Update device
+- `DELETE /api/devices/{id}` - Delete device
+
+## Auth
+- `POST /api/auth/login` - User login
+- `GET /api/auth/me` - Get current user (returns 401 if not authenticated)
+
+---
+
+# Test Credentials
+- **Username**: admin
+- **Password**: admin123
