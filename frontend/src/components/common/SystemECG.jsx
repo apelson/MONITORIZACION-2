@@ -11,7 +11,9 @@ const SystemECG = ({
   hasAlerts = false,
   isAnalyzing = true,
   lastIncidentTime = null, // ISO timestamp of last incident
-  recordTime = null, // ISO timestamp or object { days, hours, minutes, seconds } for record
+  recordTime = null, // Object { days, hours, minutes, seconds } for record
+  authAxios = null, // For saving new records
+  onRecordUpdate = null, // Callback when record is updated
   className 
 }) => {
   const canvasRef = useRef(null);
@@ -19,6 +21,8 @@ const SystemECG = ({
   const [pulse, setPulse] = useState(0);
   const [uptimeCounter, setUptimeCounter] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [recordCounter, setRecordCounter] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [isSavingRecord, setIsSavingRecord] = useState(false);
+  const lastSaveAttemptRef = useRef(0);
 
   // Determine color based on health
   const getColor = () => {
