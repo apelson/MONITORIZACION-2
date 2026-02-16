@@ -153,7 +153,7 @@ const NOCDashboard = ({
     const loadUptimeRecord = async () => {
       if (!authAxios) return;
       try {
-        const res = await authAxios.get('/settings/uptime-record');
+        const res = await authAxios.get('/uptime-record');
         if (res.data?.record) {
           setUptimeRecord(res.data.record);
           if (res.data.recorded_at) {
