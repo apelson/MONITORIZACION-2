@@ -711,6 +711,7 @@ const NOCDashboardRefactored = ({
               stats={stats}
               devicesByIsland={devicesByIsland}
               getBubbleSize={getBubbleSize}
+              recordTime={recordTime}
               editMode={editMode}
             />
           </div>
