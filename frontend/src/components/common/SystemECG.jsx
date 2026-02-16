@@ -78,36 +78,59 @@ const SystemECG = ({
     return () => clearInterval(interval);
   }, [lastIncidentTime]);
 
-  // Calculate record counter
+  // Calculate record counter - use recordTime object directly
   useEffect(() => {
     if (!recordTime) {
       setRecordCounter({ days: 0, hours: 0, minutes: 0, seconds: 0 });
       return;
     }
 
-    // If recordTime is already an object with days/hours/minutes/seconds
+    // recordTime is an object with days/hours/minutes/seconds
     if (typeof recordTime === 'object' && recordTime.days !== undefined) {
-      setRecordCounter(recordTime);
-      return;
+      setRecordCounter({
+        days: recordTime.days || 0,
+        hours: recordTime.hours || 0,
+        minutes: recordTime.minutes || 0,
+        seconds: recordTime.seconds || 0
+      });
     }
-
-    // If recordTime is a timestamp, calculate from it
-    const now = new Date();
-    const record = new Date(recordTime);
-    const diff = now - record;
-
-    if (diff < 0) {
-      setRecordCounter({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-      return;
-    }
-
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-    setRecordCounter({ days, hours, minutes, seconds });
   }, [recordTime]);
+
+  // Check if current uptime exceeds record and save if so
+  useEffect(() => {
+    if (!authAxios || isSavingRecord) return;
+    
+    const currentTotalSeconds = uptimeCounter.days * 86400 + uptimeCounter.hours * 3600 + 
+                                uptimeCounter.minutes * 60 + uptimeCounter.seconds;
+    const recordTotalSeconds = recordCounter.days * 86400 + recordCounter.hours * 3600 + 
+                               recordCounter.minutes * 60 + recordCounter.seconds;
+    
+    // Only save if current is greater than record and we haven't saved recently (avoid spam)
+    const now = Date.now();
+    if (currentTotalSeconds > recordTotalSeconds && currentTotalSeconds > 0 && 
+        now - lastSaveAttemptRef.current > 60000) { // At most once per minute
+      lastSaveAttemptRef.current = now;
+      
+      const saveNewRecord = async () => {
+        setIsSavingRecord(true);
+        try {
+          await authAxios.post('/settings/uptime-record', uptimeCounter);
+          // Update the record counter to match current uptime
+          setRecordCounter({ ...uptimeCounter });
+          if (onRecordUpdate) {
+            onRecordUpdate({ ...uptimeCounter });
+          }
+          console.log('New uptime record saved:', uptimeCounter);
+        } catch (error) {
+          console.error('Error saving uptime record:', error);
+        } finally {
+          setIsSavingRecord(false);
+        }
+      };
+      
+      saveNewRecord();
+    }
+  }, [uptimeCounter, recordCounter, authAxios, isSavingRecord, onRecordUpdate]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
