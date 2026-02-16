@@ -669,6 +669,17 @@
     "drops": "drops",
     "desktopRecommended": "Full view on desktop",
     "desktopRecommendedDesc": "For all widgets and interactive map, use a larger screen",
-    "developedBy": "Developed by SIEMPRIA"
+    "developedBy": "Developed by SIEMPRIA",
+    "record": "RECORD",
+    "withoutIncidents": "Without Incidents",
+    "currentUptime": "Current Uptime",
+    "bestRecord": "Best Record"
+  },
+  "cra": {
+    "armed": "Armed",
+    "disarmed": "Disarmed",
+    "alert": "Alarm",
+    "partialArm": "Partial Arm",
+    "statusUnknown": "Status Unknown"
   }
 }
