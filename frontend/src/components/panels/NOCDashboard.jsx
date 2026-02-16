@@ -148,6 +148,25 @@ const NOCDashboard = ({
     loadPreferences();
   }, [authAxios]);
 
+  // Load uptime record from server
+  useEffect(() => {
+    const loadUptimeRecord = async () => {
+      if (!authAxios) return;
+      try {
+        const res = await authAxios.get('/settings/uptime-record');
+        if (res.data?.record) {
+          setUptimeRecord(res.data.record);
+          if (res.data.recorded_at) {
+            setRecordDate(res.data.recorded_at);
+          }
+        }
+      } catch (error) {
+        console.log('No uptime record found');
+      }
+    };
+    loadUptimeRecord();
+  }, [authAxios]);
+
   // Save preferences to server
   const savePreferences = async () => {
     if (!authAxios) return;
