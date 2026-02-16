@@ -2715,69 +2715,106 @@ const Dashboard = () => {
           <TabsContent value="devices">
             {/* Filters - not for operators, available for technicians */}
             {!isOperator && (
-              <div className="flex gap-2 mb-4 sm:mb-6 flex-wrap items-center">
-                {/* Search input with magnifying glass */}
-                <div className="relative w-full sm:w-auto">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input 
-                    placeholder={t('common.search', 'Buscar...')}
-                    className="w-full sm:w-[200px] pl-8 h-9"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  {searchQuery && (
-                    <button 
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      onClick={() => setSearchQuery("")}
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-                {/* Filter dropdowns */}
-                <div className="flex gap-2 flex-wrap w-full sm:w-auto sm:flex-1">
-                  {uniqueCountries.length > 0 && (
-                    <Select value={filterCountry || "all"} onValueChange={(v) => { setFilterCountry(v === "all" ? null : v); setFilterOrgId(null); setFilterGroupId(null); }}>
-                      <SelectTrigger className="w-[calc(50%-4px)] sm:w-[150px] h-9 text-xs sm:text-sm"><SelectValue placeholder={t('common.country', 'País')} /></SelectTrigger>
-                      <SelectContent><SelectItem value="all">🌍 {t('common.all', 'Todos')}</SelectItem>{uniqueCountries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+              <>
+                {/* Row 1: Search + Filters + Stats button on right */}
+                <div className="flex gap-2 mb-2 flex-wrap items-center">
+                  {/* Search input with magnifying glass */}
+                  <div className="relative w-full sm:w-auto">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input 
+                      placeholder={t('common.search', 'Buscar...')}
+                      className="w-full sm:w-[200px] pl-8 h-9"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    {searchQuery && (
+                      <button 
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        onClick={() => setSearchQuery("")}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  {/* Filter dropdowns */}
+                  <div className="flex gap-2 flex-wrap w-full sm:w-auto">
+                    {uniqueCountries.length > 0 && (
+                      <Select value={filterCountry || "all"} onValueChange={(v) => { setFilterCountry(v === "all" ? null : v); setFilterOrgId(null); setFilterGroupId(null); }}>
+                        <SelectTrigger className="w-[calc(50%-4px)] sm:w-[150px] h-9 text-xs sm:text-sm"><SelectValue placeholder={t('common.country', 'País')} /></SelectTrigger>
+                        <SelectContent><SelectItem value="all">🌍 {t('common.all', 'Todos')}</SelectItem>{uniqueCountries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                      </Select>
+                    )}
+                    <Select value={filterOrgId || "all"} onValueChange={(v) => { setFilterOrgId(v === "all" ? null : v); setFilterGroupId(null); }}>
+                      <SelectTrigger className="w-[calc(50%-4px)] sm:w-[180px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Org." /></SelectTrigger>
+                      <SelectContent><SelectItem value="all">{t('filters.allOrgs', 'Todas')}</SelectItem>{(filterCountry ? organizations.filter(o => o.country === filterCountry) : organizations).sort((a,b) => a.name.localeCompare(b.name, 'es')).map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
                     </Select>
-                  )}
-                  <Select value={filterOrgId || "all"} onValueChange={(v) => { setFilterOrgId(v === "all" ? null : v); setFilterGroupId(null); }}>
-                    <SelectTrigger className="w-[calc(50%-4px)] sm:w-[180px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Org." /></SelectTrigger>
-                    <SelectContent><SelectItem value="all">{t('filters.allOrgs', 'Todas')}</SelectItem>{(filterCountry ? organizations.filter(o => o.country === filterCountry) : organizations).sort((a,b) => a.name.localeCompare(b.name, 'es')).map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
-                  </Select>
-                  <Select value={filterGroupId || "all"} onValueChange={(v) => setFilterGroupId(v === "all" ? null : v)}>
-                    <SelectTrigger className="w-[calc(50%-4px)] sm:w-[180px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Grupo" /></SelectTrigger>
-                    <SelectContent><SelectItem value="all">{t('filters.allGroups', 'Todos')}</SelectItem>{(filterOrgId ? sortedGroups.filter(g => g.organization_id === filterOrgId) : sortedGroups).map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
-                  </Select>
-                  <Select value={filterTypeId || "all"} onValueChange={(v) => setFilterTypeId(v === "all" ? null : v)}>
-                    <SelectTrigger className="w-[calc(50%-4px)] sm:w-[180px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Tipo" /></SelectTrigger>
-                    <SelectContent><SelectItem value="all">{t('filters.allTypes', 'Todos')}</SelectItem>{deviceTypes.map(dtype => { const Icon = getIcon(dtype.icon); return <SelectItem key={dtype.id} value={dtype.id}><div className="flex items-center gap-2"><Icon className="w-4 h-4" style={{ color: dtype.color }} />{dtype.name}</div></SelectItem>; })}</SelectContent>
-                  </Select>
-                  {/* Status filter */}
-                  <Select value={filterStatus || "all"} onValueChange={(v) => setFilterStatus(v === "all" ? null : v)}>
-                    <SelectTrigger className="w-[calc(50%-4px)] sm:w-[140px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Estado" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t('common.all', 'Todos')}</SelectItem>
-                      <SelectItem value="online"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" />{t('devices.online', 'Online')}</div></SelectItem>
-                      <SelectItem value="offline"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500" />{t('devices.offline', 'Offline')}</div></SelectItem>
-                      <SelectItem value="unknown"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-400" />{t('devices.unknown', 'Desconocido')}</div></SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {/* Stats filter - moved inline with filters */}
+                    <Select value={filterGroupId || "all"} onValueChange={(v) => setFilterGroupId(v === "all" ? null : v)}>
+                      <SelectTrigger className="w-[calc(50%-4px)] sm:w-[180px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Grupo" /></SelectTrigger>
+                      <SelectContent><SelectItem value="all">{t('filters.allGroups', 'Todos')}</SelectItem>{(filterOrgId ? sortedGroups.filter(g => g.organization_id === filterOrgId) : sortedGroups).map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <Select value={filterTypeId || "all"} onValueChange={(v) => setFilterTypeId(v === "all" ? null : v)}>
+                      <SelectTrigger className="w-[calc(50%-4px)] sm:w-[180px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Tipo" /></SelectTrigger>
+                      <SelectContent><SelectItem value="all">{t('filters.allTypes', 'Todos')}</SelectItem>{deviceTypes.map(dtype => { const Icon = getIcon(dtype.icon); return <SelectItem key={dtype.id} value={dtype.id}><div className="flex items-center gap-2"><Icon className="w-4 h-4" style={{ color: dtype.color }} />{dtype.name}</div></SelectItem>; })}</SelectContent>
+                    </Select>
+                    {/* Status filter */}
+                    <Select value={filterStatus || "all"} onValueChange={(v) => setFilterStatus(v === "all" ? null : v)}>
+                      <SelectTrigger className="w-[calc(50%-4px)] sm:w-[140px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Estado" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t('common.all', 'Todos')}</SelectItem>
+                        <SelectItem value="online"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" />{t('devices.online', 'Online')}</div></SelectItem>
+                        <SelectItem value="offline"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500" />{t('devices.offline', 'Offline')}</div></SelectItem>
+                        <SelectItem value="unknown"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-400" />{t('devices.unknown', 'Desconocido')}</div></SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {/* Stats button on the right */}
                   <Button 
                     variant={filterStats ? "default" : "outline"} 
                     size="sm" 
                     onClick={() => setFilterStats(!filterStats)}
-                    className={`h-9 text-xs sm:text-sm ${filterStats ? "bg-purple-600 hover:bg-purple-700" : ""}`}
+                    className={`h-9 text-xs sm:text-sm ml-auto ${filterStats ? "bg-purple-600 hover:bg-purple-700" : ""}`}
                   >
                     <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                     Stats
                   </Button>
-                  {(searchQuery || filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus || filterStats) && <Button variant="ghost" size="sm" className="h-9 text-xs sm:text-sm" onClick={() => { setSearchQuery(""); setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); setFilterStats(false); }}>Limpiar</Button>}
-                  <span className="text-xs sm:text-sm text-muted-foreground ml-auto">{filteredDevices.length} disp.</span>
                 </div>
-              </div>
+                {/* Row 2: Clear button + Total count + Device type summary - CENTERED */}
+                <div className="flex justify-center items-center gap-4 mb-4 sm:mb-6 flex-wrap">
+                  {(searchQuery || filterCountry || filterOrgId || filterGroupId || filterTypeId || filterStatus || filterStats) && (
+                    <Button variant="ghost" size="sm" className="h-8 text-xs sm:text-sm" onClick={() => { setSearchQuery(""); setFilterCountry(null); setFilterOrgId(null); setFilterGroupId(null); setFilterTypeId(null); setFilterStatus(null); setFilterStats(false); }}>
+                      <X className="w-3 h-3 mr-1" />
+                      {t('common.clear', 'Limpiar')}
+                    </Button>
+                  )}
+                  <span className="text-sm font-medium text-muted-foreground">{filteredDevices.length} {t('devices.deviceCount', 'dispositivo(s)')}</span>
+                  {/* Device type summary */}
+                  <div className="flex items-center gap-3 text-xs sm:text-sm text-muted-foreground">
+                    {(() => {
+                      const typeCounts = {};
+                      filteredDevices.forEach(d => {
+                        const dtype = deviceTypes.find(t => t.id === d.device_type_id);
+                        const typeName = dtype?.name || t('devices.noType', 'Sin tipo');
+                        typeCounts[typeName] = (typeCounts[typeName] || 0) + 1;
+                      });
+                      return Object.entries(typeCounts)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 5)
+                        .map(([name, count], idx) => {
+                          const dtype = deviceTypes.find(t => t.name === name);
+                          const Icon = dtype ? getIcon(dtype.icon) : Box;
+                          const color = dtype?.color || '#888';
+                          return (
+                            <span key={name} className="flex items-center gap-1">
+                              {idx > 0 && <span className="text-muted-foreground/50">•</span>}
+                              <Icon className="w-3 h-3 sm:w-4 sm:h-4" style={{ color }} />
+                              <span>{count} {name}</span>
+                            </span>
+                          );
+                        });
+                    })()}
+                  </div>
+                </div>
+              </>
             )}
             
             {/* Technician header */}
