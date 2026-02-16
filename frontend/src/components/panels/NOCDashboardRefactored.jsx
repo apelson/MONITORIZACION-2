@@ -231,15 +231,32 @@ const NOCDashboardRefactored = ({
     return () => clearInterval(interval);
   }, []);
 
-  // Load CRA devices
+  // Load CRA devices with armed/disarmed status
   useEffect(() => {
     const loadCRADevices = async () => {
       if (!authAxios) return;
       try {
-        const res = await authAxios.get('/cra/devices');
-        if (res.data?.devices) {
-          // Sort: offline first, then by latency
-          const sorted = res.data.devices.sort((a, b) => {
+        // Fetch CRA devices and FTP status in parallel
+        const [devicesRes, ftpRes] = await Promise.all([
+          authAxios.get('/cra/devices'),
+          authAxios.get('/camera-stream/ftp-status-batch').catch(() => ({ data: { statuses: {} } }))
+        ]);
+        
+        if (devicesRes.data?.devices) {
+          const ftpStatuses = ftpRes.data?.statuses || {};
+          
+          // Merge FTP status (armed/disarmed) into devices
+          const devicesWithStatus = devicesRes.data.devices.map(device => {
+            const ftpStatus = ftpStatuses[device.id];
+            return {
+              ...device,
+              armed: ftpStatus?.status === 'armed',
+              alarm_status: ftpStatus?.status || 'unknown'
+            };
+          });
+          
+          // Sort: offline first, then armed, then by latency
+          const sorted = devicesWithStatus.sort((a, b) => {
             if (a.status === 'offline' && b.status !== 'offline') return -1;
             if (a.status !== 'offline' && b.status === 'offline') return 1;
             return (b.response_time_ms || 0) - (a.response_time_ms || 0);
@@ -247,6 +264,7 @@ const NOCDashboardRefactored = ({
           setCraDevices(sorted);
         }
       } catch (error) {
+        console.error('Error loading CRA devices:', error);
         // Fallback to filtering devices with CRA type
         const craType = deviceTypes.find(t => t.name?.toLowerCase().includes('cra'));
         if (craType) {
@@ -262,6 +280,10 @@ const NOCDashboardRefactored = ({
       }
     };
     loadCRADevices();
+    
+    // Refresh CRA status every 30 seconds
+    const interval = setInterval(loadCRADevices, 30000);
+    return () => clearInterval(interval);
   }, [authAxios, devices, deviceTypes]);
 
   // Load preferences from server
