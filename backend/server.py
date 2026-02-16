@@ -210,6 +210,9 @@ api_router.include_router(websocket_router)
 api_router.include_router(ai_router)
 api_router.include_router(sla_reports_router)
 
+# Include download router for production updates
+api_router.include_router(download_router)
+
 # ============ ROOT & IMAGE PROXY ============
 
 @api_router.get("/")
