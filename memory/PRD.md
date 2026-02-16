@@ -48,12 +48,30 @@ Build and maintain a professional NOC (Network Operations Center) dashboard for 
 
 # What's Been Implemented
 
-## Session: February 16, 2026
+## Session: February 16, 2026 (Fork 2)
+
+### Main Dashboard Layout Fix
+- ✅ Stats button moved to the right side of the filter controls
+- ✅ Device type summary (e.g., "4 Cámara • 4 No type • 1 NAS") now appears centered below filters
+- ✅ Clear button and device count positioned in centered summary row
+
+### NOC Dashboard Record Feature
+- ✅ Fixed uptime record loading from backend (corrected API path from `/settings/uptime-record` to `/uptime-record`)
+- ✅ Record now displays correctly in SystemECG component
+- ✅ Auto-save new record when current uptime exceeds saved record (implemented in SystemECG.jsx)
+
+### Files Modified
+- `/app/frontend/src/App.js` - Filter layout restructured (lines ~2715-2810)
+- `/app/frontend/src/components/panels/NOCDashboardRefactored.jsx` - Fixed API endpoint
+- `/app/frontend/src/components/panels/NOCDashboard.jsx` - Fixed API endpoint and added record state
+- `/app/frontend/src/components/common/SystemECG.jsx` - Added auto-save record logic
+
+## Previous Session: February 16, 2026
 
 ### NOC Dashboard Enhancements
 - ✅ Added RECORD counter next to "Sin Incidencias" in SystemECG component
 - ✅ Added armed/disarmed states to CRA Widget with Lock/Unlock icons
-- ✅ Created `/api/settings/uptime-record` endpoint for saving/getting uptime records
+- ✅ Created `/api/uptime-record` endpoint for saving/getting uptime records
 - ✅ Added translations for CRA and NOC features (es/en)
 
 ### Code Refactoring
@@ -91,8 +109,8 @@ Build and maintain a professional NOC (Network Operations Center) dashboard for 
 # API Endpoints
 
 ## Settings
-- `GET /api/settings/uptime-record` - Get current uptime record
-- `POST /api/settings/uptime-record` - Save new uptime record (if better)
+- `GET /api/uptime-record` - Get current uptime record
+- `POST /api/uptime-record` - Save new uptime record (if better than current)
 - `GET /api/settings/test-email` - Test SMTP configuration
 - `GET /api/settings/system-status` - System health check
 
@@ -111,3 +129,4 @@ Build and maintain a professional NOC (Network Operations Center) dashboard for 
 # Test Credentials
 - **Username**: admin
 - **Password**: admin123
+- **Production User**: admin / Spw@16071977
