@@ -11,12 +11,14 @@ const SystemECG = ({
   hasAlerts = false,
   isAnalyzing = true,
   lastIncidentTime = null, // ISO timestamp of last incident
+  recordTime = null, // ISO timestamp or object { days, hours, minutes, seconds } for record
   className 
 }) => {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
   const [pulse, setPulse] = useState(0);
   const [uptimeCounter, setUptimeCounter] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [recordCounter, setRecordCounter] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   // Determine color based on health
   const getColor = () => {
