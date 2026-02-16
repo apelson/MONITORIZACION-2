@@ -112,6 +112,8 @@ const NOCDashboard = ({
     groupId: 'all'
   });
   const [savingPrefs, setSavingPrefs] = useState(false);
+  const [uptimeRecord, setUptimeRecord] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [recordDate, setRecordDate] = useState(null);
   const audioRef = useRef(null);
   const presentationRef = useRef(null);
   const containerRef = useRef(null);
