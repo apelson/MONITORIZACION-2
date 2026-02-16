@@ -313,3 +313,67 @@ async def get_quick_status():
         "database": "connected" if db_ok else "error",
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
+
+
+# ============ UPTIME RECORD ============
+
+class UptimeRecord(BaseModel):
+    days: int = 0
+    hours: int = 0
+    minutes: int = 0
+    seconds: int = 0
+
+@router.get("/uptime-record")
+async def get_uptime_record(current_user: dict = Depends(get_current_user)):
+    """Get the best uptime record (time without incidents)"""
+    try:
+        record = await settings_collection.find_one({"type": "uptime_record"}, {"_id": 0})
+        if record:
+            return {"record": record.get("record", {"days": 0, "hours": 0, "minutes": 0, "seconds": 0})}
+        return {"record": {"days": 0, "hours": 0, "minutes": 0, "seconds": 0}}
+    except Exception as e:
+        logger.error(f"Error getting uptime record: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/uptime-record")
+async def save_uptime_record(record: UptimeRecord, current_user: dict = Depends(require_role(["admin"]))):
+    """Save a new uptime record (only if better than current)"""
+    try:
+        current = await settings_collection.find_one({"type": "uptime_record"})
+        
+        new_total_seconds = record.days * 86400 + record.hours * 3600 + record.minutes * 60 + record.seconds
+        
+        if current:
+            current_record = current.get("record", {})
+            current_total = (current_record.get("days", 0) * 86400 + 
+                          current_record.get("hours", 0) * 3600 + 
+                          current_record.get("minutes", 0) * 60 + 
+                          current_record.get("seconds", 0))
+            
+            if new_total_seconds <= current_total:
+                return {"message": "Current record is better", "record": current_record}
+        
+        await settings_collection.update_one(
+            {"type": "uptime_record"},
+            {"$set": {
+                "type": "uptime_record",
+                "record": {
+                    "days": record.days,
+                    "hours": record.hours,
+                    "minutes": record.minutes,
+                    "seconds": record.seconds
+                },
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }},
+            upsert=True
+        )
+        
+        return {"message": "New record saved!", "record": {
+            "days": record.days,
+            "hours": record.hours,
+            "minutes": record.minutes,
+            "seconds": record.seconds
+        }}
+    except Exception as e:
+        logger.error(f"Error saving uptime record: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
