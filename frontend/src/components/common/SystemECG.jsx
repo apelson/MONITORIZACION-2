@@ -74,6 +74,37 @@ const SystemECG = ({
     return () => clearInterval(interval);
   }, [lastIncidentTime]);
 
+  // Calculate record counter
+  useEffect(() => {
+    if (!recordTime) {
+      setRecordCounter({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      return;
+    }
+
+    // If recordTime is already an object with days/hours/minutes/seconds
+    if (typeof recordTime === 'object' && recordTime.days !== undefined) {
+      setRecordCounter(recordTime);
+      return;
+    }
+
+    // If recordTime is a timestamp, calculate from it
+    const now = new Date();
+    const record = new Date(recordTime);
+    const diff = now - record;
+
+    if (diff < 0) {
+      setRecordCounter({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    setRecordCounter({ days, hours, minutes, seconds });
+  }, [recordTime]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
