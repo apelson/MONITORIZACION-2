@@ -97,7 +97,7 @@ const NOCDashboardRefactored = ({
   useEffect(() => {
     const loadRecordTime = async () => {
       try {
-        const response = await authAxios?.get('/settings/uptime-record');
+        const response = await authAxios?.get('/uptime-record');
         if (response?.data?.record) {
           setRecordTime(response.data.record);
         }
