@@ -46,11 +46,6 @@ const CRAFloatingButton = ({ authAxios, onClick, isActive }) => {
       className={`fixed right-0 top-1/3 z-50 transition-all duration-300 ${isExpanded ? 'translate-x-0' : 'translate-x-0'}`}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
-      onClick={() => {
-        if (window.innerWidth < 640) {
-          onClick();
-        }
-      }}
     >
       <div 
         className={`
@@ -64,7 +59,10 @@ const CRAFloatingButton = ({ authAxios, onClick, isActive }) => {
           }
           ${isActive ? 'ring-4 ring-white ring-opacity-50' : ''}
         `}
-        onClick={onClick}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick?.();
+        }}
       >
         {/* Icon section - always visible, smaller on mobile */}
         <div className={`p-2 sm:p-3 flex flex-col items-center justify-center ${isExpanded ? 'sm:border-r border-white/20' : ''}`}>
