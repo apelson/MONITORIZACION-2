@@ -114,7 +114,7 @@ const SystemECG = ({
       const saveNewRecord = async () => {
         setIsSavingRecord(true);
         try {
-          await authAxios.post('/settings/uptime-record', uptimeCounter);
+          await authAxios.post('/uptime-record', uptimeCounter);
           // Update the record counter to match current uptime
           setRecordCounter({ ...uptimeCounter });
           if (onRecordUpdate) {
