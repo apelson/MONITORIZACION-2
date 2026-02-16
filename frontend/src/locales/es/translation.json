@@ -700,6 +700,17 @@
     "drops": "caídas",
     "desktopRecommended": "Vista completa en desktop",
     "desktopRecommendedDesc": "Para ver todos los widgets y el mapa interactivo, usa una pantalla más grande",
-    "developedBy": "Desarrollado por SIEMPRIA"
+    "developedBy": "Desarrollado por SIEMPRIA",
+    "record": "RECORD",
+    "withoutIncidents": "Sin Incidencias",
+    "currentUptime": "Tiempo Actual",
+    "bestRecord": "Mejor Record"
+  },
+  "cra": {
+    "armed": "Armado",
+    "disarmed": "Desarmado",
+    "alert": "Alarma",
+    "partialArm": "Armado Parcial",
+    "statusUnknown": "Estado Desconocido"
   }
 }
