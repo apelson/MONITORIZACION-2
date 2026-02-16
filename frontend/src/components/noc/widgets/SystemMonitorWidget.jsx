@@ -9,6 +9,7 @@ const SystemMonitorWidget = ({
   stats, 
   devicesByIsland,
   getBubbleSize,
+  recordTime,
   editMode = false 
 }) => {
   return (
@@ -31,12 +32,13 @@ const SystemMonitorWidget = ({
         </div>
       </div>
       
-      {/* ECG Monitor */}
+      {/* ECG Monitor with Record */}
       <SystemECG 
         healthPercent={stats.uptimePercent}
         hasAlerts={stats.offline > 0 || stats.criticalAlerts > 0}
         isAnalyzing={true}
         lastIncidentTime={stats.lastIncidentTime}
+        recordTime={recordTime}
         className="shrink-0 rounded-lg border border-slate-700/50 bg-slate-950/50 overflow-hidden"
       />
         
