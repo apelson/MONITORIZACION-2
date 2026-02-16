@@ -64,6 +64,7 @@ const NOCDashboardRefactored = ({
   const [uptimeData, setUptimeData] = useState([]);
   const [craDevices, setCraDevices] = useState([]);
   const [timeRange, setTimeRange] = useState('24h');
+  const [recordTime, setRecordTime] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   
   // Presentation mode
   const [presentationMode, setPresentationMode] = useState(false);
@@ -91,6 +92,22 @@ const NOCDashboardRefactored = ({
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [savingPrefs, setSavingPrefs] = useState(false);
   const audioRef = useRef(null);
+
+  // Load record time from backend
+  useEffect(() => {
+    const loadRecordTime = async () => {
+      try {
+        const response = await authAxios?.get('/settings/uptime-record');
+        if (response?.data?.record) {
+          setRecordTime(response.data.record);
+        }
+      } catch (err) {
+        // If no record exists yet, use default
+        console.log('No uptime record found, using default');
+      }
+    };
+    loadRecordTime();
+  }, [authAxios]);
 
   // ==================== COMPUTED VALUES ====================
   
