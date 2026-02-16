@@ -238,7 +238,7 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
         <Card>
           <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
@@ -272,6 +272,33 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
             </div>
           </CardContent>
         </Card>
+        {/* Armed/Disarmed Cards */}
+        <Card className="bg-emerald-50 border-emerald-200">
+          <CardContent className="p-3 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs sm:text-sm text-emerald-700">Armados</p>
+                <p className="text-2xl sm:text-3xl font-bold text-emerald-700">
+                  {Object.values(ftpStatuses).filter(s => s.enabled).length}
+                </p>
+              </div>
+              <ShieldCheck className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-500" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-amber-50 border-amber-200">
+          <CardContent className="p-3 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs sm:text-sm text-amber-700">Desarmados</p>
+                <p className="text-2xl sm:text-3xl font-bold text-amber-700">
+                  {Object.values(ftpStatuses).filter(s => !s.enabled && !s.error).length}
+                </p>
+              </div>
+              <ShieldAlert className="w-6 h-6 sm:w-8 sm:h-8 text-amber-500" />
+            </div>
+          </CardContent>
+        </Card>
         <Card className={status?.recent_alerts_24h > 0 ? "bg-orange-50 border-orange-200" : ""}>
           <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
@@ -279,7 +306,7 @@ const CRADashboard = ({ authAxios, onOpenLiveView }) => {
                 <p className={`text-xs sm:text-sm ${status?.recent_alerts_24h > 0 ? 'text-orange-700' : 'text-muted-foreground'}`}>Alertas 24h</p>
                 <p className={`text-2xl sm:text-3xl font-bold ${status?.recent_alerts_24h > 0 ? 'text-orange-700' : ''}`}>{status?.recent_alerts_24h || 0}</p>
               </div>
-              <Bell className={`w-8 h-8 ${status?.recent_alerts_24h > 0 ? 'text-orange-500' : 'text-gray-300'}`} />
+              <Bell className={`w-6 h-6 sm:w-8 sm:h-8 ${status?.recent_alerts_24h > 0 ? 'text-orange-500' : 'text-gray-300'}`} />
             </div>
           </CardContent>
         </Card>
