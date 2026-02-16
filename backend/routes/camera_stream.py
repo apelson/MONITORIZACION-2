@@ -338,9 +338,9 @@ async def get_ftp_status_batch(
     current_user: dict = Depends(get_current_user)
 ):
     """Get FTP status for all CRA devices in parallel (optimized)"""
-    # Get all CRA devices
+    # Get all CRA devices - check both is_cra field and device_type for compatibility
     devices = await devices_collection.find(
-        {"device_type": "cra"},
+        {"$or": [{"is_cra": True}, {"device_type": "cra"}]},
         {"_id": 0, "id": 1, "name": 1, "ip_address": 1, "port": 1, 
          "camera_protocol": 1, "camera_user": 1, "camera_password": 1}
     ).to_list(500)
