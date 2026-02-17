@@ -97,20 +97,36 @@ const NOCDashboardRefactored = ({
   const [savingPrefs, setSavingPrefs] = useState(false);
   const audioRef = useRef(null);
 
-  // Load record time from backend
+  // Load record time and last incident from backend
   useEffect(() => {
-    const loadRecordTime = async () => {
+    const loadRecordAndIncident = async () => {
       try {
-        const response = await authAxios?.get('/uptime-record');
-        if (response?.data?.record) {
-          setRecordTime(response.data.record);
+        // Fetch both in parallel
+        const [recordResponse, incidentResponse] = await Promise.all([
+          authAxios?.get('/uptime-record'),
+          authAxios?.get('/last-incident')
+        ]);
+        
+        if (recordResponse?.data?.record) {
+          setRecordTime(recordResponse.data.record);
+          if (recordResponse.data.updated_at) {
+            setRecordDate(recordResponse.data.updated_at);
+          }
+        }
+        
+        if (incidentResponse?.data?.last_incident_time) {
+          setLastIncidentTime(incidentResponse.data.last_incident_time);
         }
       } catch (err) {
         // If no record exists yet, use default
-        console.log('No uptime record found, using default');
+        console.log('No uptime record/incident found, using default');
       }
     };
-    loadRecordTime();
+    loadRecordAndIncident();
+    
+    // Refresh every 60 seconds
+    const interval = setInterval(loadRecordAndIncident, 60000);
+    return () => clearInterval(interval);
   }, [authAxios]);
 
   // ==================== COMPUTED VALUES ====================
