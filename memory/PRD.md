@@ -14,6 +14,7 @@ Build and maintain a professional NOC (Network Operations Center) dashboard for 
 3. CRA (Central Alarm Receiver) panel monitoring with armed/disarmed states
 4. Multi-language support (Spanish/English)
 5. Responsive design for desktop and mobile
+6. **Critical Alerts feature** - Monitor critical device types when offline
 
 ## Technology Stack
 - **Frontend**: React with Tailwind CSS, Shadcn/UI components
@@ -26,18 +27,22 @@ Build and maintain a professional NOC (Network Operations Center) dashboard for 
 /app
 ├── backend
 │   ├── routes/
-│   │   ├── devices.py
-│   │   ├── settings.py
+│   │   ├── devices.py (includes critical-offline endpoint)
+│   │   ├── settings.py (includes last-incident endpoint)
 │   │   └── ...
 │   ├── services/
+│   ├── models/__init__.py (DeviceType includes is_critical field)
 │   └── tests/
 └── frontend
     ├── src/
     │   ├── components/
     │   │   ├── auth/LoginPage.jsx
     │   │   ├── noc/widgets/
-    │   │   ├── common/SystemECG.jsx
-    │   │   └── panels/NOCDashboardRefactored.jsx
+    │   │   │   ├── CriticalAlertsWidget.jsx (NEW)
+    │   │   │   └── ...
+    │   │   ├── common/SystemECG.jsx (shows record date)
+    │   │   ├── panels/NOCDashboardRefactored.jsx
+    │   │   └── panels/DeviceTypesPanel.jsx (shows critical badge)
     │   └── locales/
     │       ├── en/translation.json
     │       └── es/translation.json
@@ -48,41 +53,43 @@ Build and maintain a professional NOC (Network Operations Center) dashboard for 
 
 # What's Been Implemented
 
-## Session: February 16, 2026 (Fork 2)
+## Session: February 17, 2026
 
-### Main Dashboard Layout Fix
-- ✅ Stats button moved to the right side of the filter controls
-- ✅ Device type summary (e.g., "4 Cámara • 4 No type • 1 NAS") now appears centered below filters
-- ✅ Clear button and device count positioned in centered summary row
+### Critical Alerts Feature - COMPLETED
+- ✅ Added `is_critical` boolean field to DeviceType model in backend
+- ✅ Created new endpoint `GET /api/devices/critical-offline` - returns offline devices belonging to critical types
+- ✅ Created new endpoint `GET /api/last-incident` - returns timestamp of most recent device_down alert
+- ✅ Updated `GET /api/uptime-record` to return `updated_at` field for record date display
+- ✅ Created `CriticalAlertsWidget.jsx` component for NOC dashboard
+- ✅ Updated `DraggableGrid.jsx` with new layout including criticalAlerts widget
+- ✅ Updated `NOCDashboardRefactored.jsx` to integrate the new widget and load lastIncidentTime
+- ✅ Updated `DeviceTypeFormDialog` in App.js with checkbox to set type as critical
+- ✅ Updated `DeviceTypesPanel.jsx` to visually show critical badge on device types
+- ✅ Updated `SystemECG.jsx` to display record date
+- ✅ Updated `SystemMonitorWidget.jsx` to pass recordDate to ECG component
 
-### NOC Dashboard Record Feature
-- ✅ Fixed uptime record loading from backend (corrected API path from `/settings/uptime-record` to `/uptime-record`)
-- ✅ Record now displays correctly in SystemECG component
-- ✅ Auto-save new record when current uptime exceeds saved record (implemented in SystemECG.jsx)
-
-### Files Modified
-- `/app/frontend/src/App.js` - Filter layout restructured (lines ~2715-2810)
-- `/app/frontend/src/components/panels/NOCDashboardRefactored.jsx` - Fixed API endpoint
-- `/app/frontend/src/components/panels/NOCDashboard.jsx` - Fixed API endpoint and added record state
-- `/app/frontend/src/components/common/SystemECG.jsx` - Added auto-save record logic
-
-## Previous Session: February 16, 2026
-
-### NOC Dashboard Enhancements
-- ✅ Added RECORD counter next to "Sin Incidencias" in SystemECG component
-- ✅ Added armed/disarmed states to CRA Widget with Lock/Unlock icons
-- ✅ Created `/api/uptime-record` endpoint for saving/getting uptime records
-- ✅ Added translations for CRA and NOC features (es/en)
-
-### Code Refactoring
-- ✅ Removed duplicate LoginPage definition from App.js (was causing build error)
-- ✅ Removed duplicate ServerCard definition from App.js
-- ✅ LoginPage now receives `login` prop instead of using useAuth directly
-- ✅ App.js reduced by ~500 lines
+### Widget Layout
+- ✅ Uptime widget made smaller (3 columns instead of 4)
+- ✅ Critical Alerts widget placed next to Uptime (3 columns)
+- ✅ System Monitor widget (3 columns)
+- ✅ CRA widget (3 columns)
 
 ### Bug Fixes
-- ✅ Fixed build error caused by duplicate component declarations
-- ✅ Fixed LoginPage context issue by passing login as prop
+- ✅ Fixed bcrypt version compatibility (downgraded to 4.0.1 for passlib compatibility)
+- ✅ Added missing `alerts_collection` import to settings.py
+
+### Files Modified
+- `/app/backend/models/__init__.py` - Added is_critical to DeviceTypeCreate/Update
+- `/app/backend/routes/devices.py` - Added /critical-offline endpoint, updated device-types create
+- `/app/backend/routes/settings.py` - Added /last-incident endpoint, updated uptime-record to return date
+- `/app/frontend/src/components/noc/widgets/CriticalAlertsWidget.jsx` - NEW FILE
+- `/app/frontend/src/components/noc/widgets/index.js` - Added CriticalAlertsWidget export
+- `/app/frontend/src/components/noc/widgets/SystemMonitorWidget.jsx` - Added recordDate prop
+- `/app/frontend/src/components/noc/DraggableGrid.jsx` - Added criticalAlerts to layout
+- `/app/frontend/src/components/panels/NOCDashboardRefactored.jsx` - Integrated new widget
+- `/app/frontend/src/components/panels/DeviceTypesPanel.jsx` - Show critical badge
+- `/app/frontend/src/components/common/SystemECG.jsx` - Show record date
+- `/app/frontend/src/App.js` - Updated DeviceTypeFormDialog with critical checkbox
 
 ---
 
@@ -92,41 +99,45 @@ Build and maintain a professional NOC (Network Operations Center) dashboard for 
 - None currently
 
 ## P1 - High Priority
-- Add more backend tests for edge cases
-- Verify CRA armed/disarmed states work with production devices
+- Verify CRA armed/disarmed states work with production devices (blocked on camera API docs)
+- Configure SMTP for email notifications (blocked on password)
 
-## P2 - Medium Priority
+## P2 - Medium Priority  
+- Fix `passlib/bcrypt` deprecation warning in backend logs
+- Fix eslint warnings in frontend build
 - Implement frontend tests with Jest
-- Final verification of all i18n translations
 
 ## P3 - Future
-- Slack/Microsoft Teams integration for alerts (user postponed)
+- Slack/Microsoft Teams integration for alerts
 - White-labeling features
-- Billing integration
 
 ---
 
 # API Endpoints
 
 ## Settings
-- `GET /api/uptime-record` - Get current uptime record
+- `GET /api/uptime-record` - Get current uptime record with date
 - `POST /api/uptime-record` - Save new uptime record (if better than current)
+- `GET /api/last-incident` - Get timestamp of last device_down alert
 - `GET /api/settings/test-email` - Test SMTP configuration
 - `GET /api/settings/system-status` - System health check
 
 ## Devices
 - `GET /api/devices` - List all devices
+- `GET /api/devices/critical-offline` - Get offline devices belonging to critical types
 - `POST /api/devices` - Create new device
 - `PUT /api/devices/{id}` - Update device
 - `DELETE /api/devices/{id}` - Delete device
+- `GET /api/device-types` - List all device types
+- `POST /api/device-types` - Create new device type (includes is_critical)
+- `PUT /api/device-types/{id}` - Update device type (includes is_critical)
 
 ## Auth
 - `POST /api/auth/login` - User login
-- `GET /api/auth/me` - Get current user (returns 401 if not authenticated)
+- `GET /api/auth/me` - Get current user
 
 ---
 
 # Test Credentials
 - **Username**: admin
-- **Password**: admin123
-- **Production User**: admin / Spw@16071977
+- **Password**: Spw@16071977
