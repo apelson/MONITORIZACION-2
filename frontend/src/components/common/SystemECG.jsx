@@ -329,9 +329,16 @@ const SystemECG = ({
 
           {/* Record */}
           <div className="flex-1">
-            <div className="flex items-center gap-1.5 mb-1">
-              <Trophy className="w-3 h-3 text-amber-400" />
-              <span className="text-[8px] text-amber-400 uppercase font-semibold">RECORD</span>
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <Trophy className="w-3 h-3 text-amber-400" />
+                <span className="text-[8px] text-amber-400 uppercase font-semibold">RECORD</span>
+              </div>
+              {recordDate && (
+                <span className="text-[7px] text-slate-500">
+                  {new Date(recordDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: '2-digit' })}
+                </span>
+              )}
             </div>
             
             {/* Record Counter Display */}
