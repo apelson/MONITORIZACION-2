@@ -22,6 +22,7 @@ import OrganizationsWidget from '../noc/widgets/OrganizationsWidget';
 import OfflineWidget from '../noc/widgets/OfflineWidget';
 import HistoryWidget from '../noc/widgets/HistoryWidget';
 import AlertsWidget from '../noc/widgets/AlertsWidget';
+import CriticalAlertsWidget from '../noc/widgets/CriticalAlertsWidget';
 import SystemECG from '../common/SystemECG';
 
 // Canary Islands map configuration
