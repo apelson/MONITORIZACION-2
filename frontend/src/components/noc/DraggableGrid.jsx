@@ -25,9 +25,10 @@ const gridStyles = `
 // Default layout configuration
 export const DEFAULT_LAYOUTS = {
   lg: [
-    { i: 'uptime', x: 0, y: 0, w: 4, h: 4, minW: 2, minH: 3 },
-    { i: 'systemMonitor', x: 4, y: 0, w: 4, h: 4, minW: 3, minH: 3 },
-    { i: 'cra', x: 8, y: 0, w: 4, h: 4, minW: 2, minH: 3 },
+    { i: 'uptime', x: 0, y: 0, w: 3, h: 4, minW: 2, minH: 3 },
+    { i: 'criticalAlerts', x: 3, y: 0, w: 3, h: 4, minW: 2, minH: 3 },
+    { i: 'systemMonitor', x: 6, y: 0, w: 3, h: 4, minW: 3, minH: 3 },
+    { i: 'cra', x: 9, y: 0, w: 3, h: 4, minW: 2, minH: 3 },
     { i: 'organizations', x: 0, y: 4, w: 3, h: 4, minW: 2, minH: 3 },
     { i: 'offline', x: 3, y: 4, w: 3, h: 4, minW: 2, minH: 3 },
     { i: 'history', x: 6, y: 4, w: 3, h: 4, minW: 2, minH: 3 },
@@ -38,6 +39,7 @@ export const DEFAULT_LAYOUTS = {
 // Widget titles for configuration panel
 export const WIDGET_CONFIG = {
   uptime: { title: 'Uptime', icon: 'Activity', color: 'cyan' },
+  criticalAlerts: { title: 'Críticos', icon: 'ShieldAlert', color: 'red' },
   systemMonitor: { title: 'Monitor', icon: 'Activity', color: 'cyan' },
   cra: { title: 'CRA', icon: 'Shield', color: 'red' },
   organizations: { title: 'Orgs', icon: 'Building2', color: 'purple' },
