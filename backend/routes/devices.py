@@ -79,6 +79,7 @@ async def create_device_type(data: DeviceTypeCreate, current_user: dict = Depend
         "name": data.name,
         "icon": data.icon,
         "color": data.color or "#6b7280",
+        "is_critical": data.is_critical or False,
         "is_default": False,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
