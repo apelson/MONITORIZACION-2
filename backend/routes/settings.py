@@ -329,8 +329,11 @@ async def get_uptime_record(current_user: dict = Depends(get_current_user)):
     try:
         record = await settings_collection.find_one({"type": "uptime_record"}, {"_id": 0})
         if record:
-            return {"record": record.get("record", {"days": 0, "hours": 0, "minutes": 0, "seconds": 0})}
-        return {"record": {"days": 0, "hours": 0, "minutes": 0, "seconds": 0}}
+            return {
+                "record": record.get("record", {"days": 0, "hours": 0, "minutes": 0, "seconds": 0}),
+                "updated_at": record.get("updated_at")
+            }
+        return {"record": {"days": 0, "hours": 0, "minutes": 0, "seconds": 0}, "updated_at": None}
     except Exception as e:
         logger.error(f"Error getting uptime record: {e}")
         raise HTTPException(status_code=500, detail=str(e))
