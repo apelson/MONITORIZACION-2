@@ -66,6 +66,8 @@ const NOCDashboardRefactored = ({
   const [craDevices, setCraDevices] = useState([]);
   const [timeRange, setTimeRange] = useState('24h');
   const [recordTime, setRecordTime] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [recordDate, setRecordDate] = useState(null);
+  const [lastIncidentTime, setLastIncidentTime] = useState(null);
   
   // Presentation mode
   const [presentationMode, setPresentationMode] = useState(false);
@@ -75,6 +77,7 @@ const NOCDashboardRefactored = ({
   const [layouts, setLayouts] = useState(DEFAULT_LAYOUTS);
   const [widgetVisibility, setWidgetVisibility] = useState({
     uptime: true,
+    criticalAlerts: true,
     systemMonitor: true,
     cra: true,
     organizations: true,
