@@ -749,12 +749,23 @@ const NOCDashboardRefactored = ({
             />
           </div>
           
+          <div key="criticalAlerts">
+            <CriticalAlertsWidget
+              authAxios={authAxios}
+              onDeviceClick={onDeviceClick}
+              onMaximize={() => handleMaximizeSection('criticalAlerts')}
+              editMode={editMode}
+            />
+          </div>
+          
           <div key="systemMonitor">
             <SystemMonitorWidget
-              stats={stats}
+              stats={{...stats, lastIncidentTime}}
               devicesByIsland={devicesByIsland}
               getBubbleSize={getBubbleSize}
               recordTime={recordTime}
+              recordDate={recordDate}
+              authAxios={authAxios}
               editMode={editMode}
             />
           </div>
