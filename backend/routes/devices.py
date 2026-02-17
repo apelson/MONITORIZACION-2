@@ -107,6 +107,58 @@ async def delete_device_type(type_id: str, current_user: dict = Depends(require_
     await devices_collection.update_many({"device_type_id": type_id}, {"$set": {"device_type_id": None}})
     return {"message": "Tipo eliminado"}
 
+# ============ CRITICAL DEVICES ============
+
+@router.get("/devices/critical-offline")
+async def get_critical_offline_devices(current_user: dict = Depends(get_current_user)):
+    """
+    Get devices that are offline and belong to critical device types.
+    Returns device info including name, IP, last_seen, and device type.
+    """
+    try:
+        # First, get all critical device types
+        critical_types = await device_types_collection.find(
+            {"is_critical": True}, 
+            {"_id": 0, "id": 1, "name": 1, "icon": 1, "color": 1}
+        ).to_list(length=None)
+        
+        if not critical_types:
+            return {"devices": [], "count": 0, "critical_types": []}
+        
+        critical_type_ids = [t["id"] for t in critical_types]
+        
+        # Get offline devices of those types
+        devices = await devices_collection.find(
+            {
+                "status": "offline",
+                "device_type_id": {"$in": critical_type_ids}
+            },
+            {
+                "_id": 0,
+                "id": 1,
+                "name": 1,
+                "ip_address": 1,
+                "last_seen": 1,
+                "device_type_id": 1,
+                "group_id": 1
+            }
+        ).to_list(length=None)
+        
+        # Enrich devices with type info
+        type_map = {t["id"]: t for t in critical_types}
+        for device in devices:
+            type_id = device.get("device_type_id")
+            if type_id and type_id in type_map:
+                device["device_type"] = type_map[type_id]
+        
+        return {
+            "devices": devices,
+            "count": len(devices),
+            "critical_types": critical_types
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # ============ DEVICES ============
 
 @router.get("/devices")
