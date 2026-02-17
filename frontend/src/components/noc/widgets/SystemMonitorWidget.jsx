@@ -10,6 +10,8 @@ const SystemMonitorWidget = ({
   devicesByIsland,
   getBubbleSize,
   recordTime,
+  recordDate,
+  authAxios,
   editMode = false 
 }) => {
   return (
@@ -39,6 +41,8 @@ const SystemMonitorWidget = ({
         isAnalyzing={true}
         lastIncidentTime={stats.lastIncidentTime}
         recordTime={recordTime}
+        recordDate={recordDate}
+        authAxios={authAxios}
         className="shrink-0 rounded-lg border border-slate-700/50 bg-slate-950/50 overflow-hidden"
       />
         
