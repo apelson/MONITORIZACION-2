@@ -82,17 +82,19 @@ const DeviceTypesPanel = ({
                     {t('deviceTypes.critical', 'Crítico')}
                   </Badge>
                 )}
-                {canEdit && !dtype.is_default && (
+                {canEdit && (
                   <div className="flex justify-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onEditType(dtype); }}>
+                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onEditType(dtype); }} title={t('common.edit', 'Editar')}>
                       <Edit className="w-3 h-3" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onDeleteType(dtype); }} className="text-destructive">
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
+                    {!dtype.is_default && (
+                      <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onDeleteType(dtype); }} className="text-destructive" title={t('common.delete', 'Eliminar')}>
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    )}
                   </div>
                 )}
-                {dtype.is_default && (
+                {dtype.is_default && !isCritical && (
                   <p className="text-xs text-muted-foreground mt-1 text-center">{t('deviceTypes.default', 'Predefinido')}</p>
                 )}
               </div>
