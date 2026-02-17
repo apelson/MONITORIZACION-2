@@ -1255,14 +1255,14 @@ const UserFormDialog = ({ open, onOpenChange, user, organizations, groups, onSav
 
 const DeviceTypeFormDialog = ({ open, onOpenChange, deviceType, onSave }) => {
   const { t } = useTranslation();
-  const [formData, setFormData] = useState({ name: "", icon: "server", color: "#6b7280" });
+  const [formData, setFormData] = useState({ name: "", icon: "server", color: "#6b7280", is_critical: false });
   const [saving, setSaving] = useState(false);
   const icons = ["camera", "hard-drive", "network", "router", "server", "monitor", "printer", "wifi", "shield", "box", "layers"];
   const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#f97316", "#14b8a6", "#6366f1", "#a855f7", "#e11d48", "#0ea5e9", "#65a30d", "#dc2626", "#7c3aed", "#db2777", "#059669", "#ca8a04", "#6b7280"];
 
   useEffect(() => {
-    if (deviceType) setFormData({ name: deviceType.name || "", icon: deviceType.icon || "server", color: deviceType.color || "#6b7280" });
-    else setFormData({ name: "", icon: "server", color: "#6b7280" });
+    if (deviceType) setFormData({ name: deviceType.name || "", icon: deviceType.icon || "server", color: deviceType.color || "#6b7280", is_critical: deviceType.is_critical || false });
+    else setFormData({ name: "", icon: "server", color: "#6b7280", is_critical: false });
   }, [deviceType, open]);
 
   const handleSubmit = async (e) => {
@@ -1284,11 +1284,28 @@ const DeviceTypeFormDialog = ({ open, onOpenChange, deviceType, onSave }) => {
             <div className="space-y-2"><Label>{t('common.color', 'Color')}</Label>
               <div className="flex gap-2 flex-wrap">{colors.map((c) => <button key={c} type="button" onClick={() => setFormData({ ...formData, color: c })} className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${formData.color === c ? 'border-foreground scale-110' : 'border-transparent'}`} style={{ backgroundColor: c }} />)}</div>
             </div>
+            {/* Critical Device Type Toggle */}
+            <div className="flex items-center gap-3 p-3 rounded-lg border border-red-500/30 bg-red-500/5">
+              <input 
+                type="checkbox" 
+                id="is_critical"
+                checked={formData.is_critical} 
+                onChange={(e) => setFormData({ ...formData, is_critical: e.target.checked })}
+                className="w-4 h-4 rounded border-red-500/50 text-red-500 focus:ring-red-500"
+              />
+              <label htmlFor="is_critical" className="flex-1 cursor-pointer">
+                <span className="font-medium text-sm">{t('deviceTypes.critical', 'Tipo Crítico')}</span>
+                <p className="text-xs text-muted-foreground">{t('deviceTypes.criticalDesc', 'Los dispositivos de este tipo aparecerán en el widget de Alertas Críticas cuando estén offline')}</p>
+              </label>
+            </div>
             <div className="p-4 bg-muted rounded-lg flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${formData.color}20` }}>
                 {(() => { const Icon = getIcon(formData.icon); return <Icon className="w-5 h-5" style={{ color: formData.color }} />; })()}
               </div>
-              <span className="font-medium">{formData.name || "Vista previa"}</span>
+              <div>
+                <span className="font-medium">{formData.name || "Vista previa"}</span>
+                {formData.is_critical && <span className="ml-2 text-xs text-red-500 font-semibold">CRÍTICO</span>}
+              </div>
             </div>
           </div>
           <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button><Button type="submit" disabled={saving}>{saving ? t('common.saving', 'Guardando...') : t('common.save')}</Button></DialogFooter>
