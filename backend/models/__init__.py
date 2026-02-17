@@ -88,11 +88,13 @@ class DeviceTypeCreate(BaseModel):
     name: str
     icon: str = "server"
     color: Optional[str] = "#6b7280"
+    is_critical: Optional[bool] = False
 
 class DeviceTypeUpdate(BaseModel):
     name: Optional[str] = None
     icon: Optional[str] = None
     color: Optional[str] = None
+    is_critical: Optional[bool] = None
 
 # ============ DEVICE MODELS ============
 
