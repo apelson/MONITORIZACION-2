@@ -12,6 +12,7 @@ const SystemECG = ({
   isAnalyzing = true,
   lastIncidentTime = null, // ISO timestamp of last incident
   recordTime = null, // Object { days, hours, minutes, seconds } for record
+  recordDate = null, // ISO timestamp when record was achieved
   authAxios = null, // For saving new records
   onRecordUpdate = null, // Callback when record is updated
   className 
