@@ -395,6 +395,7 @@ const NOCDashboardRefactored = ({
     setLayouts(DEFAULT_LAYOUTS);
     setWidgetVisibility({
       uptime: true,
+      criticalAlerts: true,
       systemMonitor: true,
       cra: true,
       organizations: true,
