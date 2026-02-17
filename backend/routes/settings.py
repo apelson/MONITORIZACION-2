@@ -380,3 +380,25 @@ async def save_uptime_record(record: UptimeRecord, current_user: dict = Depends(
     except Exception as e:
         logger.error(f"Error saving uptime record: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/last-incident")
+async def get_last_incident(current_user: dict = Depends(get_current_user)):
+    """Get the timestamp of the last device_down alert"""
+    try:
+        # Find the most recent device_down alert
+        last_incident = await alerts_collection.find_one(
+            {"alert_type": "device_down"},
+            {"_id": 0, "timestamp": 1, "device_name": 1},
+            sort=[("timestamp", -1)]
+        )
+        
+        if last_incident:
+            return {
+                "last_incident_time": last_incident.get("timestamp"),
+                "device_name": last_incident.get("device_name")
+            }
+        return {"last_incident_time": None, "device_name": None}
+    except Exception as e:
+        logger.error(f"Error getting last incident: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
