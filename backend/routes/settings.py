@@ -13,7 +13,7 @@ import subprocess
 
 from config import (
     settings_collection, scheduled_reports_collection, organizations_collection,
-    groups_collection, devices_collection, logger, cache, db
+    groups_collection, devices_collection, alerts_collection, logger, cache, db
 )
 from models import EmailSettings, ScheduledReportConfig
 from services.auth_service import get_current_user, require_role
