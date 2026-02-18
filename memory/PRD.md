@@ -119,6 +119,8 @@ Build and maintain a professional NOC (Network Operations Center) dashboard for 
 - None currently
 
 ## P1 - High Priority
+- ✅ Critical Alerts widget integrated and working (Feb 18, 2026)
+- ✅ Sound notifications for critical alerts implemented
 - Verify CRA armed/disarmed states work with production devices (blocked on camera API docs)
 - Configure SMTP for email notifications (blocked on password)
 
