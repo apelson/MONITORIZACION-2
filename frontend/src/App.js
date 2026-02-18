@@ -53,7 +53,7 @@ import SettingsPanel from "@/components/panels/SettingsPanel";
 import CRAFloatingButton from "@/components/common/CRAFloatingButton";
 import LiveViewerFloatingButton from "@/components/common/LiveViewerFloatingButton";
 import NOCFloatingButton from "@/components/common/NOCFloatingButton";
-import NOCDashboard from "@/components/panels/NOCDashboardRefactored";
+import NOCDashboard from "@/components/panels/NOCDashboard";
 import NotificationSettings from "@/components/settings/NotificationSettings";
 import ReportSettings from "@/components/settings/ReportSettings";
 import AIInsightsPanel from "@/components/settings/AIInsightsPanel";
