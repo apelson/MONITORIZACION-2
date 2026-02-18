@@ -1342,9 +1342,18 @@ const NOCDashboard = ({
           </div>
         </div>
 
+        {/* Critical Alerts Widget */}
+        <div className="col-span-3">
+          <CriticalAlertsWidget
+            authAxios={authAxios}
+            onDeviceClick={onDeviceClick}
+            editMode={editMode}
+          />
+        </div>
+
         {/* Center: System ECG Monitor + Map */}
         <div className={cn(
-          "col-span-4 bg-slate-900/80 border rounded-lg p-2 flex flex-col min-h-0 transition-all",
+          "col-span-3 bg-slate-900/80 border rounded-lg p-2 flex flex-col min-h-0 transition-all",
           editMode ? "border-cyan-500/50 cursor-move ring-1 ring-cyan-500/30" : "border-slate-700/50"
         )}>
           <div className="flex items-center justify-between mb-1 shrink-0">
