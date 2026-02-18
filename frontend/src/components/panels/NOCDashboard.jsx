@@ -1409,7 +1409,7 @@ const NOCDashboard = ({
 
         {/* Right: CRA Panel */}
         <div className={cn(
-          "col-span-4 bg-slate-900/80 rounded-lg p-3 flex flex-col min-h-0 transition-all",
+          "col-span-3 bg-slate-900/80 rounded-lg p-3 flex flex-col min-h-0 transition-all",
           editMode ? "border-cyan-500/50 cursor-move ring-1 ring-cyan-500/30" : craDevices.some(d => d.status === 'offline') ? "border-2 border-red-500 animate-pulse" : "border border-slate-700/50"
         )}>
           <div className="flex items-center justify-between mb-2 shrink-0">
