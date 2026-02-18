@@ -1308,7 +1308,7 @@ const NOCDashboard = ({
       <div ref={containerRef} className="flex-1 grid grid-cols-12 gap-3 min-h-0">
         {/* Left: Uptime Chart */}
         <div className={cn(
-          "col-span-4 bg-slate-900/80 border rounded-lg p-3 flex flex-col min-h-0 transition-all",
+          "col-span-3 bg-slate-900/80 border rounded-lg p-3 flex flex-col min-h-0 transition-all",
           editMode ? "border-cyan-500/50 cursor-move ring-1 ring-cyan-500/30" : "border-slate-700/50"
         )}>
           <div className="flex items-center justify-between mb-2 shrink-0">
