@@ -490,31 +490,53 @@ class DahuaP2PConnection:
             )
             
             # Step 11: Agent PTCP handshake
+            # Switch main_remote to agent server BEFORE reading
             self.main_remote.rhost = agent_server
             self.main_remote.rport = agent_port
             
+            # Try to read initial response from agent
             try:
                 res = self.main_remote.read()
-            except:
-                pass
+                logger.debug(f"Agent initial response: {res.get('code', 'N/A')}")
+            except Exception as e:
+                logger.debug(f"No initial agent response: {e}")
+            
+            # Reset PTCP state for new connection
+            self.main_remote.reset_ptcp()
             
             self.main_remote.request_ptcp(b"\x03\x01")
-            res = self.main_remote.read_ptcp()
+            try:
+                res = self.main_remote.read_ptcp(timeout=15)
+            except socket.timeout:
+                logger.error("Timeout waiting for PTCP SYN-ACK from agent")
+                return False
+            
+            if res.body != b"\x03\x01":
+                logger.debug(f"Unexpected PTCP response: {res.body.hex() if res.body else 'empty'}")
             
             self.main_remote.request_ptcp(b"\x17")
             
-            res = self.main_remote.read_ptcp()
+            # Wait for sign from agent
+            try:
+                res = self.main_remote.read_ptcp(timeout=15)
+            except socket.timeout:
+                logger.error("Timeout waiting for sign from agent")
+                return False
+            
             attempts = 0
             while len(res.body) == 0 and attempts < 10:
-                res = self.main_remote.read_ptcp()
+                try:
+                    res = self.main_remote.read_ptcp(timeout=5)
+                except socket.timeout:
+                    break
                 attempts += 1
             
             if len(res.body) == 0:
                 logger.error("No sign received from agent")
                 return False
             
-            sign = res.body[12:]
-            logger.debug(f"Got sign, length: {len(sign)}")
+            sign = res.body[12:] if len(res.body) > 12 else res.body
+            logger.info(f"Got sign from agent, length: {len(sign)} bytes")
             
             self.main_remote.request_ptcp()
             
