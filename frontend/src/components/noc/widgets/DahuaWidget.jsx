@@ -13,6 +13,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
+// Dahua official logo
+const DAHUA_LOGO = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Dahua_Technology_logo.svg/200px-Dahua_Technology_logo.svg.png";
+
 const DahuaWidget = ({ authAxios, onDeviceClick, className }) => {
   const [devices, setDevices] = useState([]);
   const [summary, setSummary] = useState(null);
