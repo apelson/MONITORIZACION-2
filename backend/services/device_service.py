@@ -9,6 +9,7 @@ import uuid
 
 from config import devices_collection, history_collection, logger
 from services.email_service import create_alert
+from services.telegram_service import send_alert_telegram
 
 # WebSocket connections manager (will be set by server.py)
 websocket_manager = None
