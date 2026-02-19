@@ -82,7 +82,7 @@ class DahuaP2PService:
             proc = self.active_tunnels[device_id]
             try:
                 os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-            except:
+            except Exception:
                 proc.terminate()
             del self.active_tunnels[device_id]
             logger.info(f"P2P tunnel stopped for device {device_id}")
