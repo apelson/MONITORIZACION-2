@@ -27,139 +27,147 @@ Build and maintain a professional NOC (Network Operations Center) dashboard for 
 /app
 ├── backend
 │   ├── routes/
-│   │   ├── devices.py (includes critical-offline endpoint)
-│   │   ├── settings.py (includes last-incident endpoint)
+│   │   ├── devices.py (includes maintenance mode endpoints)
+│   │   ├── settings.py (includes SMTP, Telegram, scheduled reports)
 │   │   └── ...
 │   ├── services/
+│   │   ├── email_service.py (professional HTML templates with logo)
+│   │   ├── telegram_service.py (NEW - Telegram notifications)
+│   │   └── ...
 │   ├── models/__init__.py (DeviceType includes is_critical field)
 │   └── tests/
 └── frontend
     ├── src/
     │   ├── components/
     │   │   ├── auth/LoginPage.jsx
-    │   │   ├── noc/widgets/
-    │   │   │   ├── CriticalAlertsWidget.jsx (NEW)
+    │   │   ├── panels/
+    │   │   │   ├── MaintenancePanel.jsx (NEW - Maintenance Mode UI)
+    │   │   │   ├── NOCDashboard.jsx
     │   │   │   └── ...
-    │   │   ├── common/SystemECG.jsx (shows record date)
-    │   │   ├── panels/NOCDashboardRefactored.jsx
-    │   │   └── panels/DeviceTypesPanel.jsx (shows critical badge)
+    │   │   ├── settings/
+    │   │   │   ├── TelegramSettings.jsx (NEW - Telegram config UI)
+    │   │   │   └── ...
+    │   │   └── common/SystemECG.jsx
     │   └── locales/
-    │       ├── en/translation.json
-    │       └── es/translation.json
     └── package.json
 ```
 
 ---
 
-# What's Been Implemented
+## What's Been Implemented (Feb 2026)
 
-## Session: February 18, 2026
+### Session 1 - NOC Dashboard Repair
+- ✅ Fixed broken NOC dashboard widgets
+- ✅ Made device alerts clickable
+- ✅ Improved uptime record display with trophy style
 
-### Critical Alerts Widget Integration Fix - COMPLETED
-- ✅ Fixed App.js importing wrong NOC component (`NOCDashboardRefactored` instead of `NOCDashboard`)
-- ✅ Added `CriticalAlertsWidget` import to `NOCDashboard.jsx`
-- ✅ Integrated CriticalAlertsWidget into NOC dashboard layout (col-span-3)
-- ✅ Adjusted other widgets to accommodate 4-column layout:
-  - Uptime: col-span-3 (was col-span-4)
-  - Critical Alerts: col-span-3 (NEW)
-  - System Monitor: col-span-3 (was col-span-4)
-  - CRA: col-span-3 (was col-span-4)
-- ✅ Verified widget displays offline critical devices correctly (NAS type)
-- ✅ Sound notifications enabled for new critical alerts
-
-### Files Modified
-- `/app/frontend/src/App.js` - Fixed import to use correct `NOCDashboard` component
-- `/app/frontend/src/components/panels/NOCDashboard.jsx` - Added CriticalAlertsWidget import and integration
-
----
-
-## Session: February 17, 2026
-
-### Critical Alerts Feature - COMPLETED
-- ✅ Added `is_critical` boolean field to DeviceType model in backend
-- ✅ Created new endpoint `GET /api/devices/critical-offline` - returns offline devices belonging to critical types
-- ✅ Created new endpoint `GET /api/last-incident` - returns timestamp of most recent device_down alert
-- ✅ Updated `GET /api/uptime-record` to return `updated_at` field for record date display
-- ✅ Created `CriticalAlertsWidget.jsx` component for NOC dashboard
-- ✅ Updated `DraggableGrid.jsx` with new layout including criticalAlerts widget
-- ✅ Updated `NOCDashboardRefactored.jsx` to integrate the new widget and load lastIncidentTime
-- ✅ Updated `DeviceTypeFormDialog` in App.js with checkbox to set type as critical
-- ✅ Updated `DeviceTypesPanel.jsx` to visually show critical badge on device types
-- ✅ Updated `SystemECG.jsx` to display record date
-- ✅ Updated `SystemMonitorWidget.jsx` to pass recordDate to ECG component
-
-### Widget Layout
-- ✅ Uptime widget made smaller (3 columns instead of 4)
-- ✅ Critical Alerts widget placed next to Uptime (3 columns)
-- ✅ System Monitor widget (3 columns)
-- ✅ CRA widget (3 columns)
-
-### Bug Fixes
-- ✅ Fixed bcrypt version compatibility (downgraded to 4.0.1 for passlib compatibility)
-- ✅ Added missing `alerts_collection` import to settings.py
-
-### Files Modified
-- `/app/backend/models/__init__.py` - Added is_critical to DeviceTypeCreate/Update
-- `/app/backend/routes/devices.py` - Added /critical-offline endpoint, updated device-types create
-- `/app/backend/routes/settings.py` - Added /last-incident endpoint, updated uptime-record to return date
-- `/app/frontend/src/components/noc/widgets/CriticalAlertsWidget.jsx` - NEW FILE
-- `/app/frontend/src/components/noc/widgets/index.js` - Added CriticalAlertsWidget export
-- `/app/frontend/src/components/noc/widgets/SystemMonitorWidget.jsx` - Added recordDate prop
-- `/app/frontend/src/components/noc/DraggableGrid.jsx` - Added criticalAlerts to layout
-- `/app/frontend/src/components/panels/NOCDashboardRefactored.jsx` - Integrated new widget
-- `/app/frontend/src/components/panels/DeviceTypesPanel.jsx` - Show critical badge
-- `/app/frontend/src/components/common/SystemECG.jsx` - Show record date
-- `/app/frontend/src/App.js` - Updated DeviceTypeFormDialog with critical checkbox
+### Session 2 - Notifications & Maintenance Mode
+- ✅ **Email Templates with Logo**: Professional HTML templates for alerts and test emails
+  - Siempria logo embedded: `https://customer-assets.emergentagent.com/job_.../logo%20principal.png`
+  - Alert emails with severity levels and gradient colors
+  - Test emails with configuration details
+  
+- ✅ **Telegram Notifications**: 
+  - Backend service: `telegram_service.py` with `httpx` async client
+  - API endpoints: POST `/api/settings/telegram`, POST `/api/settings/test-telegram`
+  - Frontend UI: `TelegramSettings.jsx` with token input, chat IDs badges, enable/disable switch
+  
+- ✅ **Maintenance Mode**:
+  - Backend: Full CRUD in `devices.py`
+    - `POST /api/devices/{id}/maintenance` - Enable with duration and reason
+    - `DELETE /api/devices/{id}/maintenance` - Disable
+    - `GET /api/maintenance/devices` - List devices in maintenance
+  - Frontend: `MaintenancePanel.jsx`
+    - Shows devices currently in maintenance with remaining time
+    - Shows available devices to put in maintenance
+    - Dialog with duration selector (15m to 24h) and optional reason
+  - Alert suppression: Devices in maintenance don't generate alerts
 
 ---
 
-# Prioritized Backlog
+## Prioritized Backlog
 
-## P0 - Critical
-- None currently
+### P0 - Critical (Done ✅)
+- [x] Logo in email templates
+- [x] Maintenance Mode UI
+- [x] Telegram notifications
 
-## P1 - High Priority
-- ✅ Critical Alerts widget integrated and working (Feb 18, 2026)
-- ✅ Sound notifications for critical alerts implemented
-- Verify CRA armed/disarmed states work with production devices (blocked on camera API docs)
-- Configure SMTP for email notifications (blocked on password)
+### P1 - High Priority
+- [ ] **PDF/SLA Reports**: Generate monthly uptime reports
+  - Library: `reportlab` or `weasyprint`
+  - Endpoint: POST `/api/reports/generate-pdf`
+  
+- [ ] **2FA Authentication**: 
+  - Library: `pyotp`
+  - Backend: Add TOTP secret to user model
+  - Frontend: QR code setup, verification step in login
 
-## P2 - Medium Priority  
-- Fix `passlib/bcrypt` deprecation warning in backend logs
-- Fix eslint warnings in frontend build
-- Implement frontend tests with Jest
+### P2 - Medium Priority
+- [ ] CRA armed/disarmed status polling (BLOCKED - needs user API docs)
+- [ ] Mobile/PWA improvements
+- [ ] Slack/Teams integration
 
-## P3 - Future
-- Slack/Microsoft Teams integration for alerts
-- White-labeling features
-
----
-
-# API Endpoints
-
-## Settings
-- `GET /api/uptime-record` - Get current uptime record with date
-- `POST /api/uptime-record` - Save new uptime record (if better than current)
-- `GET /api/last-incident` - Get timestamp of last device_down alert
-- `GET /api/settings/test-email` - Test SMTP configuration
-- `GET /api/settings/system-status` - System health check
-
-## Devices
-- `GET /api/devices` - List all devices
-- `GET /api/devices/critical-offline` - Get offline devices belonging to critical types
-- `POST /api/devices` - Create new device
-- `PUT /api/devices/{id}` - Update device
-- `DELETE /api/devices/{id}` - Delete device
-- `GET /api/device-types` - List all device types
-- `POST /api/device-types` - Create new device type (includes is_critical)
-- `PUT /api/device-types/{id}` - Update device type (includes is_critical)
-
-## Auth
-- `POST /api/auth/login` - User login
-- `GET /api/auth/me` - Get current user
+### P3 - Low Priority
+- [ ] Public API documentation
+- [ ] Webhooks for events
+- [ ] User activity audit log
 
 ---
 
-# Test Credentials
-- **Username**: admin
-- **Password**: Spw@16071977
+## API Reference
+
+### Maintenance Mode
+```
+POST /api/devices/{device_id}/maintenance
+  Body: {"duration_minutes": 60, "reason": "Firmware update"}
+  Response: {"message": "Modo mantenimiento activado...", "maintenance_until": "ISO date"}
+
+DELETE /api/devices/{device_id}/maintenance
+  Response: {"message": "Modo mantenimiento desactivado"}
+
+GET /api/maintenance/devices
+  Response: {"devices": [...], "count": N}
+```
+
+### Telegram Settings
+```
+POST /api/settings/telegram
+  Body: {"telegram_bot_token": "...", "telegram_chat_ids": ["-100..."], "telegram_enabled": true}
+
+POST /api/settings/test-telegram
+  Response: {"message": "Mensaje enviado..."} or error
+```
+
+---
+
+## Database Schema Updates
+
+### devices collection (new fields)
+```javascript
+{
+  maintenance_mode: Boolean,
+  maintenance_until: String (ISO date),
+  maintenance_reason: String,
+  maintenance_started_by: String,
+  maintenance_started_at: String (ISO date)
+}
+```
+
+### settings collection (new fields)
+```javascript
+{
+  telegram_bot_token: String,
+  telegram_chat_ids: Array<String>,
+  telegram_enabled: Boolean
+}
+```
+
+---
+
+## Test Credentials
+- **Admin**: admin / Spw@16071977
+- **Telegram Bot**: 7955328367:AAHyR2A8hFVezQZKS14bJGKONG-IfYo5ruU
+
+## External URLs
+- **Preview**: https://noc-dashboard-pro.preview.emergentagent.com
+- **Production**: https://siempriapp.com
