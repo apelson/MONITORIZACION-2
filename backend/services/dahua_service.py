@@ -126,13 +126,15 @@ class DahuaP2PService:
         results = []
         
         for device in devices:
+            # Keep original id for DB query
+            original_id = device.get("id")
             device["id"] = str(device.get("_id", device.get("id")))
             result = await self.check_device_full(device)
             results.append(result)
             
-            # Update device in database
+            # Update device in database using original id
             await dahua_devices_collection.update_one(
-                {"id": device["id"]},
+                {"id": original_id},
                 {"$set": {
                     "last_check": result["checked_at"],
                     "online": result["online"],
