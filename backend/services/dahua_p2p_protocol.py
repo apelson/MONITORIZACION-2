@@ -630,34 +630,61 @@ class DahuaP2PConnection:
                 logger.info("Direct P2P connection established")
                 
             except socket.timeout:
-                logger.warning("Direct connection timeout, trying relay mode")
-                # For relay mode, we would use agent_server:agent_port
-                # But relay mode is complex to implement fully
+                logger.info("Direct connection timeout, using relay mode via agent")
+                # In relay mode, we communicate through the agent
+                use_relay = True
+            
+            # Step 13: PTCP handshake with device (or agent in relay mode)
+            if use_relay:
+                # Use main_remote (which is still pointing to agent) for relay
+                target_remote = self.main_remote
+                target_host = agent_server
+                target_port = agent_port
+                logger.info(f"Using relay mode via agent {agent_server}:{agent_port}")
+            else:
+                target_remote = self.device_remote
+                target_host = device_server
+                target_port = device_port
+            
+            target_remote.reset_ptcp()
+            
+            target_remote.request_ptcp(b"\x03\x01")
+            try:
+                res = target_remote.read_ptcp(timeout=10)
+            except socket.timeout:
+                logger.error("PTCP SYN timeout")
                 return False
             
-            # Step 13: PTCP handshake with device
-            self.device_remote.reset_ptcp()
-            
-            self.device_remote.request_ptcp(b"\x03\x01")
-            res = self.device_remote.read_ptcp()
-            
-            if res.body != b"\x03\x01":
+            if res.body != b"\x00\x03\x01\x00":
                 logger.error(f"PTCP SYN failed: {res.body.hex() if res.body else 'empty'}")
                 return False
             
+            logger.debug("PTCP SYN-ACK received")
+            
             # Send auth with sign
-            self.device_remote.request_ptcp(b"\x19" + sign)
-            res = self.device_remote.read_ptcp()
-            if len(res.body) == 0:
-                res = self.device_remote.read_ptcp()
+            target_remote.request_ptcp(b"\x19" + sign)
+            
+            # Read auth response - may need multiple reads
+            for _ in range(5):
+                try:
+                    res = target_remote.read_ptcp(timeout=5)
+                except socket.timeout:
+                    break
+                if len(res.body) > 0 and res.body[0] == 0x1A:
+                    break
             
             if len(res.body) == 0 or res.body[0] != 0x1A:
                 logger.error(f"PTCP auth failed: {res.body.hex() if res.body else 'empty'}")
                 return False
             
+            logger.debug("PTCP auth successful")
+            
             # Final handshake
-            self.device_remote.request_ptcp(b"\x1b")
-            res = self.device_remote.read_ptcp()
+            target_remote.request_ptcp(b"\x1b")
+            try:
+                res = target_remote.read_ptcp(timeout=5)
+            except socket.timeout:
+                pass  # OK if no response
             
             self.connected = True
             logger.info(f"P2P connection established to {self.serial_number}")
