@@ -715,9 +715,9 @@ class DahuaP2PConnection:
                 b"\x11" + realm_id.to_bytes(4, "big") + b"\x00\x50\x7f\x01"
             )
             
-            res = self.device_remote.read_ptcp()
+            res = self.active_remote.read_ptcp()
             if len(res.body) == 0:
-                res = self.device_remote.read_ptcp()
+                res = self.active_remote.read_ptcp()
             
             if len(res.body) == 0 or res.body[0] != 0x12:
                 return None
@@ -729,7 +729,7 @@ class DahuaP2PConnection:
                 f"Connection: close\r\n\r\n"
             ).encode()
             
-            self.device_remote.request_ptcp(bytes(PTCPPayload(realm_id, http_req)))
+            self.active_remote.request_ptcp(bytes(PTCPPayload(realm_id, http_req)))
             
             # Read response
             response_data = b""
@@ -737,12 +737,12 @@ class DahuaP2PConnection:
             
             while time.time() - start_time < timeout:
                 try:
-                    res = self.device_remote.read_ptcp(timeout=2)
+                    res = self.active_remote.read_ptcp(timeout=2)
                     
                     if len(res.body) == 0:
                         continue
                     
-                    self.device_remote.request_ptcp()
+                    self.active_remote.request_ptcp()
                     
                     if res.body[0] == 0x10:
                         payload = PTCPPayload.parse(res.body)
@@ -795,19 +795,19 @@ class DahuaP2PConnection:
                         f"Connection: close\r\n\r\n"
                     ).encode()
                     
-                    self.device_remote.request_ptcp(bytes(PTCPPayload(realm_id, auth_http_req)))
+                    self.active_remote.request_ptcp(bytes(PTCPPayload(realm_id, auth_http_req)))
                     
                     response_data = b""
                     start_time = time.time()
                     
                     while time.time() - start_time < timeout:
                         try:
-                            res = self.device_remote.read_ptcp(timeout=2)
+                            res = self.active_remote.read_ptcp(timeout=2)
                             
                             if len(res.body) == 0:
                                 continue
                             
-                            self.device_remote.request_ptcp()
+                            self.active_remote.request_ptcp()
                             
                             if res.body[0] == 0x10:
                                 payload = PTCPPayload.parse(res.body)
@@ -821,12 +821,12 @@ class DahuaP2PConnection:
                                 break
             
             # Close connection
-            self.device_remote.request_ptcp(
+            self.active_remote.request_ptcp(
                 b"\x12" + realm_id.to_bytes(4, "big") + b"DISC"
             )
             
             try:
-                res = self.device_remote.read_ptcp(timeout=2)
+                res = self.active_remote.read_ptcp(timeout=2)
             except:
                 pass
             
