@@ -74,8 +74,8 @@ const DahuaWidget = ({ authAxios, onDeviceClick, className }) => {
       <Card className={cn("h-full", className)}>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <HardDrive className="w-4 h-4 text-blue-500" />
-            Grabadores Dahua
+            <img src={DAHUA_LOGO} alt="Dahua" className="h-5 w-auto object-contain" />
+            <span>Grabadores P2P</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-32">
@@ -90,8 +90,8 @@ const DahuaWidget = ({ authAxios, onDeviceClick, className }) => {
       <Card className={cn("h-full", className)}>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <HardDrive className="w-4 h-4 text-blue-500" />
-            Grabadores Dahua
+            <img src={DAHUA_LOGO} alt="Dahua" className="h-5 w-auto object-contain" />
+            <span>Grabadores P2P</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center h-32 text-muted-foreground">
