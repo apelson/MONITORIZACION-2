@@ -952,90 +952,91 @@ async def _get_device_cloud_info(serial_number: str) -> Dict[str, Any]:
 
 async def check_device_p2p(serial_number: str, username: str, password: str) -> Dict[str, Any]:
     """
-    Check a Dahua device via P2P connection.
-    Returns device status including online state, storage, and recording info.
-    Also returns cloud registration status and firmware version even if P2P fails.
+    Check a Dahua device via P2P.
+    Returns online status based on cloud registration and P2P response.
     """
     result = {
         "serial_number": serial_number,
         "online": False,
-        "cloud_registered": False,
         "firmware_version": None,
-        "device_type": None,
-        "storage": None,
-        "recording": None,
-        "hdd_health": None,
         "error": None
     }
     
-    # First, try to get cloud registration and device info (this always works)
     try:
+        # Check cloud registration and get device info
         cloud_info = await _get_device_cloud_info(serial_number)
-        result["cloud_registered"] = cloud_info.get("registered", False)
+        
+        if not cloud_info.get("registered"):
+            result["error"] = "No registrado en Easy4IP"
+            return result
+        
         result["firmware_version"] = cloud_info.get("firmware_version")
         
-        if not result["cloud_registered"]:
-            result["error"] = "Dispositivo no registrado en Easy4IP Cloud"
-            return result
+        # Try P2P handshake to verify device is responding
+        p2p_ok = await _check_device_p2p_handshake(serial_number, username, password, cloud_info)
+        
+        if p2p_ok:
+            result["online"] = True
+        else:
+            result["online"] = False
+            result["error"] = "Dispositivo no responde"
+        
+        return result
+        
     except Exception as e:
-        logger.warning(f"Could not get cloud info for {serial_number}: {e}")
+        result["error"] = str(e)
+        logger.error(f"Error checking device {serial_number}: {e}")
+        return result
+
+
+async def _check_device_p2p_handshake(serial_number: str, username: str, password: str, cloud_info: dict) -> bool:
+    """
+    Perform P2P handshake to verify device is online.
+    Returns True if device responds to P2P protocol.
+    """
+    import datetime as dt
     
-    # Now try full P2P connection
-    conn = DahuaP2PConnection(serial_number, username, password)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind(("0.0.0.0", 0))
+    sock.settimeout(10)
     
     try:
-        connected = await conn.connect()
+        # Get P2P server
+        p2psrv = cloud_info.get("p2p_server")
+        if not p2psrv:
+            return False
         
-        if not connected:
-            # Device is in cloud but P2P connection failed
-            result["error"] = "Registrado en nube pero no se pudo establecer conexión P2P (posible restricción de red)"
-            return result
+        p2psrv_server, p2psrv_port = p2psrv.split(":")
+        p2psrv_port = int(p2psrv_port)
         
-        result["online"] = True
-        result["error"] = None  # Clear any previous error
+        # Probe device
+        nonce = random.randrange(2**31)
+        curdate = dt.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        pwd = f"{nonce}{curdate}DHP2P:{P2P_USERNAME}:{P2P_USERKEY}"
+        digest = base64.b64encode(hashlib.sha1(pwd.encode()).digest()).decode()
         
-        # Get device type
-        resp = await conn.query_http("/cgi-bin/magicBox.cgi?action=getDeviceType")
-        if resp and resp.get("success"):
-            data = resp.get("data", "")
-            for line in data.split('\n'):
-                if 'type=' in line.lower():
-                    result["device_type"] = line.split('=', 1)[1].strip()
-                    break
+        req = f"DHGET /probe/device/{serial_number} HTTP/1.1\r\n"
+        req += f"CSeq: 1\r\n"
+        req += f'Authorization: WSSE profile="UsernameToken"\r\n'
+        req += f'X-WSSE: UsernameToken Username="{P2P_USERNAME}", PasswordDigest="{digest}", Nonce="{nonce}", Created="{curdate}"\r\n'
+        req += "\r\n"
         
-        # Get storage info
-        resp = await conn.query_http("/cgi-bin/configManager.cgi?action=getConfig&name=StorageGlobal")
-        if resp and resp.get("success"):
-            data = resp.get("data", "")
-            total_gb = 0
-            free_gb = 0
-            
-            for line in data.split('\n'):
-                if '=' in line:
-                    key, value = line.split('=', 1)
-                    value = value.strip()
-                    
-                    if 'TotalSpace' in key or 'TotalBytes' in key:
-                        try:
-                            total_gb += int(value) / (1024**3)
-                        except ValueError:
-                            pass
-                    elif 'FreeSpace' in key or 'FreeBytes' in key:
-                        try:
-                            free_gb += int(value) / (1024**3)
-                        except ValueError:
-                            pass
-            
-            if total_gb > 0:
-                used_percent = round(((total_gb - free_gb) / total_gb) * 100, 1)
-                result["storage"] = {
-                    "total_size_gb": round(total_gb, 2),
-                    "free_size_gb": round(free_gb, 2),
-                    "used_percent": used_percent
-                }
+        sock.sendto(req.encode(), (p2psrv_server, p2psrv_port))
+        data, addr = sock.recvfrom(4096)
+        response = data.decode()
         
-        # Get recording status
-        resp = await conn.query_http("/cgi-bin/configManager.cgi?action=getConfig&name=RecordMode")
+        # Device is online if probe returns 200
+        if "200 OK" in response:
+            logger.info(f"Device {serial_number} is online (P2P probe OK)")
+            return True
+        
+        return False
+        
+    except Exception as e:
+        logger.warning(f"P2P handshake failed for {serial_number}: {e}")
+        return False
+    finally:
+        sock.close()
         if resp and resp.get("success"):
             data = resp.get("data", "")
             channels_recording = 0
