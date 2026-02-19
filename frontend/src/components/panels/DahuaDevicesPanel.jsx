@@ -492,15 +492,52 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
 
             <div className="space-y-2">
               <Label>Número de Serie (P2P) *</Label>
-              <Input
-                data-testid="dahua-serial-input"
-                placeholder="Ej: 4M0A1B2C3D4E5F6G"
-                value={formData.serial_number}
-                onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
-              />
-              <p className="text-xs text-muted-foreground">
-                Lo encuentras en la app DMSS o en Configuración &gt; Red &gt; P2P
-              </p>
+              <div className="flex gap-2">
+                <Input
+                  data-testid="dahua-serial-input"
+                  placeholder="Ej: 4M0A1B2C3D4E5F6G"
+                  value={formData.serial_number}
+                  onChange={(e) => {
+                    setFormData({ ...formData, serial_number: e.target.value });
+                    setSerialValid(null);
+                  }}
+                  className={cn(
+                    serialValid === true && "border-emerald-500",
+                    serialValid === false && "border-red-500"
+                  )}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={handleQuickCheckSerial}
+                  disabled={serialChecking || !formData.serial_number}
+                  title="Verificar en Easy4IP Cloud"
+                >
+                  {serialChecking ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-muted-foreground">
+                  Lo encuentras en la app DMSS o en Configuración &gt; Red &gt; P2P
+                </p>
+                {serialValid === true && (
+                  <Badge variant="outline" className="border-emerald-500 text-emerald-500 text-xs">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Verificado
+                  </Badge>
+                )}
+                {serialValid === false && (
+                  <Badge variant="outline" className="border-red-500 text-red-500 text-xs">
+                    <XCircle className="w-3 h-3 mr-1" />
+                    No encontrado
+                  </Badge>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
