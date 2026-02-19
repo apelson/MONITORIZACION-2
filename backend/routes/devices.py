@@ -841,6 +841,3 @@ async def disable_maintenance_mode(
     )
     
     return {"message": "Modo mantenimiento desactivado", "device_id": device_id}
-
-from pydantic import BaseModel
-from datetime import timedelta
