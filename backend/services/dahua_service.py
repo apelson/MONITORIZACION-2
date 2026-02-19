@@ -144,9 +144,9 @@ class DahuaP2PService:
                     "last_check": result["checked_at"],
                     "online": result["online"],
                     "device_type": result["device_type"],
-                    "storage_used_percent": result.get("storage", {}).get("used_percent"),
-                    "recording_active": result.get("recording", {}).get("recording_active"),
-                    "hdd_healthy": result.get("hdd_health", {}).get("all_healthy"),
+                    "storage_used_percent": result.get("storage", {}).get("used_percent") if result.get("storage") else None,
+                    "recording_active": result.get("recording", {}).get("recording_active") if result.get("recording") else None,
+                    "hdd_healthy": result.get("hdd_health", {}).get("all_healthy") if result.get("hdd_health") else None,
                     "last_error": result.get("error")
                 }}
             )
