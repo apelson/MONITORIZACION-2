@@ -576,6 +576,7 @@ class DahuaP2PConnection:
             )
             self.device_remote.send(data)
             
+            use_relay = False
             try:
                 resp = self.device_remote.recv(timeout=5)
                 rtrans_id = resp[8:20]
