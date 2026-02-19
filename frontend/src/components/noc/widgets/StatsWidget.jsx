@@ -1,12 +1,12 @@
 /**
  * Stats Widget - Top bar with key metrics
  */
-import { Server, Wifi, WifiOff, TrendingUp, AlertTriangle, Building2, Gauge, Shield } from 'lucide-react';
+import { Server, Wifi, WifiOff, TrendingUp, AlertTriangle, Building2, Gauge, Shield, HardDrive } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const StatsWidget = ({ stats, groups, organizations, craDevices }) => {
   return (
-    <div className="grid grid-cols-8 gap-2 h-full p-1">
+    <div className="grid grid-cols-9 gap-2 h-full p-1">
       <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex items-center justify-between">
         <div>
           <p className="text-[9px] text-slate-400 uppercase">TOTAL</p>
@@ -44,7 +44,7 @@ const StatsWidget = ({ stats, groups, organizations, craDevices }) => {
       </div>
       <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex items-center justify-between">
         <div>
-          <p className="text-[9px] text-purple-400 uppercase">GRUPOS / CENTROS</p>
+          <p className="text-[9px] text-purple-400 uppercase">GRUPOS</p>
           <p className="text-2xl font-bold text-purple-400">{groups.length} <span className="text-lg opacity-70">/ {organizations.length}</span></p>
         </div>
         <Building2 className="w-7 h-7 text-purple-400 opacity-40" />
@@ -62,6 +62,17 @@ const StatsWidget = ({ stats, groups, organizations, craDevices }) => {
           <p className="text-2xl font-bold text-red-400">{craDevices?.length || 0}</p>
         </div>
         <Shield className="w-7 h-7 text-red-400 opacity-40" />
+      </div>
+      {/* Dahua Recorders */}
+      <div className={cn("bg-slate-900/80 rounded-lg p-2 flex items-center justify-between", stats.dahuaOffline > 0 ? "border-2 border-red-500 animate-pulse" : "border border-emerald-500/30")}>
+        <div>
+          <p className="text-[9px] text-orange-400 uppercase">DVR/NVR</p>
+          <p className="text-2xl font-bold text-orange-400">
+            {stats.dahuaOnline || 0}
+            <span className="text-lg opacity-70">/{stats.dahuaTotal || 0}</span>
+          </p>
+        </div>
+        <HardDrive className="w-7 h-7 text-orange-400 opacity-40" />
       </div>
     </div>
   );
