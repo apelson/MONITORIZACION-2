@@ -13,10 +13,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-// Dahua brand styling
-const DahuaBrand = ({ size = "sm" }) => (
-  <span className={`font-bold text-[#E31837] ${size === "sm" ? "text-sm" : "text-base"}`}>DAHUA</span>
-);
+// Dahua official logo
+const DAHUA_LOGO = "https://customer-assets.emergentagent.com/job_9daa6c94-1292-4e32-a6ac-374cc483718a/artifacts/er710utf_dahua-technology-logo.png";
 
 const DahuaWidget = ({ authAxios, onDeviceClick, className }) => {
   const [devices, setDevices] = useState([]);
