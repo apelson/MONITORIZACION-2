@@ -2,6 +2,7 @@
 """
 Simplified test for Dahua P2P PTCP handshake with agent
 Focus only on the PTCP protocol part
+Includes proper device authentication
 """
 import asyncio
 import base64
@@ -11,13 +12,23 @@ import hmac
 import random
 import socket
 import time
+import json
+import re
 import xmltodict
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 # Dahua P2P Cloud
 MAIN_SERVER = "www.easy4ipcloud.com"
 MAIN_PORT = 8800
 P2P_USERNAME = "cba1b29e32cb17aa46b8ff9e73c7f40b"
 P2P_USERKEY = "996103384cdf19179e19243e959bbf8b"
+DEFAULT_RANDSALT = "5daf91fc5cfc1be8e081cfb08f792726"
+
+# Device Info decryption keys
+INFO_DECRYPT_KEY = b"kRjmsUB&ezmdGLL67H#$ojw@XflcaIaf"
+INFO_DECRYPT_IV = b"MydvJw*Iw1w&i^kk"
+IV = b"2z52*lk9o6HRyJrf"
 
 # Test device
 SERIAL_NUMBER = "AL07C99PAJ1A4BE"
