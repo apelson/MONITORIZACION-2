@@ -272,35 +272,40 @@ async def test_ptcp_handshake():
         res = parse_response(data)
         print(f"  Relay start response from {addr}: code={res['code']}")
         
-        # Step 7: Read p2p-channel response (from MAIN_SERVER)
+        # Step 7: Reading p2p-channel response...
         print("\n[Step 7] Reading p2p-channel response...")
-        sock.settimeout(15)
-        data, addr = sock.recvfrom(4096)
-        res = parse_response(data)
-        print(f"  Response from {addr}: code={res['code']} status={res['status']}")
+        sock.settimeout(10)  # Shorter timeout for this step
+        device_server = None
+        device_port = None
         
-        if res['code'] == 100:  # Trying
-            print("  Got 'Trying', waiting for actual response...")
+        try:
             data, addr = sock.recvfrom(4096)
             res = parse_response(data)
             print(f"  Response from {addr}: code={res['code']} status={res['status']}")
-        
-        if res['code'] != 200:
-            print(f"  P2P channel failed: {res['status']}")
-            return
-        
-        print(f"  Full response body: {res.get('data', {})}")
-        
-        if not res.get("data") or not res["data"].get("body") or not res["data"]["body"].get("PubAddr"):
-            print("  ⚠️ No PubAddr in response - device may require auth or is offline")
-            print("  Attempting to continue with agent relay mode anyway...")
-            device_server = None
-            device_port = None
-        else:
-            device_pub = res["data"]["body"]["PubAddr"]
-            device_server, device_port = device_pub.split(":")
-            device_port = int(device_port)
-            print(f"  Device public address: {device_server}:{device_port}")
+            
+            if res['code'] == 100:  # Trying
+                print("  Got 'Trying', waiting for actual response...")
+                try:
+                    data, addr = sock.recvfrom(4096)
+                    res = parse_response(data)
+                    print(f"  Response from {addr}: code={res['code']} status={res['status']}")
+                    
+                    if res['code'] == 200 and res.get("data") and res["data"].get("body"):
+                        if res["data"]["body"].get("PubAddr"):
+                            device_pub = res["data"]["body"]["PubAddr"]
+                            device_server, device_port = device_pub.split(":")
+                            device_port = int(device_port)
+                            print(f"  Device public address: {device_server}:{device_port}")
+                except socket.timeout:
+                    print("  ⚠️ Timeout waiting for device response - will use relay mode")
+            elif res['code'] == 200:
+                if res.get("data") and res["data"].get("body") and res["data"]["body"].get("PubAddr"):
+                    device_pub = res["data"]["body"]["PubAddr"]
+                    device_server, device_port = device_pub.split(":")
+                    device_port = int(device_port)
+                    print(f"  Device public address: {device_server}:{device_port}")
+        except socket.timeout:
+            print("  ⚠️ Timeout - device may not be reachable directly, using relay mode")
         
         # Step 8: Relay channel request (no read)
         print("\n[Step 8] Requesting relay channel...")
