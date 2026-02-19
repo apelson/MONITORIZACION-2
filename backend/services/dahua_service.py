@@ -237,7 +237,7 @@ class DahuaP2PService:
                             mode = int(value.strip())
                             if mode > 0:
                                 channels_enabled += 1
-                        except:
+                        except ValueError:
                             pass
                 
                 recording_info["channels_recording"] = channels_enabled
