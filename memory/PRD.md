@@ -1,9 +1,15 @@
 # NOC Dashboard - PRD
 
 ## Original Problem Statement
-Dashboard de monitoreo NOC con integración Dahua DVR via P2P.
+Dashboard de monitoreo NOC con integración Dahua DVR via P2P. El sistema debe permitir monitorear dispositivos de red y grabadores Dahua de forma centralizada, incluyendo alertas automáticas.
 
 ## Completed Features
+
+### Dahua NOC Dashboard Integration ✅ (2026-02-19)
+- **DVR/NVR Counter**: Nueva columna en la barra de estadísticas del NOC (9 columnas) mostrando dispositivos online/total
+- **DahuaWidget**: Widget dedicado en el grid del NOC Dashboard para visualizar estado de grabadores
+- **Alertas Telegram**: Sistema de notificaciones automáticas cuando un grabador cambia de estado (conectado/desconectado)
+- **Frontend integration**: Contadores de Dahua incluidos en totales globales del NOC
 
 ### Dahua P2P Integration ✅ (2026-02-19)
 - Verificación de estado via P2P (online/offline)
@@ -28,11 +34,24 @@ Key features:
 - AES-256-OFB decryption for randsalt (firmware 6.7+)
 - PTCP protocol implementation
 
+### Dahua Alerts
+File: `/app/backend/services/dahua_service.py`
+
+- `send_dahua_status_alert()`: Envía alerta por Telegram cuando cambia el estado de un grabador
+- Integrado en `check_all_devices()` y endpoint `/api/dahua/devices/{id}/check`
+
 ### API Endpoints
 - `GET /api/dahua/devices` - List devices
 - `POST /api/dahua/devices` - Add device
+- `GET /api/dahua/status` - Get status summary
 - `POST /api/dahua/check-all` - Verify all devices
-- `POST /api/dahua/devices/{id}/check` - Verify single device
+- `POST /api/dahua/devices/{id}/check` - Verify single device (with alerts)
+- `POST /api/dahua/quick-check/{serial}` - Validate serial in P2P cloud
+
+### Frontend Components
+- `DahuaWidget.jsx`: Widget para NOC Dashboard
+- `DahuaDevicesPanel.jsx`: Panel de gestión de grabadores
+- `StatsWidget.jsx`: Barra de estadísticas con 9 columnas (incluye DVR/NVR)
 
 ## Backlog
 
