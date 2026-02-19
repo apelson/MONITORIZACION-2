@@ -629,6 +629,7 @@ class DahuaP2PConnection:
                         break
                 
                 logger.info("Direct P2P connection established")
+                use_relay = False
                 
             except socket.timeout:
                 logger.info("Direct connection timeout, using relay mode via agent")
