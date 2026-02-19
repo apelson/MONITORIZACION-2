@@ -350,15 +350,37 @@ class DahuaP2PConnection:
             res = self._send_request(p2psrv_server, p2psrv_port, f"/info/device/{self.serial_number}")
             if res["code"] == 200 and res.get("data"):
                 body = res["data"].get("body", {})
-                # Check for RandSalt or Info field
-                if "RandSalt" in body:
+                
+                # Check for RandSalt directly in response
+                if "RandSalt" in body and body["RandSalt"]:
+                    logger.info(f"Found RandSalt directly in response")
                     return body["RandSalt"]
-                # Some devices return randsalt in Info field (may need decryption)
-                if "Info" in body:
+                
+                # Check for encrypted Info field (firmware 6.7+)
+                if "Info" in body and body["Info"]:
                     info = body["Info"]
-                    # Try to parse Info - sometimes it contains randsalt directly
-                    if isinstance(info, str) and len(info) == 32:
-                        return info
+                    logger.info(f"Found encrypted Info field, attempting decryption...")
+                    
+                    # Try to decrypt the Info field
+                    decrypted = decrypt_device_info(info)
+                    if decrypted:
+                        logger.info(f"Decrypted device info: {decrypted}")
+                        
+                        # Look for randsalt in various possible keys
+                        for key in ["randsalt", "RandSalt", "salt", "Salt"]:
+                            if key in decrypted:
+                                logger.info(f"Found randsalt in decrypted Info: {decrypted[key][:8]}...")
+                                return decrypted[key]
+                        
+                        # Also check nested structure
+                        if isinstance(decrypted, dict):
+                            for key, value in decrypted.items():
+                                if isinstance(value, str) and len(value) == 32 and value.replace('-', '').isalnum():
+                                    logger.info(f"Found potential randsalt in '{key}': {value[:8]}...")
+                                    return value
+                    else:
+                        logger.warning("Could not decrypt Info field")
+                
             return None
         except Exception as e:
             logger.warning(f"Could not get device randsalt: {e}")
