@@ -71,7 +71,11 @@ def send_email_generic(smtp_config: dict, to_email: str, subject: str, html_body
         logger.error(f"Error sending email: {e}")
         return False
 
-async def send_alert_email(device_name: str, device_ip: str, port: int, alert_type: str):
+# Logo URL for email templates
+SIEMPRIA_LOGO_URL = "https://customer-assets.emergentagent.com/job_09ef3697-d40a-4ee8-b643-bfc2e0d4b202/artifacts/rat8xd9t_logo%20principal.png"
+APP_URL = "https://siempriapp.com"
+
+async def send_alert_email(device_name: str, device_ip: str, port: int, alert_type: str, group_name: str = None):
     try:
         smtp_config = await get_smtp_config()
         if not smtp_config:
@@ -80,67 +84,140 @@ async def send_alert_email(device_name: str, device_ip: str, port: int, alert_ty
         # Define alert styles and messages
         alert_configs = {
             "device_down": {
-                "subject": f"🚨 Alerta: {device_name} OFFLINE",
+                "subject": f"🚨 ALERTA CRÍTICA: {device_name} OFFLINE",
                 "color": "#dc2626",
-                "bg": "#fee2e2",
+                "bg_gradient": "linear-gradient(135deg, #dc2626 0%, #991b1b 100%)",
+                "light_bg": "#fee2e2",
                 "icon": "⚠️",
-                "title": "Dispositivo Offline"
+                "title": "Dispositivo Offline",
+                "severity": "CRÍTICA"
             },
             "device_up": {
-                "subject": f"✅ Recuperado: {device_name} ONLINE",
+                "subject": f"✅ RECUPERADO: {device_name} ONLINE",
                 "color": "#16a34a",
-                "bg": "#dcfce7",
+                "bg_gradient": "linear-gradient(135deg, #16a34a 0%, #15803d 100%)",
+                "light_bg": "#dcfce7",
                 "icon": "✅",
-                "title": "Dispositivo Online"
+                "title": "Dispositivo Recuperado",
+                "severity": "INFO"
             },
             "nas_disconnected": {
-                "subject": f"🚨 Alerta: {device_name} - Conexión NAS perdida",
+                "subject": f"🚨 ALERTA: {device_name} - NAS Desconectado",
                 "color": "#dc2626",
-                "bg": "#fee2e2",
+                "bg_gradient": "linear-gradient(135deg, #dc2626 0%, #991b1b 100%)",
+                "light_bg": "#fee2e2",
                 "icon": "💾",
-                "title": "Conexión NAS Perdida"
+                "title": "Conexión NAS Perdida",
+                "severity": "ALTA"
             },
             "nas_reconnected": {
-                "subject": f"✅ Recuperado: {device_name} - NAS reconectado",
+                "subject": f"✅ RECUPERADO: {device_name} - NAS Reconectado",
                 "color": "#16a34a",
-                "bg": "#dcfce7",
+                "bg_gradient": "linear-gradient(135deg, #16a34a 0%, #15803d 100%)",
+                "light_bg": "#dcfce7",
                 "icon": "💾",
-                "title": "NAS Reconectado"
+                "title": "NAS Reconectado",
+                "severity": "INFO"
             },
             "storage_full": {
-                "subject": f"🚨 Alerta: {device_name} - Almacenamiento lleno",
+                "subject": f"🚨 ALERTA: {device_name} - Almacenamiento Lleno",
                 "color": "#dc2626",
-                "bg": "#fee2e2",
+                "bg_gradient": "linear-gradient(135deg, #dc2626 0%, #991b1b 100%)",
+                "light_bg": "#fee2e2",
                 "icon": "💾",
-                "title": "Almacenamiento Lleno"
+                "title": "Almacenamiento Lleno",
+                "severity": "ALTA"
             },
             "recording_stopped": {
-                "subject": f"🚨 Alerta: {device_name} - Grabación detenida",
+                "subject": f"⚠️ ALERTA: {device_name} - Grabación Detenida",
                 "color": "#f97316",
-                "bg": "#ffedd5",
+                "bg_gradient": "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+                "light_bg": "#ffedd5",
                 "icon": "🔴",
-                "title": "Grabación Detenida"
+                "title": "Grabación Detenida",
+                "severity": "MEDIA"
             }
         }
         
         config = alert_configs.get(alert_type, {
             "subject": f"🔔 Alerta: {device_name}",
             "color": "#6b7280",
-            "bg": "#f3f4f6",
+            "bg_gradient": "linear-gradient(135deg, #6b7280 0%, #4b5563 100%)",
+            "light_bg": "#f3f4f6",
             "icon": "🔔",
-            "title": alert_type
+            "title": alert_type,
+            "severity": "INFO"
         })
         
+        now = datetime.now(timezone.utc)
+        group_info = f"<p style='color: #64748b; font-size: 14px; margin: 5px 0;'>📁 Grupo: <strong>{group_name}</strong></p>" if group_name else ""
+        
         body = f"""
+        <!DOCTYPE html>
         <html>
-        <body style="font-family: Arial, sans-serif;">
-            <div style="background: {config['bg']}; border-left: 4px solid {config['color']}; padding: 20px; margin: 20px 0;">
-                <h2 style="color: {config['color']}; margin: 0;">{config['icon']} {config['title']}</h2>
-                <p style="font-size: 18px; margin: 10px 0;"><strong>{device_name}</strong></p>
-                <p>IP: {device_ip}:{port}</p>
-                <p>Hora: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC</p>
-            </div>
-            <p style="color: #666; font-size: 12px;">Siempria Network Monitor</p>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f1f5f9;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f1f5f9; padding: 40px 20px;">
+                <tr>
+                    <td align="center">
+                        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden;">
+                            <!-- Header with Logo -->
+                            <tr>
+                                <td style="background: {config['bg_gradient']}; padding: 30px; text-align: center;">
+                                    <img src="{SIEMPRIA_LOGO_URL}" alt="Siempria" style="height: 50px; margin-bottom: 15px;" />
+                                    <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">{config['icon']} {config['title']}</h1>
+                                    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 14px;">
+                                        Severidad: <strong>{config['severity']}</strong>
+                                    </p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Content -->
+                            <tr>
+                                <td style="padding: 40px 30px;">
+                                    <div style="background-color: {config['light_bg']}; border-radius: 10px; padding: 25px; border-left: 5px solid {config['color']};">
+                                        <h2 style="color: #1e293b; margin: 0 0 15px 0; font-size: 22px;">{device_name}</h2>
+                                        <p style="color: #64748b; font-size: 14px; margin: 5px 0;">
+                                            🌐 IP: <strong>{device_ip}:{port}</strong>
+                                        </p>
+                                        {group_info}
+                                        <p style="color: #64748b; font-size: 14px; margin: 5px 0;">
+                                            🕐 Hora: <strong>{now.strftime('%d/%m/%Y %H:%M:%S')} UTC</strong>
+                                        </p>
+                                    </div>
+                                    
+                                    <!-- Action Button -->
+                                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 30px;">
+                                        <tr>
+                                            <td align="center">
+                                                <a href="{APP_URL}" 
+                                                   style="display: inline-block; padding: 14px 35px; background: {config['bg_gradient']}; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600;">
+                                                    Ver en Dashboard
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td style="background-color: #1e293b; padding: 25px; text-align: center;">
+                                    <p style="color: #94a3b8; font-size: 13px; margin: 0 0 10px 0;">
+                                        <strong>Siempria Network Monitor</strong> - Sistema de Monitorización 24/7
+                                    </p>
+                                    <p style="color: #64748b; font-size: 12px; margin: 0;">
+                                        © {now.year} Siempria Infinite Tech Solutions | <a href="{APP_URL}" style="color: #38bdf8;">siempriapp.com</a>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </body>
         </html>
         """
@@ -194,17 +271,91 @@ async def send_test_email(to_email: str = None) -> dict:
             return {"success": False, "error": "Configuración SMTP no encontrada o incompleta"}
         
         target_email = to_email or smtp_config["alert_email"]
-        subject = "🔔 Test - Siempria Network Monitor"
+        subject = "✅ Test de Email - Siempria Network Monitor"
+        now = datetime.now(timezone.utc)
+        
         body = f"""
+        <!DOCTYPE html>
         <html>
-        <body style="font-family: Arial, sans-serif;">
-            <div style="background: #dbeafe; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0;">
-                <h2 style="color: #3b82f6; margin: 0;">✅ Email de Prueba</h2>
-                <p>La configuración de email está funcionando correctamente.</p>
-                <p>Servidor: {smtp_config['host']}:{smtp_config['port']}</p>
-                <p>Fecha: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC</p>
-            </div>
-            <p style="color: #666; font-size: 12px;">Siempria Network Monitor</p>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f1f5f9;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f1f5f9; padding: 40px 20px;">
+                <tr>
+                    <td align="center">
+                        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden;">
+                            <!-- Header with Logo -->
+                            <tr>
+                                <td style="background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); padding: 30px; text-align: center;">
+                                    <img src="{SIEMPRIA_LOGO_URL}" alt="Siempria" style="height: 50px; margin-bottom: 15px;" />
+                                    <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">✅ Test de Configuración</h1>
+                                    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 14px;">
+                                        Sistema de Notificaciones
+                                    </p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Content -->
+                            <tr>
+                                <td style="padding: 40px 30px;">
+                                    <div style="background-color: #ecfdf5; border-radius: 10px; padding: 25px; border-left: 5px solid #10b981; margin-bottom: 25px;">
+                                        <h2 style="color: #065f46; margin: 0 0 10px 0; font-size: 18px;">🎉 ¡Configuración Correcta!</h2>
+                                        <p style="color: #047857; font-size: 15px; margin: 0;">
+                                            Las notificaciones por email están funcionando correctamente.
+                                        </p>
+                                    </div>
+                                    
+                                    <h3 style="color: #1e293b; margin: 0 0 15px 0; font-size: 16px;">Detalles de Configuración:</h3>
+                                    <table width="100%" cellpadding="10" cellspacing="0" style="background-color: #f8fafc; border-radius: 8px;">
+                                        <tr>
+                                            <td style="color: #64748b; font-size: 14px; border-bottom: 1px solid #e2e8f0;">📧 Servidor SMTP:</td>
+                                            <td style="color: #1e293b; font-size: 14px; font-weight: 600; border-bottom: 1px solid #e2e8f0;">{smtp_config['host']}:{smtp_config['port']}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #64748b; font-size: 14px; border-bottom: 1px solid #e2e8f0;">👤 Usuario:</td>
+                                            <td style="color: #1e293b; font-size: 14px; font-weight: 600; border-bottom: 1px solid #e2e8f0;">{smtp_config['user']}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #64748b; font-size: 14px; border-bottom: 1px solid #e2e8f0;">🔒 SSL/TLS:</td>
+                                            <td style="color: #1e293b; font-size: 14px; font-weight: 600; border-bottom: 1px solid #e2e8f0;">{'SSL' if smtp_config.get('use_ssl') else 'TLS' if smtp_config.get('use_tls') else 'No'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #64748b; font-size: 14px;">🕐 Fecha del Test:</td>
+                                            <td style="color: #1e293b; font-size: 14px; font-weight: 600;">{now.strftime('%d/%m/%Y %H:%M:%S')} UTC</td>
+                                        </tr>
+                                    </table>
+                                    
+                                    <!-- Action Button -->
+                                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 30px;">
+                                        <tr>
+                                            <td align="center">
+                                                <a href="{APP_URL}" 
+                                                   style="display: inline-block; padding: 14px 35px; background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600;">
+                                                    Ir al Dashboard
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td style="background-color: #1e293b; padding: 25px; text-align: center;">
+                                    <p style="color: #94a3b8; font-size: 13px; margin: 0 0 10px 0;">
+                                        <strong>Siempria Network Monitor</strong> - Sistema de Monitorización 24/7
+                                    </p>
+                                    <p style="color: #64748b; font-size: 12px; margin: 0;">
+                                        © {now.year} Siempria Infinite Tech Solutions | <a href="{APP_URL}" style="color: #38bdf8;">siempriapp.com</a>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </body>
         </html>
         """
