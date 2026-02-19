@@ -596,7 +596,7 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
                     <SelectValue placeholder="Seleccionar grupo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sin grupo</SelectItem>
+                    <SelectItem value="none">Sin grupo</SelectItem>
                     {groups.map((g) => (
                       <SelectItem key={g.id} value={g.id}>
                         {g.name}
