@@ -79,6 +79,56 @@ def decrypt_data(key: bytes, nonce: int, data: str) -> str:
     return dec.decode()
 
 
+def decrypt_device_info(info_data: str) -> Optional[Dict[str, Any]]:
+    """
+    Decrypt the Info field from /info/device endpoint.
+    Firmware 6.7+ returns encrypted device info containing randsalt.
+    
+    Uses AES-256-OFB with hardcoded keys from Dahua P2P DLL.
+    """
+    try:
+        # Decode base64
+        cipher_text = base64.b64decode(info_data)
+        
+        # Decrypt using AES-OFB
+        cipher = Cipher(
+            algorithms.AES(INFO_DECRYPT_KEY),
+            modes.OFB(INFO_DECRYPT_IV),
+            backend=default_backend()
+        )
+        decryptor = cipher.decryptor()
+        decrypted = decryptor.update(cipher_text) + decryptor.finalize()
+        
+        # Try to parse as JSON
+        try:
+            # Remove padding bytes
+            decrypted_str = decrypted.decode('utf-8', errors='ignore').rstrip('\x00')
+            # Find JSON boundaries
+            json_start = decrypted_str.find('{')
+            json_end = decrypted_str.rfind('}')
+            if json_start >= 0 and json_end > json_start:
+                json_str = decrypted_str[json_start:json_end+1]
+                import json
+                return json.loads(json_str)
+        except:
+            pass
+        
+        # Try to extract randsalt directly from decrypted data
+        # Look for 32-char hex string pattern
+        decrypted_str = decrypted.decode('utf-8', errors='ignore')
+        import re
+        hex_pattern = re.findall(r'[a-f0-9]{32}', decrypted_str)
+        if hex_pattern:
+            return {"randsalt": hex_pattern[0]}
+        
+        logger.debug(f"Decrypted Info (raw): {decrypted_str[:100]}")
+        return None
+        
+    except Exception as e:
+        logger.warning(f"Failed to decrypt device Info: {e}")
+        return None
+
+
 def get_device_auth(username: str, key: bytes, nonce: int, randsalt: str = DEFAULT_RANDSALT, payload: str = "") -> str:
     """Generate authentication XML for device communication"""
     curdate = int(time.time())
