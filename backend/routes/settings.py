@@ -18,6 +18,7 @@ from config import (
 from models import EmailSettings, ScheduledReportConfig
 from services.auth_service import get_current_user, require_role
 from services.email_service import send_test_email, get_smtp_config, send_email_generic
+from services.telegram_service import send_test_telegram
 
 router = APIRouter(tags=["settings"])
 
