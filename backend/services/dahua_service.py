@@ -167,11 +167,14 @@ class DahuaP2PService:
         results = []
         
         for device in devices:
-            # Keep original id for DB query
+            # Keep original id and old status for DB query and alert comparison
             original_id = device.get("id")
+            old_online = device.get("online")
             device["id"] = str(device.get("_id", device.get("id")))
             result = await self.check_device_full(device)
             results.append(result)
+            
+            new_online = result["online"]
             
             # Update device in database using original id
             await dahua_devices_collection.update_one(
@@ -183,6 +186,10 @@ class DahuaP2PService:
                     "last_error": result.get("error")
                 }}
             )
+            
+            # Send alert if status changed
+            if old_online is not None and old_online != new_online:
+                await send_dahua_status_alert(device, new_online, old_online)
             
             # Small delay between devices
             await asyncio.sleep(0.5)
