@@ -524,7 +524,7 @@ class DahuaP2PConnection:
             except TimeoutError:
                 pass
             
-            # Step 11: PTCP handshake with agent
+            # Step 11: PTCP handshake with agent (relay mode)
             self._send_ptcp(agent_server, agent_port, b"\x03\x01")
             res = self._recv_ptcp()
             
@@ -532,13 +532,21 @@ class DahuaP2PConnection:
             
             # Wait for sign
             res = self._recv_ptcp()
-            while len(res.body) == 0:
+            attempts = 0
+            while len(res.body) == 0 and attempts < 10:
                 res = self._recv_ptcp()
+                attempts += 1
+            
+            if len(res.body) == 0:
+                logger.error("No sign received from relay agent")
+                return False
+            
             sign = res.body[12:] if len(res.body) > 12 else res.body
+            logger.debug(f"Got sign from agent, length: {len(sign)}")
             
             self._send_ptcp(agent_server, agent_port)
             
-            # Step 12: Connect to device directly
+            # Step 12: Try direct connection to device (hole punching)
             aid_inv = bytes(0xFF - b for b in aid)
             cookie = random.randbytes(4)
             trans_id = random.randbytes(12)
@@ -556,8 +564,9 @@ class DahuaP2PConnection:
             )
             self._send_udp(self.device_ip, self.device_port, data)
             
+            direct_connection = False
             try:
-                resp = self._recv_udp(timeout=5)
+                resp = self._recv_udp(timeout=3)
                 rtrans_id = resp[8:20]
                 
                 # Parse device local address for response
@@ -583,14 +592,20 @@ class DahuaP2PConnection:
                 self._send_udp(self.device_ip, self.device_port, data)
                 
                 # Read responses
-                for _ in range(5):
+                for _ in range(3):
                     try:
-                        self._recv_udp(timeout=2)
+                        self._recv_udp(timeout=1)
                     except TimeoutError:
                         break
                 
+                direct_connection = True
+                logger.info("Direct P2P connection established")
+                
             except TimeoutError:
-                logger.warning("Direct connection timeout, using relay mode")
+                logger.info("Direct connection failed, using relay mode via agent")
+                # Use relay mode through agent server
+                self.device_ip = agent_server
+                self.device_port = agent_port
             
             # Step 13: Final PTCP handshake
             self.ptcp_sent = 0
@@ -599,28 +614,49 @@ class DahuaP2PConnection:
             self.ptcp_id = 0
             self.rmid = 0
             
-            self._send_ptcp(self.device_ip, self.device_port, b"\x03\x01")
-            res = self._recv_ptcp()
+            target_host = self.device_ip
+            target_port = self.device_port
+            
+            self._send_ptcp(target_host, target_port, b"\x03\x01")
+            
+            try:
+                res = self._recv_ptcp()
+            except TimeoutError:
+                logger.error("PTCP SYN timeout")
+                return False
             
             if res.body != b"\x03\x01":
-                logger.error("PTCP SYN failed")
+                logger.error(f"PTCP SYN failed, got: {res.body.hex() if res.body else 'empty'}")
                 return False
             
-            # Authentication
-            self._send_ptcp(self.device_ip, self.device_port, b"\x19" + sign)
-            res = self._recv_ptcp()
-            if len(res.body) == 0:
+            logger.debug("PTCP SYN successful")
+            
+            # Authentication with sign
+            self._send_ptcp(target_host, target_port, b"\x19" + sign)
+            
+            try:
                 res = self._recv_ptcp()
+                if len(res.body) == 0:
+                    res = self._recv_ptcp()
+            except TimeoutError:
+                logger.error("PTCP authentication timeout")
+                return False
             
             if len(res.body) == 0 or res.body[0] != 0x1A:
-                logger.error("PTCP authentication failed")
+                logger.error(f"PTCP authentication failed, response: {res.body.hex() if res.body else 'empty'}")
                 return False
             
-            self._send_ptcp(self.device_ip, self.device_port, b"\x1b")
-            res = self._recv_ptcp()
+            logger.debug("PTCP authentication successful")
+            
+            self._send_ptcp(target_host, target_port, b"\x1b")
+            
+            try:
+                res = self._recv_ptcp()
+            except TimeoutError:
+                pass
             
             self.connected = True
-            logger.info(f"P2P connection established to {self.serial_number}")
+            logger.info(f"P2P connection established to {self.serial_number} ({'direct' if direct_connection else 'relay'})")
             return True
             
         except Exception as e:
