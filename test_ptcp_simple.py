@@ -251,16 +251,25 @@ async def test_ptcp_handshake():
         sock.sendto(build_request(f"/device/{SERIAL_NUMBER}/p2p-channel", channel_body), (MAIN_SERVER, MAIN_PORT))
         print("  P2P channel request sent with auth (no read yet)")
         
-        # Step 5: Get agent
+        # Step 5: Get agent (with retry)
         print("\n[Step 5] Getting agent...")
-        sock.sendto(build_request("/relay/agent"), (relay_server, relay_port))
-        data, addr = sock.recvfrom(4096)
-        res = parse_response(data)
-        token = res["data"]["body"]["Token"]
-        agent_server, agent_port = res["data"]["body"]["Agent"].split(":")
-        agent_port = int(agent_port)
-        print(f"  Agent: {agent_server}:{agent_port}")
-        print(f"  Token: {token[:20]}...")
+        sock.settimeout(15)
+        for retry in range(3):
+            try:
+                sock.sendto(build_request("/relay/agent"), (relay_server, relay_port))
+                data, addr = sock.recvfrom(4096)
+                res = parse_response(data)
+                token = res["data"]["body"]["Token"]
+                agent_server, agent_port = res["data"]["body"]["Agent"].split(":")
+                agent_port = int(agent_port)
+                print(f"  Agent: {agent_server}:{agent_port}")
+                print(f"  Token: {token[:20]}...")
+                break
+            except socket.timeout:
+                print(f"  Retry {retry+1}/3 - timeout getting agent")
+                if retry == 2:
+                    print("  ❌ Failed to get agent after 3 retries")
+                    return
         
         # Step 6: Start relay
         print("\n[Step 6] Starting relay...")
