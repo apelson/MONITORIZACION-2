@@ -135,10 +135,30 @@ async def check_single_dahua_device(
     if not device:
         raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
     
+    # Store old status before check
+    old_online = device.get("online")
+    
     # Add id to device dict
     device["id"] = device_id
     
     result = await dahua_service.check_device_full(device)
+    new_online = result.get("online", False)
+    
+    # Update database with new status
+    await dahua_devices_collection.update_one(
+        {"id": device_id},
+        {"$set": {
+            "last_check": result["checked_at"],
+            "online": new_online,
+            "firmware_version": result.get("firmware_version"),
+            "last_error": result.get("error")
+        }}
+    )
+    
+    # Send alert if status changed
+    if old_online is not None and old_online != new_online:
+        await send_dahua_status_alert(device, new_online, old_online)
+    
     return result
 
 
