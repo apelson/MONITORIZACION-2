@@ -17,7 +17,7 @@ PROJECT_DIR="/home/monitorizacion/Documentos/MONITORIZACION-main"
 FRONTEND_DIR="$PROJECT_DIR/frontend"
 BACKEND_DIR="$PROJECT_DIR/backend"
 BACKUP_DIR="$PROJECT_DIR/backup_$(date +%Y%m%d_%H%M%S)"
-BASE_URL="https://p2p-recorder-hub.preview.emergentagent.com/api/download-frontend"
+BASE_URL="https://dahua-status-widget.preview.emergentagent.com/api/download-frontend"
 
 echo -e "${GREEN}============================================================${NC}"
 echo -e "${GREEN}  ACTUALIZACIÓN NOC DASHBOARD CON DRAG & DROP${NC}"
