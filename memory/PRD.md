@@ -15,6 +15,7 @@ Build and maintain a professional NOC (Network Operations Center) dashboard for 
 4. Multi-language support (Spanish/English)
 5. Responsive design for desktop and mobile
 6. **Critical Alerts feature** - Monitor critical device types when offline
+7. **Dahua P2P Integration** - Monitor DVR/NVR devices via P2P connection
 
 ## Technology Stack
 - **Frontend**: React with Tailwind CSS, Shadcn/UI components
@@ -29,10 +30,13 @@ Build and maintain a professional NOC (Network Operations Center) dashboard for 
 │   ├── routes/
 │   │   ├── devices.py (includes maintenance mode endpoints)
 │   │   ├── settings.py (includes SMTP, Telegram, scheduled reports)
+│   │   ├── dahua.py (NEW - Dahua P2P device management)
 │   │   └── ...
 │   ├── services/
 │   │   ├── email_service.py (professional HTML templates with logo)
-│   │   ├── telegram_service.py (NEW - Telegram notifications)
+│   │   ├── telegram_service.py (Telegram notifications)
+│   │   ├── dahua_service.py (NEW - Dahua P2P service)
+│   │   ├── dahua_p2p_protocol.py (NEW - Native Python P2P implementation)
 │   │   └── ...
 │   ├── models/__init__.py (DeviceType includes is_critical field)
 │   └── tests/
@@ -41,11 +45,15 @@ Build and maintain a professional NOC (Network Operations Center) dashboard for 
     │   ├── components/
     │   │   ├── auth/LoginPage.jsx
     │   │   ├── panels/
-    │   │   │   ├── MaintenancePanel.jsx (NEW - Maintenance Mode UI)
+    │   │   │   ├── MaintenancePanel.jsx (Maintenance Mode UI)
+    │   │   │   ├── DahuaDevicesPanel.jsx (NEW - Dahua device management)
     │   │   │   ├── NOCDashboard.jsx
     │   │   │   └── ...
+    │   │   ├── noc/widgets/
+    │   │   │   ├── DahuaWidget.jsx (NEW - NOC widget for Dahua status)
+    │   │   │   └── ...
     │   │   ├── settings/
-    │   │   │   ├── TelegramSettings.jsx (NEW - Telegram config UI)
+    │   │   │   ├── TelegramSettings.jsx (Telegram config UI)
     │   │   │   └── ...
     │   │   └── common/SystemECG.jsx
     │   └── locales/
@@ -63,25 +71,31 @@ Build and maintain a professional NOC (Network Operations Center) dashboard for 
 
 ### Session 2 - Notifications & Maintenance Mode
 - ✅ **Email Templates with Logo**: Professional HTML templates for alerts and test emails
-  - Siempria logo embedded: `https://customer-assets.emergentagent.com/job_.../logo%20principal.png`
-  - Alert emails with severity levels and gradient colors
-  - Test emails with configuration details
+- ✅ **Telegram Notifications**: Backend service and frontend configuration
+- ✅ **Maintenance Mode**: Full CRUD with alert suppression
+
+### Session 3 - Dahua P2P Integration (Feb 19, 2026)
+- ✅ **Native Python P2P Protocol**: Implemented Dahua PTCP protocol
+  - `dahua_p2p_protocol.py`: Full P2P handshake and PTCP communication
+  - Connects to Easy4IP Cloud (www.easy4ipcloud.com:8800 UDP)
+  - Supports device status, storage, recording, and HDD health queries
   
-- ✅ **Telegram Notifications**: 
-  - Backend service: `telegram_service.py` with `httpx` async client
-  - API endpoints: POST `/api/settings/telegram`, POST `/api/settings/test-telegram`
-  - Frontend UI: `TelegramSettings.jsx` with token input, chat IDs badges, enable/disable switch
-  
-- ✅ **Maintenance Mode**:
-  - Backend: Full CRUD in `devices.py`
-    - `POST /api/devices/{id}/maintenance` - Enable with duration and reason
-    - `DELETE /api/devices/{id}/maintenance` - Disable
-    - `GET /api/maintenance/devices` - List devices in maintenance
-  - Frontend: `MaintenancePanel.jsx`
-    - Shows devices currently in maintenance with remaining time
-    - Shows available devices to put in maintenance
-    - Dialog with duration selector (15m to 24h) and optional reason
-  - Alert suppression: Devices in maintenance don't generate alerts
+- ✅ **Dahua API Endpoints**:
+  - `GET /api/dahua/devices` - List all Dahua devices
+  - `POST /api/dahua/devices` - Add new device
+  - `GET /api/dahua/devices/{id}` - Get single device
+  - `PUT /api/dahua/devices/{id}` - Update device
+  - `DELETE /api/dahua/devices/{id}` - Delete device
+  - `POST /api/dahua/devices/{id}/check` - Full P2P status check
+  - `POST /api/dahua/check-all` - Check all devices
+  - `GET /api/dahua/status` - Status summary
+  - `POST /api/dahua/quick-check/{serial}` - Verify serial in P2P cloud
+
+- ✅ **Frontend Components**:
+  - `DahuaDevicesPanel.jsx`: Full CRUD UI with official Dahua logo
+  - `DahuaWidget.jsx`: NOC dashboard widget showing device status
+  - Serial number verification button before adding devices
+  - Real-time status badges (online/offline, recording, storage, HDD)
 
 ---
 
@@ -91,6 +105,7 @@ Build and maintain a professional NOC (Network Operations Center) dashboard for 
 - [x] Logo in email templates
 - [x] Maintenance Mode UI
 - [x] Telegram notifications
+- [x] Dahua P2P Integration with official logo
 
 ### P1 - High Priority
 - [ ] **PDF/SLA Reports**: Generate monthly uptime reports
@@ -116,6 +131,22 @@ Build and maintain a professional NOC (Network Operations Center) dashboard for 
 
 ## API Reference
 
+### Dahua P2P Devices
+```
+GET /api/dahua/devices
+  Response: {"devices": [...], "count": N}
+
+POST /api/dahua/devices
+  Body: {"name": "...", "serial_number": "...", "username": "admin", "password": "..."}
+  Response: {"message": "Dispositivo Dahua creado", "device": {...}}
+
+POST /api/dahua/devices/{device_id}/check
+  Response: {"online": true, "device_type": "...", "storage": {...}, "recording": {...}, "hdd_health": {...}}
+
+POST /api/dahua/quick-check/{serial_number}
+  Response: {"serial_number": "...", "cloud_registered": true, "p2p_available": true}
+```
+
 ### Maintenance Mode
 ```
 POST /api/devices/{device_id}/maintenance
@@ -124,41 +155,29 @@ POST /api/devices/{device_id}/maintenance
 
 DELETE /api/devices/{device_id}/maintenance
   Response: {"message": "Modo mantenimiento desactivado"}
-
-GET /api/maintenance/devices
-  Response: {"devices": [...], "count": N}
-```
-
-### Telegram Settings
-```
-POST /api/settings/telegram
-  Body: {"telegram_bot_token": "...", "telegram_chat_ids": ["-100..."], "telegram_enabled": true}
-
-POST /api/settings/test-telegram
-  Response: {"message": "Mensaje enviado..."} or error
 ```
 
 ---
 
 ## Database Schema Updates
 
-### devices collection (new fields)
+### dahua_devices collection (NEW)
 ```javascript
 {
-  maintenance_mode: Boolean,
-  maintenance_until: String (ISO date),
-  maintenance_reason: String,
-  maintenance_started_by: String,
-  maintenance_started_at: String (ISO date)
-}
-```
-
-### settings collection (new fields)
-```javascript
-{
-  telegram_bot_token: String,
-  telegram_chat_ids: Array<String>,
-  telegram_enabled: Boolean
+  id: String (UUID),
+  name: String,
+  serial_number: String,
+  username: String,
+  password: String,
+  group_id: String (optional),
+  organization_id: String (optional),
+  online: Boolean,
+  device_type: String,
+  last_check: String (ISO date),
+  storage_used_percent: Number,
+  recording_active: Boolean,
+  hdd_healthy: Boolean,
+  last_error: String
 }
 ```
 
@@ -171,3 +190,6 @@ POST /api/settings/test-telegram
 ## External URLs
 - **Preview**: https://dahua-device-sync.preview.emergentagent.com
 - **Production**: https://siempriapp.com
+
+## Brand Assets
+- **Dahua Logo**: https://customer-assets.emergentagent.com/job_9daa6c94-1292-4e32-a6ac-374cc483718a/artifacts/er710utf_dahua-technology-logo.png
