@@ -7,7 +7,7 @@
 set -e
 
 # Configuración
-EMERGENT_URL="https://noc-dashboard-pro.preview.emergentagent.com"
+EMERGENT_URL="https://dahua-device-sync.preview.emergentagent.com"
 FRONTEND_DIR="/home/monitorizacion/Documentos/MONITORIZACION-main/frontend/src"
 BACKEND_DIR="/home/monitorizacion/Documentos/MONITORIZACION-main/backend"
 

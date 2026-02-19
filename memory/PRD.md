@@ -169,5 +169,5 @@ POST /api/settings/test-telegram
 - **Telegram Bot**: 7955328367:AAHyR2A8hFVezQZKS14bJGKONG-IfYo5ruU
 
 ## External URLs
-- **Preview**: https://noc-dashboard-pro.preview.emergentagent.com
+- **Preview**: https://dahua-device-sync.preview.emergentagent.com
 - **Production**: https://siempriapp.com
