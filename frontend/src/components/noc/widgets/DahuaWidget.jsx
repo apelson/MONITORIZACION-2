@@ -109,12 +109,7 @@ const DahuaWidget = ({ authAxios, onDeviceClick, className }) => {
       <CardHeader className="pb-2 flex-shrink-0">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
-            <img 
-              src={DAHUA_LOGO} 
-              alt="Dahua" 
-              className="h-5 w-auto object-contain"
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
+            <DahuaBrand size="sm" />
             <span className="text-sm font-medium">Grabadores P2P</span>
           </CardTitle>
           <div className="flex items-center gap-2">
