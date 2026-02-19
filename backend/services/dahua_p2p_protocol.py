@@ -688,8 +688,11 @@ class DahuaP2PConnection:
             except socket.timeout:
                 pass  # OK if no response
             
+            # Store the active remote for HTTP queries
+            self.active_remote = target_remote
             self.connected = True
-            logger.info(f"P2P connection established to {self.serial_number}")
+            mode = "relay" if use_relay else "direct"
+            logger.info(f"P2P connection established to {self.serial_number} ({mode} mode)")
             return True
             
         except Exception as e:
