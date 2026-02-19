@@ -307,10 +307,11 @@ async def test_ptcp_handshake():
         except socket.timeout:
             print("  ⚠️ Timeout - device may not be reachable directly, using relay mode")
         
-        # Step 8: Relay channel request (no read)
+        # Step 8: Relay channel request
         print("\n[Step 8] Requesting relay channel...")
+        relay_auth = get_device_auth(USERNAME, key, nonce, randsalt)
         sock.sendto(
-            build_request(f"/device/{SERIAL_NUMBER}/relay-channel", f"<body><agentAddr>{agent_server}:{agent_port}</agentAddr></body>"),
+            build_request(f"/device/{SERIAL_NUMBER}/relay-channel", f"<body>{relay_auth}<agentAddr>{agent_server}:{agent_port}</agentAddr></body>"),
             (MAIN_SERVER, MAIN_PORT)
         )
         print("  Relay channel request sent")
