@@ -479,12 +479,9 @@ class DahuaP2PConnection:
             logger.info(f"Device: {device_server}:{device_port}")
             
             # Step 10: Request relay channel
-            self.main_remote.rhost = MAIN_SERVER
-            self.main_remote.rport = MAIN_PORT
-            
             relay_auth = get_device_auth(self.username, self.key, self.nonce, self.randsalt)
             
-            # Send relay-channel request back to main server
+            # Send relay-channel request back to main server (no read)
             self.main_remote.rhost = MAIN_SERVER
             self.main_remote.rport = MAIN_PORT
             
@@ -495,55 +492,55 @@ class DahuaP2PConnection:
             )
             
             # Step 11: Agent PTCP handshake
-            # Create a new UDP connection to agent for PTCP
-            agent_remote = UDPRemote(agent_server, agent_port)
+            # Switch main_remote to agent for PTCP communication
+            self.main_remote.rhost = agent_server
+            self.main_remote.rport = agent_port
             
-            # Try to read initial response (may timeout, that's ok)
+            # Read initial response from agent (response to relay-channel)
             try:
-                res = agent_remote.read()
-                logger.debug(f"Agent initial response received")
+                res = self.main_remote.read()
+                logger.debug(f"Agent relay response: {res.get('code', 'N/A')}")
             except Exception as e:
-                logger.debug(f"No initial agent response (expected): {type(e).__name__}")
+                logger.debug(f"No relay response from agent: {type(e).__name__}")
+            
+            # Reset PTCP state
+            self.main_remote.reset_ptcp()
             
             # PTCP handshake with agent
-            agent_remote.request_ptcp(b"\x03\x01")
+            self.main_remote.request_ptcp(b"\x03\x01")
             try:
-                res = agent_remote.read_ptcp(timeout=15)
+                res = self.main_remote.read_ptcp(timeout=15)
             except socket.timeout:
                 logger.error("Timeout waiting for PTCP SYN-ACK from agent")
-                agent_remote.close()
                 return False
             
             logger.debug(f"PTCP SYN-ACK received: {res.body.hex() if res.body else 'empty'}")
             
-            agent_remote.request_ptcp(b"\x17")
+            self.main_remote.request_ptcp(b"\x17")
             
             # Wait for sign from agent
             try:
-                res = agent_remote.read_ptcp(timeout=15)
+                res = self.main_remote.read_ptcp(timeout=15)
             except socket.timeout:
                 logger.error("Timeout waiting for sign from agent")
-                agent_remote.close()
                 return False
             
             attempts = 0
             while len(res.body) == 0 and attempts < 10:
                 try:
-                    res = agent_remote.read_ptcp(timeout=5)
+                    res = self.main_remote.read_ptcp(timeout=5)
                 except socket.timeout:
                     break
                 attempts += 1
             
             if len(res.body) == 0:
                 logger.error("No sign received from agent")
-                agent_remote.close()
                 return False
             
             sign = res.body[12:] if len(res.body) > 12 else res.body
             logger.info(f"Got sign from agent, length: {len(sign)} bytes")
             
-            agent_remote.request_ptcp()
-            agent_remote.close()
+            self.main_remote.request_ptcp()
             
             # Step 12: Connect to device (hole punching)
             aid_inv = bytes(0xFF - b for b in aid)
