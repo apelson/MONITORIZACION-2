@@ -184,10 +184,18 @@ async def test_ptcp_handshake():
             print(f"  P2P channel failed: {res['status']}")
             return
         
-        device_pub = res["data"]["body"]["PubAddr"]
-        device_server, device_port = device_pub.split(":")
-        device_port = int(device_port)
-        print(f"  Device public address: {device_server}:{device_port}")
+        print(f"  Full response body: {res.get('data', {})}")
+        
+        if not res.get("data") or not res["data"].get("body") or not res["data"]["body"].get("PubAddr"):
+            print("  ⚠️ No PubAddr in response - device may require auth or is offline")
+            print("  Attempting to continue with agent relay mode anyway...")
+            device_server = None
+            device_port = None
+        else:
+            device_pub = res["data"]["body"]["PubAddr"]
+            device_server, device_port = device_pub.split(":")
+            device_port = int(device_port)
+            print(f"  Device public address: {device_server}:{device_port}")
         
         # Step 8: Relay channel request (no read)
         print("\n[Step 8] Requesting relay channel...")
