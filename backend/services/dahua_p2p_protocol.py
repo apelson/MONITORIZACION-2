@@ -634,20 +634,27 @@ class DahuaP2PConnection:
                 
             except socket.timeout:
                 logger.info("Direct connection timeout, using relay mode via agent")
-                # In relay mode, we communicate through the agent
+                # In relay mode, the agent acts as intermediary
+                # After agent handshake, we should try device again
                 use_relay = True
             
-            # Step 13: PTCP handshake with device (or agent in relay mode)
+            # Step 13: PTCP handshake with device
+            # Even in relay mode, we try to connect to device (relayed through agent)
             if use_relay:
-                # Use main_remote (which is still pointing to agent) for relay
-                target_remote = self.main_remote
-                target_host = agent_server
-                target_port = agent_port
-                logger.info(f"Using relay mode via agent {agent_server}:{agent_port}")
+                # For relay mode, we need to use a different approach
+                # The device connection goes through the agent relay tunnel
+                # Flush any remaining packets from agent
+                for _ in range(5):
+                    try:
+                        self.main_remote.recv(timeout=0.5)
+                    except:
+                        break
+                
+                # Try device connection through relay
+                target_remote = self.device_remote
+                logger.info(f"Trying device connection via relay: {device_server}:{device_port}")
             else:
                 target_remote = self.device_remote
-                target_host = device_server
-                target_port = device_port
             
             target_remote.reset_ptcp()
             
@@ -655,12 +662,24 @@ class DahuaP2PConnection:
             try:
                 res = target_remote.read_ptcp(timeout=10)
             except socket.timeout:
-                logger.error("PTCP SYN timeout")
+                logger.error("PTCP SYN timeout with device")
+                # If direct/relay both fail, the device is truly unreachable
                 return False
             
             if res.body != b"\x00\x03\x01\x00":
-                logger.error(f"PTCP SYN failed: {res.body.hex() if res.body else 'empty'}")
-                return False
+                # Try to flush and retry once
+                logger.debug(f"Unexpected PTCP response: {res.body.hex() if res.body else 'empty'}, retrying...")
+                target_remote.reset_ptcp()
+                target_remote.request_ptcp(b"\x03\x01")
+                try:
+                    res = target_remote.read_ptcp(timeout=5)
+                except socket.timeout:
+                    logger.error("PTCP SYN retry timeout")
+                    return False
+                
+                if res.body != b"\x00\x03\x01\x00":
+                    logger.error(f"PTCP SYN failed: {res.body.hex() if res.body else 'empty'}")
+                    return False
             
             logger.debug("PTCP SYN-ACK received")
             
