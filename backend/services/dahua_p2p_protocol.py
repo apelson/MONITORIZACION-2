@@ -810,6 +810,94 @@ class DahuaP2PConnection:
         logger.info(f"P2P connection closed for {self.serial_number}")
 
 
+async def _get_device_cloud_info(serial_number: str) -> Dict[str, Any]:
+    """
+    Get device cloud registration info and firmware version.
+    This is a lightweight check that works even when P2P tunnel fails.
+    """
+    import datetime as dt
+    
+    result = {
+        "registered": False,
+        "firmware_version": None,
+        "p2p_server": None
+    }
+    
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.settimeout(10)
+    sock.bind(("0.0.0.0", 0))
+    
+    try:
+        # Check cloud registration
+        nonce = random.randrange(2**31)
+        curdate = dt.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        pwd = f"{nonce}{curdate}DHP2P:{P2P_USERNAME}:{P2P_USERKEY}"
+        hash_digest = hashlib.sha1()
+        hash_digest.update(pwd.encode())
+        digest = base64.b64encode(hash_digest.digest()).decode()
+        
+        req = f"DHGET /online/p2psrv/{serial_number} HTTP/1.1\r\n"
+        req += f"CSeq: 1\r\n"
+        req += f'Authorization: WSSE profile="UsernameToken"\r\n'
+        req += f'X-WSSE: UsernameToken Username="{P2P_USERNAME}", PasswordDigest="{digest}", Nonce="{nonce}", Created="{curdate}"\r\n'
+        req += "\r\n"
+        
+        sock.sendto(req.encode(), (MAIN_SERVER, MAIN_PORT))
+        data, addr = sock.recvfrom(4096)
+        response = data.decode()
+        
+        if "200 OK" not in response:
+            return result
+        
+        result["registered"] = True
+        
+        # Parse P2P server info
+        if "<US>" in response:
+            p2psrv_info = response.split("<US>")[1].split("</US>")[0]
+            result["p2p_server"] = p2psrv_info
+            p2psrv_server, p2psrv_port = p2psrv_info.split(":")
+            p2psrv_port = int(p2psrv_port)
+            
+            # Get device info (firmware version)
+            sock2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock2.settimeout(10)
+            sock2.bind(("0.0.0.0", 0))
+            
+            nonce = random.randrange(2**31)
+            curdate = dt.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+            pwd = f"{nonce}{curdate}DHP2P:{P2P_USERNAME}:{P2P_USERKEY}"
+            hash_digest = hashlib.sha1()
+            hash_digest.update(pwd.encode())
+            digest = base64.b64encode(hash_digest.digest()).decode()
+            
+            req = f"DHGET /info/device/{serial_number} HTTP/1.1\r\n"
+            req += f"CSeq: 2\r\n"
+            req += f'Authorization: WSSE profile="UsernameToken"\r\n'
+            req += f'X-WSSE: UsernameToken Username="{P2P_USERNAME}", PasswordDigest="{digest}", Nonce="{nonce}", Created="{curdate}"\r\n'
+            req += "\r\n"
+            
+            sock2.sendto(req.encode(), (p2psrv_server, p2psrv_port))
+            
+            try:
+                data, addr = sock2.recvfrom(4096)
+                response = data.decode()
+                
+                if "<DevVersion>" in response:
+                    fw_version = response.split("<DevVersion>")[1].split("</DevVersion>")[0]
+                    result["firmware_version"] = fw_version
+            except:
+                pass
+            finally:
+                sock2.close()
+    
+    except Exception as e:
+        logger.warning(f"Error getting cloud info for {serial_number}: {e}")
+    finally:
+        sock.close()
+    
+    return result
+
+
 async def check_device_p2p(serial_number: str, username: str, password: str) -> Dict[str, Any]:
     """
     Check a Dahua device via P2P connection.
