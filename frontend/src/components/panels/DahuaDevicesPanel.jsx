@@ -60,6 +60,9 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
     group_id: '',
     organization_id: ''
   });
+  
+  const [serialChecking, setSerialChecking] = useState(false);
+  const [serialValid, setSerialValid] = useState(null);
 
   const fetchDevices = useCallback(async () => {
     try {
