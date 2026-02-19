@@ -176,13 +176,13 @@ class DahuaP2PService:
                             try:
                                 total_bytes = int(value)
                                 storage_info["total_size_gb"] += total_bytes / (1024**3)
-                            except:
+                            except ValueError:
                                 pass
                         elif 'FreeSpace' in key or 'FreeBytes' in key:
                             try:
                                 free_bytes = int(value)
                                 storage_info["free_size_gb"] += free_bytes / (1024**3)
-                            except:
+                            except ValueError:
                                 pass
                         elif 'Status' in key:
                             current_disk["status"] = value
