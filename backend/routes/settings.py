@@ -103,6 +103,34 @@ async def test_email(current_user: dict = Depends(require_role(["admin"]))):
     else:
         raise HTTPException(status_code=500, detail=result["error"])
 
+# ============ TELEGRAM SETTINGS ============
+
+class TelegramSettings(BaseModel):
+    telegram_bot_token: str
+    telegram_chat_ids: list
+    telegram_enabled: bool = True
+
+@router.post("/settings/telegram")
+async def save_telegram_settings(data: TelegramSettings, current_user: dict = Depends(require_role(["admin"]))):
+    """Save Telegram bot configuration"""
+    update_data = {
+        "telegram_bot_token": data.telegram_bot_token,
+        "telegram_chat_ids": data.telegram_chat_ids,
+        "telegram_enabled": data.telegram_enabled
+    }
+    await settings_collection.update_one({}, {"$set": update_data}, upsert=True)
+    invalidate_settings_cache()
+    return {"message": "Configuración de Telegram guardada"}
+
+@router.post("/settings/test-telegram")
+async def test_telegram(current_user: dict = Depends(require_role(["admin"]))):
+    """Send test message via Telegram bot"""
+    result = await send_test_telegram()
+    if result["success"]:
+        return {"message": result["message"]}
+    else:
+        raise HTTPException(status_code=500, detail=result["error"])
+
 # ============ SCHEDULED REPORTS ============
 
 @router.get("/scheduled-reports")
