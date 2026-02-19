@@ -227,36 +227,67 @@ async def send_alert_email(device_name: str, device_ip: str, port: int, alert_ty
         logger.error(f"Error sending email: {e}")
         return False
 
-async def create_alert(device_id: str, device_name: str, device_ip: str, port: int, alert_type: str, extra_info: dict = None):
-    """Create an alert and optionally send email notification"""
+async def create_alert(device_id: str, device_name: str, device_ip: str, port: int, alert_type: str, extra_info: dict = None, group_name: str = None):
+    """Create an alert and optionally send email/telegram notification"""
+    from config import devices_collection, groups_collection
+    from services.telegram_service import send_alert_telegram
+    
+    # Check if device is in maintenance mode
+    device = await devices_collection.find_one({"id": device_id})
+    if device:
+        maintenance_mode = device.get("maintenance_mode", False)
+        maintenance_until = device.get("maintenance_until")
+        
+        if maintenance_mode and maintenance_until:
+            try:
+                maint_end = datetime.fromisoformat(maintenance_until.replace("Z", "+00:00"))
+                if datetime.now(timezone.utc) < maint_end:
+                    # Device is in maintenance mode - skip alert creation
+                    logger.info(f"Device {device_name} in maintenance mode - skipping alert")
+                    return None
+            except Exception as e:
+                logger.warning(f"Error parsing maintenance_until: {e}")
+        
+        # Get group name if not provided
+        if not group_name and device.get("group_id"):
+            group = await groups_collection.find_one({"id": device["group_id"]})
+            if group:
+                group_name = group.get("name")
     
     # Determine alert message based on type
     alert_messages = {
-        "device_down": f"Dispositivo se ha desconectado",
-        "device_up": f"Dispositivo se ha recuperado",
-        "nas_disconnected": f"Cámara ha perdido conexión con el NAS",
-        "nas_reconnected": f"Cámara ha recuperado conexión con el NAS",
-        "storage_full": f"Almacenamiento del dispositivo está lleno",
-        "storage_warning": f"Almacenamiento del dispositivo está casi lleno",
-        "recording_stopped": f"La grabación se ha detenido",
-        "recording_started": f"La grabación ha iniciado",
+        "device_down": "Dispositivo se ha desconectado",
+        "device_up": "Dispositivo se ha recuperado",
+        "nas_disconnected": "Cámara ha perdido conexión con el NAS",
+        "nas_reconnected": "Cámara ha recuperado conexión con el NAS",
+        "storage_full": "Almacenamiento del dispositivo está lleno",
+        "storage_warning": "Almacenamiento del dispositivo está casi lleno",
+        "recording_stopped": "La grabación se ha detenido",
+        "recording_started": "La grabación ha iniciado",
     }
     
     message = alert_messages.get(alert_type, f"Alerta: {alert_type}")
     
-    # Send email for critical alerts
+    # Send notifications for critical alerts
     email_sent = False
+    telegram_sent = False
+    
     if alert_type in ["device_down", "nas_disconnected", "storage_full", "recording_stopped"]:
-        email_sent = await send_alert_email(device_name, device_ip, port, alert_type)
+        # Send email
+        email_sent = await send_alert_email(device_name, device_ip, port, alert_type, group_name)
+        # Send Telegram
+        telegram_sent = await send_alert_telegram(device_name, device_ip, port, alert_type, group_name)
     
     alert = {
         "id": str(uuid.uuid4()),
         "device_id": device_id,
         "device_name": device_name,
+        "group_name": group_name,
         "alert_type": alert_type,
         "message": message,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "email_sent": email_sent,
+        "telegram_sent": telegram_sent,
         "acknowledged": False,
         "extra_info": extra_info or {}
     }
