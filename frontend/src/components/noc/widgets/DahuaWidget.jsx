@@ -105,8 +105,7 @@ const DahuaWidget = ({ authAxios, onDeviceClick, className }) => {
       <CardHeader className="pb-2 flex-shrink-0">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
-            <DahuaBrand size="sm" />
-            <span className="text-sm font-medium">Grabadores P2P</span>
+            <img src={DAHUA_LOGO} alt="Dahua" className="h-5 w-auto object-contain" />
           </CardTitle>
           <div className="flex items-center gap-2">
             {/* Summary badges */}
