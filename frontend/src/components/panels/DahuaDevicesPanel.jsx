@@ -171,6 +171,31 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
       group_id: '',
       organization_id: ''
     });
+    setSerialValid(null);
+  };
+  
+  const handleQuickCheckSerial = async () => {
+    if (!formData.serial_number || formData.serial_number.length < 10) {
+      toast.error('Introduce un número de serie válido');
+      return;
+    }
+    
+    setSerialChecking(true);
+    try {
+      const response = await authAxios.post(`/dahua/quick-check/${formData.serial_number}`);
+      if (response.data.cloud_registered) {
+        setSerialValid(true);
+        toast.success('Dispositivo encontrado en Easy4IP Cloud');
+      } else {
+        setSerialValid(false);
+        toast.error(response.data.error || 'Dispositivo no encontrado');
+      }
+    } catch (error) {
+      setSerialValid(false);
+      toast.error(error.response?.data?.detail || 'Error al verificar');
+    } finally {
+      setSerialChecking(false);
+    }
   };
 
   const openEditModal = (device) => {
