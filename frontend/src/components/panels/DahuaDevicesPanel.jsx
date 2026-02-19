@@ -38,8 +38,28 @@ import {
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 
-// Dahua official logo
-const DAHUA_LOGO = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Dahua_Technology_logo.svg/200px-Dahua_Technology_logo.svg.png";
+// Dahua official logo - SVG inline for better reliability
+const DahuaLogo = ({ className = "h-6 w-auto" }) => (
+  <svg 
+    viewBox="0 0 200 62" 
+    className={className}
+    fill="currentColor"
+  >
+    <text 
+      x="0" 
+      y="45" 
+      fontFamily="Arial, sans-serif" 
+      fontSize="42" 
+      fontWeight="bold"
+      fill="#E31837"
+    >
+      DAHUA
+    </text>
+  </svg>
+);
+
+// Alternative: Use a hosted image with fallback
+const DAHUA_LOGO_URL = "https://cdn.worldvectorlogo.com/logos/dahua.svg";
 
 const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
   const [devices, setDevices] = useState([]);
