@@ -732,3 +732,114 @@ async def get_cra_dashboard(current_user: dict = Depends(get_current_user)):
         "alerts": alerts
     }
 
+# ============ MAINTENANCE MODE ============
+
+class MaintenanceRequest(BaseModel):
+    duration_minutes: int = 60
+    reason: Optional[str] = None
+
+@router.get("/maintenance/devices")
+async def get_maintenance_devices(current_user: dict = Depends(get_current_user)):
+    """Get all devices currently in maintenance mode"""
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Find devices where maintenance_mode is True and maintenance_until > now
+    devices = await devices_collection.find(
+        {
+            "maintenance_mode": True,
+            "maintenance_until": {"$gt": now}
+        },
+        {"_id": 0}
+    ).to_list(length=None)
+    
+    # Calculate remaining time for each device
+    for device in devices:
+        if device.get("maintenance_until"):
+            maintenance_end = datetime.fromisoformat(device["maintenance_until"].replace("Z", "+00:00"))
+            remaining = (maintenance_end - datetime.now(timezone.utc)).total_seconds()
+            device["maintenance_remaining_minutes"] = max(0, int(remaining / 60))
+    
+    return {"devices": devices, "count": len(devices)}
+
+@router.post("/devices/{device_id}/maintenance")
+async def enable_maintenance_mode(
+    device_id: str, 
+    data: MaintenanceRequest,
+    request: Request,
+    current_user: dict = Depends(require_role(["admin", "manager"]))
+):
+    """Enable maintenance mode for a device"""
+    device = await devices_collection.find_one({"id": device_id})
+    if not device:
+        raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
+    
+    now = datetime.now(timezone.utc)
+    maintenance_until = now + timedelta(minutes=data.duration_minutes)
+    
+    update_data = {
+        "maintenance_mode": True,
+        "maintenance_until": maintenance_until.isoformat(),
+        "maintenance_reason": data.reason or "",
+        "maintenance_started_by": current_user["username"],
+        "maintenance_started_at": now.isoformat()
+    }
+    
+    await devices_collection.update_one({"id": device_id}, {"$set": update_data})
+    
+    # Log the action
+    await log_access(
+        log_type="maintenance_enabled",
+        user_id=current_user["id"],
+        username=current_user["username"],
+        user_role=current_user["role"],
+        ip_address=get_client_ip(request),
+        target_type="device",
+        target_id=device_id,
+        target_name=device.get("name"),
+        details={"duration_minutes": data.duration_minutes, "reason": data.reason}
+    )
+    
+    return {
+        "message": f"Modo mantenimiento activado por {data.duration_minutes} minutos",
+        "maintenance_until": maintenance_until.isoformat(),
+        "device_id": device_id
+    }
+
+@router.delete("/devices/{device_id}/maintenance")
+async def disable_maintenance_mode(
+    device_id: str,
+    request: Request,
+    current_user: dict = Depends(require_role(["admin", "manager"]))
+):
+    """Disable maintenance mode for a device"""
+    device = await devices_collection.find_one({"id": device_id})
+    if not device:
+        raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
+    
+    update_data = {
+        "maintenance_mode": False,
+        "maintenance_until": None,
+        "maintenance_reason": None,
+        "maintenance_started_by": None,
+        "maintenance_started_at": None
+    }
+    
+    await devices_collection.update_one({"id": device_id}, {"$set": update_data})
+    
+    # Log the action
+    await log_access(
+        log_type="maintenance_disabled",
+        user_id=current_user["id"],
+        username=current_user["username"],
+        user_role=current_user["role"],
+        ip_address=get_client_ip(request),
+        target_type="device",
+        target_id=device_id,
+        target_name=device.get("name"),
+        details={}
+    )
+    
+    return {"message": "Modo mantenimiento desactivado", "device_id": device_id}
+
+from pydantic import BaseModel
+from datetime import timedelta
