@@ -704,14 +704,14 @@ class DahuaP2PConnection:
     
     async def query_http(self, endpoint: str, timeout: float = 10) -> Optional[Dict[str, Any]]:
         """Query device via HTTP through P2P tunnel"""
-        if not self.connected or not self.device_remote:
+        if not self.connected or not self.active_remote:
             return None
         
         try:
             realm_id = random.randint(0x00000000, 0xFFFFFFFF)
             
             # Request port binding (port 80)
-            self.device_remote.request_ptcp(
+            self.active_remote.request_ptcp(
                 b"\x11" + realm_id.to_bytes(4, "big") + b"\x00\x50\x7f\x01"
             )
             
