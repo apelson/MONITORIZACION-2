@@ -215,7 +215,7 @@ const NOCDashboard = ({
     setLayout(INITIAL_LAYOUT);
     setWidgetVisibility({
       stats: true, uptime: true, systemMonitor: true, cra: true,
-      organizations: true, offline: true, history: true, alerts: true
+      organizations: true, offline: true, history: true, alerts: true, dahua: true
     });
     toast.info('Layout restaurado');
   };
