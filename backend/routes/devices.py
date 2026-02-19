@@ -2,8 +2,9 @@
 Device management routes - OPTIMIZED FOR SCALE
 """
 from fastapi import APIRouter, HTTPException, Depends, Request, Query
+from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import uuid
 import asyncio
 import time
