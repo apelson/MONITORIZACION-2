@@ -1236,6 +1236,16 @@ const NOCDashboard = ({
                 />
               </div>
             )}
+            
+            {widgetVisibility.dahua !== false && (
+              <div key="dahua" className="overflow-hidden">
+                <DahuaWidget 
+                  authAxios={authAxios}
+                  onDeviceClick={onDeviceClick}
+                  editMode={editMode}
+                />
+              </div>
+            )}
           </GridLayout>
         </div>
       </div>
