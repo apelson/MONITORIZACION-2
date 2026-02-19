@@ -51,6 +51,7 @@ import DeviceTypesPanel from "@/components/panels/DeviceTypesPanel";
 import UsersPanel from "@/components/panels/UsersPanel";
 import SettingsPanel from "@/components/panels/SettingsPanel";
 import MaintenancePanel from "@/components/panels/MaintenancePanel";
+import DahuaDevicesPanel from "@/components/panels/DahuaDevicesPanel";
 import CRAFloatingButton from "@/components/common/CRAFloatingButton";
 import LiveViewerFloatingButton from "@/components/common/LiveViewerFloatingButton";
 import NOCFloatingButton from "@/components/common/NOCFloatingButton";
