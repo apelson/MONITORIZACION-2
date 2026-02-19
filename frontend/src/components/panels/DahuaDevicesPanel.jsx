@@ -245,8 +245,12 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
           <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-white rounded-lg shadow-sm border flex items-center justify-center min-w-[40px]">
-                  <span className="text-lg font-bold text-[#E31837]">DAHUA</span>
+                <div className="p-2 bg-white rounded-lg shadow-sm border flex items-center justify-center">
+                  <img 
+                    src={DAHUA_LOGO} 
+                    alt="Dahua" 
+                    className="h-8 w-auto object-contain"
+                  />
                 </div>
                 <div>
                   <CardTitle className="text-lg">Grabadores P2P</CardTitle>
