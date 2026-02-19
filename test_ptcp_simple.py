@@ -428,52 +428,71 @@ async def test_ptcp_handshake():
         print(f"\n✅ PTCP handshake with agent successful!")
         print(f"  Sign: {sign.hex()}")
         
-        # Now try to authenticate with device through agent relay
-        print("\n[Step 11] Authenticating with device via relay...")
+        # Now try to authenticate with device
+        print("\n[Step 11] Authenticating with device...")
         
-        # Send 0x19 + sign for device authentication
-        auth_body = b"\x19" + sign
-        print(f"  Sending auth (0x19 + sign) to agent: {auth_body.hex()}")
-        auth_packet = build_ptcp(ptcp_sent, ptcp_recv, 0x0000FFFF - 2, ptcp_id, rmid, auth_body)
-        sock.sendto(auth_packet, (agent_server, agent_port))
-        ptcp_sent += len(auth_body)
-        ptcp_id += 1
+        # In relay mode, we need to establish PTCP with device through the relay
+        # The agent has set up a tunnel - we send to device address but it goes through agent
         
-        # Read auth response
-        print("  Waiting for auth response (0x1A)...")
-        for _ in range(10):
+        if device_server and device_port:
+            # Create new socket for device communication
+            dev_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            dev_sock.bind(("0.0.0.0", 0))
+            dev_sock.settimeout(10)
+            
+            # Reset PTCP counters for device connection
+            dev_sent = 0
+            dev_recv = 0
+            dev_id = 0
+            dev_rmid = 0
+            
+            # Send PTCP SYN to device (relayed through agent)
+            print(f"  Sending PTCP SYN to device {device_server}:{device_port}...")
+            syn_packet = build_ptcp(dev_sent, dev_recv, 0x0002FFFF, dev_id, dev_rmid, b"\x00\x03\x01\x00")
+            dev_sock.sendto(syn_packet, (device_server, device_port))
+            dev_sent += 4
+            dev_id += 1
+            
             try:
-                data, addr = sock.recvfrom(4096)
-                print(f"  Got response from {addr}: {data[:50].hex() if len(data) > 50 else data.hex()}")
+                data, addr = dev_sock.recvfrom(4096)
+                print(f"  Got response from {addr}: {data.hex()}")
                 
                 if data[:4] == b"PTCP":
                     ptcp = parse_ptcp(data)
-                    ptcp_recv += len(ptcp['body'])
-                    rmid = ptcp['lmid']
-                    print(f"  PTCP body: {ptcp['body'].hex()}")
+                    dev_recv += len(ptcp['body'])
+                    dev_rmid = ptcp['lmid']
                     
-                    if len(ptcp['body']) > 0 and ptcp['body'][0] == 0x1A:
-                        print("  ✅ Device authenticated!")
-                        break
+                    if ptcp['body'] == b"\x00\x03\x01\x00":
+                        print("  ✅ Device responded to PTCP SYN!")
+                        
+                        # Send auth with sign
+                        auth_body = b"\x19" + sign
+                        auth_packet = build_ptcp(dev_sent, dev_recv, 0x0000FFFF - 1, dev_id, dev_rmid, auth_body)
+                        dev_sock.sendto(auth_packet, (device_server, device_port))
+                        dev_sent += len(auth_body)
+                        dev_id += 1
+                        
+                        # Wait for auth response
+                        for _ in range(5):
+                            try:
+                                data, addr = dev_sock.recvfrom(4096)
+                                ptcp = parse_ptcp(data)
+                                dev_recv += len(ptcp['body'])
+                                dev_rmid = ptcp['lmid']
+                                print(f"  Auth response: {ptcp['body'].hex()}")
+                                
+                                if len(ptcp['body']) > 0 and ptcp['body'][0] == 0x1A:
+                                    print("  ✅ Device authenticated!")
+                                    break
+                            except socket.timeout:
+                                break
             except socket.timeout:
-                print("  Timeout waiting for auth response")
-                break
+                print("  Timeout waiting for device PTCP response")
+            
+            dev_sock.close()
         
-        # Send 0x1b to finalize
-        print("\n  Sending 0x1b to finalize...")
-        final_body = b"\x1b" + b"\x00" * 7
-        final_packet = build_ptcp(ptcp_sent, ptcp_recv, 0x0000FFFF - 3, ptcp_id, rmid, final_body)
-        sock.sendto(final_packet, (agent_server, agent_port))
-        ptcp_sent += len(final_body)
-        ptcp_id += 1
-        
-        try:
-            data, addr = sock.recvfrom(4096)
-            print(f"  Final response: {data[:50].hex() if len(data) > 50 else data.hex()}")
-        except socket.timeout:
-            print("  No final response (may be OK)")
-        
-        print("\n🎉 Relay connection established! Ready for HTTP queries.")
+        # Also try continuing with agent for HTTP tunnel
+        print("\n  Agent tunnel is ready for HTTP queries through port binding.")
         
     except Exception as e:
         print(f"\n❌ Error: {e}")
