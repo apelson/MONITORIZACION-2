@@ -325,6 +325,46 @@ const NOCDashboard = ({
     return () => clearInterval(interval);
   }, [authAxios, devices]);
 
+  // Fetch Dahua devices
+  useEffect(() => {
+    const fetchDahuaDevices = async () => {
+      if (!authAxios) return;
+      try {
+        const [devRes, statusRes] = await Promise.all([
+          authAxios.get('/dahua/devices'),
+          authAxios.get('/dahua/status')
+        ]);
+        const newDevices = devRes.data.devices || [];
+        const newSummary = statusRes.data.summary || { online: 0, offline: 0 };
+        
+        // Check for status changes and notify
+        if (dahuaDevices.length > 0) {
+          newDevices.forEach(newDev => {
+            const oldDev = dahuaDevices.find(d => d.id === newDev.id);
+            if (oldDev && oldDev.online !== newDev.online) {
+              if (!newDev.online) {
+                toast.error(`🔴 Grabador ${newDev.name} desconectado`);
+                if (soundEnabled && audioRef.current) {
+                  audioRef.current.play().catch(() => {});
+                }
+              } else {
+                toast.success(`🟢 Grabador ${newDev.name} conectado`);
+              }
+            }
+          });
+        }
+        
+        setDahuaDevices(newDevices);
+        setDahuaSummary(newSummary);
+      } catch (error) {
+        console.error('Error fetching Dahua devices:', error);
+      }
+    };
+    fetchDahuaDevices();
+    const interval = setInterval(fetchDahuaDevices, 60000);
+    return () => clearInterval(interval);
+  }, [authAxios, soundEnabled]);
+
   // Statistics calculations
   const stats = useMemo(() => {
     const total = devices.length;
