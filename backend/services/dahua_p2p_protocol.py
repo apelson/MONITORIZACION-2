@@ -516,12 +516,14 @@ class DahuaP2PConnection:
             logger.debug(f"Sending PTCP SYN to agent from port {self.main_remote.lport}")
             
             # PTCP handshake with agent
+            logger.debug(f"Sending PTCP SYN to {self.main_remote.rhost}:{self.main_remote.rport}")
             self.main_remote.request_ptcp(b"\x03\x01")
+            logger.debug("PTCP SYN sent, waiting for response...")
             try:
                 res = self.main_remote.read_ptcp(timeout=15)
                 logger.debug(f"PTCP SYN-ACK received: {res.body.hex() if res.body else 'empty'}")
             except socket.timeout:
-                logger.error("Timeout waiting for PTCP SYN-ACK from agent")
+                logger.error(f"Timeout waiting for PTCP SYN-ACK from agent at {self.main_remote.rhost}:{self.main_remote.rport}")
                 return False
             
             self.main_remote.request_ptcp(b"\x17")
