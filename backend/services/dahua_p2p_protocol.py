@@ -4,6 +4,7 @@ Based on reverse-engineering of dh-p2p project by khoanguyen-3fc
 https://github.com/khoanguyen-3fc/dh-p2p
 
 This implements the PTCP (PhonyTCP) protocol used by Dahua for P2P connections.
+Supports both static randsalt (older firmware) and dynamic randsalt (v6.7+).
 """
 import asyncio
 import base64
@@ -30,15 +31,15 @@ MAIN_PORT = 8800
 # Public credentials for Easy4IP Cloud
 P2P_USERNAME = "cba1b29e32cb17aa46b8ff9e73c7f40b"
 P2P_USERKEY = "996103384cdf19179e19243e959bbf8b"
-RANDSALT = "5daf91fc5cfc1be8e081cfb08f792726"
+DEFAULT_RANDSALT = "5daf91fc5cfc1be8e081cfb08f792726"
 IV = b"2z52*lk9o6HRyJrf"
 
 CSEQ_COUNTER = 0
 
 
-def get_auth_key(username: str, password: str) -> bytes:
+def get_auth_key(username: str, password: str, randsalt: str = DEFAULT_RANDSALT) -> bytes:
     """Generate authentication key from device credentials"""
-    key = f"{username}:Login to {RANDSALT}:{password}"
+    key = f"{username}:Login to {randsalt}:{password}"
     return hashlib.md5(key.encode()).hexdigest().upper().encode()
 
 
@@ -73,7 +74,7 @@ def decrypt_data(key: bytes, nonce: int, data: str) -> str:
     return dec.decode()
 
 
-def get_device_auth(username: str, key: bytes, nonce: int, payload: str = "") -> str:
+def get_device_auth(username: str, key: bytes, nonce: int, randsalt: str = DEFAULT_RANDSALT, payload: str = "") -> str:
     """Generate authentication XML for device communication"""
     curdate = int(time.time())
     
@@ -84,7 +85,7 @@ def get_device_auth(username: str, key: bytes, nonce: int, payload: str = "") ->
         f"<CreateDate>{curdate}</CreateDate>"
         f"<DevAuth>{auth}</DevAuth>"
         f"<Nonce>{nonce}</Nonce>"
-        f"<RandSalt>{RANDSALT}</RandSalt>"
+        f"<RandSalt>{randsalt}</RandSalt>"
         f"<UserName>{username}</UserName>"
     )
 
@@ -176,6 +177,10 @@ class DahuaP2PConnection:
         self.device_ip: Optional[str] = None
         self.device_port: int = 0
         self.connected: bool = False
+        
+        # Authentication
+        self.randsalt = DEFAULT_RANDSALT
+        self.auth_type = 0  # 0 = no auth, 1 = auth required
         
         # PTCP state
         self.ptcp_sent = 0
@@ -284,6 +289,26 @@ class DahuaP2PConnection:
         self.rmid = res.lmid
         return res
     
+    def _get_device_randsalt(self, p2psrv_server: str, p2psrv_port: int) -> Optional[str]:
+        """Try to get randsalt from device info endpoint"""
+        try:
+            res = self._send_request(p2psrv_server, p2psrv_port, f"/info/device/{self.serial_number}")
+            if res["code"] == 200 and res.get("data"):
+                body = res["data"].get("body", {})
+                # Check for RandSalt or Info field
+                if "RandSalt" in body:
+                    return body["RandSalt"]
+                # Some devices return randsalt in Info field (may need decryption)
+                if "Info" in body:
+                    info = body["Info"]
+                    # Try to parse Info - sometimes it contains randsalt directly
+                    if isinstance(info, str) and len(info) == 32:
+                        return info
+            return None
+        except Exception as e:
+            logger.warning(f"Could not get device randsalt: {e}")
+            return None
+    
     async def connect(self) -> bool:
         """Establish P2P connection to device"""
         try:
@@ -305,16 +330,19 @@ class DahuaP2PConnection:
             p2psrv_port = int(p2psrv_port)
             logger.info(f"P2P server: {p2psrv_server}:{p2psrv_port}")
             
-            # Step 3: Probe device
+            # Step 3: Probe device and get device info
             p2p_socket = self._create_socket()
             self.socket = p2p_socket
             
             res = self._send_request(p2psrv_server, p2psrv_port, f"/probe/device/{self.serial_number}")
-            res = self._send_request(p2psrv_server, p2psrv_port, f"/info/device/{self.serial_number}")
             
-            if res["code"] >= 400:
-                logger.error(f"Device probe failed: {res['status']}")
-                return False
+            # Try to get randsalt from device info
+            device_randsalt = self._get_device_randsalt(p2psrv_server, p2psrv_port)
+            if device_randsalt:
+                self.randsalt = device_randsalt
+                logger.info(f"Using device randsalt: {self.randsalt[:8]}...")
+            else:
+                logger.info(f"Using default randsalt")
             
             # Step 4: Get relay server
             res = self._send_request(MAIN_SERVER, MAIN_PORT, "/online/relay")
@@ -322,18 +350,19 @@ class DahuaP2PConnection:
             relay_port = int(relay_port)
             logger.info(f"Relay server: {relay_server}:{relay_port}")
             
-            # Step 5: Request P2P channel (with auth if needed)
-            key = get_auth_key(self.username, self.password)
+            # Step 5: Request P2P channel (with auth)
+            # Always use auth type 1 for devices requiring authentication
+            key = get_auth_key(self.username, self.password, self.randsalt)
             nonce = get_nonce()
             
             laddr = f"127.0.0.1:{self.local_port}"
             encrypted_laddr = encrypt_data(key, nonce, laddr)
             ipaddr = f"<IpEncrptV2>true</IpEncrptV2><LocalAddr>{encrypted_laddr}</LocalAddr>"
-            auth = get_device_auth(self.username, key, nonce, encrypted_laddr)
+            auth = get_device_auth(self.username, key, nonce, self.randsalt, encrypted_laddr)
             
             aid = random.randbytes(8)
             
-            # Send P2P channel request (don't wait for response yet)
+            # Send P2P channel request
             req = self._build_request(
                 f"/device/{self.serial_number}/p2p-channel",
                 f"<body>{auth}<Identify>{' '.join(f'{b:x}' for b in aid)}</Identify>{ipaddr}<version>5.0.0</version></body>"
@@ -364,7 +393,13 @@ class DahuaP2PConnection:
                     res = self._parse_response(data)
                 
                 if res["code"] >= 400:
-                    logger.error(f"P2P channel error: {res['status']}")
+                    error_status = res.get('status', 'Unknown error')
+                    logger.error(f"P2P channel error: {error_status}")
+                    
+                    # Check for specific error codes
+                    if res["code"] == 403:
+                        logger.error("Device requires authentication - check username/password")
+                    
                     return False
                 
                 # Decrypt device local address
@@ -386,7 +421,7 @@ class DahuaP2PConnection:
                 return False
             
             # Step 9: Request relay channel
-            relay_auth = get_device_auth(self.username, key, nonce)
+            relay_auth = get_device_auth(self.username, key, nonce, self.randsalt)
             req = self._build_request(
                 f"/device/{self.serial_number}/relay-channel",
                 f"<body>{relay_auth}<agentAddr>{agent_server}:{agent_port}</agentAddr></body>"
@@ -523,12 +558,11 @@ class DahuaP2PConnection:
             if res.body[0] != 0x12:
                 return None
             
-            # Send HTTP request
+            # Build Dahua Digest authentication
+            # First request to get realm and nonce
             http_req = (
                 f"GET {endpoint} HTTP/1.1\r\n"
                 f"Host: 127.0.0.1\r\n"
-                f"Authorization: Digest username=\"{self.username}\", "
-                f"realm=\"Login to\", nonce=\"\", uri=\"{endpoint}\", response=\"\"\r\n"
                 f"Connection: close\r\n\r\n"
             ).encode()
             
@@ -559,6 +593,66 @@ class DahuaP2PConnection:
                     
                 except TimeoutError:
                     break
+            
+            # Handle 401 - need digest auth
+            if b"401" in response_data and b"WWW-Authenticate" in response_data:
+                # Parse realm and nonce from response
+                auth_header = ""
+                for line in response_data.decode(errors='ignore').split("\r\n"):
+                    if "WWW-Authenticate" in line:
+                        auth_header = line
+                        break
+                
+                # Extract realm and nonce
+                realm = ""
+                auth_nonce = ""
+                if 'realm="' in auth_header:
+                    realm = auth_header.split('realm="')[1].split('"')[0]
+                if 'nonce="' in auth_header:
+                    auth_nonce = auth_header.split('nonce="')[1].split('"')[0]
+                
+                if realm and auth_nonce:
+                    # Calculate digest response
+                    ha1 = hashlib.md5(f"{self.username}:{realm}:{self.password}".encode()).hexdigest()
+                    ha2 = hashlib.md5(f"GET:{endpoint}".encode()).hexdigest()
+                    response = hashlib.md5(f"{ha1}:{auth_nonce}:{ha2}".encode()).hexdigest()
+                    
+                    # Send authenticated request
+                    auth_http_req = (
+                        f"GET {endpoint} HTTP/1.1\r\n"
+                        f"Host: 127.0.0.1\r\n"
+                        f'Authorization: Digest username="{self.username}", realm="{realm}", '
+                        f'nonce="{auth_nonce}", uri="{endpoint}", response="{response}"\r\n'
+                        f"Connection: close\r\n\r\n"
+                    ).encode()
+                    
+                    self._send_ptcp(
+                        self.device_ip, self.device_port,
+                        bytes(PTCPPayload(realm_id, auth_http_req))
+                    )
+                    
+                    # Read authenticated response
+                    response_data = b""
+                    start_time = time.time()
+                    
+                    while time.time() - start_time < timeout:
+                        try:
+                            res = self._recv_ptcp()
+                            
+                            if len(res.body) == 0:
+                                continue
+                            
+                            self._send_ptcp(self.device_ip, self.device_port)
+                            
+                            if res.body[0] == 0x10:
+                                payload = PTCPPayload.parse(res.body)
+                                response_data += payload.payload
+                                
+                                if b"\r\n\r\n" in response_data:
+                                    break
+                            
+                        except TimeoutError:
+                            break
             
             # Close connection
             self._send_ptcp(
@@ -615,7 +709,12 @@ async def check_device_p2p(serial_number: str, username: str, password: str) -> 
         # Get device type
         resp = await conn.query_http("/cgi-bin/magicBox.cgi?action=getDeviceType")
         if resp and resp.get("success"):
-            result["device_type"] = resp.get("data", "").strip()
+            data = resp.get("data", "")
+            # Parse response - look for devicetype=VALUE
+            for line in data.split('\n'):
+                if 'type=' in line.lower():
+                    result["device_type"] = line.split('=', 1)[1].strip()
+                    break
         
         # Get storage info
         resp = await conn.query_http("/cgi-bin/configManager.cgi?action=getConfig&name=StorageGlobal")
