@@ -14,7 +14,9 @@ from services.dahua_service import (
     get_dahua_device,
     create_dahua_device,
     update_dahua_device,
-    delete_dahua_device
+    delete_dahua_device,
+    send_dahua_status_alert,
+    dahua_devices_collection
 )
 
 router = APIRouter(tags=["dahua"])
