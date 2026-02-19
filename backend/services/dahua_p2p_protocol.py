@@ -814,10 +814,13 @@ async def check_device_p2p(serial_number: str, username: str, password: str) -> 
     """
     Check a Dahua device via P2P connection.
     Returns device status including online state, storage, and recording info.
+    Also returns cloud registration status and firmware version even if P2P fails.
     """
     result = {
         "serial_number": serial_number,
         "online": False,
+        "cloud_registered": False,
+        "firmware_version": None,
         "device_type": None,
         "storage": None,
         "recording": None,
@@ -825,16 +828,31 @@ async def check_device_p2p(serial_number: str, username: str, password: str) -> 
         "error": None
     }
     
+    # First, try to get cloud registration and device info (this always works)
+    try:
+        cloud_info = await _get_device_cloud_info(serial_number)
+        result["cloud_registered"] = cloud_info.get("registered", False)
+        result["firmware_version"] = cloud_info.get("firmware_version")
+        
+        if not result["cloud_registered"]:
+            result["error"] = "Dispositivo no registrado en Easy4IP Cloud"
+            return result
+    except Exception as e:
+        logger.warning(f"Could not get cloud info for {serial_number}: {e}")
+    
+    # Now try full P2P connection
     conn = DahuaP2PConnection(serial_number, username, password)
     
     try:
         connected = await conn.connect()
         
         if not connected:
-            result["error"] = "No se pudo establecer conexión P2P"
+            # Device is in cloud but P2P connection failed
+            result["error"] = "Registrado en nube pero no se pudo establecer conexión P2P (posible restricción de red)"
             return result
         
         result["online"] = True
+        result["error"] = None  # Clear any previous error
         
         # Get device type
         resp = await conn.query_http("/cgi-bin/magicBox.cgi?action=getDeviceType")
