@@ -343,12 +343,14 @@ async def test_ptcp_handshake():
         ptcp_id = 0
         rmid = 0
         
-        # Send PTCP SYN
-        syn_packet = build_ptcp(ptcp_sent, ptcp_recv, 0x0002FFFF, ptcp_id, rmid, b"\x03\x01")
+        # Send PTCP SYN (body format: 00 03 01 00)
+        syn_body = b"\x00\x03\x01\x00"  # Command prefix + SYN
+        syn_packet = build_ptcp(ptcp_sent, ptcp_recv, 0x0002FFFF, ptcp_id, rmid, syn_body)
         print(f"  Sending PTCP SYN to {agent_server}:{agent_port}")
         print(f"  Packet: {syn_packet.hex()}")
+        print(f"  Body: {syn_body.hex()}")
         sock.sendto(syn_packet, (agent_server, agent_port))
-        ptcp_sent += 4
+        ptcp_sent += len(syn_body)
         ptcp_id += 1
         
         # Read PTCP SYN-ACK
