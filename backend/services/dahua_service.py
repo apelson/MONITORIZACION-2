@@ -10,9 +10,50 @@ from config import logger, db
 
 # Import the P2P protocol implementation
 from services.dahua_p2p_protocol import check_device_p2p, DahuaP2PConnection
+from services.telegram_service import send_telegram_message
 
 # Collection for Dahua devices
 dahua_devices_collection = db["dahua_devices"]
+
+
+async def send_dahua_status_alert(device: Dict[str, Any], new_online: bool, old_online: bool):
+    """Send alert when Dahua device status changes"""
+    try:
+        if new_online == old_online:
+            return
+        
+        device_name = device.get("name", device.get("serial_number", "Desconocido"))
+        serial = device.get("serial_number", "N/A")
+        
+        if new_online:
+            # Device came online
+            message = f"""
+✅ <b>GRABADOR CONECTADO</b>
+
+📹 <b>Dispositivo:</b> {device_name}
+🔢 <b>Serial:</b> {serial}
+📊 <b>Estado:</b> ONLINE
+
+<i>Siempria Network Monitor - Dahua P2P</i>
+            """.strip()
+        else:
+            # Device went offline
+            message = f"""
+🚨 <b>ALERTA: GRABADOR DESCONECTADO</b>
+
+📹 <b>Dispositivo:</b> {device_name}
+🔢 <b>Serial:</b> {serial}
+📊 <b>Estado:</b> OFFLINE
+⚠️ <b>Severidad:</b> CRÍTICA
+
+<i>Siempria Network Monitor - Dahua P2P</i>
+            """.strip()
+        
+        await send_telegram_message(message)
+        logger.info(f"Dahua alert sent: {device_name} is now {'online' if new_online else 'offline'}")
+        
+    except Exception as e:
+        logger.error(f"Error sending Dahua status alert: {e}")
 
 class DahuaP2PService:
     """Service to manage Dahua DVR/NVR devices via P2P protocol"""
