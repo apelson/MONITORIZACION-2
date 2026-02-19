@@ -202,6 +202,34 @@ async def test_ptcp_handshake():
         res = parse_response(data)
         print(f"  Probe response from {addr}: code={res['code']}")
         
+        # Step 2.5: Get device info and randsalt
+        print("\n[Step 2.5] Getting device info and randsalt...")
+        sock2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock2.bind(("0.0.0.0", 0))
+        sock2.settimeout(10)
+        sock2.sendto(build_request(f"/info/device/{SERIAL_NUMBER}"), (p2psrv_server, p2psrv_port))
+        data, addr = sock2.recvfrom(4096)
+        res = parse_response(data)
+        
+        randsalt = DEFAULT_RANDSALT
+        if res.get("data") and res["data"].get("body"):
+            body = res["data"]["body"]
+            if "RandSalt" in body and body["RandSalt"]:
+                randsalt = body["RandSalt"]
+                print(f"  Got RandSalt directly: {randsalt[:8]}...")
+            elif "Info" in body and body["Info"]:
+                print("  Decrypting Info field...")
+                decrypted = decrypt_device_info(body["Info"])
+                if decrypted and "randsalt" in decrypted:
+                    randsalt = decrypted["randsalt"]
+                    print(f"  Decrypted randsalt: {randsalt[:8]}...")
+        sock2.close()
+        
+        # Generate auth key
+        key = get_auth_key(USERNAME, PASSWORD, randsalt)
+        nonce = random.randrange(2**31)
+        print(f"  Auth key generated")
+        
         # Step 3: Get relay server
         print("\n[Step 3] Getting relay server...")
         sock.sendto(build_request("/online/relay"), (MAIN_SERVER, MAIN_PORT))
