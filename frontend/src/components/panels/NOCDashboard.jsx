@@ -1316,7 +1316,7 @@ const NOCDashboard = ({
   const renderNormalView = () => (
     <>
       {/* Stats Row */}
-      <div className="grid grid-cols-8 gap-2 shrink-0">
+      <div className="grid grid-cols-9 gap-2 shrink-0">
         <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex items-center justify-between">
           <div>
             <p className="text-[9px] text-slate-400 uppercase">TOTAL</p>
@@ -1354,7 +1354,7 @@ const NOCDashboard = ({
         </div>
         <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex items-center justify-between">
           <div>
-            <p className="text-[9px] text-purple-400 uppercase">GRUPOS / CENTROS</p>
+            <p className="text-[9px] text-purple-400 uppercase">GRUPOS</p>
             <p className="text-2xl font-bold text-purple-400">{groups.length} <span className="text-lg opacity-70">/ {organizations.length}</span></p>
           </div>
           <Building2 className="w-7 h-7 text-purple-400 opacity-40" />
@@ -1372,6 +1372,13 @@ const NOCDashboard = ({
             <p className="text-2xl font-bold text-red-400">{craDevices.length}</p>
           </div>
           <Shield className="w-7 h-7 text-red-400 opacity-40" />
+        </div>
+        <div className={cn("bg-slate-900/80 rounded-lg p-2 flex items-center justify-between", stats.dahuaOffline > 0 ? "border-2 border-red-500 animate-pulse" : "border border-emerald-500/30")}>
+          <div>
+            <p className="text-[9px] text-orange-400 uppercase">DVR/NVR</p>
+            <p className="text-2xl font-bold text-orange-400">{stats.dahuaOnline || 0}<span className="text-lg opacity-70">/{stats.dahuaTotal || 0}</span></p>
+          </div>
+          <HardDrive className="w-7 h-7 text-orange-400 opacity-40" />
         </div>
       </div>
 
