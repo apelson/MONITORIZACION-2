@@ -205,3 +205,16 @@ async def get_dahua_status_summary(current_user: dict = Depends(get_current_user
         "summary": summary,
         "issues": issues
     }
+
+
+@router.post("/dahua/quick-check/{serial_number}")
+async def quick_check_serial(
+    serial_number: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Quick check if a device is registered in Easy4IP P2P Cloud.
+    Useful for validating serial numbers before adding devices.
+    """
+    result = await dahua_service.quick_check(serial_number)
+    return result
