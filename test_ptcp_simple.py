@@ -494,25 +494,75 @@ async def test_ptcp_handshake():
         # Also try continuing with agent for HTTP tunnel
         print("\n[Step 12] Testing HTTP through agent tunnel...")
         
-        # Request port binding (port 80)
+        # First, send the device authentication (0x19 + sign) to complete relay setup
+        auth_body = b"\x19" + sign + b"\x00" * (12 - len(sign) - 1)  # Pad to 12 bytes
+        auth_packet = build_ptcp(ptcp_sent, ptcp_recv, 0x0000FFFF - 2, ptcp_id, rmid, auth_body)
+        print(f"  Sending device auth (0x19 + sign) to agent...")
+        sock.sendto(auth_packet, (agent_server, agent_port))
+        ptcp_sent += len(auth_body)
+        ptcp_id += 1
+        
+        # Read auth response  
+        auth_success = False
+        for _ in range(5):
+            try:
+                sock.settimeout(3)
+                data, addr = sock.recvfrom(4096)
+                if data[:4] == b"PTCP":
+                    ptcp = parse_ptcp(data)
+                    ptcp_recv += len(ptcp['body'])
+                    rmid = ptcp['lmid']
+                    print(f"  Auth response: {ptcp['body'].hex() if ptcp['body'] else 'empty'}")
+                    
+                    if len(ptcp['body']) > 0 and ptcp['body'][0] == 0x1A:
+                        print("  ✅ Device auth successful!")
+                        auth_success = True
+                        break
+            except socket.timeout:
+                break
+        
+        if not auth_success:
+            print("  ⚠️ No auth confirmation, but continuing anyway...")
+        
+        # Send final handshake
+        final_body = b"\x1b" + b"\x00" * 7
+        final_packet = build_ptcp(ptcp_sent, ptcp_recv, 0x0000FFFF - 3, ptcp_id, rmid, final_body)
+        sock.sendto(final_packet, (agent_server, agent_port))
+        ptcp_sent += len(final_body)
+        ptcp_id += 1
+        
+        # Wait for any response
+        try:
+            sock.settimeout(2)
+            data, addr = sock.recvfrom(4096)
+            if data[:4] == b"PTCP":
+                ptcp = parse_ptcp(data)
+                print(f"  Final handshake response: {ptcp['body'].hex() if ptcp['body'] else 'empty'}")
+        except:
+            pass
+        
+        # Now request port binding (port 80)
         realm_id = random.randint(0x00000000, 0xFFFFFFFF)
         port_req_body = b"\x11" + realm_id.to_bytes(4, "big") + b"\x00\x50\x7f\x01"  # port 80
         
-        port_req_packet = build_ptcp(ptcp_sent, ptcp_recv, 0x0000FFFF - 3, ptcp_id, rmid, port_req_body)
-        print(f"  Requesting port binding (0x11) for HTTP (realm_id={hex(realm_id)})...")
+        port_req_packet = build_ptcp(ptcp_sent, ptcp_recv, 0x0000FFFF - 4, ptcp_id, rmid, port_req_body)
+        print(f"\n  Requesting port binding (0x11) for HTTP (realm_id={hex(realm_id)})...")
         sock.sendto(port_req_packet, (agent_server, agent_port))
         ptcp_sent += len(port_req_body)
         ptcp_id += 1
         
         # Read port binding response (should be 0x12)
         try:
+            sock.settimeout(10)
             data, addr = sock.recvfrom(4096)
-            print(f"  Port binding response: {data.hex()}")
+            print(f"  Port binding response: {data[:60].hex()}...")
             
             if data[:4] == b"PTCP":
                 ptcp = parse_ptcp(data)
                 ptcp_recv += len(ptcp['body'])
                 rmid = ptcp['lmid']
+                
+                print(f"  PTCP body: {ptcp['body'].hex() if ptcp['body'] else 'empty'}")
                 
                 if len(ptcp['body']) > 0 and ptcp['body'][0] == 0x12:
                     print("  ✅ Port binding successful!")
@@ -529,7 +579,7 @@ async def test_ptcp_handshake():
                     from struct import pack
                     payload_packet = pack("!LLL", payload_len, realm_id, 0) + http_req
                     
-                    http_ptcp = build_ptcp(ptcp_sent, ptcp_recv, 0x0000FFFF - 4, ptcp_id, rmid, payload_packet)
+                    http_ptcp = build_ptcp(ptcp_sent, ptcp_recv, 0x0000FFFF - 5, ptcp_id, rmid, payload_packet)
                     print(f"  Sending HTTP request through tunnel...")
                     sock.sendto(http_ptcp, (agent_server, agent_port))
                     ptcp_sent += len(payload_packet)
@@ -538,8 +588,9 @@ async def test_ptcp_handshake():
                     # Read HTTP response
                     for _ in range(10):
                         try:
+                            sock.settimeout(5)
                             data, addr = sock.recvfrom(4096)
-                            print(f"  Response: {data[:100]}...")
+                            print(f"  Response ({len(data)} bytes): {data[:80]}...")
                             
                             if data[:4] == b"PTCP":
                                 ptcp = parse_ptcp(data)
@@ -552,7 +603,19 @@ async def test_ptcp_handshake():
                             print("  Timeout waiting for HTTP response")
                             break
                 else:
-                    print(f"  Port binding failed: {ptcp['body'].hex()}")
+                    # Maybe we got a different response type, try reading more
+                    for _ in range(5):
+                        try:
+                            sock.settimeout(3)
+                            data, addr = sock.recvfrom(4096)
+                            if data[:4] == b"PTCP":
+                                ptcp = parse_ptcp(data)
+                                print(f"  Additional: {ptcp['body'].hex()[:50] if ptcp['body'] else 'empty'}...")
+                                if len(ptcp['body']) > 0 and ptcp['body'][0] == 0x12:
+                                    print("  ✅ Port binding confirmed!")
+                                    break
+                        except socket.timeout:
+                            break
         except socket.timeout:
             print("  Timeout waiting for port binding response")
         
