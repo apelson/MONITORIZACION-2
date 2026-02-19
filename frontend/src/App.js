@@ -2965,6 +2965,23 @@ const Dashboard = () => {
           </TabsContent>
           {!isOperator && <TabsContent value="gallery"><DeviceGallery authAxios={authAxios} devices={devices} organizations={organizations} groups={groups} /></TabsContent>}
           {!isOperator && <TabsContent value="cra"><CRADashboard authAxios={authAxios} onOpenLiveView={(device) => { setActiveTab('live'); }} /></TabsContent>}
+          
+          {/* Dahua DVR/NVR Tab */}
+          <TabsContent value="dahua">
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl">
+                  <HardDrive className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">Grabadores Dahua P2P</h2>
+                  <p className="text-muted-foreground">Gestión y monitorización de DVR/NVR Dahua</p>
+                </div>
+              </div>
+              <DahuaDevicesPanel authAxios={authAxios} groups={groups} organizations={organizations} />
+            </div>
+          </TabsContent>
+          
           {!isOperator && <TabsContent value="live" className="h-[calc(100vh-200px)]"><LiveViewer authAxios={authAxios} devices={devices} organizations={organizations} groups={groups} /></TabsContent>}
           {isAdmin && <TabsContent value="infrastructure"><InfrastructurePanel authAxios={authAxios} /></TabsContent>}
           {isAdmin && <TabsContent value="users"><UsersPanel users={users} authAxios={authAxios} onCreateUser={() => { setSelectedUser(null); setUserDialogOpen(true); }} onEditUser={(u) => { setSelectedUser(u); setUserDialogOpen(true); }} onDeleteUser={(u) => { setDeleteTarget({ type: "user", item: u }); setDeleteDialogOpen(true); }} onResetPassword={handleOpenPasswordDialog} onUserUpdate={fetchAll} /></TabsContent>}
