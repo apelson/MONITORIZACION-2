@@ -290,10 +290,14 @@ class UDPRemote:
     
     def request_ptcp(self, body: bytes = b""):
         """Send PTCP packet"""
+        # Ensure SYN packet has correct format
+        if body == b"\x03\x01":
+            body = b"\x00\x03\x01\x00"  # Correct SYN format
+        
         ptcp = PTCP(
             self.ptcp_sent,
             self.ptcp_recv,
-            0x0002FFFF if body == b"\x03\x01" else 0x0000FFFF - self.ptcp_count,
+            0x0002FFFF if body == b"\x00\x03\x01\x00" else 0x0000FFFF - self.ptcp_count,
             self.ptcp_id,
             self.rmid,
             body,
@@ -301,7 +305,7 @@ class UDPRemote:
         
         self.ptcp_sent += len(ptcp.body)
         self.ptcp_id += 1
-        if len(ptcp.body) > 0 and ptcp.body != b"\x03\x01":
+        if len(ptcp.body) > 0 and body != b"\x00\x03\x01\x00":
             self.ptcp_count += 1
         
         self.send(bytes(ptcp))
