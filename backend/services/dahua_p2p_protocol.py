@@ -530,30 +530,32 @@ class DahuaP2PConnection:
                 logger.error(f"Timeout waiting for PTCP SYN-ACK from agent at {self.main_remote.rhost}:{self.main_remote.rport}")
                 return False
             
-            self.main_remote.request_ptcp(b"\x17")
+            self.main_remote.request_ptcp(b"\x17" + b"\x00" * 11)
             
-            # Wait for sign from agent
-            try:
-                res = self.main_remote.read_ptcp(timeout=15)
-            except socket.timeout:
-                logger.error("Timeout waiting for sign from agent")
-                return False
-            
-            attempts = 0
-            while len(res.body) == 0 and attempts < 10:
+            # Wait for sign from agent - may need multiple reads
+            sign = None
+            for _ in range(10):
                 try:
                     res = self.main_remote.read_ptcp(timeout=5)
                 except socket.timeout:
                     break
-                attempts += 1
+                
+                if len(res.body) > 0:
+                    # Check for sign packet type (0x18)
+                    if res.body[0] == 0x18 and len(res.body) > 12:
+                        sign = res.body[12:]
+                        logger.info(f"Got sign (type 0x18): {sign.hex()}")
+                        break
+                    elif res.body[0] != 0x00:  # Not a SYN packet
+                        sign = res.body[12:] if len(res.body) > 12 else res.body
+                        logger.info(f"Got sign: {sign.hex()}")
+                        break
             
-            if len(res.body) == 0:
+            if not sign:
                 logger.error("No sign received from agent")
                 return False
             
-            sign = res.body[12:] if len(res.body) > 12 else res.body
-            logger.info(f"Got sign from agent, length: {len(sign)} bytes")
-            
+            # Send ACK
             self.main_remote.request_ptcp()
             
             # Step 12: Connect to device (hole punching)
