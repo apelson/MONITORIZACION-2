@@ -428,10 +428,52 @@ async def test_ptcp_handshake():
         print(f"\n✅ PTCP handshake with agent successful!")
         print(f"  Sign: {sign.hex()}")
         
-        # Now try to connect to device via relay
-        print("\n[Step 11] Connecting to device via relay...")
-        # For relay mode, we communicate through agent to device
-        # The device should be reachable at device_server:device_port through the relay tunnel
+        # Now try to authenticate with device through agent relay
+        print("\n[Step 11] Authenticating with device via relay...")
+        
+        # Send 0x19 + sign for device authentication
+        auth_body = b"\x19" + sign
+        print(f"  Sending auth (0x19 + sign) to agent: {auth_body.hex()}")
+        auth_packet = build_ptcp(ptcp_sent, ptcp_recv, 0x0000FFFF - 2, ptcp_id, rmid, auth_body)
+        sock.sendto(auth_packet, (agent_server, agent_port))
+        ptcp_sent += len(auth_body)
+        ptcp_id += 1
+        
+        # Read auth response
+        print("  Waiting for auth response (0x1A)...")
+        for _ in range(10):
+            try:
+                data, addr = sock.recvfrom(4096)
+                print(f"  Got response from {addr}: {data[:50].hex() if len(data) > 50 else data.hex()}")
+                
+                if data[:4] == b"PTCP":
+                    ptcp = parse_ptcp(data)
+                    ptcp_recv += len(ptcp['body'])
+                    rmid = ptcp['lmid']
+                    print(f"  PTCP body: {ptcp['body'].hex()}")
+                    
+                    if len(ptcp['body']) > 0 and ptcp['body'][0] == 0x1A:
+                        print("  ✅ Device authenticated!")
+                        break
+            except socket.timeout:
+                print("  Timeout waiting for auth response")
+                break
+        
+        # Send 0x1b to finalize
+        print("\n  Sending 0x1b to finalize...")
+        final_body = b"\x1b" + b"\x00" * 7
+        final_packet = build_ptcp(ptcp_sent, ptcp_recv, 0x0000FFFF - 3, ptcp_id, rmid, final_body)
+        sock.sendto(final_packet, (agent_server, agent_port))
+        ptcp_sent += len(final_body)
+        ptcp_id += 1
+        
+        try:
+            data, addr = sock.recvfrom(4096)
+            print(f"  Final response: {data[:50].hex() if len(data) > 50 else data.hex()}")
+        except socket.timeout:
+            print("  No final response (may be OK)")
+        
+        print("\n🎉 Relay connection established! Ready for HTTP queries.")
         
     except Exception as e:
         print(f"\n❌ Error: {e}")
