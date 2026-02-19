@@ -492,7 +492,71 @@ async def test_ptcp_handshake():
             dev_sock.close()
         
         # Also try continuing with agent for HTTP tunnel
-        print("\n  Agent tunnel is ready for HTTP queries through port binding.")
+        print("\n[Step 12] Testing HTTP through agent tunnel...")
+        
+        # Request port binding (port 80)
+        realm_id = random.randint(0x00000000, 0xFFFFFFFF)
+        port_req_body = b"\x11" + realm_id.to_bytes(4, "big") + b"\x00\x50\x7f\x01"  # port 80
+        
+        port_req_packet = build_ptcp(ptcp_sent, ptcp_recv, 0x0000FFFF - 3, ptcp_id, rmid, port_req_body)
+        print(f"  Requesting port binding (0x11) for HTTP (realm_id={hex(realm_id)})...")
+        sock.sendto(port_req_packet, (agent_server, agent_port))
+        ptcp_sent += len(port_req_body)
+        ptcp_id += 1
+        
+        # Read port binding response (should be 0x12)
+        try:
+            data, addr = sock.recvfrom(4096)
+            print(f"  Port binding response: {data.hex()}")
+            
+            if data[:4] == b"PTCP":
+                ptcp = parse_ptcp(data)
+                ptcp_recv += len(ptcp['body'])
+                rmid = ptcp['lmid']
+                
+                if len(ptcp['body']) > 0 and ptcp['body'][0] == 0x12:
+                    print("  ✅ Port binding successful!")
+                    
+                    # Now send HTTP request
+                    http_req = (
+                        f"GET /cgi-bin/magicBox.cgi?action=getDeviceType HTTP/1.1\r\n"
+                        f"Host: 127.0.0.1\r\n"
+                        f"Connection: close\r\n\r\n"
+                    ).encode()
+                    
+                    # Encapsulate in PTCPPayload format
+                    payload_len = len(http_req) | 0x10000000
+                    from struct import pack
+                    payload_packet = pack("!LLL", payload_len, realm_id, 0) + http_req
+                    
+                    http_ptcp = build_ptcp(ptcp_sent, ptcp_recv, 0x0000FFFF - 4, ptcp_id, rmid, payload_packet)
+                    print(f"  Sending HTTP request through tunnel...")
+                    sock.sendto(http_ptcp, (agent_server, agent_port))
+                    ptcp_sent += len(payload_packet)
+                    ptcp_id += 1
+                    
+                    # Read HTTP response
+                    for _ in range(10):
+                        try:
+                            data, addr = sock.recvfrom(4096)
+                            print(f"  Response: {data[:100]}...")
+                            
+                            if data[:4] == b"PTCP":
+                                ptcp = parse_ptcp(data)
+                                if len(ptcp['body']) > 12 and ptcp['body'][0] == 0x10:
+                                    # This is HTTP response data
+                                    http_data = ptcp['body'][12:]
+                                    print(f"  HTTP Response:\n{http_data.decode(errors='ignore')[:500]}")
+                                    break
+                        except socket.timeout:
+                            print("  Timeout waiting for HTTP response")
+                            break
+                else:
+                    print(f"  Port binding failed: {ptcp['body'].hex()}")
+        except socket.timeout:
+            print("  Timeout waiting for port binding response")
+        
+        print("\n✅ Test completed!")
         
     except Exception as e:
         print(f"\n❌ Error: {e}")
