@@ -2975,7 +2975,7 @@ const Dashboard = () => {
               <SLAReportsPanel authAxios={authAxios} organizations={organizations} />
               <SettingsPanel settings={settings} onSave={handleSaveSettings} authAxios={authAxios} />
               <TelegramSettings settings={settings} onSave={handleSaveSettings} authAxios={authAxios} />
-              <MaintenancePanel authAxios={authAxios} devices={devices} onRefresh={fetchDevices} />
+              <MaintenancePanel authAxios={authAxios} devices={devices} onRefresh={fetchAll} />
               <NotificationSettings />
               <ReportSettings authAxios={authAxios} />
               <SecurityPanel />
