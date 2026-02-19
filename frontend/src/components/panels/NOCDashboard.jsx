@@ -365,11 +365,17 @@ const NOCDashboard = ({
     return () => clearInterval(interval);
   }, [authAxios, soundEnabled]);
 
-  // Statistics calculations
+  // Statistics calculations (includes Dahua recorders)
   const stats = useMemo(() => {
-    const total = devices.length;
-    const online = devices.filter(d => d.status === 'online').length;
-    const offline = devices.filter(d => d.status === 'offline').length;
+    const cameraTotal = devices.length;
+    const cameraOnline = devices.filter(d => d.status === 'online').length;
+    const cameraOffline = devices.filter(d => d.status === 'offline').length;
+    
+    // Include Dahua recorders in total counts
+    const total = cameraTotal + dahuaDevices.length;
+    const online = cameraOnline + (dahuaSummary.online || 0);
+    const offline = cameraOffline + (dahuaSummary.offline || 0);
+    
     const uptimePercent = total > 0 ? ((online / total) * 100).toFixed(1) : 0;
     const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const recentAlerts = alerts.filter(a => new Date(a.timestamp) > last24h);
@@ -394,9 +400,12 @@ const NOCDashboard = ({
     return { 
       total, online, offline, uptimePercent, 
       recentAlerts: recentAlerts.length, criticalAlerts: criticalAlerts.length,
-      avgLatency, maxLatency, slowDevices, lastIncidentTime
+      avgLatency, maxLatency, slowDevices, lastIncidentTime,
+      dahuaOnline: dahuaSummary.online || 0,
+      dahuaOffline: dahuaSummary.offline || 0,
+      dahuaTotal: dahuaDevices.length
     };
-  }, [devices, alerts]);
+  }, [devices, alerts, dahuaDevices, dahuaSummary]);
 
   // Devices by organization
   const devicesByOrg = useMemo(() => {
