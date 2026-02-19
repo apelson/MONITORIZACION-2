@@ -188,7 +188,7 @@ DELETE /api/devices/{device_id}/maintenance
 - **Telegram Bot**: 7955328367:AAHyR2A8hFVezQZKS14bJGKONG-IfYo5ruU
 
 ## External URLs
-- **Preview**: https://dahua-device-sync.preview.emergentagent.com
+- **Preview**: https://p2p-recorder-hub.preview.emergentagent.com
 - **Production**: https://siempriapp.com
 
 ## Brand Assets

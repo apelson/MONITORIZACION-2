@@ -7,7 +7,7 @@
 set -e
 
 # Configuración
-EMERGENT_URL="https://dahua-device-sync.preview.emergentagent.com"
+EMERGENT_URL="https://p2p-recorder-hub.preview.emergentagent.com"
 FRONTEND_DIR="/home/monitorizacion/Documentos/MONITORIZACION-main/frontend/src"
 BACKEND_DIR="/home/monitorizacion/Documentos/MONITORIZACION-main/backend"
 
