@@ -13,7 +13,7 @@ cd /opt/siempria-monitor
 # ============================================
 echo "📥 Descargando archivos..."
 
-BASE_URL="https://dahua-status-widget.preview.emergentagent.com/api/download-file"
+BASE_URL="https://noc-dahua-status.preview.emergentagent.com/api/download-file"
 
 # === FRONTEND ===
 
