@@ -346,6 +346,15 @@ class DahuaP2PConnection:
     
     def _get_device_randsalt(self, p2psrv_server: str, p2psrv_port: int) -> Optional[str]:
         """Try to get randsalt from device info endpoint"""
+        # Create a dedicated socket for this request
+        info_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        info_socket.bind(("0.0.0.0", 0))
+        info_socket.settimeout(10)
+        
+        # Store original socket
+        original_socket = self.socket
+        self.socket = info_socket
+        
         try:
             res = self._send_request(p2psrv_server, p2psrv_port, f"/info/device/{self.serial_number}")
             if res["code"] == 200 and res.get("data"):
@@ -385,6 +394,10 @@ class DahuaP2PConnection:
         except Exception as e:
             logger.warning(f"Could not get device randsalt: {e}")
             return None
+        finally:
+            # Restore original socket and close the info socket
+            info_socket.close()
+            self.socket = original_socket
     
     async def connect(self) -> bool:
         """Establish P2P connection to device"""
