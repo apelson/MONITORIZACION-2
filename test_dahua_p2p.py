@@ -89,9 +89,9 @@ async def test_quick_check():
 
 
 async def test_device_info():
-    """Test getting device info from P2P server"""
+    """Test getting device info from P2P server and decrypt Info field"""
     print("\n" + "=" * 60)
-    print("TEST 2: Get Device Info (for randsalt)")
+    print("TEST 2: Get Device Info and Decrypt RandSalt")
     print("=" * 60)
     
     import socket
@@ -100,6 +100,12 @@ async def test_device_info():
     import hashlib
     import base64
     import xmltodict
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+    
+    # Device Info decryption keys
+    INFO_DECRYPT_KEY = b"kRjmsUB&ezmdGLL67H#$ojw@XflcaIaf"
+    INFO_DECRYPT_IV = b"MydvJw*Iw1w&i^kk"
     
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.settimeout(10)
@@ -181,22 +187,73 @@ async def test_device_info():
         response = data.decode()
         
         print(f"\nDevice Info response:")
-        print(response)
+        print(response[:500])
         
         # Parse and look for RandSalt
         if "\r\n\r\n" in response:
             headers, body = response.split("\r\n\r\n", 1)
             if body.strip():
                 body_data = xmltodict.parse(body)
-                print(f"\nParsed body: {body_data}")
+                print(f"\nParsed body keys: {list(body_data.get('body', {}).keys())}")
                 
                 if "body" in body_data:
                     body_content = body_data["body"]
+                    
                     if "RandSalt" in body_content:
-                        print(f"\n✅ Found RandSalt: {body_content['RandSalt']}")
+                        print(f"\n✅ Found RandSalt directly: {body_content['RandSalt']}")
                         return body_content['RandSalt']
-                    if "Info" in body_content:
-                        print(f"\n⚠️ Found Info field (may need decryption): {body_content['Info'][:50]}...")
+                    
+                    if "Info" in body_content and body_content["Info"]:
+                        info_data = body_content["Info"]
+                        print(f"\n🔐 Attempting to decrypt Info field...")
+                        print(f"   Info (base64): {info_data[:60]}...")
+                        
+                        try:
+                            cipher_text = base64.b64decode(info_data)
+                            print(f"   Cipher length: {len(cipher_text)} bytes")
+                            
+                            # Try AES-OFB decryption
+                            cipher = Cipher(
+                                algorithms.AES(INFO_DECRYPT_KEY),
+                                modes.OFB(INFO_DECRYPT_IV),
+                                backend=default_backend()
+                            )
+                            decryptor = cipher.decryptor()
+                            decrypted = decryptor.update(cipher_text) + decryptor.finalize()
+                            
+                            decrypted_str = decrypted.decode('utf-8', errors='ignore')
+                            print(f"\n   Decrypted (raw): {decrypted_str[:200]}...")
+                            
+                            # Try to parse as JSON
+                            import json
+                            import re
+                            
+                            json_start = decrypted_str.find('{')
+                            json_end = decrypted_str.rfind('}')
+                            if json_start >= 0 and json_end > json_start:
+                                json_str = decrypted_str[json_start:json_end+1]
+                                try:
+                                    parsed = json.loads(json_str)
+                                    print(f"\n   ✅ Parsed JSON: {json.dumps(parsed, indent=2)}")
+                                    
+                                    # Look for randsalt
+                                    for key in ["randsalt", "RandSalt", "salt"]:
+                                        if key in parsed:
+                                            print(f"\n   ✅✅ Found randsalt: {parsed[key]}")
+                                            return parsed[key]
+                                except json.JSONDecodeError as e:
+                                    print(f"   JSON parse error: {e}")
+                            
+                            # Look for hex pattern
+                            hex_matches = re.findall(r'[a-f0-9]{32}', decrypted_str)
+                            if hex_matches:
+                                print(f"\n   Found hex patterns: {hex_matches}")
+                                return hex_matches[0]
+                                
+                        except Exception as e:
+                            print(f"   ❌ Decryption error: {e}")
+                            import traceback
+                            traceback.print_exc()
         
         sock2.close()
         return None
