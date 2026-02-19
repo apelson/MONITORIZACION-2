@@ -239,14 +239,17 @@ async def test_ptcp_handshake():
         relay_port = int(relay_port)
         print(f"  Relay server: {relay_server}:{relay_port}")
         
-        # Step 4: P2P channel request (no read)
-        print("\n[Step 4] Requesting P2P channel...")
+        # Step 4: P2P channel request WITH authentication
+        print("\n[Step 4] Requesting P2P channel with auth...")
         aid = random.randbytes(8)
         laddr = f"127.0.0.1:{local_port}"
+        encrypted_laddr = encrypt_data(key, nonce, laddr)
+        ipaddr = f"<IpEncrptV2>true</IpEncrptV2><LocalAddr>{encrypted_laddr}</LocalAddr>"
+        auth = get_device_auth(USERNAME, key, nonce, randsalt, encrypted_laddr)
         
-        channel_body = f"<body><Identify>{' '.join(f'{b:x}' for b in aid)}</Identify><IpEncrpt>false</IpEncrpt><LocalAddr>{laddr}</LocalAddr><version>5.0.0</version></body>"
+        channel_body = f"<body>{auth}<Identify>{' '.join(f'{b:x}' for b in aid)}</Identify>{ipaddr}<version>5.0.0</version></body>"
         sock.sendto(build_request(f"/device/{SERIAL_NUMBER}/p2p-channel", channel_body), (MAIN_SERVER, MAIN_PORT))
-        print("  P2P channel request sent (no read)")
+        print("  P2P channel request sent with auth (no read yet)")
         
         # Step 5: Get agent
         print("\n[Step 5] Getting agent...")
