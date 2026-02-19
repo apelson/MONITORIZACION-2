@@ -34,6 +34,11 @@ P2P_USERKEY = "996103384cdf19179e19243e959bbf8b"
 DEFAULT_RANDSALT = "5daf91fc5cfc1be8e081cfb08f792726"
 IV = b"2z52*lk9o6HRyJrf"
 
+# Device Info decryption keys (for firmware 6.7+)
+# These are used to decrypt the Info field which contains the randsalt
+INFO_DECRYPT_KEY = b"kRjmsUB&ezmdGLL67H#$ojw@XflcaIaf"  # 32 bytes
+INFO_DECRYPT_IV = b"MydvJw*Iw1w&i^kk"  # 16 bytes
+
 CSEQ_COUNTER = 0
 
 
