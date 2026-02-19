@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import {
   HardDrive, Wifi, WifiOff, Plus, Trash2, RefreshCw, Edit2,
   CheckCircle, XCircle, AlertTriangle, Play, Square, Database,
-  Loader2, Eye, EyeOff, ChevronDown, ChevronUp
+  Loader2, Eye, EyeOff, ChevronDown, ChevronUp, Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +37,9 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+
+// Dahua official logo
+const DAHUA_LOGO = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Dahua_Technology_logo.svg/200px-Dahua_Technology_logo.svg.png";
 
 const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
   const [devices, setDevices] = useState([]);
