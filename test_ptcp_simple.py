@@ -76,6 +76,69 @@ def parse_response(data: bytes):
     }
 
 
+def decrypt_device_info(info_data: str):
+    """Decrypt the Info field from /info/device endpoint"""
+    try:
+        cipher_text = base64.b64decode(info_data)
+        cipher = Cipher(
+            algorithms.AES(INFO_DECRYPT_KEY),
+            modes.OFB(INFO_DECRYPT_IV),
+            backend=default_backend()
+        )
+        decryptor = cipher.decryptor()
+        decrypted = decryptor.update(cipher_text) + decryptor.finalize()
+        
+        decrypted_str = decrypted.decode('utf-8', errors='ignore').rstrip('\x00')
+        json_start = decrypted_str.find('{')
+        json_end = decrypted_str.rfind('}')
+        if json_start >= 0 and json_end > json_start:
+            json_str = decrypted_str[json_start:json_end+1]
+            return json.loads(json_str)
+        
+        hex_pattern = re.findall(r'[a-f0-9]{32}', decrypted_str)
+        if hex_pattern:
+            return {"randsalt": hex_pattern[0]}
+        return None
+    except Exception as e:
+        print(f"  Decrypt error: {e}")
+        return None
+
+
+def get_auth_key(username: str, password: str, randsalt: str) -> bytes:
+    """Generate authentication key from device credentials"""
+    key = f"{username}:Login to {randsalt}:{password}"
+    return hashlib.md5(key.encode()).hexdigest().upper().encode()
+
+
+def encrypt_data(key: bytes, nonce: int, data: str) -> str:
+    """Encrypt data using AES-OFB with PBKDF2 derived key"""
+    salt = str(nonce).encode()
+    dk = hashlib.pbkdf2_hmac("sha256", key, salt, 20000, 32)
+    
+    encryptor = Cipher(
+        algorithms.AES(dk), modes.OFB(IV), backend=default_backend()
+    ).encryptor()
+    enc = encryptor.update(data.encode()) + encryptor.finalize()
+    
+    return base64.b64encode(enc).decode()
+
+
+def get_device_auth(username: str, key: bytes, nonce: int, randsalt: str, payload: str = "") -> str:
+    """Generate authentication XML for device communication"""
+    curdate = int(time.time())
+    
+    message = f"{nonce}{curdate}{payload}".encode()
+    auth = base64.b64encode(hmac.new(key, message, hashlib.sha256).digest()).decode()
+    
+    return (
+        f"<CreateDate>{curdate}</CreateDate>"
+        f"<DevAuth>{auth}</DevAuth>"
+        f"<Nonce>{nonce}</Nonce>"
+        f"<RandSalt>{randsalt}</RandSalt>"
+        f"<UserName>{username}</UserName>"
+    )
+
+
 def build_ptcp(rlid, llid, pid, lmid, rmid, body=b""):
     from struct import pack
     return (
