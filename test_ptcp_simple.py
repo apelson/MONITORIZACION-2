@@ -446,7 +446,7 @@ async def test_ptcp_handshake():
             dev_id = 0
             dev_rmid = 0
             
-            # Send PTCP SYN to device (relayed through agent)
+            # Send PTCP SYN to device
             print(f"  Sending PTCP SYN to device {device_server}:{device_port}...")
             syn_packet = build_ptcp(dev_sent, dev_recv, 0x0002FFFF, dev_id, dev_rmid, b"\x00\x03\x01\x00")
             dev_sock.sendto(syn_packet, (device_server, device_port))
@@ -455,37 +455,89 @@ async def test_ptcp_handshake():
             
             try:
                 data, addr = dev_sock.recvfrom(4096)
-                print(f"  Got response from {addr}: {data.hex()}")
+                print(f"  Got response from {addr}: {data[:50].hex()}...")
                 
+                # The response might be NAT hole punch or PTCP
                 if data[:4] == b"PTCP":
                     ptcp = parse_ptcp(data)
                     dev_recv += len(ptcp['body'])
                     dev_rmid = ptcp['lmid']
                     
                     if ptcp['body'] == b"\x00\x03\x01\x00":
-                        print("  ✅ Device responded to PTCP SYN!")
+                        print("  ✅ Device responded with PTCP SYN-ACK!")
                         
-                        # Send auth with sign
+                        # Authenticate with sign
                         auth_body = b"\x19" + sign
                         auth_packet = build_ptcp(dev_sent, dev_recv, 0x0000FFFF - 1, dev_id, dev_rmid, auth_body)
                         dev_sock.sendto(auth_packet, (device_server, device_port))
                         dev_sent += len(auth_body)
                         dev_id += 1
                         
-                        # Wait for auth response
                         for _ in range(5):
                             try:
                                 data, addr = dev_sock.recvfrom(4096)
-                                ptcp = parse_ptcp(data)
-                                dev_recv += len(ptcp['body'])
-                                dev_rmid = ptcp['lmid']
-                                print(f"  Auth response: {ptcp['body'].hex()}")
-                                
-                                if len(ptcp['body']) > 0 and ptcp['body'][0] == 0x1A:
-                                    print("  ✅ Device authenticated!")
-                                    break
+                                if data[:4] == b"PTCP":
+                                    ptcp = parse_ptcp(data)
+                                    dev_recv += len(ptcp['body'])
+                                    dev_rmid = ptcp['lmid']
+                                    print(f"  Auth response: {ptcp['body'].hex() if ptcp['body'] else 'empty'}")
+                                    
+                                    if len(ptcp['body']) > 0 and ptcp['body'][0] == 0x1A:
+                                        print("  ✅ Device authenticated!")
+                                        
+                                        # Send final handshake
+                                        final_body = b"\x1b"
+                                        final_packet = build_ptcp(dev_sent, dev_recv, 0x0000FFFF - 2, dev_id, dev_rmid, final_body)
+                                        dev_sock.sendto(final_packet, (device_server, device_port))
+                                        dev_sent += len(final_body)
+                                        dev_id += 1
+                                        
+                                        # Now try HTTP!
+                                        print("\n  Trying HTTP query to device...")
+                                        realm_id = random.randint(0x00000000, 0xFFFFFFFF)
+                                        port_req = b"\x11" + realm_id.to_bytes(4, "big") + b"\x00\x50\x7f\x01"
+                                        port_packet = build_ptcp(dev_sent, dev_recv, 0x0000FFFF - 3, dev_id, dev_rmid, port_req)
+                                        dev_sock.sendto(port_packet, (device_server, device_port))
+                                        dev_sent += len(port_req)
+                                        dev_id += 1
+                                        
+                                        for _ in range(5):
+                                            try:
+                                                data, addr = dev_sock.recvfrom(4096)
+                                                if data[:4] == b"PTCP":
+                                                    ptcp = parse_ptcp(data)
+                                                    print(f"  Port bind: {ptcp['body'].hex()[:20] if ptcp['body'] else 'empty'}...")
+                                                    if len(ptcp['body']) > 0 and ptcp['body'][0] == 0x12:
+                                                        print("  ✅ Port binding OK! Sending HTTP...")
+                                                        
+                                                        http_req = b"GET /cgi-bin/magicBox.cgi?action=getDeviceType HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n"
+                                                        payload_len = len(http_req) | 0x10000000
+                                                        from struct import pack
+                                                        payload = pack("!LLL", payload_len, realm_id, 0) + http_req
+                                                        http_packet = build_ptcp(dev_sent, dev_recv, 0x0000FFFF - 4, dev_id, dev_rmid, payload)
+                                                        dev_sock.sendto(http_packet, (device_server, device_port))
+                                                        
+                                                        for _ in range(10):
+                                                            try:
+                                                                data, addr = dev_sock.recvfrom(4096)
+                                                                if data[:4] == b"PTCP":
+                                                                    ptcp = parse_ptcp(data)
+                                                                    if ptcp['body'] and ptcp['body'][0] == 0x10:
+                                                                        http_data = ptcp['body'][12:]
+                                                                        print(f"  🎉 HTTP Response:\n{http_data.decode(errors='ignore')}")
+                                                                        break
+                                                            except socket.timeout:
+                                                                break
+                                                        break
+                                            except socket.timeout:
+                                                break
+                                        break
                             except socket.timeout:
                                 break
+                else:
+                    # NAT hole punch response - retry with agent
+                    print("  Got NAT response, device is reachable but not PTCP")
+                    
             except socket.timeout:
                 print("  Timeout waiting for device PTCP response")
             
