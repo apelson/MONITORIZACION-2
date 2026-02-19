@@ -36,6 +36,8 @@ class DahuaP2PService:
             "name": device.get("name"),
             "checked_at": datetime.now(timezone.utc).isoformat(),
             "online": False,
+            "cloud_registered": False,
+            "firmware_version": None,
             "device_type": None,
             "storage": None,
             "recording": None,
@@ -48,6 +50,8 @@ class DahuaP2PService:
             p2p_result = await check_device_p2p(serial_number, username, password)
             
             result["online"] = p2p_result.get("online", False)
+            result["cloud_registered"] = p2p_result.get("cloud_registered", False)
+            result["firmware_version"] = p2p_result.get("firmware_version")
             result["device_type"] = p2p_result.get("device_type")
             result["storage"] = p2p_result.get("storage")
             result["recording"] = p2p_result.get("recording")
