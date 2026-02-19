@@ -499,14 +499,20 @@ class DahuaP2PConnection:
             logger.debug(f"Switched to agent: {agent_server}:{agent_port}")
             
             # Read initial response from agent (response to relay-channel)
+            # This may timeout - that's acceptable
             try:
-                res = self.main_remote.read()
+                self.main_remote.socket.settimeout(3)
+                data = self.main_remote.recv(timeout=3)
+                res = self.main_remote._parse_response(data)
                 logger.info(f"Agent relay response received: {res.get('code', 'N/A')}")
+            except (socket.timeout, TimeoutError):
+                logger.debug("No initial relay response from agent (expected for some devices)")
             except Exception as e:
-                logger.warning(f"No relay response from agent: {type(e).__name__}: {e}")
+                logger.debug(f"Error reading from agent: {type(e).__name__}: {e}")
             
             # Reset PTCP state
             self.main_remote.reset_ptcp()
+            self.main_remote.socket.settimeout(15)
             logger.debug(f"Sending PTCP SYN to agent from port {self.main_remote.lport}")
             
             # PTCP handshake with agent
