@@ -211,6 +211,9 @@ api_router.include_router(websocket_router)
 api_router.include_router(ai_router)
 api_router.include_router(sla_reports_router)
 
+# Include Dahua P2P routes
+api_router.include_router(dahua_router)
+
 # Include download router for production updates
 api_router.include_router(download_router)
 
