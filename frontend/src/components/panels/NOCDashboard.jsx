@@ -108,7 +108,8 @@ const NOCDashboard = ({
     organizations: true,
     offline: true,
     history: true,
-    alerts: true
+    alerts: true,
+    dahua: true
   });
   const [dashboardFilters, setDashboardFilters] = useState({
     organizationId: 'all',
