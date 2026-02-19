@@ -344,6 +344,7 @@ class DahuaP2PConnection:
         self.password = password
         self.main_remote: Optional[UDPRemote] = None
         self.device_remote: Optional[UDPRemote] = None
+        self.active_remote: Optional[UDPRemote] = None  # Used for queries after connection
         self.connected: bool = False
         
         # Authentication
