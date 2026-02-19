@@ -485,6 +485,7 @@ class DahuaP2PConnection:
             self.main_remote.rhost = MAIN_SERVER
             self.main_remote.rport = MAIN_PORT
             
+            logger.debug(f"Sending relay-channel request to {MAIN_SERVER}:{MAIN_PORT}")
             res = self.main_remote.request(
                 f"/device/{self.serial_number}/relay-channel",
                 f"<body>{relay_auth}<agentAddr>{agent_server}:{agent_port}</agentAddr></body>",
@@ -495,26 +496,27 @@ class DahuaP2PConnection:
             # Switch main_remote to agent for PTCP communication
             self.main_remote.rhost = agent_server
             self.main_remote.rport = agent_port
+            logger.debug(f"Switched to agent: {agent_server}:{agent_port}")
             
             # Read initial response from agent (response to relay-channel)
             try:
                 res = self.main_remote.read()
-                logger.debug(f"Agent relay response: {res.get('code', 'N/A')}")
+                logger.info(f"Agent relay response received: {res.get('code', 'N/A')}")
             except Exception as e:
-                logger.debug(f"No relay response from agent: {type(e).__name__}")
+                logger.warning(f"No relay response from agent: {type(e).__name__}: {e}")
             
             # Reset PTCP state
             self.main_remote.reset_ptcp()
+            logger.debug(f"Sending PTCP SYN to agent from port {self.main_remote.lport}")
             
             # PTCP handshake with agent
             self.main_remote.request_ptcp(b"\x03\x01")
             try:
                 res = self.main_remote.read_ptcp(timeout=15)
+                logger.debug(f"PTCP SYN-ACK received: {res.body.hex() if res.body else 'empty'}")
             except socket.timeout:
                 logger.error("Timeout waiting for PTCP SYN-ACK from agent")
                 return False
-            
-            logger.debug(f"PTCP SYN-ACK received: {res.body.hex() if res.body else 'empty'}")
             
             self.main_remote.request_ptcp(b"\x17")
             
