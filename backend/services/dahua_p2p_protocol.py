@@ -633,48 +633,42 @@ class DahuaP2PConnection:
                 use_relay = False
                 
             except socket.timeout:
-                logger.info("Direct connection timeout, using relay mode via agent")
-                # In relay mode, the agent acts as intermediary
-                # After agent handshake, we should try device again
+                logger.info("Direct connection timeout, using relay mode")
                 use_relay = True
             
-            # Step 13: PTCP handshake with device
-            # Even in relay mode, we try to connect to device (relayed through agent)
+            # Step 13: PTCP handshake with device (through agent in relay mode)
             if use_relay:
-                # For relay mode, we need to use a different approach
-                # The device connection goes through the agent relay tunnel
-                # Flush any remaining packets from agent
+                # In relay mode, all communication goes through the agent
+                # The device_remote socket is already configured for the device address
+                # But packets actually go through the agent's relay tunnel
+                
+                # We need to send to agent, not device directly
+                # The agent will forward packets to the device
+                target_remote = self.main_remote  # Use agent connection
+                logger.info(f"Using relay mode via agent: {agent_server}:{agent_port}")
+                
+                # Flush old packets from agent socket
                 for _ in range(5):
                     try:
-                        self.main_remote.recv(timeout=0.5)
+                        self.main_remote.socket.settimeout(0.3)
+                        self.main_remote.recv(timeout=0.3)
                     except:
                         break
                 
-                # Try device connection through relay
-                target_remote = self.device_remote
-                logger.info(f"Trying device connection via relay: {device_server}:{device_port}")
+                # In relay mode, we don't need another PTCP SYN - we're already connected to agent
+                # We can proceed directly to authentication with the device through the tunnel
+                
             else:
                 target_remote = self.device_remote
-            
-            target_remote.reset_ptcp()
-            
-            target_remote.request_ptcp(b"\x03\x01")
-            try:
-                res = target_remote.read_ptcp(timeout=10)
-            except socket.timeout:
-                logger.error("PTCP SYN timeout with device")
-                # If direct/relay both fail, the device is truly unreachable
-                return False
-            
-            if res.body != b"\x00\x03\x01\x00":
-                # Try to flush and retry once
-                logger.debug(f"Unexpected PTCP response: {res.body.hex() if res.body else 'empty'}, retrying...")
+                
+                # Direct mode: PTCP handshake with device
                 target_remote.reset_ptcp()
+                
                 target_remote.request_ptcp(b"\x03\x01")
                 try:
-                    res = target_remote.read_ptcp(timeout=5)
+                    res = target_remote.read_ptcp(timeout=10)
                 except socket.timeout:
-                    logger.error("PTCP SYN retry timeout")
+                    logger.error("PTCP SYN timeout with device")
                     return False
                 
                 if res.body != b"\x00\x03\x01\x00":
