@@ -331,11 +331,21 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
         <CollapsibleContent>
           <CardContent className="space-y-4">
             {/* Action buttons */}
-            <div className="flex items-center justify-between">
-              <Button onClick={() => setShowAddModal(true)} size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Añadir Grabador
-              </Button>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <Button onClick={() => setShowAddModal(true)} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Añadir Grabador
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowImportModal(true)}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Importar SmartPSS
+                </Button>
+              </div>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
