@@ -672,6 +672,143 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Import SmartPSS Modal */}
+      <Dialog open={showImportModal} onOpenChange={setShowImportModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="w-5 h-5" />
+              Importar desde SmartPSS
+            </DialogTitle>
+            <DialogDescription>
+              Importa grabadores desde un archivo XML exportado de SmartPSS.
+              Los dispositivos existentes serán actualizados.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* File upload area */}
+            <div 
+              className={cn(
+                "border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer",
+                importing ? "border-muted bg-muted/50" : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
+              )}
+              onClick={() => !importing && fileInputRef.current?.click()}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xml,.XML"
+                onChange={handleImportFile}
+                className="hidden"
+                disabled={importing}
+              />
+              {importing ? (
+                <div className="flex flex-col items-center gap-3">
+                  <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                  <p className="text-sm text-muted-foreground">Importando dispositivos...</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-3">
+                  <FileUp className="w-10 h-10 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium">Haz clic para seleccionar archivo</p>
+                    <p className="text-sm text-muted-foreground">o arrastra un archivo XML aquí</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Instructions */}
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <h4 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                ¿Cómo exportar desde SmartPSS?
+              </h4>
+              <ol className="text-xs text-blue-600 dark:text-blue-400 space-y-1 list-decimal list-inside">
+                <li>Abre SmartPSS y ve a <strong>Dispositivos</strong></li>
+                <li>Clic derecho en la lista → <strong>Exportar</strong></li>
+                <li>Guarda como archivo <strong>.xml</strong></li>
+                <li>Sube el archivo aquí</li>
+              </ol>
+            </div>
+
+            {/* Import results */}
+            {importResult && (
+              <div className={cn(
+                "p-4 rounded-lg",
+                importResult.errors?.length > 0 
+                  ? "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800" 
+                  : "bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800"
+              )}>
+                <h4 className="font-medium mb-2 flex items-center gap-2">
+                  {importResult.errors?.length > 0 ? (
+                    <AlertTriangle className="w-4 h-4 text-amber-500" />
+                  ) : (
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                  )}
+                  Resultado de la importación
+                </h4>
+                <div className="grid grid-cols-3 gap-4 text-center mb-3">
+                  <div>
+                    <p className="text-2xl font-bold text-emerald-600">{importResult.imported}</p>
+                    <p className="text-xs text-muted-foreground">Nuevos</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-blue-600">{importResult.updated}</p>
+                    <p className="text-xs text-muted-foreground">Actualizados</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-slate-600">{importResult.skipped}</p>
+                    <p className="text-xs text-muted-foreground">Omitidos</p>
+                  </div>
+                </div>
+                
+                {importResult.errors?.length > 0 && (
+                  <div className="text-xs text-amber-600 dark:text-amber-400">
+                    <p className="font-medium">Errores:</p>
+                    <ul className="list-disc list-inside">
+                      {importResult.errors.slice(0, 5).map((err, i) => (
+                        <li key={i}>{err}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {importResult.devices?.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-xs font-medium mb-1">Dispositivos procesados:</p>
+                    <ScrollArea className="max-h-32">
+                      <div className="space-y-1">
+                        {importResult.devices.slice(0, 20).map((d, i) => (
+                          <div key={i} className="flex items-center justify-between text-xs">
+                            <span className="truncate">{d.name}</span>
+                            <Badge variant="outline" className={cn(
+                              "text-[10px] ml-2",
+                              d.action === 'created' ? "border-emerald-500 text-emerald-500" : "border-blue-500 text-blue-500"
+                            )}>
+                              {d.action === 'created' ? 'nuevo' : 'actualizado'}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowImportModal(false);
+              setImportResult(null);
+            }}>
+              Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
