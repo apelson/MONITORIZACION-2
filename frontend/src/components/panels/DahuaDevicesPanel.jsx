@@ -221,23 +221,24 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
 
-      const response = await authAxios.post('/dahua/import/smartpss', formDataUpload, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      console.log('Uploading file:', file.name, file.size);
+      
+      const response = await authAxios.post('/dahua/import/smartpss', formDataUpload);
 
+      console.log('Import response:', response.data);
       setImportResult(response.data);
-      toast.success(response.data.message);
+      toast.success(response.data.message || `Importados: ${response.data.imported}, Actualizados: ${response.data.updated}`);
       fetchDevices();
       fetchStatusSummary();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Error al importar archivo');
+      console.error('Import error:', error);
+      const errorMsg = error.response?.data?.detail || error.message || 'Error al importar archivo';
+      toast.error(errorMsg);
       setImportResult({
         imported: 0,
         updated: 0,
         skipped: 0,
-        errors: [error.response?.data?.detail || 'Error desconocido']
+        errors: [errorMsg]
       });
     } finally {
       setImporting(false);
