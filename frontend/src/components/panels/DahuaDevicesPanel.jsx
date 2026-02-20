@@ -692,10 +692,9 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
             {/* File upload area */}
             <div 
               className={cn(
-                "border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer",
+                "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
                 importing ? "border-muted bg-muted/50" : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
               )}
-              onClick={() => !importing && fileInputRef.current?.click()}
             >
               <input
                 ref={fileInputRef}
@@ -714,9 +713,18 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
                 <div className="flex flex-col items-center gap-3">
                   <FileUp className="w-10 h-10 text-muted-foreground" />
                   <div>
-                    <p className="font-medium">Haz clic para seleccionar archivo</p>
-                    <p className="text-sm text-muted-foreground">o arrastra un archivo XML aquí</p>
+                    <p className="font-medium">Selecciona un archivo XML</p>
+                    <p className="text-sm text-muted-foreground mb-3">Exportado desde SmartPSS</p>
                   </div>
+                  <Button 
+                    type="button"
+                    variant="default"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Seleccionar Archivo XML
+                  </Button>
                 </div>
               )}
             </div>
