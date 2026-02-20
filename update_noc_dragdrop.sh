@@ -7,7 +7,7 @@
 set -e
 
 # Configuración
-EMERGENT_URL="https://dahua-integration.preview.emergentagent.com"
+EMERGENT_URL="https://smartpss-import-tool.preview.emergentagent.com"
 FRONTEND_DIR="/home/monitorizacion/Documentos/MONITORIZACION-main/frontend/src"
 BACKEND_DIR="/home/monitorizacion/Documentos/MONITORIZACION-main/backend"
 
