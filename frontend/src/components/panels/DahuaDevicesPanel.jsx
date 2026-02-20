@@ -204,6 +204,50 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
     }
   };
 
+  // SmartPSS Import handler
+  const handleImportFile = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.xml') && !file.name.endsWith('.XML')) {
+      toast.error('Por favor selecciona un archivo XML exportado de SmartPSS');
+      return;
+    }
+
+    setImporting(true);
+    setImportResult(null);
+
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+
+      const response = await authAxios.post('/dahua/import/smartpss', formDataUpload, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      setImportResult(response.data);
+      toast.success(response.data.message);
+      fetchDevices();
+      fetchStatusSummary();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al importar archivo');
+      setImportResult({
+        imported: 0,
+        updated: 0,
+        skipped: 0,
+        errors: [error.response?.data?.detail || 'Error desconocido']
+      });
+    } finally {
+      setImporting(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   const openEditModal = (device) => {
     setEditingDevice(device);
     setFormData({
