@@ -241,3 +241,70 @@ async def quick_check_serial(
     """
     result = await dahua_service.quick_check(serial_number)
     return result
+
+
+# ============ IMPORT ENDPOINTS ============
+
+class ImportXMLRequest(BaseModel):
+    xml_content: str
+
+
+@router.post("/dahua/import/smartpss")
+async def import_from_smartpss(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(require_role(["admin", "manager"]))
+):
+    """
+    Import Dahua devices from SmartPSS XML export file.
+    - Devices with existing serial numbers will be updated (overwritten).
+    - New devices will be created with default password 'Spw@2018'.
+    """
+    if not file.filename.endswith(('.xml', '.XML')):
+        raise HTTPException(
+            status_code=400, 
+            detail="Formato de archivo no válido. Por favor sube un archivo XML."
+        )
+    
+    try:
+        content = await file.read()
+        xml_content = content.decode('utf-8')
+    except UnicodeDecodeError:
+        try:
+            xml_content = content.decode('latin-1')
+        except Exception:
+            raise HTTPException(
+                status_code=400,
+                detail="No se pudo leer el archivo. Asegúrate de que sea un XML válido."
+            )
+    
+    result = await import_smartpss_xml(xml_content)
+    
+    return {
+        "message": f"Importación completada: {result['imported']} nuevos, {result['updated']} actualizados, {result['skipped']} omitidos",
+        "imported": result["imported"],
+        "updated": result["updated"],
+        "skipped": result["skipped"],
+        "errors": result["errors"],
+        "devices": result["devices"][:50]  # Limit response size
+    }
+
+
+@router.post("/dahua/import/smartpss-text")
+async def import_from_smartpss_text(
+    data: ImportXMLRequest,
+    current_user: dict = Depends(require_role(["admin", "manager"]))
+):
+    """
+    Import Dahua devices from SmartPSS XML content (as text).
+    Alternative endpoint for direct XML content submission.
+    """
+    result = await import_smartpss_xml(data.xml_content)
+    
+    return {
+        "message": f"Importación completada: {result['imported']} nuevos, {result['updated']} actualizados, {result['skipped']} omitidos",
+        "imported": result["imported"],
+        "updated": result["updated"],
+        "skipped": result["skipped"],
+        "errors": result["errors"],
+        "devices": result["devices"][:50]
+    }
