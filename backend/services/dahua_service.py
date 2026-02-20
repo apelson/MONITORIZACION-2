@@ -297,7 +297,6 @@ async def import_smartpss_xml(xml_content: str) -> Dict[str, Any]:
                 username = device_elem.get("username", "admin")
                 # Password comes encrypted from SmartPSS - we'll need user to set it manually
                 # or use a default
-                p2ptype = device_elem.get("p2ptype", "0")
                 connect = device_elem.get("connect", "0")
                 
                 if not name or not domain:
