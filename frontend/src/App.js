@@ -2707,8 +2707,8 @@ const Dashboard = () => {
       <main className="container mx-auto max-w-7xl px-3 sm:px-6 py-4 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           {/* Desktop tabs - hidden on mobile (hamburger menu used instead) */}
-          <div className="hidden md:block overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 pb-2">
-            <TabsList className="mb-4 sm:mb-6 flex-nowrap sm:flex-wrap h-auto gap-1 min-w-max sm:min-w-0">
+          <div className="hidden md:block overflow-x-auto pb-2">
+            <TabsList className="mb-4 sm:mb-6 flex-nowrap h-auto gap-1 w-max">
               {canAccessSection('devices') && (
                 <TabsTrigger data-testid="tab-devices" value="devices" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
                   {isOperator ? <Camera className="w-3 h-3 sm:w-4 sm:h-4" /> : <Server className="w-3 h-3 sm:w-4 sm:h-4" />}
