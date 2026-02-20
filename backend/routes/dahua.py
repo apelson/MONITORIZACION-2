@@ -2,7 +2,7 @@
 Dahua P2P Device Routes
 API endpoints for managing Dahua DVR/NVR devices via P2P
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timezone
@@ -16,7 +16,8 @@ from services.dahua_service import (
     update_dahua_device,
     delete_dahua_device,
     send_dahua_status_alert,
-    dahua_devices_collection
+    dahua_devices_collection,
+    import_smartpss_xml
 )
 
 router = APIRouter(tags=["dahua"])
