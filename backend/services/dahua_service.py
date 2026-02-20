@@ -131,8 +131,8 @@ class DahuaP2PService:
             digest = base64.b64encode(hash_digest.digest()).decode()
             
             req = f"DHGET /online/p2psrv/{serial_number} HTTP/1.1\r\n"
-            req += f"CSeq: 1\r\n"
-            req += f'Authorization: WSSE profile="UsernameToken"\r\n'
+            req += "CSeq: 1\r\n"
+            req += 'Authorization: WSSE profile="UsernameToken"\r\n'
             req += f'X-WSSE: UsernameToken Username="{P2P_USERNAME}", PasswordDigest="{digest}", Nonce="{nonce}", Created="{curdate}"\r\n'
             req += "\r\n"
             
@@ -305,7 +305,7 @@ async def import_smartpss_xml(xml_content: str) -> Dict[str, Any]:
                     continue
                 
                 # Determine if domain is P2P serial or IP address
-                is_p2p = connect == "19" or (not "." in domain and len(domain) >= 10)
+                is_p2p = connect == "19" or ("." not in domain and len(domain) >= 10)
                 
                 # For serial_number:
                 # - If P2P mode: domain is the serial number
