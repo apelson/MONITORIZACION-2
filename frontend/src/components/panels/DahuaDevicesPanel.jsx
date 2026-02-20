@@ -2,12 +2,12 @@
  * Dahua P2P Devices Panel
  * Manage and monitor Dahua DVR/NVR devices via P2P connection
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import {
   HardDrive, Wifi, WifiOff, Plus, Trash2, RefreshCw, Edit2,
   CheckCircle, XCircle, AlertTriangle, Play, Square, Database,
-  Loader2, Eye, EyeOff, ChevronDown, ChevronUp, Search
+  Loader2, Eye, EyeOff, ChevronDown, ChevronUp, Search, Upload, FileUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
