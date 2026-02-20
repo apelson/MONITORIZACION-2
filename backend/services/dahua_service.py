@@ -263,3 +263,119 @@ async def delete_dahua_device(device_id: str) -> bool:
     """Delete a Dahua device"""
     result = await dahua_devices_collection.delete_one({"id": device_id})
     return result.deleted_count > 0
+
+
+async def import_smartpss_xml(xml_content: str) -> Dict[str, Any]:
+    """
+    Import devices from SmartPSS XML export.
+    If a device with the same serial_number exists, it will be updated.
+    
+    XML format expected:
+    <DeviceManager version="2.0">
+        <Device name="NAME" domain="SERIAL_OR_IP" port="37777" username="admin" password="ENCRYPTED" protocol="1" connect="19" p2ptype="0" />
+    </DeviceManager>
+    """
+    import xml.etree.ElementTree as ET
+    import uuid
+    
+    result = {
+        "imported": 0,
+        "updated": 0,
+        "skipped": 0,
+        "errors": [],
+        "devices": []
+    }
+    
+    try:
+        root = ET.fromstring(xml_content)
+        
+        for device_elem in root.findall("Device"):
+            try:
+                name = device_elem.get("name", "").strip()
+                domain = device_elem.get("domain", "").strip()
+                port = device_elem.get("port", "37777")
+                username = device_elem.get("username", "admin")
+                # Password comes encrypted from SmartPSS - we'll need user to set it manually
+                # or use a default
+                p2ptype = device_elem.get("p2ptype", "0")
+                connect = device_elem.get("connect", "0")
+                
+                if not name or not domain:
+                    result["skipped"] += 1
+                    continue
+                
+                # Determine if domain is P2P serial or IP address
+                is_p2p = connect == "19" or (not "." in domain and len(domain) >= 10)
+                
+                # For serial_number:
+                # - If P2P mode: domain is the serial number
+                # - If IP mode: use domain as is (IP address)
+                serial_number = domain.upper() if is_p2p else domain
+                
+                # Check if device already exists by serial_number
+                existing = await dahua_devices_collection.find_one(
+                    {"serial_number": {"$regex": f"^{serial_number}$", "$options": "i"}}
+                )
+                
+                now = datetime.now(timezone.utc).isoformat()
+                
+                if existing:
+                    # Update existing device
+                    await dahua_devices_collection.update_one(
+                        {"id": existing["id"]},
+                        {"$set": {
+                            "name": name,
+                            "username": username,
+                            "port": int(port),
+                            "is_p2p": is_p2p,
+                            "updated_at": now,
+                            "import_source": "smartpss"
+                        }}
+                    )
+                    result["updated"] += 1
+                    result["devices"].append({
+                        "name": name,
+                        "serial_number": serial_number,
+                        "action": "updated"
+                    })
+                else:
+                    # Create new device
+                    device = {
+                        "id": str(uuid.uuid4()),
+                        "name": name,
+                        "serial_number": serial_number,
+                        "username": username,
+                        "password": "Spw@2018",  # Default password - user should update
+                        "port": int(port),
+                        "is_p2p": is_p2p,
+                        "group_id": None,
+                        "organization_id": None,
+                        "created_at": now,
+                        "online": False,
+                        "device_type": None,
+                        "last_check": None,
+                        "storage_used_percent": None,
+                        "recording_active": None,
+                        "hdd_healthy": None,
+                        "last_error": None,
+                        "import_source": "smartpss"
+                    }
+                    await dahua_devices_collection.insert_one(device)
+                    result["imported"] += 1
+                    result["devices"].append({
+                        "name": name,
+                        "serial_number": serial_number,
+                        "action": "created"
+                    })
+                    
+            except Exception as e:
+                result["errors"].append(f"Error processing device: {str(e)}")
+                result["skipped"] += 1
+                
+    except ET.ParseError as e:
+        result["errors"].append(f"XML parse error: {str(e)}")
+    except Exception as e:
+        result["errors"].append(f"Import error: {str(e)}")
+        logger.error(f"SmartPSS import error: {e}")
+    
+    return result
