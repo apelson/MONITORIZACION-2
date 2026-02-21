@@ -39,19 +39,19 @@ const AIInsightsPanel = ({ authAxios }) => {
     smartAlerts: false
   });
 
-  // Load all AI insights on mount
-  useEffect(() => {
-    loadAllInsights();
-  }, []);
-
-  const loadAllInsights = async () => {
+  const loadAllInsights = useCallback(async () => {
     await Promise.all([
       loadPredictions(),
       loadAnomalies(),
       loadDailySummary(),
       loadSmartAlerts()
     ]);
-  };
+  }, []);
+
+  // Load all AI insights on mount
+  useEffect(() => {
+    loadAllInsights();
+  }, [loadAllInsights]);
 
   const loadPredictions = async () => {
     setLoading(prev => ({ ...prev, predictions: true }));

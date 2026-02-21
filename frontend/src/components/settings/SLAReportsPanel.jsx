@@ -35,7 +35,7 @@ const SLAReportsPanel = ({ authAxios, organizations = [] }) => {
     { value: 'quarter', label: 'Último trimestre' }
   ];
 
-  const loadPreview = async () => {
+  const loadPreview = useCallback(async () => {
     setPreviewing(true);
     try {
       const params = new URLSearchParams({
@@ -53,11 +53,11 @@ const SLAReportsPanel = ({ authAxios, organizations = [] }) => {
     } finally {
       setPreviewing(false);
     }
-  };
+  }, [authAxios, config.organization_id, config.period]);
 
   useEffect(() => {
     loadPreview();
-  }, [config.organization_id, config.period]);
+  }, [loadPreview]);
 
   const generateReport = async () => {
     setLoading(true);
