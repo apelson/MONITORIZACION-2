@@ -425,7 +425,7 @@ const TenantDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showAddDevice, setShowAddDevice] = useState(false);
 
-  const fetchDevices = async () => {
+  const fetchDevices = useCallback(async () => {
     try {
       const res = await authAxios.get('/devices');
       setDevices(res.data.devices || []);
@@ -433,9 +433,9 @@ const TenantDashboard = () => {
       toast.error('Error al cargar dispositivos');
     }
     setLoading(false);
-  };
+  }, [authAxios]);
 
-  useEffect(() => { fetchDevices(); }, [authAxios]);
+  useEffect(() => { fetchDevices(); }, [fetchDevices]);
 
   const onlineCount = devices.filter(d => d.status === 'online').length;
   const offlineCount = devices.filter(d => d.status === 'offline').length;
