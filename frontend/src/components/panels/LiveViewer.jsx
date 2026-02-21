@@ -518,12 +518,12 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
           const blob = await response.blob();
           const blobUrl = URL.createObjectURL(blob);
           
-          if (imgRef.current && isMounted) {
+          if (imgElement && isMounted) {
             // Revoke old URL to prevent memory leak
-            if (imgRef.current.src && imgRef.current.src.startsWith('blob:')) {
-              URL.revokeObjectURL(imgRef.current.src);
+            if (imgElement.src && imgElement.src.startsWith('blob:')) {
+              URL.revokeObjectURL(imgElement.src);
             }
-            imgRef.current.src = blobUrl;
+            imgElement.src = blobUrl;
             setLoading(false);
             setError(false);
             setRetryCount(0);
