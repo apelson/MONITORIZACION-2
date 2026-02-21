@@ -558,6 +558,8 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
         URL.revokeObjectURL(currentImg.src);
       }
     };
+    // imgRef is a ref and doesn't need to be in deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [device.id, device.name, refreshInterval, baseUrl, retryCount, viewMode, isHemispheric]);
 
   const handleRetry = () => {
