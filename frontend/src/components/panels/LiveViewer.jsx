@@ -554,14 +554,11 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
-      // Clean up blob URL - save ref to variable to avoid stale ref
-      const currentImg = imgRef.current;
-      if (currentImg?.src?.startsWith('blob:')) {
-        URL.revokeObjectURL(currentImg.src);
+      // Clean up blob URL using captured imgElement
+      if (imgElement?.src?.startsWith('blob:')) {
+        URL.revokeObjectURL(imgElement.src);
       }
     };
-    // imgRef is a ref and doesn't need to be in deps
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [device.id, device.name, refreshInterval, baseUrl, retryCount, viewMode, isHemispheric]);
 
   const handleRetry = () => {
