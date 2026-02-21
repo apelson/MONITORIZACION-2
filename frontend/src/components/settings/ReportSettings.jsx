@@ -2,7 +2,7 @@
  * Report Settings Component
  * Configure daily email reports
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Mail, Clock, Users, Send, Check, Loader2, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
