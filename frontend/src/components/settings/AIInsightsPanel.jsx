@@ -2,7 +2,7 @@
  * AI Insights Panel Component
  * Shows AI-powered predictions, anomalies, and daily summaries
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Brain, TrendingUp, AlertTriangle, Sparkles, RefreshCw, 

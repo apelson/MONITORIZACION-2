@@ -2,7 +2,7 @@
  * SLA Reports Panel Component
  * Generate and download SLA compliance PDF reports
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   FileText, Download, Calendar, Building2, Target, 
