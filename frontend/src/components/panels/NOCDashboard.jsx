@@ -120,6 +120,7 @@ const NOCDashboard = ({
   const [recordDate, setRecordDate] = useState(null);
   const [dahuaDevices, setDahuaDevices] = useState([]);
   const [dahuaSummary, setDahuaSummary] = useState({ online: 0, offline: 0 });
+  const dahuaDevicesRef = useRef([]);
   const audioRef = useRef(null);
   const presentationRef = useRef(null);
   const containerRef = useRef(null);
