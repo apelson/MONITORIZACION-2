@@ -13,7 +13,7 @@ cd /opt/siempria-monitor
 # ============================================
 echo "📥 Descargando archivos..."
 
-BASE_URL="https://smartpss-import-tool.preview.emergentagent.com/api/download-file"
+BASE_URL="https://dahua-ops-hub.preview.emergentagent.com/api/download-file"
 
 # === FRONTEND ===
 
