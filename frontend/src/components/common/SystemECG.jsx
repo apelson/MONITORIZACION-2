@@ -223,6 +223,8 @@ const SystemECG = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
+    // getColor and getPulseRate depend only on healthPercent and hasAlerts which are in deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [healthPercent, hasAlerts, isAnalyzing]);
 
   const formatNumber = (num) => String(num).padStart(2, '0');
