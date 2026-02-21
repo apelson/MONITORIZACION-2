@@ -25,11 +25,7 @@ const ReportSettings = ({ authAxios }) => {
   });
   const [newEmail, setNewEmail] = useState('');
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       const res = await authAxios.get('/reports/settings');
       setSettings({
@@ -43,7 +39,11 @@ const ReportSettings = ({ authAxios }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [authAxios]);
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
 
   const saveSettings = async () => {
     setSaving(true);
