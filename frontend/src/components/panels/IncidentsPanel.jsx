@@ -34,7 +34,7 @@ const IncidentsPanel = ({ devices, authAxios }) => {
     title: "", description: "", device_id: "", priority: "medium", category: "network"
   });
   
-  const fetchIncidents = async () => {
+  const fetchIncidents = useCallback(async () => {
     try {
       const response = await authAxios.get("/incidents");
       setIncidents(response.data.incidents || []);
@@ -43,9 +43,9 @@ const IncidentsPanel = ({ devices, authAxios }) => {
       toast.error("Error al cargar incidencias");
     }
     setLoading(false);
-  };
+  }, [authAxios]);
   
-  useEffect(() => { fetchIncidents(); }, []);
+  useEffect(() => { fetchIncidents(); }, [fetchIncidents]);
   
   const filteredIncidents = useMemo(() => {
     return incidents.filter(inc => {
