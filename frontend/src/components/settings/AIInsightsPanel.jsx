@@ -39,21 +39,7 @@ const AIInsightsPanel = ({ authAxios }) => {
     smartAlerts: false
   });
 
-  const loadAllInsights = useCallback(async () => {
-    await Promise.all([
-      loadPredictions(),
-      loadAnomalies(),
-      loadDailySummary(),
-      loadSmartAlerts()
-    ]);
-  }, []);
-
-  // Load all AI insights on mount
-  useEffect(() => {
-    loadAllInsights();
-  }, [loadAllInsights]);
-
-  const loadPredictions = async () => {
+  const loadPredictions = useCallback(async () => {
     setLoading(prev => ({ ...prev, predictions: true }));
     try {
       const res = await authAxios.get('/ai/predictions');
@@ -64,9 +50,9 @@ const AIInsightsPanel = ({ authAxios }) => {
     } finally {
       setLoading(prev => ({ ...prev, predictions: false }));
     }
-  };
+  }, [authAxios]);
 
-  const loadAnomalies = async () => {
+  const loadAnomalies = useCallback(async () => {
     setLoading(prev => ({ ...prev, anomalies: true }));
     try {
       const res = await authAxios.get('/ai/anomalies');
@@ -76,9 +62,9 @@ const AIInsightsPanel = ({ authAxios }) => {
     } finally {
       setLoading(prev => ({ ...prev, anomalies: false }));
     }
-  };
+  }, [authAxios]);
 
-  const loadDailySummary = async () => {
+  const loadDailySummary = useCallback(async () => {
     setLoading(prev => ({ ...prev, summary: true }));
     try {
       const res = await authAxios.get('/ai/daily-summary');
@@ -88,9 +74,9 @@ const AIInsightsPanel = ({ authAxios }) => {
     } finally {
       setLoading(prev => ({ ...prev, summary: false }));
     }
-  };
+  }, [authAxios]);
 
-  const loadSmartAlerts = async () => {
+  const loadSmartAlerts = useCallback(async () => {
     setLoading(prev => ({ ...prev, smartAlerts: true }));
     try {
       const res = await authAxios.get('/ai/smart-alerts');
@@ -100,7 +86,21 @@ const AIInsightsPanel = ({ authAxios }) => {
     } finally {
       setLoading(prev => ({ ...prev, smartAlerts: false }));
     }
-  };
+  }, [authAxios]);
+
+  const loadAllInsights = useCallback(async () => {
+    await Promise.all([
+      loadPredictions(),
+      loadAnomalies(),
+      loadDailySummary(),
+      loadSmartAlerts()
+    ]);
+  }, [loadPredictions, loadAnomalies, loadDailySummary, loadSmartAlerts]);
+
+  // Load all AI insights on mount
+  useEffect(() => {
+    loadAllInsights();
+  }, [loadAllInsights]);
 
   const getRiskColor = (risk) => {
     switch (risk?.toLowerCase()) {
