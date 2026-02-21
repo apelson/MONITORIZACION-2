@@ -340,10 +340,10 @@ const NOCDashboard = ({
         const newDevices = devRes.data.devices || [];
         const newSummary = statusRes.data.summary || { online: 0, offline: 0 };
         
-        // Check for status changes and notify
-        if (dahuaDevices.length > 0) {
+        // Check for status changes and notify (use ref for previous state)
+        if (dahuaDevicesRef.current.length > 0) {
           newDevices.forEach(newDev => {
-            const oldDev = dahuaDevices.find(d => d.id === newDev.id);
+            const oldDev = dahuaDevicesRef.current.find(d => d.id === newDev.id);
             if (oldDev && oldDev.online !== newDev.online) {
               if (!newDev.online) {
                 toast.error(`🔴 Grabador ${newDev.name} desconectado`);
@@ -357,6 +357,8 @@ const NOCDashboard = ({
           });
         }
         
+        // Update both state and ref
+        dahuaDevicesRef.current = newDevices;
         setDahuaDevices(newDevices);
         setDahuaSummary(newSummary);
       } catch (error) {
