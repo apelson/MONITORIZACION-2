@@ -2,7 +2,7 @@
  * IncidentsPanel - Panel de gestión de incidencias
  * Extraído de App.js para mejor mantenibilidad
  */
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   AlertTriangle, Plus, CheckCircle, Clock, XCircle, 
