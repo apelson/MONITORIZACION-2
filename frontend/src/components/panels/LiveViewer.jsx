@@ -494,9 +494,11 @@ const CameraPanel = ({ device, streamMode, refreshInterval, draggable, onDragSta
   // Snapshot polling for real-time view
   useEffect(() => {
     let isMounted = true;
+    // Capture ref value at effect start for cleanup
+    const imgElement = imgRef.current;
     
     const updateSnapshot = async () => {
-      if (!isMounted || !imgRef.current) return;
+      if (!isMounted || !imgElement) return;
       
       try {
         const token = getAuthToken();
