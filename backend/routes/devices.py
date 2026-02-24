@@ -274,7 +274,13 @@ async def get_cameras(current_user: dict = Depends(get_current_user)):
     return {"cameras": cameras}
 
 @router.post("/devices")
-async def create_device(data: DeviceCreate, request: Request, current_user: dict = Depends(require_role(["admin", "manager"]))):
+async def create_device(data: DeviceCreate, request: Request, current_user: dict = Depends(require_role(["admin", "manager", "tenant_admin"]))):
+    # Multi-tenancy: verify tenant_admin has access to the group
+    if should_filter_by_tenant(current_user) and data.group_id:
+        user_group_ids = await get_user_group_ids(current_user)
+        if user_group_ids and data.group_id not in user_group_ids:
+            raise HTTPException(status_code=403, detail="No tienes acceso a este grupo")
+    
     if await devices_collection.find_one({"ip_address": data.ip_address, "port": data.port}):
         raise HTTPException(status_code=400, detail="Ya existe un dispositivo con esa IP y puerto")
     
