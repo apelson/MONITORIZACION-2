@@ -90,11 +90,18 @@ async def get_groups(current_user: dict = Depends(get_current_user)):
     return {"groups": groups}
 
 @router.post("/groups")
-async def create_group(data: GroupCreate, current_user: dict = Depends(require_role(["admin", "manager"]))):
+async def create_group(data: GroupCreate, current_user: dict = Depends(require_role(["admin", "manager", "tenant_admin"]))):
     # Verify organization exists
     org = await organizations_collection.find_one({"id": data.organization_id})
     if not org:
         raise HTTPException(status_code=400, detail="La organización no existe")
+    
+    # Multi-tenancy: tenant_admin can only create groups in their organizations
+    if should_filter_by_tenant(current_user):
+        org_filter = await build_organization_filter(current_user)
+        org = await organizations_collection.find_one({"id": data.organization_id, **org_filter})
+        if not org:
+            raise HTTPException(status_code=403, detail="No tienes acceso a esta organización")
     
     group = {
         "id": str(uuid.uuid4()),
@@ -109,7 +116,14 @@ async def create_group(data: GroupCreate, current_user: dict = Depends(require_r
     return {"group": group}
 
 @router.put("/groups/{group_id}")
-async def update_group(group_id: str, data: GroupUpdate, current_user: dict = Depends(require_role(["admin", "manager"]))):
+async def update_group(group_id: str, data: GroupUpdate, current_user: dict = Depends(require_role(["admin", "manager", "tenant_admin"]))):
+    # Multi-tenancy: verify access to this group
+    if should_filter_by_tenant(current_user):
+        group_filter = await build_group_filter(current_user)
+        group = await groups_collection.find_one({"id": group_id, **group_filter})
+        if not group:
+            raise HTTPException(status_code=403, detail="No tienes acceso a este grupo")
+    
     update_data = {k: v for k, v in data.model_dump().items() if v is not None}
     if not update_data:
         raise HTTPException(status_code=400, detail="No hay datos para actualizar")
@@ -121,7 +135,14 @@ async def update_group(group_id: str, data: GroupUpdate, current_user: dict = De
     return {"message": "Grupo actualizado"}
 
 @router.delete("/groups/{group_id}")
-async def delete_group(group_id: str, current_user: dict = Depends(require_role(["admin"]))):
+async def delete_group(group_id: str, current_user: dict = Depends(require_role(["admin", "tenant_admin"]))):
+    # Multi-tenancy: verify access to delete this group
+    if should_filter_by_tenant(current_user):
+        group_filter = await build_group_filter(current_user)
+        group = await groups_collection.find_one({"id": group_id, **group_filter})
+        if not group:
+            raise HTTPException(status_code=403, detail="No tienes acceso a eliminar este grupo")
+    
     # Check if group has devices
     device_count = await devices_collection.count_documents({"group_id": group_id})
     if device_count > 0:
