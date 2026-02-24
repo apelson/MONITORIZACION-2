@@ -131,7 +131,6 @@ async def login(credentials: UserLogin, request: Request):
             "organization_ids": user.get("organization_ids", []),
             "feature_flags": feature_flags
         }
-        }
     }
 
 @router.post("/logout")
