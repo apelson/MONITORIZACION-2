@@ -1,6 +1,7 @@
 """
 Dahua P2P Device Routes
 API endpoints for managing Dahua DVR/NVR devices via P2P
+With multi-tenancy support
 """
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from pydantic import BaseModel
@@ -18,6 +19,9 @@ from services.dahua_service import (
     send_dahua_status_alert,
     dahua_devices_collection,
     import_smartpss_xml
+)
+from services.multitenancy_service import (
+    build_dahua_device_filter, should_filter_by_tenant, get_user_organization_ids
 )
 
 router = APIRouter(tags=["dahua"])
@@ -45,8 +49,15 @@ class DahuaDeviceUpdate(BaseModel):
 
 @router.get("/dahua/devices")
 async def list_dahua_devices(current_user: dict = Depends(get_current_user)):
-    """List all registered Dahua P2P devices"""
-    devices = await get_all_dahua_devices()
+    """List all registered Dahua P2P devices - filtered by tenant"""
+    # Apply multi-tenancy filter
+    device_filter = await build_dahua_device_filter(current_user)
+    
+    # Check if user has no access
+    if device_filter.get("organization_id", {}).get("$in") == []:
+        return {"devices": [], "count": 0}
+    
+    devices = await dahua_devices_collection.find(device_filter, {"_id": 0}).to_list(length=None)
     
     # Hide passwords in response
     for device in devices:
