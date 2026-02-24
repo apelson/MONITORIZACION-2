@@ -76,10 +76,12 @@ from routes.download_files import router as download_router
 from routes.dahua import router as dahua_router
 from services.websocket_service import websocket_manager
 from services.device_service import set_websocket_manager
+from services.dahua_service import dahua_service
 
 # ============ SCHEDULER FOR DAILY REPORTS ============
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 
 scheduler = AsyncIOScheduler()
 
