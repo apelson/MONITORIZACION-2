@@ -28,6 +28,7 @@ async def get_organizations(current_user: dict = Depends(get_current_user)):
 
 @router.post("/organizations")
 async def create_organization(data: OrganizationCreate, current_user: dict = Depends(require_role(["admin", "manager"]))):
+    # Note: tenant_admin cannot create new organizations (only admin can assign them)
     org = {
         "id": str(uuid.uuid4()),
         "name": data.name,
@@ -51,7 +52,14 @@ async def create_organization(data: OrganizationCreate, current_user: dict = Dep
     return {"organization": org}
 
 @router.put("/organizations/{org_id}")
-async def update_organization(org_id: str, data: OrganizationUpdate, current_user: dict = Depends(require_role(["admin", "manager"]))):
+async def update_organization(org_id: str, data: OrganizationUpdate, current_user: dict = Depends(require_role(["admin", "manager", "tenant_admin"]))):
+    # Multi-tenancy: tenant_admin can only update their own organizations
+    if should_filter_by_tenant(current_user):
+        org_filter = await build_organization_filter(current_user)
+        org = await organizations_collection.find_one({"id": org_id, **org_filter})
+        if not org:
+            raise HTTPException(status_code=403, detail="No tienes acceso a esta organización")
+    
     update_data = {k: v for k, v in data.model_dump().items() if v is not None}
     if not update_data:
         raise HTTPException(status_code=400, detail="No hay datos para actualizar")
@@ -60,6 +68,7 @@ async def update_organization(org_id: str, data: OrganizationUpdate, current_use
 
 @router.delete("/organizations/{org_id}")
 async def delete_organization(org_id: str, current_user: dict = Depends(require_role(["admin"]))):
+    # Only admin can delete organizations (not tenant_admin)
     # Check if organization has groups
     group_count = await groups_collection.count_documents({"organization_id": org_id})
     if group_count > 0:
