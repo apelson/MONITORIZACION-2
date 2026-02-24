@@ -385,6 +385,15 @@ const TenantAdminsManager = ({ authAxios }) => {
                     </div>
                     
                     <div className="flex items-center gap-4">
+                      {/* Feature flags indicator */}
+                      <div className="flex items-center gap-1">
+                        {admin.feature_flags && Object.values(admin.feature_flags).some(v => v === false) && (
+                          <Badge variant="outline" className="text-xs text-amber-400 border-amber-400/50">
+                            Módulos limitados
+                          </Badge>
+                        )}
+                      </div>
+                      
                       {/* Stats */}
                       <div className="flex items-center gap-4 text-sm text-slate-400">
                         <div className="flex items-center gap-1" title="Organizaciones">
@@ -410,6 +419,15 @@ const TenantAdminsManager = ({ authAxios }) => {
                           title="Ver detalles"
                         >
                           <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openFlagsDialog(admin)}
+                          title="Configurar módulos"
+                          className="text-amber-400 hover:text-amber-300"
+                        >
+                          <Settings2 className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="ghost"
