@@ -64,6 +64,7 @@ import SLAReportsPanel from "@/components/settings/SLAReportsPanel";
 import SystemStatusDashboard from "@/components/settings/SystemStatusDashboard";
 import RolesManager from "@/components/settings/RolesManager";
 import SuperAdminTab from "@/components/settings/SuperAdminTab";
+import TenantAdminsManager from "@/components/settings/TenantAdminsManager";
 import SectionLoader, { useDelayedLoading } from "@/components/common/SectionLoader";
 import { AlertBell, DeviceStatusGrid, DeviceHistoryModal } from "@/components/alerts";
 import useWebSocketAlerts from "@/hooks/useWebSocketAlerts";
