@@ -17,6 +17,10 @@ from models import DeviceCreate, DeviceUpdate, DeviceTypeCreate, DeviceTypeUpdat
 from services.auth_service import get_current_user, require_role
 from services.device_service import check_single_device, check_all_devices
 from services.logging_service import log_access
+from services.multitenancy_service import (
+    build_device_filter, build_alert_filter, 
+    should_filter_by_tenant, get_user_group_ids
+)
 
 router = APIRouter(tags=["devices"])
 
