@@ -321,11 +321,11 @@ const TenantAdminsManager = ({ authAxios }) => {
       )}
 
       {/* Main Card */}
-      <Card className="border-slate-700 bg-slate-900/50">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-4">
           <div>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Shield className="w-5 h-5 text-purple-400" />
+              <Shield className="w-5 h-5 text-purple-600 dark:text-purple-400" />
               Gestión de Usuarios Tenant Admin
             </CardTitle>
             <CardDescription>
@@ -357,12 +357,12 @@ const TenantAdminsManager = ({ authAxios }) => {
         <CardContent className="space-y-4">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nombre, usuario o email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-slate-800 border-slate-700"
+              className="pl-10"
               data-testid="search-tenant-admins"
             />
           </div>
@@ -371,10 +371,10 @@ const TenantAdminsManager = ({ authAxios }) => {
           <ScrollArea className="h-[400px]">
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <RefreshCw className="w-8 h-8 animate-spin text-slate-500" />
+                <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground" />
               </div>
             ) : filteredAdmins.length === 0 ? (
-              <div className="text-center py-12 text-slate-400">
+              <div className="text-center py-12 text-muted-foreground">
                 <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p>No hay usuarios tenant_admin</p>
                 <p className="text-sm">Crea uno para empezar</p>
@@ -384,16 +384,16 @@ const TenantAdminsManager = ({ authAxios }) => {
                 {filteredAdmins.map((admin) => (
                   <div
                     key={admin.id}
-                    className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-slate-600 transition-colors"
+                    className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border hover:bg-muted transition-colors"
                     data-testid={`tenant-admin-row-${admin.username}`}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="p-2 bg-purple-500/20 rounded-lg">
-                        <Users className="w-5 h-5 text-purple-400" />
+                      <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                        <Users className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-white">{admin.username}</span>
+                          <span className="font-medium">{admin.username}</span>
                           {admin.is_active === false && (
                             <Badge variant="destructive" className="text-xs">Inactivo</Badge>
                           )}
