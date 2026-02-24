@@ -150,6 +150,34 @@ async def periodic_device_check():
             logger.error(f"Error in periodic check: {e}")
         await asyncio.sleep(120)  # Check every 2 minutes
 
+async def periodic_dahua_check():
+    """Scheduled task for periodic Dahua DVR/NVR checks - runs every 5 minutes"""
+    logger.info("=" * 50)
+    logger.info("[DAHUA SCHEDULER] Starting Dahua devices check")
+    try:
+        results = await dahua_service.check_all_devices()
+        
+        online_count = sum(1 for r in results if r.get("online"))
+        offline_count = sum(1 for r in results if not r.get("online"))
+        
+        logger.info(f"[DAHUA SCHEDULER] Completed: {len(results)} devices checked")
+        logger.info(f"[DAHUA SCHEDULER] Status: Online={online_count}, Offline={offline_count}")
+        
+        # Broadcast status update via WebSocket
+        if websocket_manager:
+            await websocket_manager.broadcast({
+                "type": "dahua_status_update",
+                "data": {
+                    "total": len(results),
+                    "online": online_count,
+                    "offline": offline_count,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+            })
+    except Exception as e:
+        logger.error(f"[DAHUA SCHEDULER] Error checking Dahua devices: {e}")
+    logger.info("=" * 50)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Create database indexes for performance
@@ -171,6 +199,16 @@ async def lifespan(app: FastAPI):
         id="daily_report",
         replace_existing=True
     )
+    
+    # Add Dahua devices check every 5 minutes
+    scheduler.add_job(
+        periodic_dahua_check,
+        IntervalTrigger(minutes=5),
+        id="dahua_check",
+        replace_existing=True
+    )
+    logger.info("Dahua scheduler started - checking every 5 minutes")
+    
     scheduler.start()
     logger.info("Scheduler started for daily reports")
     
