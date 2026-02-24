@@ -839,6 +839,98 @@ const TenantAdminsManager = ({ authAxios }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Feature Flags Dialog */}
+      <Dialog open={showFlagsDialog} onOpenChange={setShowFlagsDialog}>
+        <DialogContent className="max-w-lg bg-slate-900 border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings2 className="w-5 h-5 text-amber-400" />
+              Configurar Módulos: {selectedUser?.username}
+            </DialogTitle>
+            <DialogDescription>
+              Habilita o deshabilita los módulos que este usuario puede ver
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <ScrollArea className="h-[350px] pr-4">
+              <div className="space-y-3">
+                {Object.entries(FEATURE_FLAGS_CONFIG).map(([key, config]) => {
+                  const IconComponent = config.icon;
+                  const isEnabled = editFlags[key] !== false;
+                  
+                  return (
+                    <div
+                      key={key}
+                      className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                        isEnabled 
+                          ? 'bg-slate-800/50 border-slate-700' 
+                          : 'bg-red-950/20 border-red-900/30'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${isEnabled ? 'bg-slate-700' : 'bg-red-900/30'}`}>
+                          <IconComponent className={`w-4 h-4 ${isEnabled ? 'text-slate-300' : 'text-red-400'}`} />
+                        </div>
+                        <div>
+                          <p className={`font-medium ${isEnabled ? 'text-white' : 'text-red-300'}`}>
+                            {config.label}
+                          </p>
+                          <p className="text-xs text-slate-500">{config.description}</p>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={isEnabled}
+                        onCheckedChange={(checked) => 
+                          setEditFlags({...editFlags, [key]: checked})
+                        }
+                        data-testid={`flag-switch-${key}`}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+            
+            <div className="flex gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditFlags({...DEFAULT_FEATURE_FLAGS})}
+                className="flex-1"
+              >
+                <Check className="w-4 h-4 mr-1" />
+                Habilitar todos
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditFlags(
+                  Object.keys(DEFAULT_FEATURE_FLAGS).reduce((acc, key) => ({...acc, [key]: false}), {})
+                )}
+                className="flex-1"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Deshabilitar todos
+              </Button>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowFlagsDialog(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleUpdateFlags}
+              className="bg-amber-600 hover:bg-amber-700"
+              data-testid="save-feature-flags"
+            >
+              Guardar Configuración
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
