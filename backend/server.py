@@ -64,6 +64,7 @@ from routes.billing import router as billing_router
 
 # Super Admin for main platform multi-tenancy
 from routes.superadmin_tenants import router as superadmin_tenants_router
+from routes.jira import router as jira_router
 
 # WebSocket router
 from routes.websocket import router as websocket_router
