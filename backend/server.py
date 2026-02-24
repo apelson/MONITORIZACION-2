@@ -59,8 +59,11 @@ from routes.superadmin_integrated import router as superadmin_router
 # Multi-tenant routers (SaaS)
 from routes.tenant_auth import router as tenant_auth_router
 from routes.tenant_devices import router as tenant_devices_router
-from routes.superadmin import router as superadmin_router
+from routes.superadmin import router as saas_superadmin_router
 from routes.billing import router as billing_router
+
+# Super Admin for main platform multi-tenancy
+from routes.superadmin_tenants import router as superadmin_tenants_router
 
 # WebSocket router
 from routes.websocket import router as websocket_router
