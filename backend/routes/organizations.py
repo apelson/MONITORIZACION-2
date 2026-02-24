@@ -1,5 +1,6 @@
 """
 Organization and Group routes
+With multi-tenancy support for filtering by user's tenant
 """
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
@@ -8,6 +9,9 @@ import uuid
 from config import organizations_collection, groups_collection, devices_collection
 from models import OrganizationCreate, OrganizationUpdate, GroupCreate, GroupUpdate
 from services.auth_service import get_current_user, require_role
+from services.multitenancy_service import (
+    build_organization_filter, build_group_filter, should_filter_by_tenant
+)
 
 router = APIRouter(tags=["organizations"])
 
@@ -15,7 +19,9 @@ router = APIRouter(tags=["organizations"])
 
 @router.get("/organizations")
 async def get_organizations(current_user: dict = Depends(get_current_user)):
-    orgs = await organizations_collection.find({}, {"_id": 0}).to_list(length=None)
+    # Apply multi-tenancy filter
+    org_filter = await build_organization_filter(current_user)
+    orgs = await organizations_collection.find(org_filter, {"_id": 0}).to_list(length=None)
     for org in orgs:
         org["group_count"] = await groups_collection.count_documents({"organization_id": org["id"]})
     return {"organizations": orgs}
@@ -67,7 +73,9 @@ async def delete_organization(org_id: str, current_user: dict = Depends(require_
 
 @router.get("/groups")
 async def get_groups(current_user: dict = Depends(get_current_user)):
-    groups = await groups_collection.find({}, {"_id": 0}).to_list(length=None)
+    # Apply multi-tenancy filter
+    group_filter = await build_group_filter(current_user)
+    groups = await groups_collection.find(group_filter, {"_id": 0}).to_list(length=None)
     for group in groups:
         group["device_count"] = await devices_collection.count_documents({"group_id": group["id"]})
     return {"groups": groups}
