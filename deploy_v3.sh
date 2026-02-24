@@ -13,7 +13,7 @@ cd /opt/siempria-monitor
 # ============================================
 echo "📥 Descargando archivos..."
 
-BASE_URL="https://multi-tenant-monitor.preview.emergentagent.com/api/download-file"
+BASE_URL="https://tenant-admin-portal.preview.emergentagent.com/api/download-file"
 
 # === FRONTEND ===
 
