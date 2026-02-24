@@ -11,7 +11,7 @@ import uuid
 from config import users_collection, organizations_collection, groups_collection, devices_collection
 from services.auth_service import get_password_hash, get_current_user, require_role
 
-router = APIRouter(prefix="/superadmin", tags=["Super Admin"])
+router = APIRouter(prefix="/admin/tenants", tags=["Admin - Tenant Management"])
 
 
 class TenantAdminCreate(BaseModel):
