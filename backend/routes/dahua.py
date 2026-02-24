@@ -77,6 +77,13 @@ async def get_single_dahua_device(
     if not device:
         raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
     
+    # Multi-tenancy check: verify user has access to this device's organization
+    if should_filter_by_tenant(current_user):
+        user_org_ids = await get_user_organization_ids(current_user)
+        device_org_id = device.get("organization_id")
+        if device_org_id and device_org_id not in user_org_ids:
+            raise HTTPException(status_code=403, detail="No tienes acceso a este dispositivo")
+    
     # Hide password
     if "password" in device:
         device["password"] = "********"
@@ -87,9 +94,15 @@ async def get_single_dahua_device(
 @router.post("/dahua/devices")
 async def create_new_dahua_device(
     data: DahuaDeviceCreate,
-    current_user: dict = Depends(require_role(["admin", "manager"]))
+    current_user: dict = Depends(require_role(["admin", "manager", "tenant_admin"]))
 ):
     """Create a new Dahua P2P device"""
+    # Multi-tenancy check: tenant_admin can only create in their orgs
+    if should_filter_by_tenant(current_user) and data.organization_id:
+        user_org_ids = await get_user_organization_ids(current_user)
+        if data.organization_id not in user_org_ids:
+            raise HTTPException(status_code=403, detail="No puedes crear dispositivos en esta organización")
+    
     device = await create_dahua_device(data.dict())
     
     # Hide password in response
@@ -102,12 +115,18 @@ async def create_new_dahua_device(
 async def update_existing_dahua_device(
     device_id: str,
     data: DahuaDeviceUpdate,
-    current_user: dict = Depends(require_role(["admin", "manager"]))
+    current_user: dict = Depends(require_role(["admin", "manager", "tenant_admin"]))
 ):
     """Update an existing Dahua device"""
     device = await get_dahua_device(device_id)
     if not device:
         raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
+    
+    # Multi-tenancy check
+    if should_filter_by_tenant(current_user):
+        user_org_ids = await get_user_organization_ids(current_user)
+        if device.get("organization_id") and device["organization_id"] not in user_org_ids:
+            raise HTTPException(status_code=403, detail="No tienes acceso a este dispositivo")
     
     updated = await update_dahua_device(device_id, data.dict(exclude_unset=True))
     
