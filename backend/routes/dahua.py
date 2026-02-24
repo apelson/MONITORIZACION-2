@@ -221,8 +221,15 @@ async def check_all_dahua_devices(
 
 @router.get("/dahua/status")
 async def get_dahua_status_summary(current_user: dict = Depends(get_current_user)):
-    """Get a quick summary of all Dahua devices status (from last check)"""
-    devices = await get_all_dahua_devices()
+    """Get a quick summary of all Dahua devices status (from last check) - filtered by tenant"""
+    # Apply multi-tenancy filter
+    device_filter = await build_dahua_device_filter(current_user)
+    
+    # Check if user has no access
+    if device_filter.get("organization_id", {}).get("$in") == []:
+        return {"summary": {"total": 0, "online": 0, "offline": 0, "recording": 0, "not_recording": 0, "storage_warnings": 0, "hdd_errors": 0}, "issues": []}
+    
+    devices = await dahua_devices_collection.find(device_filter, {"_id": 0}).to_list(length=None)
     
     summary = {
         "total": len(devices),
