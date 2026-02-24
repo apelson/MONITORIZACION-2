@@ -50,6 +50,7 @@ import OrganizationsPanel from "@/components/panels/OrganizationsPanel";
 import DeviceTypesPanel from "@/components/panels/DeviceTypesPanel";
 import UsersPanel from "@/components/panels/UsersPanel";
 import SettingsPanel from "@/components/panels/SettingsPanel";
+import IntegrationsPanel from "@/components/panels/IntegrationsPanel";
 import MaintenancePanel from "@/components/panels/MaintenancePanel";
 import DahuaDevicesPanel from "@/components/panels/DahuaDevicesPanel";
 import CRAFloatingButton from "@/components/common/CRAFloatingButton";
