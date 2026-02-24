@@ -158,6 +158,29 @@ const TenantAdminsManager = ({ authAxios }) => {
     }
   };
 
+  // Update feature flags
+  const handleUpdateFlags = async () => {
+    if (!selectedUser) return;
+    
+    try {
+      await authAxios.put(`/admin/tenants/tenant-admins/${selectedUser.id}/feature-flags`, {
+        feature_flags: editFlags
+      });
+      toast.success('Módulos actualizados correctamente');
+      setShowFlagsDialog(false);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al actualizar módulos');
+    }
+  };
+
+  // Open flags dialog
+  const openFlagsDialog = (user) => {
+    setSelectedUser(user);
+    setEditFlags(user.feature_flags || {...DEFAULT_FEATURE_FLAGS});
+    setShowFlagsDialog(true);
+  };
+
   // Delete tenant admin
   const handleDelete = async () => {
     if (!selectedUser) return;
@@ -172,6 +195,7 @@ const TenantAdminsManager = ({ authAxios }) => {
       toast.error(error.response?.data?.detail || 'Error al eliminar usuario');
     }
   };
+
 
   // Open edit dialog
   const openEditDialog = (user) => {
