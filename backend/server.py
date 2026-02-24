@@ -204,8 +204,11 @@ api_router.include_router(superadmin_router)
 # Include multi-tenant routers (SaaS)
 api_router.include_router(tenant_auth_router)
 api_router.include_router(tenant_devices_router)
-api_router.include_router(superadmin_router)
+api_router.include_router(saas_superadmin_router)
 api_router.include_router(billing_router)
+
+# Include Super Admin for main platform multi-tenancy
+api_router.include_router(superadmin_tenants_router)
 
 # Include WebSocket router
 api_router.include_router(websocket_router)
