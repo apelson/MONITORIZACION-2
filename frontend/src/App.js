@@ -423,11 +423,37 @@ const AuthProvider = ({ children }) => {
     return sectionPerms.includes(action);
   };
 
+  // Map section names to feature flag keys
+  const SECTION_TO_FLAG_MAP = {
+    'devices': 'devices',
+    'alerts': 'alerts',
+    'cra': 'cra',
+    'dahua': 'dahua',
+    'live': 'live_view',
+    'incidents': 'incidents',
+    'statistics': 'reports',
+    'reports': 'reports',
+    'ai': 'ai_insights',
+    'gallery': 'gallery',
+  };
+
   // Helper function to check if user can access a section
   const canAccessSection = (section) => {
-    if (!userPermissions?.permissions) return true;
-    const sectionPerms = userPermissions.permissions[section] || [];
-    return sectionPerms.length > 0;
+    // First check role-based permissions
+    if (userPermissions?.permissions) {
+      const sectionPerms = userPermissions.permissions[section] || [];
+      if (sectionPerms.length === 0) return false;
+    }
+    
+    // Then check feature flags for tenant_admin users
+    if (user?.feature_flags && user?.role === 'tenant_admin') {
+      const flagKey = SECTION_TO_FLAG_MAP[section];
+      if (flagKey && user.feature_flags[flagKey] === false) {
+        return false;
+      }
+    }
+    
+    return true;
   };
 
   return (
