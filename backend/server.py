@@ -211,6 +211,9 @@ api_router.include_router(billing_router)
 # Include Super Admin for main platform multi-tenancy
 api_router.include_router(superadmin_tenants_router)
 
+# Include JIRA integration routes
+api_router.include_router(jira_router)
+
 # Include WebSocket router
 api_router.include_router(websocket_router)
 
