@@ -341,10 +341,16 @@ async def get_device(device_id: str, current_user: dict = Depends(get_current_us
     return device
 
 @router.put("/devices/{device_id}")
-async def update_device(device_id: str, data: DeviceUpdate, request: Request, current_user: dict = Depends(require_role(["admin", "manager"]))):
+async def update_device(device_id: str, data: DeviceUpdate, request: Request, current_user: dict = Depends(require_role(["admin", "manager", "tenant_admin"]))):
     device = await devices_collection.find_one({"id": device_id})
     if not device:
         raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
+    
+    # Multi-tenancy: verify user has access to this device
+    if should_filter_by_tenant(current_user):
+        user_group_ids = await get_user_group_ids(current_user)
+        if user_group_ids and device.get("group_id") not in user_group_ids:
+            raise HTTPException(status_code=403, detail="No tienes acceso a este dispositivo")
     
     update = {k: v for k, v in data.model_dump().items() if v is not None}
     
