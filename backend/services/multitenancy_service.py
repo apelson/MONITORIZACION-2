@@ -7,15 +7,15 @@ This is for the MAIN platform (not SaaS), where:
 """
 from typing import Optional, List, Dict, Any
 from config import (
-    organizations_collection, groups_collection, devices_collection,
-    dahua_devices_collection if hasattr(__import__('config'), 'dahua_devices_collection') else None
+    organizations_collection, groups_collection, devices_collection
 )
 
 # Try to import dahua_devices_collection safely
+dahua_devices_collection = None
 try:
     from services.dahua_service import dahua_devices_collection
 except ImportError:
-    dahua_devices_collection = None
+    pass
 
 
 async def get_user_organization_ids(user: dict) -> List[str]:
