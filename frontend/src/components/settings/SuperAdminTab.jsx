@@ -144,21 +144,6 @@ const SuperAdminTab = ({ authAxios }) => {
     t.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 gap-6">
-        <div className="relative">
-          <div className="w-20 h-20 rounded-full border-4 border-purple-500/20 border-t-purple-500 animate-spin" />
-          <Shield className="absolute inset-0 m-auto w-10 h-10 text-purple-400" />
-        </div>
-        <div className="text-center">
-          <h3 className="text-lg font-semibold">Cargando Panel Super Admin</h3>
-          <p className="text-sm text-muted-foreground">Obteniendo datos de empresas...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -166,22 +151,56 @@ const SuperAdminTab = ({ authAxios }) => {
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Shield className="w-6 h-6 text-purple-500" />
-            Super Admin - Gestión de Empresas
+            Super Admin
           </h2>
           <p className="text-muted-foreground">
-            Administra las empresas/clientes que usan la plataforma
+            Gestiona usuarios, empresas y accesos a la plataforma
           </p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="gap-2 bg-purple-600 hover:bg-purple-700">
-          <Plus className="w-4 h-4" />
-          Nueva Empresa
-        </Button>
       </div>
 
-      {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
+      {/* Internal Tabs */}
+      <Tabs value={activeSubTab} onValueChange={setActiveSubTab}>
+        <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:inline-flex">
+          <TabsTrigger value="tenant-admins" className="gap-2">
+            <UserCog className="w-4 h-4" />
+            Usuarios Tenant
+          </TabsTrigger>
+          <TabsTrigger value="saas-tenants" className="gap-2">
+            <Building2 className="w-4 h-4" />
+            Portal SaaS
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Tenant Admins Tab (Main Platform Multi-tenancy) */}
+        <TabsContent value="tenant-admins" className="mt-6">
+          <TenantAdminsManager authAxios={authAxios} />
+        </TabsContent>
+
+        {/* SaaS Tenants Tab (Multi-database system) */}
+        <TabsContent value="saas-tenants" className="mt-6">
+          <div className="space-y-6">
+            {/* SaaS Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-blue-500" />
+                  Portal SaaS - Bases de Datos Separadas
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Sistema multi-tenant con bases de datos independientes por empresa
+                </p>
+              </div>
+              <Button onClick={() => setShowCreateDialog(true)} className="gap-2 bg-blue-600 hover:bg-blue-700">
+                <Plus className="w-4 h-4" />
+                Nueva Empresa
+              </Button>
+            </div>
+
+            {/* Stats Cards */}
+            {stats && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
