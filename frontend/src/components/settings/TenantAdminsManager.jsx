@@ -262,57 +262,57 @@ const TenantAdminsManager = ({ authAxios }) => {
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
+          <Card className="bg-card border">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Users className="w-5 h-5 text-blue-400" />
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-blue-400">{stats.users?.tenant_admins || 0}</p>
-                  <p className="text-xs text-slate-400">Tenant Admins</p>
+                  <p className="text-2xl font-bold">{stats.users?.tenant_admins || 0}</p>
+                  <p className="text-xs text-muted-foreground">Tenant Admins</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20">
+          <Card className="bg-card border">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-500/20 rounded-lg">
-                  <Building2 className="w-5 h-5 text-purple-400" />
+                <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                  <Building2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-purple-400">{stats.organizations?.total || 0}</p>
-                  <p className="text-xs text-slate-400">Organizaciones</p>
+                  <p className="text-2xl font-bold">{stats.organizations?.total || 0}</p>
+                  <p className="text-xs text-muted-foreground">Organizaciones</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
+          <Card className="bg-card border">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <Check className="w-5 h-5 text-green-400" />
+                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                  <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-400">{stats.organizations?.assigned || 0}</p>
-                  <p className="text-xs text-slate-400">Asignadas</p>
+                  <p className="text-2xl font-bold">{stats.organizations?.assigned || 0}</p>
+                  <p className="text-xs text-muted-foreground">Asignadas</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-500/20">
+          <Card className="bg-card border">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-500/20 rounded-lg">
-                  <AlertCircle className="w-5 h-5 text-amber-400" />
+                <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                  <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-amber-400">{stats.organizations?.unassigned || 0}</p>
-                  <p className="text-xs text-slate-400">Sin asignar</p>
+                  <p className="text-2xl font-bold">{stats.organizations?.unassigned || 0}</p>
+                  <p className="text-xs text-muted-foreground">Sin asignar</p>
                 </div>
               </div>
             </CardContent>
