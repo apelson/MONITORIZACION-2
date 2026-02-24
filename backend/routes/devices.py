@@ -68,7 +68,24 @@ def get_client_ip(request: Request) -> str:
 
 @router.get("/devices/stats")
 async def get_device_stats(current_user: dict = Depends(get_current_user)):
-    """Fast endpoint for header stats - uses cache"""
+    """Fast endpoint for header stats - uses cache for admin, filtered for others"""
+    # For non-admin users, we need to filter
+    if should_filter_by_tenant(current_user):
+        device_filter = await build_device_filter(current_user)
+        
+        # If user has no access to any groups
+        if device_filter.get("group_id", {}).get("$in") == []:
+            return {"total": 0, "online": 0, "offline": 0, "cra": 0}
+        
+        # Aggregate stats for user's devices only
+        total = await devices_collection.count_documents(device_filter)
+        online = await devices_collection.count_documents({**device_filter, "status": "online"})
+        offline = await devices_collection.count_documents({**device_filter, "status": "offline"})
+        cra = await devices_collection.count_documents({**device_filter, "is_cra": True})
+        
+        return {"total": total, "online": online, "offline": offline, "cra": cra}
+    
+    # Admin uses cache
     return await get_cached_stats()
 
 # ============ DEVICE TYPES ============
