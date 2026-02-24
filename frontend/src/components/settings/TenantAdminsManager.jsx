@@ -398,9 +398,9 @@ const TenantAdminsManager = ({ authAxios }) => {
                             <Badge variant="destructive" className="text-xs">Inactivo</Badge>
                           )}
                         </div>
-                        <p className="text-sm text-slate-400">{admin.email}</p>
+                        <p className="text-sm text-muted-foreground">{admin.email}</p>
                         {admin.full_name && (
-                          <p className="text-xs text-slate-500">{admin.full_name}</p>
+                          <p className="text-xs text-muted-foreground">{admin.full_name}</p>
                         )}
                       </div>
                     </div>
@@ -416,7 +416,7 @@ const TenantAdminsManager = ({ authAxios }) => {
                       </div>
                       
                       {/* Stats */}
-                      <div className="flex items-center gap-4 text-sm text-slate-400">
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1" title="Organizaciones">
                           <Building2 className="w-4 h-4" />
                           <span>{admin.stats?.organizations || 0}</span>
@@ -493,7 +493,7 @@ const TenantAdminsManager = ({ authAxios }) => {
 
       {/* Create Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-lg bg-slate-900 border-slate-700">
+        <DialogContent className="max-w-lg ">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserPlus className="w-5 h-5 text-purple-400" />
@@ -512,7 +512,7 @@ const TenantAdminsManager = ({ authAxios }) => {
                   value={newUser.username}
                   onChange={(e) => setNewUser({...newUser, username: e.target.value})}
                   placeholder="usuario"
-                  className="bg-slate-800 border-slate-700"
+                  className="bg-background border"
                   data-testid="new-tenant-username"
                 />
               </div>
@@ -523,7 +523,7 @@ const TenantAdminsManager = ({ authAxios }) => {
                   value={newUser.password}
                   onChange={(e) => setNewUser({...newUser, password: e.target.value})}
                   placeholder="••••••"
-                  className="bg-slate-800 border-slate-700"
+                  className="bg-background border"
                   data-testid="new-tenant-password"
                 />
               </div>
@@ -536,7 +536,7 @@ const TenantAdminsManager = ({ authAxios }) => {
                 value={newUser.email}
                 onChange={(e) => setNewUser({...newUser, email: e.target.value})}
                 placeholder="admin@empresa.com"
-                className="bg-slate-800 border-slate-700"
+                className="bg-background border"
                 data-testid="new-tenant-email"
               />
             </div>
@@ -547,15 +547,15 @@ const TenantAdminsManager = ({ authAxios }) => {
                 value={newUser.full_name}
                 onChange={(e) => setNewUser({...newUser, full_name: e.target.value})}
                 placeholder="Juan Pérez"
-                className="bg-slate-800 border-slate-700"
+                className="bg-background border"
               />
             </div>
             
             <div className="space-y-2">
               <Label>Asignar organizaciones</Label>
-              <ScrollArea className="h-[150px] border border-slate-700 rounded-lg p-2">
+              <ScrollArea className="h-[150px] border rounded-lg p-2">
                 {organizations.length === 0 ? (
-                  <p className="text-sm text-slate-400 text-center py-4">
+                  <p className="text-sm text-muted-foreground text-center py-4">
                     No hay organizaciones disponibles
                   </p>
                 ) : (
@@ -563,7 +563,7 @@ const TenantAdminsManager = ({ authAxios }) => {
                     {organizations.map((org) => (
                       <label
                         key={org.id}
-                        className="flex items-center gap-3 p-2 rounded hover:bg-slate-800 cursor-pointer"
+                        className="flex items-center gap-3 p-2 rounded hover:bg-muted cursor-pointer"
                       >
                         <Checkbox
                           checked={newUser.organization_ids.includes(org.id)}
@@ -577,7 +577,7 @@ const TenantAdminsManager = ({ authAxios }) => {
                         />
                         <div className="flex-1">
                           <p className="text-sm font-medium">{org.name}</p>
-                          <p className="text-xs text-slate-400">{org.group_count || 0} grupos</p>
+                          <p className="text-xs text-muted-foreground">{org.group_count || 0} grupos</p>
                         </div>
                         {org.is_assigned && (
                           <Badge variant="outline" className="text-xs">
@@ -609,7 +609,7 @@ const TenantAdminsManager = ({ authAxios }) => {
 
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-lg bg-slate-900 border-slate-700">
+        <DialogContent className="max-w-lg ">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Pencil className="w-5 h-5 text-blue-400" />
@@ -624,7 +624,7 @@ const TenantAdminsManager = ({ authAxios }) => {
                 type="email"
                 value={editUser.email}
                 onChange={(e) => setEditUser({...editUser, email: e.target.value})}
-                className="bg-slate-800 border-slate-700"
+                className="bg-background border"
               />
             </div>
             
@@ -633,7 +633,7 @@ const TenantAdminsManager = ({ authAxios }) => {
               <Input
                 value={editUser.full_name}
                 onChange={(e) => setEditUser({...editUser, full_name: e.target.value})}
-                className="bg-slate-800 border-slate-700"
+                className="bg-background border"
               />
             </div>
             
@@ -647,11 +647,11 @@ const TenantAdminsManager = ({ authAxios }) => {
             
             <div className="space-y-2">
               <Label>Organizaciones asignadas</Label>
-              <ScrollArea className="h-[150px] border border-slate-700 rounded-lg p-2">
+              <ScrollArea className="h-[150px] border rounded-lg p-2">
                 {organizations.map((org) => (
                   <label
                     key={org.id}
-                    className="flex items-center gap-3 p-2 rounded hover:bg-slate-800 cursor-pointer"
+                    className="flex items-center gap-3 p-2 rounded hover:bg-muted cursor-pointer"
                   >
                     <Checkbox
                       checked={editUser.organization_ids.includes(org.id)}
@@ -665,7 +665,7 @@ const TenantAdminsManager = ({ authAxios }) => {
                     />
                     <div className="flex-1">
                       <p className="text-sm font-medium">{org.name}</p>
-                      <p className="text-xs text-slate-400">{org.group_count || 0} grupos</p>
+                      <p className="text-xs text-muted-foreground">{org.group_count || 0} grupos</p>
                     </div>
                   </label>
                 ))}
@@ -689,7 +689,7 @@ const TenantAdminsManager = ({ authAxios }) => {
 
       {/* Details Dialog */}
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-        <DialogContent className="max-w-2xl bg-slate-900 border-slate-700">
+        <DialogContent className="max-w-2xl ">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Eye className="w-5 h-5 text-green-400" />
@@ -701,21 +701,21 @@ const TenantAdminsManager = ({ authAxios }) => {
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-400">Email</Label>
+                  <Label className="text-muted-foreground">Email</Label>
                   <p className="font-medium">{selectedUser.email}</p>
                 </div>
                 <div>
-                  <Label className="text-slate-400">Nombre</Label>
+                  <Label className="text-muted-foreground">Nombre</Label>
                   <p className="font-medium">{selectedUser.full_name || '-'}</p>
                 </div>
                 <div>
-                  <Label className="text-slate-400">Creado</Label>
+                  <Label className="text-muted-foreground">Creado</Label>
                   <p className="font-medium">
                     {new Date(selectedUser.created_at).toLocaleDateString('es-ES')}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-slate-400">Estado</Label>
+                  <Label className="text-muted-foreground">Estado</Label>
                   <Badge variant={selectedUser.is_active !== false ? 'default' : 'destructive'}>
                     {selectedUser.is_active !== false ? 'Activo' : 'Inactivo'}
                   </Badge>
@@ -724,36 +724,36 @@ const TenantAdminsManager = ({ authAxios }) => {
               
               {/* Device Stats */}
               {selectedUser.device_stats && (
-                <div className="grid grid-cols-3 gap-4 p-4 bg-slate-800/50 rounded-lg">
+                <div className="grid grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
                   <div className="text-center">
                     <p className="text-2xl font-bold text-green-400">
                       {selectedUser.device_stats.online}
                     </p>
-                    <p className="text-xs text-slate-400">Online</p>
+                    <p className="text-xs text-muted-foreground">Online</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-red-400">
                       {selectedUser.device_stats.offline}
                     </p>
-                    <p className="text-xs text-slate-400">Offline</p>
+                    <p className="text-xs text-muted-foreground">Offline</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-blue-400">
                       {selectedUser.device_stats.total}
                     </p>
-                    <p className="text-xs text-slate-400">Total</p>
+                    <p className="text-xs text-muted-foreground">Total</p>
                   </div>
                 </div>
               )}
               
               {/* Organizations */}
               <div className="space-y-2">
-                <Label className="text-slate-400">Organizaciones asignadas ({selectedUser.organizations?.length || 0})</Label>
+                <Label className="text-muted-foreground">Organizaciones asignadas ({selectedUser.organizations?.length || 0})</Label>
                 <div className="space-y-2">
                   {selectedUser.organizations?.map((org) => (
                     <div
                       key={org.id}
-                      className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg"
+                      className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
                     >
                       <div className="flex items-center gap-3">
                         <Building2 className="w-4 h-4 text-purple-400" />
@@ -768,12 +768,12 @@ const TenantAdminsManager = ({ authAxios }) => {
               {/* Groups */}
               {selectedUser.groups?.length > 0 && (
                 <div className="space-y-2">
-                  <Label className="text-slate-400">Grupos ({selectedUser.groups.length})</Label>
+                  <Label className="text-muted-foreground">Grupos ({selectedUser.groups.length})</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {selectedUser.groups.map((group) => (
                       <div
                         key={group.id}
-                        className="flex items-center justify-between p-2 bg-slate-800/50 rounded text-sm"
+                        className="flex items-center justify-between p-2 bg-muted/50 rounded text-sm"
                       >
                         <span>{group.name}</span>
                         <Badge variant="outline" className="text-xs">
@@ -797,7 +797,7 @@ const TenantAdminsManager = ({ authAxios }) => {
 
       {/* Password Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent className="max-w-md bg-slate-900 border-slate-700">
+        <DialogContent className="max-w-md ">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Key className="w-5 h-5 text-amber-400" />
@@ -813,7 +813,7 @@ const TenantAdminsManager = ({ authAxios }) => {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Mínimo 6 caracteres"
-                className="bg-slate-800 border-slate-700"
+                className="bg-background border"
               />
             </div>
           </div>
@@ -834,7 +834,7 @@ const TenantAdminsManager = ({ authAxios }) => {
 
       {/* Delete Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="max-w-md bg-slate-900 border-slate-700">
+        <DialogContent className="max-w-md ">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-400">
               <Trash2 className="w-5 h-5" />
@@ -863,7 +863,7 @@ const TenantAdminsManager = ({ authAxios }) => {
 
       {/* Feature Flags Dialog */}
       <Dialog open={showFlagsDialog} onOpenChange={setShowFlagsDialog}>
-        <DialogContent className="max-w-lg bg-slate-900 border-slate-700">
+        <DialogContent className="max-w-lg ">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings2 className="w-5 h-5 text-amber-400" />
@@ -886,19 +886,19 @@ const TenantAdminsManager = ({ authAxios }) => {
                       key={key}
                       className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
                         isEnabled 
-                          ? 'bg-slate-800/50 border-slate-700' 
+                          ? 'bg-muted/50 border' 
                           : 'bg-red-950/20 border-red-900/30'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${isEnabled ? 'bg-slate-700' : 'bg-red-900/30'}`}>
-                          <IconComponent className={`w-4 h-4 ${isEnabled ? 'text-slate-300' : 'text-red-400'}`} />
+                        <div className={`p-2 rounded-lg ${isEnabled ? 'bg-muted' : 'bg-red-900/30'}`}>
+                          <IconComponent className={`w-4 h-4 ${isEnabled ? 'text-foreground' : 'text-red-400'}`} />
                         </div>
                         <div>
                           <p className={`font-medium ${isEnabled ? 'text-white' : 'text-red-300'}`}>
                             {config.label}
                           </p>
-                          <p className="text-xs text-slate-500">{config.description}</p>
+                          <p className="text-xs text-muted-foreground">{config.description}</p>
                         </div>
                       </div>
                       <Switch
