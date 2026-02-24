@@ -188,6 +188,9 @@ async def create_tenant_admin(
             if not org:
                 raise HTTPException(status_code=400, detail=f"Organización no encontrada: {org_id}")
     
+    # Set feature flags (use provided or defaults)
+    feature_flags = data.feature_flags.model_dump() if data.feature_flags else DEFAULT_FEATURE_FLAGS.copy()
+    
     # Create user
     user_id = str(uuid.uuid4())
     user = {
@@ -199,6 +202,7 @@ async def create_tenant_admin(
         "full_name": data.full_name or "",
         "is_active": True,
         "organization_ids": data.organization_ids,
+        "feature_flags": feature_flags,
         "tenant_id": f"tenant_{data.username}",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "created_by": current_user["id"]
