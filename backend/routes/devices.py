@@ -438,10 +438,17 @@ async def get_alerts(
     Get alerts with flexible filtering:
     - period: day (hoy), week (esta semana), month (este mes), year (este año), all (todo)
     - start_date/end_date: rango personalizado
+    Multi-tenancy: non-admin users only see alerts from their devices
     """
     from datetime import datetime, timedelta
     
-    query = {}
+    # Start with multi-tenancy filter for alerts
+    query = await build_alert_filter(current_user)
+    
+    # Check if user has no access
+    if query.get("device_id", {}).get("$in") == []:
+        return {"alerts": [], "total": 0, "period": period, "by_type": {}}
+    
     now = datetime.utcnow()
     
     # Calculate date range based on period
