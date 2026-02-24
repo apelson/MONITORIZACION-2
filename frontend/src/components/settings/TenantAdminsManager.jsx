@@ -236,6 +236,27 @@ const TenantAdminsManager = ({ authAxios }) => {
     }
   };
 
+  // Loading screen with Siempria logo
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-6" data-testid="tenant-admins-loading">
+        <div className="relative">
+          <div className="w-20 h-20 rounded-full border-4 border-purple-500/20 border-t-purple-500 animate-spin" />
+          <img 
+            src="/siempria-logo.png" 
+            alt="Siempria" 
+            className="absolute inset-0 m-auto w-10 h-10 object-contain"
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+        </div>
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">Cargando Gestión de Tenants</h3>
+          <p className="text-sm text-muted-foreground">Obteniendo usuarios y organizaciones...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6" data-testid="tenant-admins-manager">
       {/* Stats Cards */}
