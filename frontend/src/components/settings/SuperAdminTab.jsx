@@ -519,6 +519,9 @@ const SuperAdminTab = ({ authAxios }) => {
           )}
         </DialogContent>
       </Dialog>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
