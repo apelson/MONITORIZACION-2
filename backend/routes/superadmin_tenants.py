@@ -1,10 +1,10 @@
 """
 Super Admin routes for main platform multi-tenancy management
-Manages tenant_admin users and organization assignments
+Manages tenant_admin users, organization assignments, and feature flags
 """
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, EmailStr
-from typing import Optional, List
+from typing import Optional, List, Dict
 from datetime import datetime, timezone
 import uuid
 
@@ -12,6 +12,32 @@ from config import users_collection, organizations_collection, groups_collection
 from services.auth_service import get_password_hash, get_current_user, require_role
 
 router = APIRouter(prefix="/admin/tenants", tags=["Admin - Tenant Management"])
+
+# Default feature flags - all enabled by default
+DEFAULT_FEATURE_FLAGS = {
+    "devices": True,       # Dispositivos/Cámaras
+    "alerts": True,        # Alertas
+    "cra": True,           # CRA (Central Receptora de Alarmas)
+    "dahua": True,         # Grabadores DVR/NVR Dahua
+    "live_view": True,     # Vista en directo
+    "incidents": True,     # Incidencias
+    "reports": True,       # Reportes y estadísticas
+    "ai_insights": True,   # Panel AI Insights
+    "gallery": True,       # Galería de imágenes
+}
+
+
+class FeatureFlags(BaseModel):
+    """Feature flags for tenant access control"""
+    devices: bool = True
+    alerts: bool = True
+    cra: bool = True
+    dahua: bool = True
+    live_view: bool = True
+    incidents: bool = True
+    reports: bool = True
+    ai_insights: bool = True
+    gallery: bool = True
 
 
 class TenantAdminCreate(BaseModel):
@@ -21,6 +47,7 @@ class TenantAdminCreate(BaseModel):
     password: str
     full_name: Optional[str] = None
     organization_ids: List[str] = []
+    feature_flags: Optional[FeatureFlags] = None
 
 
 class TenantAdminUpdate(BaseModel):
@@ -29,10 +56,15 @@ class TenantAdminUpdate(BaseModel):
     full_name: Optional[str] = None
     organization_ids: Optional[List[str]] = None
     is_active: Optional[bool] = None
+    feature_flags: Optional[FeatureFlags] = None
 
 
 class SetPasswordRequest(BaseModel):
     new_password: str
+
+
+class UpdateFeatureFlagsRequest(BaseModel):
+    feature_flags: FeatureFlags
 
 
 # ============ STATS ============
