@@ -102,6 +102,23 @@ async def login(credentials: UserLogin, request: Request):
         success=True
     )
     
+    # Get feature flags for tenant_admin users (admins have all features)
+    feature_flags = user.get("feature_flags", None)
+    if user["role"] == "admin":
+        # Admins always have all features enabled
+        feature_flags = {
+            "devices": True, "alerts": True, "cra": True, "dahua": True,
+            "live_view": True, "incidents": True, "reports": True,
+            "ai_insights": True, "gallery": True
+        }
+    elif user["role"] == "tenant_admin" and not feature_flags:
+        # Default all enabled for tenant_admin without flags
+        feature_flags = {
+            "devices": True, "alerts": True, "cra": True, "dahua": True,
+            "live_view": True, "incidents": True, "reports": True,
+            "ai_insights": True, "gallery": True
+        }
+    
     return {
         "token": token,
         "user": {
@@ -111,7 +128,9 @@ async def login(credentials: UserLogin, request: Request):
             "role": user["role"],
             "full_name": user.get("full_name", ""),
             "group_ids": user.get("group_ids", []),
-            "organization_ids": user.get("organization_ids", [])
+            "organization_ids": user.get("organization_ids", []),
+            "feature_flags": feature_flags
+        }
         }
     }
 
