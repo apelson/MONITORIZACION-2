@@ -1,6 +1,6 @@
 /**
  * SuperAdminTab - Panel de Super Admin integrado en la aplicación principal
- * Permite gestionar tenants/empresas desde el panel de admin existente
+ * Permite gestionar tenants/empresas y usuarios tenant_admin
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -16,10 +16,12 @@ import { toast } from 'sonner';
 import {
   Building2, Users, Server, Plus, Pencil, Trash2, Eye,
   Shield, BarChart3, RefreshCw, Search, Ban, Check,
-  Calendar, Mail, Monitor, Activity, ChevronRight
+  Calendar, Mail, Monitor, Activity, ChevronRight, UserCog
 } from 'lucide-react';
+import TenantAdminsManager from './TenantAdminsManager';
 
 const SuperAdminTab = ({ authAxios }) => {
+  const [activeSubTab, setActiveSubTab] = useState('tenant-admins');
   const [tenants, setTenants] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
