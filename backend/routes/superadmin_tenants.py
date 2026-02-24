@@ -320,6 +320,9 @@ async def update_tenant_admin(
                 raise HTTPException(status_code=400, detail=f"Organización no encontrada: {org_id}")
         update_data["organization_ids"] = data.organization_ids
     
+    if data.feature_flags is not None:
+        update_data["feature_flags"] = data.feature_flags.model_dump()
+    
     if not update_data:
         raise HTTPException(status_code=400, detail="No hay datos para actualizar")
     
@@ -328,6 +331,35 @@ async def update_tenant_admin(
     await users_collection.update_one({"id": user_id}, {"$set": update_data})
     
     return {"message": "Usuario actualizado", "updated_fields": list(update_data.keys())}
+
+
+@router.put("/tenant-admins/{user_id}/feature-flags")
+async def update_feature_flags(
+    user_id: str,
+    data: UpdateFeatureFlagsRequest,
+    current_user: dict = Depends(require_role(["admin"]))
+):
+    """Update feature flags for a tenant admin"""
+    
+    user = await users_collection.find_one({"id": user_id, "role": "tenant_admin"})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario tenant_admin no encontrado")
+    
+    await users_collection.update_one(
+        {"id": user_id},
+        {"$set": {
+            "feature_flags": data.feature_flags.model_dump(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Módulos actualizados", "feature_flags": data.feature_flags.model_dump()}
+
+
+@router.get("/feature-flags/default")
+async def get_default_feature_flags(current_user: dict = Depends(require_role(["admin"]))):
+    """Get the default feature flags configuration"""
+    return {"default_flags": DEFAULT_FEATURE_FLAGS}
 
 
 @router.post("/tenant-admins/{user_id}/set-password")
