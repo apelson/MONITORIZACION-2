@@ -199,14 +199,33 @@ async def get_devices(
     - limit: Items per page (0 = all, default 0 for backwards compatibility)
     - status_filter: Filter by status (online/offline)
     - search: Search by name or IP
+    Multi-tenancy: non-admin users only see devices from their organizations
     """
-    query = {}
+    # Start with multi-tenancy filter
+    query = await build_device_filter(current_user)
+    
+    # Check if user has no access
+    if query.get("group_id", {}).get("$in") == []:
+        return {"devices": [], "pagination": {"page": 1, "limit": limit, "total": 0, "pages": 0}}
+    
+    # Apply additional filters
     if group_id:
+        # Verify user has access to this group
+        user_group_ids = await get_user_group_ids(current_user)
+        if user_group_ids and group_id not in user_group_ids:
+            raise HTTPException(status_code=403, detail="No tienes acceso a este grupo")
         query["group_id"] = group_id
     elif organization_id:
         group_ids = [g["id"] for g in await groups_collection.find({"organization_id": organization_id}, {"id": 1}).to_list(length=None)]
         if group_ids:
-            query["group_id"] = {"$in": group_ids}
+            # Intersect with user's accessible groups if filtered
+            if should_filter_by_tenant(current_user):
+                user_group_ids = await get_user_group_ids(current_user)
+                group_ids = [gid for gid in group_ids if gid in user_group_ids]
+            if group_ids:
+                query["group_id"] = {"$in": group_ids}
+            else:
+                return {"devices": []}
     
     # Status filter
     if status_filter and status_filter in ["online", "offline"]:
