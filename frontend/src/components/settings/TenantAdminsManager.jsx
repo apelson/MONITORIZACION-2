@@ -76,6 +76,7 @@ const TenantAdminsManager = ({ authAxios }) => {
     is_active: true
   });
   const [newPassword, setNewPassword] = useState('');
+  const [editFlags, setEditFlags] = useState({...DEFAULT_FEATURE_FLAGS});
 
   // Fetch all data
   const fetchData = useCallback(async () => {
