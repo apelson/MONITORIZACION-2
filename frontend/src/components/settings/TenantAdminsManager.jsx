@@ -2,6 +2,7 @@
  * TenantAdminsManager - Gestión de usuarios Tenant Admin
  * Permite crear, editar y asignar organizaciones a usuarios tenant_admin
  * Para el sistema multi-tenancy de la plataforma principal
+ * Incluye gestión de feature flags (módulos habilitados/deshabilitados)
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -12,12 +13,34 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import {
   Building2, Users, Plus, Pencil, Trash2, Eye, UserPlus,
   Shield, RefreshCw, Search, Key, Check, X,
-  ChevronRight, Monitor, AlertCircle
+  ChevronRight, Monitor, AlertCircle, Settings2,
+  Camera, Bell, Video, FileText, Brain, Image, ClipboardList, HardDrive
 } from 'lucide-react';
+
+// Feature flag definitions with icons and labels
+const FEATURE_FLAGS_CONFIG = {
+  devices: { label: 'Dispositivos', icon: Camera, description: 'Cámaras y dispositivos de red' },
+  alerts: { label: 'Alertas', icon: Bell, description: 'Sistema de alertas y notificaciones' },
+  cra: { label: 'CRA', icon: Shield, description: 'Central Receptora de Alarmas' },
+  dahua: { label: 'Grabadores', icon: HardDrive, description: 'DVR/NVR Dahua P2P' },
+  live_view: { label: 'Vista en Directo', icon: Video, description: 'Streaming de cámaras' },
+  incidents: { label: 'Incidencias', icon: ClipboardList, description: 'Gestión de incidentes' },
+  reports: { label: 'Reportes', icon: FileText, description: 'Estadísticas y reportes' },
+  ai_insights: { label: 'AI Insights', icon: Brain, description: 'Panel de inteligencia artificial' },
+  gallery: { label: 'Galería', icon: Image, description: 'Galería de imágenes' },
+};
+
+const DEFAULT_FEATURE_FLAGS = {
+  devices: true, alerts: true, cra: true, dahua: true,
+  live_view: true, incidents: true, reports: true,
+  ai_insights: true, gallery: true
+};
 
 const TenantAdminsManager = ({ authAxios }) => {
   // State
@@ -33,6 +56,7 @@ const TenantAdminsManager = ({ authAxios }) => {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showFlagsDialog, setShowFlagsDialog] = useState(false);
   
   // Selected item
   const [selectedUser, setSelectedUser] = useState(null);
