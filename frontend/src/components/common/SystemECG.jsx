@@ -1,25 +1,77 @@
 /**
  * System ECG Component
  * Animated ECG/heartbeat line showing real-time system health
+ * OPTIMIZED: Decoupled animation from React state to prevent re-renders
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback, memo } from 'react';
 import { cn } from '@/lib/utils';
-import { Shield, Trophy, Clock } from 'lucide-react';
+import { Shield, Trophy } from 'lucide-react';
+
+// Memoized counter display component to prevent re-renders from affecting canvas
+const UptimeDisplay = memo(({ counter, color = 'emerald' }) => {
+  const formatNumber = (num) => String(num).padStart(2, '0');
+  const colorClasses = color === 'emerald' 
+    ? { bg: 'bg-slate-800', border: 'border-slate-700', text1: 'text-emerald-400', text2: 'text-cyan-400' }
+    : { bg: 'bg-amber-900/30', border: 'border-amber-700/50', text1: 'text-amber-400', text2: 'text-amber-400' };
+
+  return (
+    <div className="flex items-center justify-center gap-0.5">
+      <div className="flex flex-col items-center">
+        <div className={`${colorClasses.bg} ${colorClasses.border} border rounded px-1 py-0.5`}>
+          <span className={`text-sm font-bold font-mono ${colorClasses.text1}`}>
+            {formatNumber(counter.days)}
+          </span>
+        </div>
+        <span className="text-[5px] text-slate-500">DÍAS</span>
+      </div>
+      <span className={`${colorClasses.text1} text-xs font-bold`}>:</span>
+      <div className="flex flex-col items-center">
+        <div className={`${colorClasses.bg} ${colorClasses.border} border rounded px-1 py-0.5`}>
+          <span className={`text-sm font-bold font-mono ${colorClasses.text1}`}>
+            {formatNumber(counter.hours)}
+          </span>
+        </div>
+        <span className="text-[5px] text-slate-500">HRS</span>
+      </div>
+      <span className={`${colorClasses.text1} text-xs font-bold`}>:</span>
+      <div className="flex flex-col items-center">
+        <div className={`${colorClasses.bg} ${colorClasses.border} border rounded px-1 py-0.5`}>
+          <span className={`text-sm font-bold font-mono ${colorClasses.text2}`}>
+            {formatNumber(counter.minutes)}
+          </span>
+        </div>
+        <span className="text-[5px] text-slate-500">MIN</span>
+      </div>
+      <span className={`${colorClasses.text2} text-xs font-bold`}>:</span>
+      <div className="flex flex-col items-center">
+        <div className={`${colorClasses.bg} ${colorClasses.border} border rounded px-1 py-0.5`}>
+          <span className={`text-sm font-bold font-mono ${colorClasses.text2}`}>
+            {formatNumber(counter.seconds)}
+          </span>
+        </div>
+        <span className="text-[5px] text-slate-500">SEG</span>
+      </div>
+    </div>
+  );
+});
+
+UptimeDisplay.displayName = 'UptimeDisplay';
 
 const SystemECG = ({ 
   healthPercent = 100, 
   hasAlerts = false,
   isAnalyzing = true,
-  lastIncidentTime = null, // ISO timestamp of last incident
-  recordTime = null, // Object { days, hours, minutes, seconds } for record
-  recordDate = null, // ISO timestamp when record was achieved
-  authAxios = null, // For saving new records
-  onRecordUpdate = null, // Callback when record is updated
+  lastIncidentTime = null,
+  recordTime = null,
+  recordDate = null,
+  authAxios = null,
+  onRecordUpdate = null,
   className 
 }) => {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
-  const [pulse, setPulse] = useState(0);
+  const pulseRef = useRef(0); // Use ref instead of state for pulse (no re-renders)
+  const pulseDisplayRef = useRef(null); // DOM ref for direct updates
   const [uptimeCounter, setUptimeCounter] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [recordCounter, setRecordCounter] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isSavingRecord, setIsSavingRecord] = useState(false);
