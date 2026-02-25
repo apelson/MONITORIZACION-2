@@ -2128,6 +2128,16 @@ const Dashboard = () => {
       setGroups(grpRes.data.groups || []);
       setDeviceTypes(typeRes.data.device_types || []);
       setAlerts(newAlerts);
+      
+      // Show onboarding for tenant_admin with no organizations
+      const orgs = orgRes.data.organizations || [];
+      if (user?.role === 'tenant_admin' && orgs.length === 0) {
+        const onboardingDismissed = localStorage.getItem(`onboarding_dismissed_${user.id}`);
+        if (!onboardingDismissed) {
+          setShowOnboarding(true);
+        }
+      }
+      
       // Only fetch admin data if user is admin
       if (user?.role === "admin") {
         const [usrRes, setRes] = await Promise.all([authAxios.get("/users"), authAxios.get("/settings")]);
