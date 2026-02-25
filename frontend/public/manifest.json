@@ -1,6 +1,6 @@
 {
-  "name": "Siempria Network Monitor",
-  "short_name": "Siempria Monitor",
+  "name": "WatchTower by Siempria",
+  "short_name": "WatchTower",
   "description": "Sistema de monitorización de red y cámaras de seguridad - Infinite Tech Solutions",
   "start_url": "/",
   "display": "standalone",

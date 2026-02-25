@@ -1,5 +1,5 @@
 """
-Configuration and database setup for Siempria Network Monitor
+Configuration and database setup for WatchTower by Siempria
 """
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv

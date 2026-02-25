@@ -69,7 +69,7 @@ export const PWAInstallPrompt = () => {
           <Smartphone className="w-6 h-6" />
         </div>
         <div className="flex-1">
-          <h4 className="font-semibold text-sm">Instalar Siempria Monitor</h4>
+          <h4 className="font-semibold text-sm">Instalar WatchTower</h4>
           <p className="text-xs text-white/80 mt-1">
             {isIOS 
               ? "Pulsa el botón compartir y 'Añadir a pantalla de inicio'"

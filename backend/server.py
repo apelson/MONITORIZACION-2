@@ -1,5 +1,5 @@
 """
-Siempria Network Monitor API - Main Server
+WatchTower by Siempria API - Main Server
 Refactored version with modular routing
 """
 from fastapi import FastAPI, APIRouter, HTTPException, Depends
@@ -212,14 +212,14 @@ async def lifespan(app: FastAPI):
     scheduler.start()
     logger.info("Scheduler started for daily reports")
     
-    logger.info("Siempria Network Monitor API started - OPTIMIZED with WebSockets")
+    logger.info("WatchTower by Siempria API started - OPTIMIZED with WebSockets")
     yield
     scheduler.shutdown()
-    logger.info("Siempria Network Monitor API stopped")
+    logger.info("WatchTower by Siempria API stopped")
 
 # ============ APP SETUP ============
 
-app = FastAPI(title="Siempria Network Monitor API", version="3.0", lifespan=lifespan)
+app = FastAPI(title="WatchTower by Siempria API", version="3.0", lifespan=lifespan)
 api_router = APIRouter(prefix="/api")
 
 # Include all routers - Original (single tenant)
@@ -271,7 +271,7 @@ api_router.include_router(download_router)
 
 @api_router.get("/")
 async def root():
-    return {"message": "Siempria Network Monitor API v3.1 (with WebSockets)"}
+    return {"message": "WatchTower by Siempria API v3.1 (with WebSockets)"}
 
 @api_router.get("/download-build")
 async def download_build():

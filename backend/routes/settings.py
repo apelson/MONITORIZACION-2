@@ -197,7 +197,7 @@ async def generate_and_send_report():
     
     html_content = f"""
     <html><body style="font-family: Arial; padding: 20px;">
-        <h1 style="color:#3b82f6">Siempria Network Monitor - Reporte</h1>
+        <h1 style="color:#3b82f6">WatchTower by Siempria - Reporte</h1>
         <p>{period_name} - {now.strftime('%d/%m/%Y %H:%M')} UTC</p>
         <div style="display:flex;gap:20px;margin:20px 0;">
             <div style="padding:20px;background:#f0f9ff;border-radius:8px;text-align:center;">
@@ -213,7 +213,7 @@ async def generate_and_send_report():
                 <div>Offline</div>
             </div>
         </div>
-        <p style="color:#666;font-size:12px">Siempria Network Monitor</p>
+        <p style="color:#666;font-size:12px">WatchTower by Siempria</p>
     </body></html>
     """
     

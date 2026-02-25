@@ -88,7 +88,7 @@ export const LoadingScreen = () => {
       
       {/* Footer */}
       <div className="absolute bottom-6 text-slate-600 text-xs">
-        © {new Date().getFullYear()} Siempria Network Monitor
+        © {new Date().getFullYear()} WatchTower by Siempria
       </div>
     </div>
   );
