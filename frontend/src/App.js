@@ -1925,6 +1925,9 @@ const Dashboard = () => {
   // Mobile menu state
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
+  // Onboarding wizard state
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  
   // Check for nocFullscreen parameter
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
