@@ -345,3 +345,93 @@ async def import_from_smartpss_text(
         "errors": result["errors"],
         "devices": result["devices"][:50]
     }
+
+
+# ============ UPTIME RECORD ENDPOINTS ============
+
+@router.get("/dahua/uptime-record")
+async def get_dahua_uptime_record(current_user: dict = Depends(get_current_user)):
+    """Get the current Dahua uptime record"""
+    from config import settings_collection
+    
+    record = await settings_collection.find_one(
+        {"type": "dahua_uptime_record"},
+        {"_id": 0}
+    )
+    
+    if record:
+        return {
+            "record": record.get("record", {"days": 0, "hours": 0, "minutes": 0, "seconds": 0}),
+            "record_date": record.get("record_date"),
+            "last_incident": record.get("last_incident")
+        }
+    
+    return {
+        "record": {"days": 0, "hours": 0, "minutes": 0, "seconds": 0},
+        "record_date": None,
+        "last_incident": None
+    }
+
+
+@router.post("/dahua/uptime-record")
+async def save_dahua_uptime_record(
+    data: dict,
+    current_user: dict = Depends(require_role(["admin"]))
+):
+    """Save a new Dahua uptime record"""
+    from config import settings_collection
+    
+    record = data.get("record", {})
+    record_date = data.get("record_date", datetime.now(timezone.utc).isoformat())
+    
+    await settings_collection.update_one(
+        {"type": "dahua_uptime_record"},
+        {
+            "$set": {
+                "type": "dahua_uptime_record",
+                "record": record,
+                "record_date": record_date,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "updated_by": current_user["id"]
+            }
+        },
+        upsert=True
+    )
+    
+    return {"message": "Record guardado", "record": record, "record_date": record_date}
+
+
+@router.post("/dahua/incident")
+async def register_dahua_incident(
+    current_user: dict = Depends(require_role(["admin"]))
+):
+    """Register a Dahua device incident (device went offline)"""
+    from config import settings_collection
+    
+    incident_time = datetime.now(timezone.utc).isoformat()
+    
+    await settings_collection.update_one(
+        {"type": "dahua_uptime_record"},
+        {
+            "$set": {
+                "last_incident": incident_time,
+                "updated_at": incident_time
+            }
+        },
+        upsert=True
+    )
+    
+    return {"message": "Incidencia registrada", "incident_time": incident_time}
+
+
+@router.get("/dahua/last-incident")
+async def get_dahua_last_incident(current_user: dict = Depends(get_current_user)):
+    """Get the last Dahua incident time"""
+    from config import settings_collection
+    
+    record = await settings_collection.find_one(
+        {"type": "dahua_uptime_record"},
+        {"_id": 0, "last_incident": 1}
+    )
+    
+    return {"last_incident": record.get("last_incident") if record else None}
