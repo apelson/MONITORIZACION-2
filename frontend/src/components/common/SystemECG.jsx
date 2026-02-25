@@ -278,11 +278,8 @@ const SystemECG = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
-    // getColor and getPulseRate depend only on healthPercent and hasAlerts which are in deps
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [healthPercent, hasAlerts, isAnalyzing]);
-
-  const formatNumber = (num) => String(num).padStart(2, '0');
+    // getColor and getPulseRate are now memoized with useCallback
+  }, [healthPercent, hasAlerts, isAnalyzing, getColor, getPulseRate]);
 
   return (
     <div className={cn("relative", className)}>
@@ -317,10 +314,14 @@ const SystemECG = ({
         </span>
       </div>
 
-      {/* Pulse rate */}
+      {/* Pulse rate - using ref for direct DOM updates */}
       <div className="absolute top-1 right-3 text-right">
-        <span className="text-xl font-bold font-mono" style={{ color: getColor() }}>
-          {pulse}
+        <span 
+          ref={pulseDisplayRef}
+          className="text-xl font-bold font-mono" 
+          style={{ color: getColor() }}
+        >
+          {getPulseRate()}
         </span>
         <span className="text-[9px] text-slate-400 ml-1">BPM</span>
       </div>
@@ -334,51 +335,7 @@ const SystemECG = ({
               <Shield className="w-3 h-3 text-emerald-400" />
               <span className="text-[8px] text-slate-400 uppercase">Sin incidencias</span>
             </div>
-            
-            {/* Counter Display - Compact */}
-            <div className="flex items-center justify-center gap-0.5">
-              <div className="flex flex-col items-center">
-                <div className="bg-slate-800 border border-slate-700 rounded px-1 py-0.5">
-                  <span className="text-sm font-bold font-mono text-emerald-400">
-                    {formatNumber(uptimeCounter.days)}
-                  </span>
-                </div>
-                <span className="text-[5px] text-slate-500">DÍAS</span>
-              </div>
-              
-              <span className="text-emerald-400 text-xs font-bold">:</span>
-              
-              <div className="flex flex-col items-center">
-                <div className="bg-slate-800 border border-slate-700 rounded px-1 py-0.5">
-                  <span className="text-sm font-bold font-mono text-emerald-400">
-                    {formatNumber(uptimeCounter.hours)}
-                  </span>
-                </div>
-                <span className="text-[5px] text-slate-500">HRS</span>
-              </div>
-              
-              <span className="text-emerald-400 text-xs font-bold">:</span>
-              
-              <div className="flex flex-col items-center">
-                <div className="bg-slate-800 border border-slate-700 rounded px-1 py-0.5">
-                  <span className="text-sm font-bold font-mono text-cyan-400">
-                    {formatNumber(uptimeCounter.minutes)}
-                  </span>
-                </div>
-                <span className="text-[5px] text-slate-500">MIN</span>
-              </div>
-              
-              <span className="text-cyan-400 text-xs font-bold">:</span>
-              
-              <div className="flex flex-col items-center">
-                <div className="bg-slate-800 border border-slate-700 rounded px-1 py-0.5">
-                  <span className="text-sm font-bold font-mono text-cyan-400 animate-pulse">
-                    {formatNumber(uptimeCounter.seconds)}
-                  </span>
-                </div>
-                <span className="text-[5px] text-slate-500">SEG</span>
-              </div>
-            </div>
+            <UptimeDisplay counter={uptimeCounter} color="emerald" />
           </div>
 
           {/* Divider */}
@@ -397,51 +354,7 @@ const SystemECG = ({
                 </span>
               )}
             </div>
-            
-            {/* Record Counter Display */}
-            <div className="flex items-center justify-center gap-0.5">
-              <div className="flex flex-col items-center">
-                <div className="bg-amber-900/30 border border-amber-700/50 rounded px-1 py-0.5">
-                  <span className="text-sm font-bold font-mono text-amber-400">
-                    {formatNumber(recordCounter.days)}
-                  </span>
-                </div>
-                <span className="text-[5px] text-slate-500">DÍAS</span>
-              </div>
-              
-              <span className="text-amber-400 text-xs font-bold">:</span>
-              
-              <div className="flex flex-col items-center">
-                <div className="bg-amber-900/30 border border-amber-700/50 rounded px-1 py-0.5">
-                  <span className="text-sm font-bold font-mono text-amber-400">
-                    {formatNumber(recordCounter.hours)}
-                  </span>
-                </div>
-                <span className="text-[5px] text-slate-500">HRS</span>
-              </div>
-              
-              <span className="text-amber-400 text-xs font-bold">:</span>
-              
-              <div className="flex flex-col items-center">
-                <div className="bg-amber-900/30 border border-amber-700/50 rounded px-1 py-0.5">
-                  <span className="text-sm font-bold font-mono text-amber-400">
-                    {formatNumber(recordCounter.minutes)}
-                  </span>
-                </div>
-                <span className="text-[5px] text-slate-500">MIN</span>
-              </div>
-              
-              <span className="text-amber-400 text-xs font-bold">:</span>
-              
-              <div className="flex flex-col items-center">
-                <div className="bg-amber-900/30 border border-amber-700/50 rounded px-1 py-0.5">
-                  <span className="text-sm font-bold font-mono text-amber-400">
-                    {formatNumber(recordCounter.seconds)}
-                  </span>
-                </div>
-                <span className="text-[5px] text-slate-500">SEG</span>
-              </div>
-            </div>
+            <UptimeDisplay counter={recordCounter} color="amber" />
           </div>
         </div>
       </div>
