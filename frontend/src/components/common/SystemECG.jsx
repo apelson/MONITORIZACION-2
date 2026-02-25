@@ -77,19 +77,18 @@ const SystemECG = ({
   const [isSavingRecord, setIsSavingRecord] = useState(false);
   const lastSaveAttemptRef = useRef(0);
 
-  // Determine color based on health
-  const getColor = () => {
-    if (healthPercent >= 95) return '#10b981'; // Emerald
-    if (healthPercent >= 80) return '#f59e0b'; // Amber
-    return '#ef4444'; // Red
-  };
+  // Memoized color and pulse rate calculations
+  const getColor = useCallback(() => {
+    if (healthPercent >= 95) return '#10b981';
+    if (healthPercent >= 80) return '#f59e0b';
+    return '#ef4444';
+  }, [healthPercent]);
 
-  // Determine pulse rate based on health
-  const getPulseRate = () => {
+  const getPulseRate = useCallback(() => {
     if (healthPercent >= 95) return 60;
     if (healthPercent >= 80) return 80;
     return 100;
-  };
+  }, [healthPercent]);
 
   // Calculate uptime counter
   useEffect(() => {
