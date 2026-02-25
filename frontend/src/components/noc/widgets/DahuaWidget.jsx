@@ -12,6 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import DahuaECG from '@/components/common/DahuaECG';
 
 // Dahua official logo
 const DAHUA_LOGO = "https://customer-assets.emergentagent.com/job_9daa6c94-1292-4e32-a6ac-374cc483718a/artifacts/er710utf_dahua-technology-logo.png";
@@ -21,15 +22,26 @@ const DahuaWidget = ({ authAxios, onDeviceClick, className }) => {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
+  const [lastIncident, setLastIncident] = useState(null);
+  const [uptimeRecord, setUptimeRecord] = useState(null);
+  const [recordDate, setRecordDate] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
-      const [devicesRes, statusRes] = await Promise.all([
+      const [devicesRes, statusRes, recordRes] = await Promise.all([
         authAxios.get('/dahua/devices'),
-        authAxios.get('/dahua/status')
+        authAxios.get('/dahua/status'),
+        authAxios.get('/dahua/uptime-record').catch(() => ({ data: {} }))
       ]);
       setDevices(devicesRes.data.devices || []);
       setSummary(statusRes.data.summary || null);
+      
+      // Set uptime record data
+      if (recordRes.data) {
+        setLastIncident(recordRes.data.last_incident || null);
+        setUptimeRecord(recordRes.data.record || null);
+        setRecordDate(recordRes.data.record_date || null);
+      }
     } catch (error) {
       console.error('Error fetching Dahua data:', error);
     } finally {
