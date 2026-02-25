@@ -258,8 +258,12 @@ const SystemECG = ({
         ctx.fillRect(0, 0, width, height);
       }
 
-      if (beatProgress < 0.05) {
-        setPulse(pulseRate);
+      if (beatProgress < 0.05 && pulseRef.current !== pulseRate) {
+        pulseRef.current = pulseRate;
+        // Direct DOM update - no React re-render
+        if (pulseDisplayRef.current) {
+          pulseDisplayRef.current.textContent = pulseRate;
+        }
       }
 
       animationRef.current = requestAnimationFrame(animate);
