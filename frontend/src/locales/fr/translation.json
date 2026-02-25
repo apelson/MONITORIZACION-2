@@ -381,7 +381,7 @@
     "saveConfig": "Enregistrer la configuration"
   },
   "pwa": {
-    "installTitle": "Installer Siempria Monitor",
+    "installTitle": "Installer WatchTower",
     "installIOS": "Appuyez sur Partager puis 'Ajouter à l'écran d'accueil'",
     "installAndroid": "Installez l'app pour un accès rapide",
     "installBtn": "Installer l'app"

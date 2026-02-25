@@ -426,7 +426,7 @@
     "saveConfig": "Konfiguration speichern"
   },
   "pwa": {
-    "installTitle": "Siempria Monitor installieren",
+    "installTitle": "WatchTower installieren",
     "installIOS": "Tippen Sie auf Teilen und 'Zum Home-Bildschirm'",
     "installAndroid": "App installieren für schnellen Zugriff und Benachrichtigungen",
     "installBtn": "App installieren"
