@@ -145,6 +145,24 @@ const DahuaWidget = ({ authAxios, onDeviceClick, className }) => {
           </div>
         </div>
       </CardHeader>
+      
+      {/* ECG Monitor */}
+      <div className="px-4 pb-2">
+        <DahuaECG
+          onlineCount={summary?.online || 0}
+          offlineCount={summary?.offline || 0}
+          totalDevices={devices.length}
+          lastIncidentTime={lastIncident}
+          recordTime={uptimeRecord}
+          recordDate={recordDate}
+          authAxios={authAxios}
+          onRecordUpdate={(newRecord, newDate) => {
+            setUptimeRecord(newRecord);
+            setRecordDate(newDate);
+          }}
+        />
+      </div>
+      
       <CardContent className="flex-1 overflow-hidden pt-0">
         <ScrollArea className="h-full">
           <div className="space-y-2 pr-2">
