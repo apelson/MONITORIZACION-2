@@ -3394,6 +3394,25 @@ const Dashboard = () => {
         }}
       />
 
+      {/* Onboarding Wizard for new tenant_admin */}
+      <OnboardingWizard
+        isOpen={showOnboarding}
+        onClose={() => {
+          setShowOnboarding(false);
+          if (user?.id) {
+            localStorage.setItem(`onboarding_dismissed_${user.id}`, 'true');
+          }
+        }}
+        authAxios={authAxios}
+        user={user}
+        onComplete={() => {
+          fetchAll();
+          if (user?.id) {
+            localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
+          }
+        }}
+      />
+
       {/* Footer */}
       <footer className="border-t bg-muted/30 mt-auto">
         <div className="container mx-auto max-w-7xl px-6 py-4">
