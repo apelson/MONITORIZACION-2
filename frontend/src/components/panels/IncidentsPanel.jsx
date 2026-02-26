@@ -79,7 +79,7 @@ const IncidentsPanel = ({ devices, authAxios }) => {
       fetchIncidents();
       setShowDialog(false);
       setEditingIncident(null);
-      setFormData({ title: "", description: "", device_id: "", priority: "medium", category: "network" });
+      setFormData({ title: "", description: "", device_id: "", priority: "medium", category: "network", status: "open" });
     } catch (error) {
       toast.error(error.response?.data?.detail || "Error al guardar");
     }
