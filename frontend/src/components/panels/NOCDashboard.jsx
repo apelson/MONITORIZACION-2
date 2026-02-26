@@ -1858,12 +1858,12 @@ const NOCDashboard = ({
                         <Icon className={cn("w-3 h-3 shrink-0", isInMaintenance ? "text-amber-400" : "text-red-400")} />
                         <span className="text-[11px] text-white truncate">{device.name}</span>
                         {label && <Badge className={`${labelColor} text-[8px] px-1 py-0`}>{label}</Badge>}
-                        {/* Status icons */}
+                        {/* Status icons - both can coexist */}
                         {isInMaintenance && (
                           <Wrench className="w-3 h-3 text-amber-400 shrink-0" title="En mantenimiento" />
                         )}
                         {hasOpenIncident && (
-                          <FileText className="w-3 h-3 text-blue-400 shrink-0" title="Incidencia abierta" />
+                          <ClipboardList className="w-3 h-3 text-blue-400 shrink-0" title="Incidencia abierta" />
                         )}
                       </div>
                       <span className={cn("text-[10px] ml-2", isInMaintenance ? "text-amber-400" : "text-red-400")}>
