@@ -82,6 +82,9 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
   };
 
   const formatRemainingTime = (minutes) => {
+    if (minutes === -1 || minutes === null) {
+      return "Indefinido";
+    }
     if (minutes >= 60) {
       const hours = Math.floor(minutes / 60);
       const mins = minutes % 60;
@@ -90,25 +93,12 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
     return `${minutes}m`;
   };
 
-  // Filter devices that are NOT in maintenance, NOT DVRs/Dahua, and match search
+  // Filter devices that are NOT in maintenance and match search
+  // Now includes ALL devices including DVRs/Grabadores
   const availableDevices = useMemo(() => {
     let filtered = devices.filter(
       (d) => !maintenanceDevices.find((m) => m.id === d.id)
     );
-    
-    // Exclude DVRs/Dahua devices (type_id contains 'dahua' or device_type_id is 'dahua')
-    filtered = filtered.filter(d => {
-      const typeId = (d.device_type_id || '').toLowerCase();
-      const brand = (d.brand || '').toLowerCase();
-      const name = (d.name || '').toLowerCase();
-      // Exclude if it's a Dahua DVR/NVR
-      const isDahua = typeId.includes('dahua') || 
-                      brand.includes('dahua') || 
-                      name.includes('dvr') || 
-                      name.includes('nvr') ||
-                      name.includes('grabador');
-      return !isDahua;
-    });
     
     // Filter by search query
     if (searchQuery.trim()) {
