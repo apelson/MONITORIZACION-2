@@ -13,7 +13,7 @@ cd /opt/siempria-monitor
 # ============================================
 echo "📥 Descargando archivos..."
 
-BASE_URL="https://vms-monitoring.preview.emergentagent.com/api/download-file"
+BASE_URL="https://login-redesign-17.preview.emergentagent.com/api/download-file"
 
 # === FRONTEND ===
 
