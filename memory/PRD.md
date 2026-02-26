@@ -22,7 +22,14 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 
 ### Latest Changes (Session 2)
 
-#### 1. Maintenance Panel Improvements (`MaintenancePanel.jsx`)
+#### 1. Real-Time System Metrics via WebSocket
+- Created new WebSocket endpoint `/api/ws/system-metrics`
+- CPU and RAM metrics update every 2 seconds in real-time
+- Automatic fallback to HTTP polling (3s) if WebSocket fails
+- WebSocket reconnection on disconnect (5s delay)
+- Visual ECG animation shows live system load
+
+#### 2. Maintenance Panel Improvements (`MaintenancePanel.jsx`)
 - Added search bar with placeholder "Buscar por nombre, IP, ubicación..."
 - Implemented sorting: offline devices first, then by high latency, then alphabetically
 - Excluded DVR/Dahua/NVR/grabador devices from the maintenance list
