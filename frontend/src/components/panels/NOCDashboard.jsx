@@ -1753,9 +1753,7 @@ const NOCDashboard = ({
       <div className="h-14 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-cyan-500/20 flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
-              <Monitor className="w-5 h-5 text-cyan-400" />
-            </div>
+            <img src={LOGO_URL} alt="Siempria" className="h-9 object-contain" />
             <div>
               <h1 className="text-base font-bold text-white flex items-center gap-2">
                 WatchTower NOC by SIEMPRIA
@@ -1763,8 +1761,8 @@ const NOCDashboard = ({
               <p className="text-[10px] text-slate-400">Centro de Operaciones de Red 24/7</p>
             </div>
           </div>
-          <div className="h-8 w-px bg-slate-700" />
-          <img src={LOGO_URL} alt="Siempria" className="h-8 object-contain" />
+          {/* Mini ECG next to title */}
+          <MiniECG color="#06b6d4" width={60} height={24} />
           <div className="h-8 w-px bg-slate-700" />
           {/* System Resource Monitor */}
           <SystemResourceMonitor authAxios={authAxios} />
