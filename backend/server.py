@@ -1053,7 +1053,7 @@ async def download_vpn():
     raise HTTPException(status_code=404, detail="File not found")
 
 # Endpoint para descargar system_stats.py
-@app.get("/download-system-stats")
+@api_router.get("/download-system-stats")
 async def download_system_stats():
     """Download system_stats.py - no auth required"""
     file_path = "/app/backend/routes/system_stats.py"
