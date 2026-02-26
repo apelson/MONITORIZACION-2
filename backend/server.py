@@ -1099,10 +1099,40 @@ from fastapi.responses import FileResponse
 import os
 
 @app.get("/api/download/{filename}")
-async def download_file(filename: str):
-    file_path = f"/app/backend/static_files/{filename}"
-    if os.path.exists(file_path):
-        return FileResponse(file_path, filename=filename, media_type='application/octet-stream')
+async def download_file_dynamic(filename: str):
+    """Download source files for production updates"""
+    from fastapi.responses import PlainTextResponse
+    
+    # Map filenames to actual paths
+    file_mappings = {
+        "App.js": "/app/frontend/src/App.js",
+        "MaintenancePanel.jsx": "/app/frontend/src/components/panels/MaintenancePanel.jsx",
+        "ServerCard.jsx": "/app/frontend/src/components/devices/ServerCard.jsx",
+        "InfrastructureWidget.jsx": "/app/frontend/src/components/noc/widgets/InfrastructureWidget.jsx",
+        "websocket.py": "/app/backend/routes/websocket.py",
+        "telegram_service.py": "/app/backend/services/telegram_service.py",
+    }
+    
+    # First check mapped files
+    file_path = file_mappings.get(filename)
+    if file_path and os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        if filename.endswith('.py'):
+            media_type = "text/x-python"
+        elif filename.endswith('.js') or filename.endswith('.jsx'):
+            media_type = "application/javascript"
+        else:
+            media_type = "text/plain"
+        
+        return PlainTextResponse(content, media_type=media_type)
+    
+    # Fallback to static files
+    static_path = f"/app/backend/static_files/{filename}"
+    if os.path.exists(static_path):
+        return FileResponse(static_path, filename=filename, media_type='application/octet-stream')
+    
     raise HTTPException(status_code=404, detail=f"File not found: {filename}")
 
 # Endpoint público para descargar actualización (sin auth)
