@@ -2618,6 +2618,15 @@ const Dashboard = () => {
                 <Network className="w-3.5 h-3.5 text-green-400" />
                 <span className="status-count text-green-400 text-sm font-semibold">{vpnStats.online}/{vpnStats.total}</span>
               </button>
+              <div className="status-hud-divider h-4" />
+              <button 
+                onClick={() => setActiveTab('infrastructure')} 
+                className="status-hud-item hover:bg-purple-500/10 px-1.5 py-0.5 rounded transition-all"
+                title="Infraestructura (ESXi, NAS)"
+              >
+                <Server className="w-3.5 h-3.5 text-purple-400" />
+                <span className="status-count text-purple-400 text-sm font-semibold">{infraStats.online}/{infraStats.total}</span>
+              </button>
             </div>
 
             {/* Right: Actions */}
