@@ -1071,7 +1071,7 @@ async def download_mini_ecg():
     raise HTTPException(status_code=404, detail="File not found")
 
 # Endpoint para descargar SystemResourceMonitor.jsx
-@app.get("/download-system-monitor")
+@api_router.get("/download-system-monitor")
 async def download_system_monitor():
     """Download SystemResourceMonitor.jsx - no auth required"""
     file_path = "/app/frontend/src/components/common/SystemResourceMonitor.jsx"
