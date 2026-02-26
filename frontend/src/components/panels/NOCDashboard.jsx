@@ -122,6 +122,8 @@ const NOCDashboard = ({
   const [savingPrefs, setSavingPrefs] = useState(false);
   const [uptimeRecord, setUptimeRecord] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [recordDate, setRecordDate] = useState(null);
+  const [lastIncidentTime, setLastIncidentTime] = useState(Date.now());
+  const [recordUptime, setRecordUptime] = useState(0);
   const [dahuaDevices, setDahuaDevices] = useState([]);
   const [dahuaSummary, setDahuaSummary] = useState({ online: 0, offline: 0 });
   const [vpnSummary, setVpnSummary] = useState({ total: 0, online: 0, offline: 0 });
@@ -131,6 +133,17 @@ const NOCDashboard = ({
   const presentationRef = useRef(null);
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(1200);
+
+  // Format uptime counter (dd:hh:mm:ss)
+  const formatUptimeCounter = (ms) => {
+    if (!ms || ms < 0) return '00:00:00:00';
+    const totalSeconds = Math.floor(ms / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(days).padStart(2, '0')}:${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
 
   // Load dashboard preferences from server
   useEffect(() => {
