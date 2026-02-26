@@ -2389,9 +2389,9 @@ const Dashboard = () => {
               <img src={LOGO_URL} alt="Siempria" className="hidden md:block h-11 object-contain header-logo" />
               <div className="hidden md:block">
                 <h1 className="text-base font-bold tracking-wider header-brand-title" style={{fontFamily: "'JetBrains Mono', monospace"}}>
-                  SIEMPRIA MONITOR
+                  WatchTower
                 </h1>
-                <p className="header-brand-subtitle">Network Monitoring System</p>
+                <p className="header-brand-subtitle">by SIEMPRIA</p>
               </div>
               {/* Mobile logo */}
               <img src={LOGO_URL} alt="Siempria" className="md:hidden h-9 object-contain header-logo" />
