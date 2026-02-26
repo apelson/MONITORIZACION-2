@@ -34,12 +34,16 @@ FILES = {
     "AccessLogsPanel.jsx": "/app/frontend/src/components/panels/AccessLogsPanel.jsx",
     "DailyReportPanel.jsx": "/app/frontend/src/components/panels/DailyReportPanel.jsx",
     "ScheduledReportsPanel.jsx": "/app/frontend/src/components/panels/ScheduledReportsPanel.jsx",
-    "IncidentsPanel.jsx": "/app/frontend/src/components/panels/IncidentsPanel.jsx",
     "InfrastructurePanel.jsx": "/app/frontend/src/components/panels/InfrastructurePanel.jsx",
     "CRADashboard.jsx": "/app/frontend/src/components/panels/CRADashboard.jsx",
     "DeviceGallery.jsx": "/app/frontend/src/components/panels/DeviceGallery.jsx",
     "LiveViewer.jsx": "/app/frontend/src/components/panels/LiveViewer.jsx",
     "SuperAdminTab.jsx": "/app/frontend/src/components/panels/SuperAdminTab.jsx",
+    # New files added for latest update
+    "MaintenancePanel.jsx": "/app/frontend/src/components/panels/MaintenancePanel.jsx",
+    "InfrastructureWidget.jsx": "/app/frontend/src/components/noc/widgets/InfrastructureWidget.jsx",
+    "websocket.py": "/app/backend/routes/websocket.py",
+    "telegram_service.py": "/app/backend/services/telegram_service.py",
 }
 
 @router.get("/download/{filename}")
