@@ -215,12 +215,7 @@ const LoginPage = ({ login }) => {
           WATCH TOWER
         </h1>
         
-        <p 
-          className="text-sm tracking-[0.3em] uppercase mb-1 transition-all duration-[2000ms]"
-          style={{
-            color: textGlow ? '#00d4ff' : '#0099b8',
-          }}
-        >
+        <p className="text-lg tracking-[0.3em] uppercase mb-1 text-white font-semibold">
           by Siempria
         </p>
         
