@@ -2063,7 +2063,7 @@ const Dashboard = () => {
     fetchingRef.current = true;
     try {
       // Load stats separately (fast, cached) and ALL devices
-      const [statsRes, devRes, orgRes, grpRes, typeRes, alertRes, dahuaRes, vpnRes] = await Promise.all([
+      const [statsRes, devRes, orgRes, grpRes, typeRes, alertRes, dahuaRes, vpnRes, infraRes] = await Promise.all([
         authAxios.get("/devices/stats"),
         authAxios.get("/devices?limit=1000"), 
         authAxios.get("/organizations"), 
@@ -2071,7 +2071,8 @@ const Dashboard = () => {
         authAxios.get("/device-types"), 
         authAxios.get("/alerts?period=month&limit=200"),
         authAxios.get("/dahua/status").catch(() => ({ data: { summary: { total: 0, online: 0 } } })),
-        authAxios.get("/vpn/status").catch(() => ({ data: { total: 0, online: 0 } }))
+        authAxios.get("/vpn/status").catch(() => ({ data: { summary: { total: 0, online: 0 } } })),
+        authAxios.get("/infrastructure").catch(() => ({ data: { devices: [] } }))
       ]);
       
       // Use stats for header counters (faster)
@@ -2092,6 +2093,16 @@ const Dashboard = () => {
         setVpnStats({ 
           total: vpnRes.data.summary.total || 0, 
           online: vpnRes.data.summary.online || 0 
+        });
+      }
+      
+      // Infrastructure stats
+      if (infraRes.data && infraRes.data.devices) {
+        const infraDevices = infraRes.data.devices;
+        const infraOnline = infraDevices.filter(d => d.status === 'online' || d.online === true).length;
+        setInfraStats({ 
+          total: infraDevices.length, 
+          online: infraOnline 
         });
       }
       
