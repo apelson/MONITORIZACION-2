@@ -2053,11 +2053,11 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchResources = async () => {
       try {
-        const res = await authAxios.get('/settings/system-status/quick');
-        if (res.data) {
+        const res = await authAxios.get('/system-status');
+        if (res.data?.system) {
           setHeaderResources({
-            cpu: res.data.cpu_percent || 0,
-            ram: res.data.memory_percent || 0
+            cpu: res.data.system.cpu_percent || 0,
+            ram: res.data.system.memory?.percent || 0
           });
         }
       } catch (e) {
