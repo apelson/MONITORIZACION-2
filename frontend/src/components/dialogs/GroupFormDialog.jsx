@@ -17,26 +17,33 @@ const COLORS = [
   "#dc2626", "#7c3aed", "#db2777", "#059669", "#ca8a04"
 ];
 
-export const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) => {
+export const GroupFormDialog = ({ open, onOpenChange, group, organizations = [], onSave }) => {
   const { t } = useTranslation();
-  const [formData, setFormData] = useState({ name: "", organization_id: "", description: "", color: "#22c55e" });
+  const [formData, setFormData] = useState({ 
+    name: "", 
+    organization_id: "", 
+    description: "", 
+    color: "#22c55e" 
+  });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (group) {
-      setFormData({ 
-        name: group.name || "", 
-        organization_id: group.organization_id || "", 
-        description: group.description || "", 
-        color: group.color || "#22c55e" 
-      });
-    } else {
-      setFormData({ 
-        name: "", 
-        organization_id: organizations[0]?.id || "", 
-        description: "", 
-        color: "#22c55e" 
-      });
+    if (open) {
+      if (group) {
+        setFormData({ 
+          name: group.name || "", 
+          organization_id: group.organization_id || "", 
+          description: group.description || "", 
+          color: group.color || "#22c55e" 
+        });
+      } else {
+        setFormData({ 
+          name: "", 
+          organization_id: organizations[0]?.id || "", 
+          description: "", 
+          color: "#22c55e" 
+        });
+      }
     }
   }, [group, open, organizations]);
 
