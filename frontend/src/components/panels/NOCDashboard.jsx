@@ -1797,6 +1797,7 @@ const NOCDashboard = ({
     <div className="fixed inset-0 z-[9999] bg-slate-950 text-white flex flex-col" data-testid="noc-dashboard">
       {/* Header */}
       <div className="h-14 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-cyan-500/20 flex items-center justify-between px-4 shrink-0">
+        {/* Left side - Logo and title */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3">
             <img src={LOGO_URL} alt="Siempria" className="h-9 object-contain" />
@@ -1809,8 +1810,10 @@ const NOCDashboard = ({
           </div>
           {/* Mini ECG next to title */}
           <MiniECG color="#06b6d4" width={60} height={24} />
-          <div className="h-8 w-px bg-slate-700" />
-          {/* System Resource Monitor */}
+        </div>
+        
+        {/* Center - System Resource Monitor */}
+        <div className="absolute left-1/2 transform -translate-x-1/2">
           <SystemResourceMonitor authAxios={authAxios} />
         </div>
         
