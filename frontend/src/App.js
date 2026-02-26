@@ -2400,28 +2400,28 @@ const Dashboard = () => {
 
       {/* Header - Premium Professional Design */}
       <header className="app-header">
-        <div className="container mx-auto max-w-7xl px-4 md:px-6 py-2">
+        <div className="container mx-auto max-w-7xl px-4 md:px-6 py-1.5">
           <div className="flex items-center justify-between">
             {/* Logo Section - Left */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               {/* Mobile hamburger menu button */}
               <Button
                 variant="ghost"
                 size="sm"
-                className="md:hidden p-1.5 text-slate-300 hover:text-white hover:bg-slate-800/50"
+                className="md:hidden p-1 text-slate-300 hover:text-white hover:bg-slate-800/50"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 <Menu className="w-4 h-4" />
               </Button>
-              <img src={LOGO_URL} alt="WatchTower" className="hidden md:block h-7 object-contain header-logo" />
-              <div className="hidden md:block leading-tight">
-                <h1 className="text-xs font-bold tracking-wider header-brand-title" style={{fontFamily: "'JetBrains Mono', monospace"}}>
+              <img src={LOGO_URL} alt="WatchTower" className="hidden md:block h-6 w-6 object-contain header-logo" />
+              <div className="hidden md:flex flex-col justify-center leading-none">
+                <h1 className="text-[10px] font-bold tracking-wider header-brand-title whitespace-nowrap" style={{fontFamily: "'JetBrains Mono', monospace"}}>
                   WATCH TOWER
                 </h1>
-                <p className="header-brand-subtitle text-[7px] opacity-60">Administración</p>
+                <p className="header-brand-subtitle text-[7px] opacity-50 uppercase tracking-widest">Administración</p>
               </div>
               {/* Mobile logo */}
-              <img src={LOGO_URL} alt="WatchTower" className="md:hidden h-6 object-contain header-logo" />
+              <img src={LOGO_URL} alt="WatchTower" className="md:hidden h-5 w-5 object-contain header-logo" />
             </div>
             
             {/* Center: Status HUD - Ultra Compact */}
