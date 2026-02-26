@@ -1234,12 +1234,13 @@ async def list_noc_files():
     
     # NOC panels
     panels_path = "/app/frontend/src/components/panels"
-    for f in ["NOCDashboard.jsx", "NOCDashboardRefactored.jsx"]:
+    for f in ["NOCDashboard.jsx", "NOCDashboardRefactored.jsx", "MaintenancePanel.jsx"]:
         if os.path.exists(os.path.join(panels_path, f)):
             files.append(f"components/panels/{f}")
     
-    # Backend websocket
+    # Backend websocket and telegram service
     files.append("routes/websocket.py")
+    files.append("services/telegram_service.py")
     
     return {"files": files}
 
