@@ -2614,17 +2614,10 @@ const Dashboard = () => {
                     <path 
                       d="M0,10 L10,10 L15,5 L20,15 L25,8 L30,12 L35,10 L45,10 L50,3 L55,17 L60,10 L70,10 L75,6 L80,14 L85,9 L90,11 L100,10" 
                       fill="none" 
-                      stroke="url(#ecgGradient)" 
+                      stroke="#06b6d4"
                       strokeWidth="1.5"
-                      className="animate-pulse"
+                      className="ecg-line"
                     />
-                    <defs>
-                      <linearGradient id="ecgGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.3" />
-                        <stop offset="50%" stopColor="#06b6d4" stopOpacity="1" />
-                        <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.3" />
-                      </linearGradient>
-                    </defs>
                   </svg>
                 </div>
               </div>
