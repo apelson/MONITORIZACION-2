@@ -2047,7 +2047,7 @@ const Dashboard = () => {
   }, []);
   
   // System resources state for header ECG
-  const [headerResources, setHeaderResources] = useState({ cpu: 0, ram: 0 });
+  const [headerResources, setHeaderResources] = useState({ cpu: 0, ram: 0, hdd: 0, net_up: 0, net_down: 0 });
   
   // Real-time system resources via WebSocket (with polling fallback)
   useEffect(() => {
@@ -2081,7 +2081,10 @@ const Dashboard = () => {
             if (data.type === 'metrics') {
               setHeaderResources({
                 cpu: data.cpu || 0,
-                ram: data.ram || 0
+                ram: data.ram || 0,
+                hdd: data.hdd || 0,
+                net_up: data.net_up || 0,
+                net_down: data.net_down || 0
               });
             }
           } catch (e) {
@@ -2120,7 +2123,10 @@ const Dashboard = () => {
         if (res.data?.system) {
           setHeaderResources({
             cpu: res.data.system.cpu_percent || 0,
-            ram: res.data.system.memory?.percent || 0
+            ram: res.data.system.memory?.percent || 0,
+            hdd: res.data.system.disk?.percent || 0,
+            net_up: 0,
+            net_down: 0
           });
         }
       } catch (e) {
