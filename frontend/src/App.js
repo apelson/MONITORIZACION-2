@@ -1149,11 +1149,16 @@ const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) =
   const [formData, setFormData] = useState({ name: "", organization_id: "", description: "", color: "#22c55e" });
   const [saving, setSaving] = useState(false);
   const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#f97316", "#14b8a6", "#6366f1", "#a855f7", "#e11d48", "#0ea5e9", "#65a30d", "#dc2626", "#7c3aed", "#db2777", "#059669", "#ca8a04"];
+  const prevOpenRef = React.useRef(false);
 
   useEffect(() => {
-    if (group) setFormData({ name: group.name || "", organization_id: group.organization_id || "", description: group.description || "", color: group.color || "#22c55e" });
-    else setFormData({ name: "", organization_id: organizations[0]?.id || "", description: "", color: "#22c55e" });
-  }, [group, open, organizations]);
+    // Only initialize when dialog OPENS (transition from closed to open)
+    if (open && !prevOpenRef.current) {
+      if (group) setFormData({ name: group.name || "", organization_id: group.organization_id || "", description: group.description || "", color: group.color || "#22c55e" });
+      else setFormData({ name: "", organization_id: organizations[0]?.id || "", description: "", color: "#22c55e" });
+    }
+    prevOpenRef.current = open;
+  }, [open, group]); // REMOVED organizations from dependencies
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1164,7 +1169,10 @@ const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) =
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle>{group ? t('groups.editGroup', 'Editar Grupo') : t('groups.newGroup', 'Nuevo Grupo')}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{group ? t('groups.editGroup', 'Editar Grupo') : t('groups.newGroup', 'Nuevo Grupo')}</DialogTitle>
+          <DialogDescription>Los grupos organizan dispositivos dentro de una organización</DialogDescription>
+        </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2"><Label>{t('common.name', 'Nombre')} *</Label><Input data-testid="group-name-input" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
