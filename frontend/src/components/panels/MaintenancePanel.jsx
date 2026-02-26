@@ -25,6 +25,52 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh, onCreateIncident
   const [reason, setReason] = useState("");
   const [processing, setProcessing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Incident dialog state
+  const [showIncidentModal, setShowIncidentModal] = useState(false);
+  const [incidentDevice, setIncidentDevice] = useState(null);
+  const [incidentData, setIncidentData] = useState({ title: "", description: "", severity: "medium" });
+  const [creatingIncident, setCreatingIncident] = useState(false);
+
+  // Open incident dialog for a device
+  const handleOpenIncident = (device) => {
+    setIncidentDevice(device);
+    setIncidentData({
+      title: `Incidencia: ${device.name}`,
+      description: `Dispositivo: ${device.name}\nIP: ${device.ip_address || device.ip}\nEstado: ${device.status === 'offline' ? 'OFFLINE' : 'Online'}\n\nDescripción del problema:\n`,
+      severity: device.status === 'offline' ? 'high' : 'medium'
+    });
+    setShowIncidentModal(true);
+  };
+
+  // Create incident
+  const handleCreateIncident = async () => {
+    if (!incidentDevice || !incidentData.title) {
+      toast.error("Título requerido");
+      return;
+    }
+    
+    setCreatingIncident(true);
+    try {
+      await authAxios.post("/incidents", {
+        title: incidentData.title,
+        description: incidentData.description,
+        severity: incidentData.severity,
+        device_id: incidentDevice.id,
+        device_name: incidentDevice.name,
+        status: "open"
+      });
+      toast.success(`Incidencia creada para ${incidentDevice.name}`);
+      setShowIncidentModal(false);
+      setIncidentDevice(null);
+      setIncidentData({ title: "", description: "", severity: "medium" });
+      if (onCreateIncident) onCreateIncident();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Error al crear incidencia");
+    } finally {
+      setCreatingIncident(false);
+    }
+  };
 
   const fetchMaintenanceDevices = useCallback(async () => {
     try {
