@@ -325,6 +325,56 @@ api_router.include_router(system_stats_router)
 # Include download router for production updates
 api_router.include_router(download_router)
 
+# ============ DOWNLOAD ENDPOINTS FOR PRODUCTION UPDATE ============
+
+@api_router.get("/dl/noc")
+async def dl_noc():
+    """Download corrected NOCDashboard.jsx"""
+    file_path = "/app/backend/static_files/NOCDashboard_corrected.jsx"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="NOCDashboard.jsx", media_type='text/plain; charset=utf-8')
+    raise HTTPException(status_code=404, detail="File not found")
+
+@api_router.get("/dl/vpn")
+async def dl_vpn():
+    """Download vpn.py"""
+    file_path = "/app/backend/routes/vpn.py"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="vpn.py", media_type='text/plain; charset=utf-8')
+    raise HTTPException(status_code=404, detail="File not found")
+
+@api_router.get("/dl/system-stats")
+async def dl_system_stats():
+    """Download system_stats.py"""
+    file_path = "/app/backend/routes/system_stats.py"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="system_stats.py", media_type='text/plain; charset=utf-8')
+    raise HTTPException(status_code=404, detail="File not found")
+
+@api_router.get("/dl/mini-ecg")
+async def dl_mini_ecg():
+    """Download MiniECG.jsx"""
+    file_path = "/app/frontend/src/components/common/MiniECG.jsx"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="MiniECG.jsx", media_type='text/plain; charset=utf-8')
+    raise HTTPException(status_code=404, detail="File not found")
+
+@api_router.get("/dl/system-monitor")
+async def dl_system_monitor():
+    """Download SystemResourceMonitor.jsx"""
+    file_path = "/app/frontend/src/components/common/SystemResourceMonitor.jsx"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="SystemResourceMonitor.jsx", media_type='text/plain; charset=utf-8')
+    raise HTTPException(status_code=404, detail="File not found")
+
+@api_router.get("/dl/vpn-widget")
+async def dl_vpn_widget():
+    """Download VPNWidget.jsx"""
+    file_path = "/app/frontend/src/components/noc/widgets/VPNWidget.jsx"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="VPNWidget.jsx", media_type='text/plain; charset=utf-8')
+    raise HTTPException(status_code=404, detail="File not found")
+
 # ============ ROOT & IMAGE PROXY ============
 
 @api_router.get("/")
