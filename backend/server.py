@@ -1099,3 +1099,13 @@ async def list_noc_files():
     files.append("routes/websocket.py")
     
     return {"files": files}
+
+# Temporary endpoint to download update files
+@app.get("/download-update")
+async def download_update():
+    import os
+    from fastapi.responses import FileResponse
+    file_path = "/app/backend/static_files/siempria-update.tar.gz"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="siempria-update.tar.gz", media_type="application/gzip")
+    return {"error": "File not found"}
