@@ -2429,7 +2429,7 @@ const Dashboard = () => {
               <div className="status-hud-item online">
                 <div className="status-dot status-dot-online" />
                 <div className="flex flex-col items-center">
-                  <span className="status-count text-lg">{onlineCount}</span>
+                  <span className="status-count text-lg">{totalOnline}</span>
                   <span className="status-hud-label hidden sm:block text-[9px]">ONLINE</span>
                 </div>
               </div>
@@ -2441,7 +2441,7 @@ const Dashboard = () => {
               >
                 <div className="status-dot status-dot-offline" />
                 <div className="flex flex-col items-center">
-                  <span className="status-count text-lg">{offlineCount}</span>
+                  <span className="status-count text-lg">{totalOffline}</span>
                   <span className="status-hud-label hidden sm:block text-[9px]">OFFLINE</span>
                 </div>
                 {recentFailures.length > 0 && <Bell className="w-3 h-3 text-red-400 animate-pulse ml-1" />}
@@ -2456,6 +2456,18 @@ const Dashboard = () => {
                 <div className="flex flex-col items-center">
                   <span className="status-count text-blue-400 text-lg">{dvrStats.online}/{dvrStats.total}</span>
                   <span className="status-hud-label hidden sm:block text-blue-400 text-[9px]">DVR</span>
+                </div>
+              </button>
+              <div className="status-hud-divider" />
+              <button 
+                onClick={() => setActiveTab('devices')} 
+                className="status-hud-item vpn hover:bg-green-500/10 px-2 py-1 rounded-full transition-all"
+                title="Ver VPN Tunnels"
+              >
+                <Network className="w-4 h-4 text-green-400" />
+                <div className="flex flex-col items-center">
+                  <span className="status-count text-green-400 text-lg">{vpnStats.online}/{vpnStats.total}</span>
+                  <span className="status-hud-label hidden sm:block text-green-400 text-[9px]">VPN</span>
                 </div>
               </button>
             </div>
