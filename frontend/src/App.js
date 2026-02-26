@@ -2072,8 +2072,11 @@ const Dashboard = () => {
       }
       
       // DVR/NVR stats
-      if (dahuaRes.data) {
-        setDvrStats({ total: dahuaRes.data.total || 0, online: dahuaRes.data.online || 0 });
+      if (dahuaRes.data && dahuaRes.data.summary) {
+        setDvrStats({ 
+          total: dahuaRes.data.summary.total || 0, 
+          online: dahuaRes.data.summary.online || 0 
+        });
       }
       
       const newDevices = devRes.data.devices || [];
