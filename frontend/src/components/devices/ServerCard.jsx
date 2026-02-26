@@ -175,7 +175,7 @@ export const ServerCard = memo(({
       console.log(`[ServerCard] Loading image for device ${device.id}...`);
       const response = await authAxios.get(`/image-proxy/${device.id}`, { 
         responseType: 'blob',
-        timeout: 15000
+        timeout: 100000  // 100 seconds timeout for slow camera connections
       });
       
       if (response.data && response.data.size > 0) {
