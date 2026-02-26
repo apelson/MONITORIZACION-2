@@ -1623,7 +1623,7 @@ const NOCDashboard = ({
             <ScrollArea className="h-full">
               <div className="space-y-1.5 pr-2">
                 {devicesByIsland
-                  .sort((a, b) => b.offline - a.offline || b.total - a.total)
+                  .sort((a, b) => b.total - a.total || b.offline - a.offline)
                   .map(island => {
                     const hasOffline = island.offline > 0;
                     const healthPercent = island.total > 0 ? Math.round(((island.total - island.offline) / island.total) * 100) : 100;
