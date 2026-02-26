@@ -1035,7 +1035,7 @@ async def download_update_package_public():
     raise HTTPException(status_code=404, detail="Update package not found")
 
 # Endpoint para descargar NOCDashboard corregido
-@app.get("/download-noc")
+@api_router.get("/download-noc")
 async def download_noc_corrected():
     """Download corrected NOCDashboard.jsx - no auth required"""
     file_path = "/app/backend/static_files/NOCDashboard_corrected.jsx"
