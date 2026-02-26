@@ -1,8 +1,9 @@
 /**
  * Login Page Component
  * Receives login function as prop from parent AuthProvider
+ * With spectacular animated logo
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -21,6 +22,111 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_equip-tracker-39/artifacts/796492pi_version%20autorizada%202.png";
 const MOBOTIX_LOGO_URL = "https://www.mobotix.com/sites/default/files/2019-10/MOBOTIX-Logo.svg";
+
+// Spectacular animated logo component
+const SpectacularLogo = () => {
+  const [pulse, setPulse] = useState(true);
+  
+  useEffect(() => {
+    // Slow pulsing animation cycle
+    const interval = setInterval(() => {
+      setPulse(prev => !prev);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="relative flex flex-col items-center mb-8">
+      {/* Outer glow rings */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div 
+          className="w-64 h-64 rounded-full transition-all duration-[2000ms] ease-in-out"
+          style={{
+            background: `radial-gradient(circle, rgba(0,200,255,${pulse ? 0.15 : 0.05}) 0%, transparent 70%)`,
+            transform: `scale(${pulse ? 1.2 : 1})`,
+          }}
+        />
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div 
+          className="w-48 h-48 rounded-full transition-all duration-[2000ms] ease-in-out"
+          style={{
+            background: `radial-gradient(circle, rgba(0,163,217,${pulse ? 0.2 : 0.1}) 0%, transparent 70%)`,
+            transform: `scale(${pulse ? 1.1 : 0.9})`,
+          }}
+        />
+      </div>
+      
+      {/* Main hexagon container */}
+      <div className="relative z-10">
+        {/* Rotating border effect */}
+        <div 
+          className="absolute inset-0 rounded-full transition-all duration-[2000ms]"
+          style={{
+            background: `conic-gradient(from 0deg, transparent, rgba(0,200,255,${pulse ? 0.5 : 0.2}), transparent, rgba(0,163,217,${pulse ? 0.5 : 0.2}), transparent)`,
+            filter: 'blur(8px)',
+            transform: `scale(1.15) rotate(${pulse ? 180 : 0}deg)`,
+          }}
+        />
+        
+        {/* Logo container with glow */}
+        <div 
+          className="relative bg-gradient-to-br from-slate-900/90 via-slate-800/90 to-slate-900/90 p-10 rounded-full border-2 transition-all duration-[2000ms] backdrop-blur-sm"
+          style={{
+            borderColor: pulse ? 'rgba(0,200,255,0.6)' : 'rgba(0,163,217,0.3)',
+            boxShadow: pulse 
+              ? '0 0 60px rgba(0,200,255,0.4), 0 0 100px rgba(0,163,217,0.2), inset 0 0 30px rgba(0,200,255,0.1)' 
+              : '0 0 30px rgba(0,163,217,0.2), inset 0 0 15px rgba(0,200,255,0.05)',
+          }}
+        >
+          {/* Camera icon with animation */}
+          <Cctv 
+            className="w-28 h-28 transition-all duration-[2000ms]"
+            style={{ 
+              color: pulse ? '#00c8ff' : '#00a3d9',
+              filter: pulse ? 'drop-shadow(0 0 20px rgba(0,200,255,0.6))' : 'drop-shadow(0 0 10px rgba(0,163,217,0.3))',
+              transform: `rotate(${pulse ? 5 : -5}deg)`,
+            }} 
+          />
+          
+          {/* Recording indicator */}
+          <div className="absolute top-6 right-6 flex items-center gap-1.5">
+            <div 
+              className="w-3 h-3 rounded-full transition-all duration-500"
+              style={{
+                backgroundColor: '#ef4444',
+                boxShadow: pulse ? '0 0 10px #ef4444, 0 0 20px #ef4444' : '0 0 5px #ef4444',
+              }}
+            />
+            <span 
+              className="text-[10px] font-bold transition-opacity duration-500"
+              style={{ 
+                color: '#ef4444',
+                opacity: pulse ? 1 : 0.5 
+              }}
+            >
+              REC
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Siempria Logo below */}
+      <div className="relative mt-6 z-10">
+        <img 
+          src={LOGO_URL} 
+          alt="Siempria" 
+          className="h-24 mx-auto object-contain transition-all duration-[2000ms]"
+          style={{ 
+            filter: pulse 
+              ? 'drop-shadow(0 0 30px rgba(0,200,255,0.5)) brightness(1.1)' 
+              : 'drop-shadow(0 0 15px rgba(0,163,217,0.3)) brightness(1)',
+          }} 
+        />
+      </div>
+    </div>
+  );
+};
 
 const LoginPage = ({ login }) => {
   const { t } = useTranslation();
