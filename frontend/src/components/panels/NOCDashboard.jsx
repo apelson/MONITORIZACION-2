@@ -42,6 +42,7 @@ import DahuaWidget from '@/components/noc/widgets/DahuaWidget';
 import VPNWidget from '@/components/noc/widgets/VPNWidget';
 import SystemResourceMonitor from '@/components/common/SystemResourceMonitor';
 import MiniECG from '@/components/common/MiniECG';
+import { IslandSilhouette, ISLAND_ID_MAP } from '@/components/common/CanaryIslandsSilhouettes';
 
 // Logo Siempria (hexágono azul)
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_bd3cf608-7344-4385-a96f-f4dc04839f9f/artifacts/t15tym24_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png";
