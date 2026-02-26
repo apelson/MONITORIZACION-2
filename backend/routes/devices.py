@@ -12,7 +12,7 @@ import time
 from config import (
     devices_collection, groups_collection, history_collection, 
     alerts_collection, device_types_collection, organizations_collection,
-    incidents_collection
+    incidents_collection, logger
 )
 from models import DeviceCreate, DeviceUpdate, DeviceTypeCreate, DeviceTypeUpdate
 from services.auth_service import get_current_user, require_role
