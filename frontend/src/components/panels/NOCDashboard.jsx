@@ -537,6 +537,26 @@ const NOCDashboard = ({
       .sort((a, b) => new Date(b.last_status_change || 0) - new Date(a.last_status_change || 0));
   }, [devices]);
 
+  // All offline devices including Dahua recorders
+  const allOfflineDevices = useMemo(() => {
+    const normalOffline = devices
+      .filter(d => d.status === 'offline')
+      .map(d => ({ ...d, deviceType: 'device' }));
+    
+    const dahuaOffline = dahuaDevices
+      .filter(d => !d.online)
+      .map(d => ({ 
+        ...d, 
+        deviceType: 'dahua',
+        name: d.name || d.serial_number,
+        status: 'offline',
+        last_status_change: d.last_check
+      }));
+    
+    return [...normalOffline, ...dahuaOffline]
+      .sort((a, b) => new Date(b.last_status_change || 0) - new Date(a.last_status_change || 0));
+  }, [devices, dahuaDevices]);
+
   // Recent alerts
   const recentAlertsList = useMemo(() => {
     return [...alerts]
