@@ -31,7 +31,7 @@ const IncidentsPanel = ({ devices, authAxios }) => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [formData, setFormData] = useState({
-    title: "", description: "", device_id: "", priority: "medium", category: "network"
+    title: "", description: "", device_id: "", priority: "medium", category: "network", status: "open"
   });
   
   const fetchIncidents = useCallback(async () => {
