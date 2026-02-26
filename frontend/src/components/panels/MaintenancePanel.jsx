@@ -1,14 +1,16 @@
 /**
  * Maintenance Mode Panel - Manage devices in maintenance mode
+ * Features: Search, Sort by status (offline first), Hide DVRs
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
-import { Wrench, Clock, X, PlayCircle, PauseCircle, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Wrench, Clock, X, PlayCircle, PauseCircle, AlertTriangle, CheckCircle, Search, WifiOff, Wifi } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -21,6 +23,7 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
   const [duration, setDuration] = useState("60");
   const [reason, setReason] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchMaintenanceDevices = useCallback(async () => {
     try {
