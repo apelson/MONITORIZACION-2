@@ -271,7 +271,7 @@ const LoginPage = ({ login }) => {
                   type={showPassword ? "text" : "password"}
                   value={password} 
                   onChange={(e) => { setPassword(e.target.value); setLoginError(""); }} 
-                  className="pl-11 pr-11 h-12 bg-slate-900/80 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-cyan-500/20" 
+                  className="pl-10 pr-10 h-10 bg-slate-900/80 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-cyan-500/20" 
                   placeholder="••••••••" 
                 />
                 <button
