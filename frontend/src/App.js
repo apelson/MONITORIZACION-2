@@ -2244,7 +2244,10 @@ const Dashboard = () => {
       
       // Infrastructure stats
       if (infraRes.data) {
-        const infraDevices = Array.isArray(infraRes.data) ? infraRes.data : [];
+        // Handle both formats: array directly or {devices: []}
+        const infraDevices = Array.isArray(infraRes.data) 
+          ? infraRes.data 
+          : (infraRes.data.devices || []);
         const infraOnline = infraDevices.filter(d => d.status === 'online' || d.online === true).length;
         setInfraStats({ 
           total: infraDevices.length, 
