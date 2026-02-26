@@ -225,26 +225,25 @@ const LoginPage = ({ login }) => {
 
         {/* Login Form - Glass effect */}
         <div 
-          className="w-full p-8 rounded-2xl backdrop-blur-xl"
+          className="w-full p-6 rounded-xl backdrop-blur-xl"
           style={{
             background: 'linear-gradient(135deg, rgba(10,20,30,0.9) 0%, rgba(5,15,25,0.85) 100%)',
             border: '1px solid rgba(0,200,255,0.15)',
-            boxShadow: '0 25px 50px rgba(0,0,0,0.5), inset 0 0 30px rgba(0,200,255,0.03)',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,200,255,0.03)',
           }}
         >
-          <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="flex items-center justify-center gap-2 mb-4">
             <div 
-              className="p-3 rounded-xl"
+              className="p-2 rounded-lg"
               style={{
                 background: 'linear-gradient(135deg, #00b8d4 0%, #0088a8 100%)',
-                boxShadow: '0 8px 20px rgba(0,184,212,0.3)',
+                boxShadow: '0 6px 15px rgba(0,184,212,0.3)',
               }}
             >
-              <Lock className="w-6 h-6 text-white" />
+              <Lock className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">{t('auth.login', 'Iniciar Sesión')}</h2>
-              <p className="text-slate-400 text-xs">{t('auth.loginDescription', 'Introduce tus credenciales')}</p>
+              <h2 className="text-lg font-bold text-white">{t('auth.login', 'Iniciar Sesión')}</h2>
             </div>
           </div>
 
