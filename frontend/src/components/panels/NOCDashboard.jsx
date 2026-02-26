@@ -125,6 +125,7 @@ const NOCDashboard = ({
   const [recordDate, setRecordDate] = useState(null);
   const [lastIncidentTime, setLastIncidentTime] = useState(Date.now());
   const [recordUptime, setRecordUptime] = useState(0);
+  const [currentTime, setCurrentTime] = useState(Date.now()); // For live clock updates
   const [dahuaDevices, setDahuaDevices] = useState([]);
   const [dahuaSummary, setDahuaSummary] = useState({ online: 0, offline: 0 });
   const [vpnSummary, setVpnSummary] = useState({ total: 0, online: 0, offline: 0 });
@@ -135,6 +136,14 @@ const NOCDashboard = ({
   const presentationRef = useRef(null);
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(1200);
+
+  // Update current time every second for live counters
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Handle force refresh of offline devices
   const handleRefreshOfflineDevices = async () => {
