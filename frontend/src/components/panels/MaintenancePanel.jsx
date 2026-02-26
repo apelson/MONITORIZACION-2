@@ -55,8 +55,10 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
     
     setProcessing(true);
     try {
+      // -1 means indefinite maintenance
+      const durationValue = duration === "indefinite" ? -1 : parseInt(duration);
       await authAxios.post(`/devices/${selectedDevice.id}/maintenance`, {
-        duration_minutes: parseInt(duration),
+        duration_minutes: durationValue,
         reason: reason || null
       });
       toast.success(`Modo mantenimiento activado para ${selectedDevice.name}`);
