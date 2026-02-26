@@ -157,8 +157,9 @@ export const ServerCard = memo(({
   const TypeIcon = deviceType ? getIcon(deviceType.icon) : Server;
 
   const isCamera = device.device_type_id === "type-camera" || deviceType?.icon === "camera";
-  const hasCameraConfig = !!(device.camera_path || (device.camera_user && device.camera_password));
-  const canLoadImage = isCamera && device.status === "online" && (hasCameraConfig || device.image_url);
+  const hasCameraConfig = !!(device.camera_path || device.camera_user || device.image_url);
+  // Always try to load image for online cameras
+  const canLoadImage = isCamera && device.status === "online";
 
   // Lazy load image
   const cardRef = useCallback(node => {
@@ -171,18 +172,22 @@ export const ServerCard = memo(({
       if (canLoadImage) {
         try {
           const response = await authAxios.get(`/image-proxy/${device.id}`, { responseType: 'blob' });
-          if (response.data) {
+          if (response.data && response.data.size > 0) {
             const url = URL.createObjectURL(response.data);
             setImageData(url);
             setImageError(false);
             setCaptureTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+          } else {
+            throw new Error("Empty response");
           }
         } catch (e) {
-          console.error("Error loading image:", e);
+          console.error("Error loading image for device", device.id, ":", e?.response?.status || e.message);
           setImageData(OFFLINE_PLACEHOLDER);
           setImageError(true);
           setCaptureTime(null);
         }
+      } else {
+        setImageData(OFFLINE_PLACEHOLDER);
       }
       setImageLoading(false);
     };
@@ -190,7 +195,7 @@ export const ServerCard = memo(({
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach(entry => {
-          if (entry.isIntersecting && !imageData && isCamera && canLoadImage) {
+          if (entry.isIntersecting && !imageData && isCamera) {
             loadImage();
           }
         });
