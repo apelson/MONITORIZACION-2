@@ -2596,30 +2596,36 @@ const Dashboard = () => {
       <div className="hidden md:block bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-cyan-500/20">
         <div className="container mx-auto max-w-7xl px-4">
           <div className="flex items-center justify-between py-1">
-            {/* Left: System ECG Animation */}
-            <div className="flex items-center gap-4">
+            {/* Left: Clock */}
+            <div className="flex items-center gap-3 text-slate-300">
+              <Clock className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="text-sm font-mono font-bold tracking-wider">
+                {currentTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
+            </div>
+            
+            {/* Center: System ECG + Status */}
+            <div className="flex items-center gap-6">
+              {/* ECG Animation */}
               <div className="flex items-center gap-2">
                 <Activity className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-                <div className="flex items-center gap-1">
-                  <span className="text-[10px] text-slate-400">SYS</span>
-                  <div className="w-20 h-4 relative overflow-hidden rounded">
-                    <svg viewBox="0 0 100 20" className="w-full h-full" preserveAspectRatio="none">
-                      <path 
-                        d="M0,10 L10,10 L15,5 L20,15 L25,8 L30,12 L35,10 L45,10 L50,3 L55,17 L60,10 L70,10 L75,6 L80,14 L85,9 L90,11 L100,10" 
-                        fill="none" 
-                        stroke="url(#ecgGradient)" 
-                        strokeWidth="1.5"
-                        className="animate-pulse"
-                      />
-                      <defs>
-                        <linearGradient id="ecgGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.3" />
-                          <stop offset="50%" stopColor="#06b6d4" stopOpacity="1" />
-                          <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.3" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                  </div>
+                <div className="w-24 h-4 relative overflow-hidden rounded">
+                  <svg viewBox="0 0 100 20" className="w-full h-full" preserveAspectRatio="none">
+                    <path 
+                      d="M0,10 L10,10 L15,5 L20,15 L25,8 L30,12 L35,10 L45,10 L50,3 L55,17 L60,10 L70,10 L75,6 L80,14 L85,9 L90,11 L100,10" 
+                      fill="none" 
+                      stroke="url(#ecgGradient)" 
+                      strokeWidth="1.5"
+                      className="animate-pulse"
+                    />
+                    <defs>
+                      <linearGradient id="ecgGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.3" />
+                        <stop offset="50%" stopColor="#06b6d4" stopOpacity="1" />
+                        <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.3" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
                 </div>
               </div>
               
@@ -2627,34 +2633,28 @@ const Dashboard = () => {
               <div className="flex items-center gap-3 text-[10px]">
                 <div className="flex items-center gap-1">
                   <Cpu className="w-3 h-3 text-emerald-400" />
-                  <span className="text-emerald-400 font-mono">{headerResources.cpu || Math.floor(Math.random() * 30 + 10)}%</span>
+                  <span className="text-emerald-400 font-mono">{headerResources.cpu || '--'}%</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Database className="w-3 h-3 text-blue-400" />
-                  <span className="text-blue-400 font-mono">{headerResources.ram || Math.floor(Math.random() * 40 + 20)}%</span>
+                  <span className="text-blue-400 font-mono">{headerResources.ram || '--'}%</span>
                 </div>
               </div>
-            </div>
-            
-            {/* Center: Status Message */}
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] text-slate-400 font-medium tracking-wide">
-                SISTEMA OPERATIVO • {totalDevices} DISPOSITIVOS MONITORIZADOS
-              </span>
-            </div>
-            
-            {/* Right: Clock */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-slate-300">
-                <Clock className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="text-sm font-mono font-bold tracking-wider">
-                  {currentTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                </span>
-                <span className="text-[10px] text-slate-500 font-medium uppercase">
-                  {currentTime.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              
+              {/* Status Message */}
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] text-slate-400 font-medium tracking-wide">
+                  SISTEMA OPERATIVO • {totalDevices} DISPOSITIVOS
                 </span>
               </div>
+            </div>
+            
+            {/* Right: Date */}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">
+                {currentTime.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              </span>
             </div>
           </div>
         </div>
