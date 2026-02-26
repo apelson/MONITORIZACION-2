@@ -294,7 +294,7 @@ const LoginPage = ({ login }) => {
             <Button 
               data-testid="login-submit" 
               type="submit" 
-              className="w-full h-12 text-base font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 border-0 shadow-lg shadow-cyan-500/25" 
+              className="w-full h-10 text-base font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 border-0 shadow-lg shadow-cyan-500/25" 
               disabled={loading}
             >
               {loading ? (
