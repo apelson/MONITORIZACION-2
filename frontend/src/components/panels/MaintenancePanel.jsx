@@ -28,8 +28,33 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
 
   const fetchMaintenanceDevices = useCallback(async () => {
     try {
+      // Fetch regular devices in maintenance
       const response = await authAxios.get("/maintenance/devices");
-      setMaintenanceDevices(response.data.devices || []);
+      const regularMaintenance = (response.data.devices || []).map(d => ({...d, isDahua: false}));
+      
+      // Fetch Dahua devices in maintenance
+      const dahuaResponse = await authAxios.get("/dahua/devices");
+      let dahuaList = [];
+      if (Array.isArray(dahuaResponse.data)) {
+        dahuaList = dahuaResponse.data;
+      } else if (dahuaResponse.data?.devices) {
+        dahuaList = dahuaResponse.data.devices;
+      }
+      
+      // Filter dahua devices that are in maintenance
+      const dahuaMaintenance = dahuaList
+        .filter(d => d.maintenance_mode === true)
+        .map(d => ({
+          ...d,
+          id: d.id || d.serial_number,
+          name: d.name || d.alias || `Grabador ${(d.serial_number || '').slice(-6)}`,
+          ip_address: d.host || d.ip,
+          status: d.online ? 'online' : 'offline',
+          isDahua: true
+        }));
+      
+      // Combine both lists
+      setMaintenanceDevices([...regularMaintenance, ...dahuaMaintenance]);
     } catch (error) {
       console.error("Error fetching maintenance devices:", error);
     } finally {
