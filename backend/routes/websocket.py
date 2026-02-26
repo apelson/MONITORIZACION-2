@@ -4,6 +4,8 @@ WebSocket routes for real-time notifications
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 from typing import Optional
 import jwt
+import asyncio
+import psutil
 
 from config import logger, SECRET_KEY, ALGORITHM
 from services.websocket_service import websocket_manager
