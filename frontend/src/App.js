@@ -2087,10 +2087,10 @@ const Dashboard = () => {
       }
       
       // VPN stats
-      if (vpnRes.data) {
+      if (vpnRes.data && vpnRes.data.summary) {
         setVpnStats({ 
-          total: vpnRes.data.total || 0, 
-          online: vpnRes.data.online || 0 
+          total: vpnRes.data.summary.total || 0, 
+          online: vpnRes.data.summary.online || 0 
         });
       }
       
