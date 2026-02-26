@@ -274,6 +274,13 @@ export const ServerCard = memo(({
               >
                 <Globe className="w-4 h-4 text-white" />
               </button>
+              <button 
+                onClick={handleRefreshImage}
+                className="absolute top-2 left-2 p-2 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                title="Actualizar imagen"
+              >
+                <RefreshCw className={`w-4 h-4 text-white ${imageLoading ? 'animate-spin' : ''}`} />
+              </button>
               {imageData && !imageError && (
                 <a 
                   href={imageData}
