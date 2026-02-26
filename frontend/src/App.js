@@ -2049,6 +2049,27 @@ const Dashboard = () => {
   // System resources state for header ECG
   const [headerResources, setHeaderResources] = useState({ cpu: 0, ram: 0 });
   
+  // Fetch system resources every 10 seconds
+  useEffect(() => {
+    const fetchResources = async () => {
+      try {
+        const res = await authAxios.get('/settings/system-status/quick');
+        if (res.data) {
+          setHeaderResources({
+            cpu: res.data.cpu_percent || 0,
+            ram: res.data.memory_percent || 0
+          });
+        }
+      } catch (e) {
+        // Silently fail - resources are optional
+      }
+    };
+    
+    fetchResources();
+    const interval = setInterval(fetchResources, 10000);
+    return () => clearInterval(interval);
+  }, [authAxios]);
+  
   // Use cached stats for header (faster than counting all devices)
   const onlineCount = deviceStats.online || devices.filter(d => d.status === 'online').length;
   const offlineCount = deviceStats.offline || devices.filter(d => d.status === 'offline').length;
