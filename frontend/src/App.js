@@ -2862,28 +2862,34 @@ const Dashboard = () => {
                     </Button>
                   )}
                   <span className="text-sm font-medium text-muted-foreground">{filteredDevices.length} {t('devices.deviceCount', 'dispositivo(s)')}</span>
-                  {/* Device type summary */}
+                  {/* Device type summary - Clickable to filter */}
                   <div className="flex items-center gap-3 text-xs sm:text-sm text-muted-foreground">
                     {(() => {
                       const typeCounts = {};
                       filteredDevices.forEach(d => {
                         const dtype = deviceTypes.find(t => t.id === d.device_type_id);
                         const typeName = dtype?.name || t('devices.noType', 'Sin tipo');
-                        typeCounts[typeName] = (typeCounts[typeName] || 0) + 1;
+                        typeCounts[typeName] = { count: (typeCounts[typeName]?.count || 0) + 1, typeId: d.device_type_id };
                       });
                       return Object.entries(typeCounts)
-                        .sort((a, b) => b[1] - a[1])
-                        .slice(0, 5)
-                        .map(([name, count], idx) => {
+                        .sort((a, b) => b[1].count - a[1].count)
+                        .slice(0, 6)
+                        .map(([name, data], idx) => {
                           const dtype = deviceTypes.find(t => t.name === name);
                           const Icon = dtype ? getIcon(dtype.icon) : Box;
                           const color = dtype?.color || '#888';
+                          const displayName = name === 'XVR/NVR' ? 'DVR/NVR' : name;
                           return (
-                            <span key={name} className="flex items-center gap-1">
+                            <button 
+                              key={name} 
+                              className="flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+                              onClick={() => setSelectedDeviceType(data.typeId)}
+                              title={`Filtrar por ${displayName}`}
+                            >
                               {idx > 0 && <span className="text-muted-foreground/50">•</span>}
                               <Icon className="w-3 h-3 sm:w-4 sm:h-4" style={{ color }} />
-                              <span>{count} {name}</span>
-                            </span>
+                              <span className="hover:underline">{data.count} {displayName}</span>
+                            </button>
                           );
                         });
                     })()}
