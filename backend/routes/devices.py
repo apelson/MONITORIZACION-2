@@ -138,9 +138,9 @@ async def get_critical_offline_devices(current_user: dict = Depends(get_current_
     Returns device info including name, IP, last_seen, and device type.
     """
     try:
-        # First, get all critical device types
+        # First, get all critical device types - check both field names for compatibility
         critical_types = await device_types_collection.find(
-            {"is_critical": True}, 
+            {"$or": [{"is_critical": True}, {"isCritical": True}]}, 
             {"_id": 0, "id": 1, "name": 1, "icon": 1, "color": 1}
         ).to_list(length=None)
         
@@ -179,6 +179,7 @@ async def get_critical_offline_devices(current_user: dict = Depends(get_current_
             "critical_types": critical_types
         }
     except Exception as e:
+        logger.error(f"Error getting critical offline devices: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============ DEVICES ============
