@@ -90,10 +90,58 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
     return `${minutes}m`;
   };
 
-  // Filter devices that are NOT in maintenance
-  const availableDevices = devices.filter(
-    (d) => !maintenanceDevices.find((m) => m.id === d.id)
-  );
+  // Filter devices that are NOT in maintenance, NOT DVRs/Dahua, and match search
+  const availableDevices = useMemo(() => {
+    let filtered = devices.filter(
+      (d) => !maintenanceDevices.find((m) => m.id === d.id)
+    );
+    
+    // Exclude DVRs/Dahua devices (type_id contains 'dahua' or device_type_id is 'dahua')
+    filtered = filtered.filter(d => {
+      const typeId = (d.device_type_id || '').toLowerCase();
+      const brand = (d.brand || '').toLowerCase();
+      const name = (d.name || '').toLowerCase();
+      // Exclude if it's a Dahua DVR/NVR
+      const isDahua = typeId.includes('dahua') || 
+                      brand.includes('dahua') || 
+                      name.includes('dvr') || 
+                      name.includes('nvr') ||
+                      name.includes('grabador');
+      return !isDahua;
+    });
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(d => 
+        (d.name || '').toLowerCase().includes(query) ||
+        (d.ip_address || d.ip || '').toLowerCase().includes(query) ||
+        (d.location || '').toLowerCase().includes(query) ||
+        (d.brand || '').toLowerCase().includes(query)
+      );
+    }
+    
+    // Sort: offline devices first, then by latency (high first), then alphabetically
+    filtered.sort((a, b) => {
+      // Offline devices first
+      if (a.status === 'offline' && b.status !== 'offline') return -1;
+      if (b.status === 'offline' && a.status !== 'offline') return 1;
+      
+      // High latency second (if latency > 500ms, consider it problematic)
+      const aLatency = a.response_time || 0;
+      const bLatency = b.response_time || 0;
+      if (aLatency > 500 && bLatency <= 500) return -1;
+      if (bLatency > 500 && aLatency <= 500) return 1;
+      
+      // Then by latency descending (higher latency = more problematic)
+      if (aLatency !== bLatency) return bLatency - aLatency;
+      
+      // Finally alphabetically
+      return (a.name || '').localeCompare(b.name || '');
+    });
+    
+    return filtered;
+  }, [devices, maintenanceDevices, searchQuery]);
 
   return (
     <div className="space-y-6">
