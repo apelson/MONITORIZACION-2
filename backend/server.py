@@ -74,6 +74,8 @@ from routes.ai_analysis import router as ai_router
 from routes.sla_reports import router as sla_reports_router
 from routes.download_files import router as download_router
 from routes.dahua import router as dahua_router
+from routes.vpn import router as vpn_router
+from routes.system_stats import router as system_stats_router
 from services.websocket_service import websocket_manager
 from services.device_service import set_websocket_manager
 from services.dahua_service import dahua_service
