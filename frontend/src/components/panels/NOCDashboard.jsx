@@ -1733,13 +1733,24 @@ const NOCDashboard = ({
               <div className="space-y-1 pr-2">
                 {allOfflineDevices.map(device => {
                   const Icon = device.deviceType === 'dahua' ? HardDrive : getDeviceIcon(device);
-                  const label = device.deviceType === 'dahua' ? 'DVR' : '';
+                  const label = device.typeLabel;
+                  // Color based on type
+                  const labelColor = {
+                    'DVR': 'bg-orange-500/20 text-orange-400',
+                    'VPN': 'bg-cyan-500/20 text-cyan-400',
+                    'CRA': 'bg-blue-500/20 text-blue-400',
+                    'NAS': 'bg-purple-500/20 text-purple-400',
+                    'SRV': 'bg-indigo-500/20 text-indigo-400',
+                    'RTR': 'bg-amber-500/20 text-amber-400',
+                    'SW': 'bg-teal-500/20 text-teal-400',
+                    'CAM': 'bg-pink-500/20 text-pink-400'
+                  }[label] || 'bg-slate-500/20 text-slate-400';
                   return (
                     <div key={device.id} className="p-1.5 rounded bg-red-500/5 border border-red-500/20 flex items-center justify-between cursor-pointer hover:bg-red-500/10" onClick={() => onDeviceClick?.(device)}>
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <Icon className="w-3 h-3 text-red-400 shrink-0" />
                         <span className="text-[11px] text-white truncate">{device.name}</span>
-                        {label && <Badge className="bg-orange-500/20 text-orange-400 text-[8px] px-1 py-0">{label}</Badge>}
+                        {label && <Badge className={`${labelColor} text-[8px] px-1 py-0`}>{label}</Badge>}
                       </div>
                       <span className="text-[10px] text-red-400 ml-2">{formatTimeSince(device.last_status_change)}</span>
                     </div>
