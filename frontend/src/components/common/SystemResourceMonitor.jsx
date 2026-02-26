@@ -1,8 +1,9 @@
 /**
  * SystemResourceMonitor - Muestra CPU, RAM, HDD, NET en el header del NOC
- * Diseño compacto para integrarse junto al título - Estilo producción
+ * Diseño producción con iconos de colores y barras
  */
 import { useState, useEffect, useRef } from 'react';
+import { Cpu, MemoryStick, HardDrive, Wifi } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const SystemResourceMonitor = ({ authAxios }) => {
@@ -24,17 +25,11 @@ const SystemResourceMonitor = ({ authAxios }) => {
 
   useEffect(() => {
     fetchStats();
-    intervalRef.current = setInterval(fetchStats, 5000); // Update every 5 seconds
+    intervalRef.current = setInterval(fetchStats, 5000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [authAxios]);
-
-  const getBarColor = (percent) => {
-    if (percent >= 90) return 'bg-red-500';
-    if (percent >= 70) return 'bg-amber-500';
-    return 'bg-cyan-500';
-  };
 
   const formatNetSpeed = (kbs) => {
     if (kbs >= 1024) return (kbs / 1024).toFixed(2);
@@ -63,46 +58,50 @@ const SystemResourceMonitor = ({ authAxios }) => {
   const netDown = stats.network?.download_kbs || 0;
 
   return (
-    <div className="flex items-center gap-5 px-3 py-1.5 bg-slate-800/30 rounded border border-slate-700/50">
-      {/* CPU */}
+    <div className="flex items-center gap-4 px-3 py-1.5 bg-slate-800/30 rounded border border-slate-700/50">
+      {/* CPU - Cyan */}
       <div className="flex items-center gap-2">
-        <span className="text-[10px] text-slate-400 uppercase font-medium w-7">CPU</span>
-        <div className="w-20 h-2 bg-slate-700 rounded-sm overflow-hidden">
+        <Cpu className="w-4 h-4 text-cyan-400" />
+        <span className="text-[10px] text-slate-400 uppercase font-medium">CPU</span>
+        <div className="w-16 h-2 bg-slate-700 rounded-sm overflow-hidden">
           <div 
-            className={cn("h-full transition-all", getBarColor(cpuPercent))}
+            className="h-full bg-cyan-500 transition-all"
             style={{ width: `${cpuPercent}%` }}
           />
         </div>
-        <span className="text-[10px] text-white font-mono w-8">{Math.round(cpuPercent)}%</span>
+        <span className="text-[10px] text-cyan-400 font-mono w-8">{Math.round(cpuPercent)}%</span>
       </div>
 
-      {/* RAM */}
+      {/* RAM - Purple/Magenta */}
       <div className="flex items-center gap-2">
-        <span className="text-[10px] text-slate-400 uppercase font-medium w-7">RAM</span>
-        <div className="w-20 h-2 bg-slate-700 rounded-sm overflow-hidden">
+        <MemoryStick className="w-4 h-4 text-purple-400" />
+        <span className="text-[10px] text-slate-400 uppercase font-medium">RAM</span>
+        <div className="w-16 h-2 bg-slate-700 rounded-sm overflow-hidden">
           <div 
-            className={cn("h-full transition-all", getBarColor(ramPercent))}
+            className="h-full bg-purple-500 transition-all"
             style={{ width: `${ramPercent}%` }}
           />
         </div>
-        <span className="text-[10px] text-white font-mono w-8">{Math.round(ramPercent)}%</span>
+        <span className="text-[10px] text-purple-400 font-mono w-8">{Math.round(ramPercent)}%</span>
       </div>
 
-      {/* HDD */}
+      {/* HDD - Amber/Orange */}
       <div className="flex items-center gap-2">
-        <span className="text-[10px] text-slate-400 uppercase font-medium w-7">HDD</span>
-        <div className="w-20 h-2 bg-slate-700 rounded-sm overflow-hidden">
+        <HardDrive className="w-4 h-4 text-amber-400" />
+        <span className="text-[10px] text-slate-400 uppercase font-medium">HDD</span>
+        <div className="w-16 h-2 bg-slate-700 rounded-sm overflow-hidden">
           <div 
-            className={cn("h-full transition-all", getBarColor(diskPercent))}
+            className="h-full bg-amber-500 transition-all"
             style={{ width: `${diskPercent}%` }}
           />
         </div>
-        <span className="text-[10px] text-white font-mono w-8">{Math.round(diskPercent)}%</span>
+        <span className="text-[10px] text-amber-400 font-mono w-8">{Math.round(diskPercent)}%</span>
       </div>
 
-      {/* Network */}
+      {/* Network - Green */}
       <div className="flex items-center gap-2">
-        <span className="text-[10px] text-slate-400 uppercase font-medium w-7">NET</span>
+        <Wifi className="w-4 h-4 text-emerald-400" />
+        <span className="text-[10px] text-slate-400 uppercase font-medium">NET</span>
         <div className="flex items-center gap-1">
           <span className="text-emerald-400 text-[10px] font-mono">↑{formatNetSpeed(netUp)}</span>
           <span className="text-cyan-400 text-[10px] font-mono">↓{formatNetSpeed(netDown)}</span>
