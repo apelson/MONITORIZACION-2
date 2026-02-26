@@ -1898,14 +1898,21 @@ const NOCDashboard = ({
             <span className="text-[10px] text-slate-500">Grupos</span>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <img src={LOGO_URL} alt="Siempria" className="h-5 object-contain opacity-60" />
-            <span className="text-[10px] text-slate-500">Desarrollado por Siempria</span>
-          </div>
-          <span className="text-[10px] text-slate-500">|</span>
-          <span className="text-[10px] text-slate-500">soporte@siempria.com</span>
-          <span className="text-[10px] text-slate-500">822 22 00 22</span>
+        
+        {/* Center - Desarrollado por Siempria */}
+        <a 
+          href="https://siempria.com" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
+          <img src={LOGO_URL} alt="Siempria" className="h-5 object-contain opacity-70" />
+          <span className="text-[10px] text-slate-400 hover:text-cyan-400">Desarrollado por Siempria</span>
+        </a>
+        
+        <div className="flex items-center gap-4 text-[10px] text-slate-500">
+          <span>soporte@siempria.com</span>
+          <span>822 22 00 22</span>
         </div>
       </div>
     </>
