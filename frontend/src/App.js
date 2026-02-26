@@ -2400,10 +2400,10 @@ const Dashboard = () => {
 
       {/* Header - Premium Professional Design */}
       <header className="app-header">
-        <div className="container mx-auto max-w-7xl px-4 md:px-6 py-1.5">
+        <div className="container mx-auto max-w-7xl px-4 md:px-6 py-1">
           <div className="flex items-center justify-between">
             {/* Logo Section - Left */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               {/* Mobile hamburger menu button */}
               <Button
                 variant="ghost"
@@ -2413,15 +2413,15 @@ const Dashboard = () => {
               >
                 <Menu className="w-4 h-4" />
               </Button>
-              <img src={LOGO_URL} alt="WatchTower" className="hidden md:block h-6 w-6 object-contain header-logo" />
-              <div className="hidden md:flex flex-col justify-center leading-none">
-                <h1 className="text-[10px] font-bold tracking-wider header-brand-title whitespace-nowrap" style={{fontFamily: "'JetBrains Mono', monospace"}}>
+              <img src={LOGO_URL} alt="WatchTower" className="hidden md:block h-10 w-auto object-contain header-logo" />
+              <div className="hidden md:flex flex-col justify-center leading-none ml-1">
+                <h1 className="text-sm font-bold tracking-wider header-brand-title whitespace-nowrap" style={{fontFamily: "'JetBrains Mono', monospace"}}>
                   WATCH TOWER
                 </h1>
-                <p className="header-brand-subtitle text-[7px] opacity-50 uppercase tracking-widest">Administración</p>
+                <p className="header-brand-subtitle text-[8px] opacity-50 uppercase tracking-widest">Administración</p>
               </div>
               {/* Mobile logo */}
-              <img src={LOGO_URL} alt="WatchTower" className="md:hidden h-5 w-5 object-contain header-logo" />
+              <img src={LOGO_URL} alt="WatchTower" className="md:hidden h-8 w-auto object-contain header-logo" />
             </div>
             
             {/* Center: Status HUD - Ultra Compact */}
