@@ -17,6 +17,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
   const [maintenanceDevices, setMaintenanceDevices] = useState([]);
+  const [dahuaDevices, setDahuaDevices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState(null);
@@ -36,12 +37,38 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
     }
   }, [authAxios]);
 
+  // Fetch Dahua/Grabadores devices
+  const fetchDahuaDevices = useCallback(async () => {
+    try {
+      const response = await authAxios.get("/dahua/devices");
+      const dahuaList = response.data || [];
+      // Transform dahua devices to match regular device format
+      const transformedDahua = dahuaList.map(d => ({
+        ...d,
+        id: d.id || d.serial_number,
+        name: d.name || d.alias || `Grabador ${d.serial_number?.slice(-6)}`,
+        ip_address: d.host || d.ip,
+        ip: d.host || d.ip,
+        status: d.online ? 'online' : 'offline',
+        device_type_id: 'dahua_dvr',
+        isDahua: true // Flag to identify dahua devices
+      }));
+      setDahuaDevices(transformedDahua);
+    } catch (error) {
+      console.error("Error fetching dahua devices:", error);
+    }
+  }, [authAxios]);
+
   useEffect(() => {
     fetchMaintenanceDevices();
+    fetchDahuaDevices();
     // Refresh every 60 seconds
-    const interval = setInterval(fetchMaintenanceDevices, 60000);
+    const interval = setInterval(() => {
+      fetchMaintenanceDevices();
+      fetchDahuaDevices();
+    }, 60000);
     return () => clearInterval(interval);
-  }, [fetchMaintenanceDevices]);
+  }, [fetchMaintenanceDevices, fetchDahuaDevices]);
 
   const handleEnableMaintenance = (device) => {
     setSelectedDevice(device);
