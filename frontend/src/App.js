@@ -1824,8 +1824,8 @@ const LoadingSkeleton = ({ message = "Cargando datos..." }) => (
       
       {/* Texto */}
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-white">SIEMPRIA MONITOR</h2>
-        <p className="text-sm text-cyan-400">Network Monitoring System</p>
+        <h2 className="text-2xl font-bold text-white">WatchTower</h2>
+        <p className="text-sm text-cyan-400">by SIEMPRIA</p>
       </div>
       
       {/* Barra de progreso animada */}
