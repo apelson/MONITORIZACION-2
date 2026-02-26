@@ -4,6 +4,23 @@
     background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
+/* ECG Animation */
+@keyframes ecgPulse {
+    0% { stroke-dashoffset: 200; opacity: 0.3; }
+    50% { stroke-dashoffset: 0; opacity: 1; }
+    100% { stroke-dashoffset: -200; opacity: 0.3; }
+}
+
+@keyframes ecgGlow {
+    0%, 100% { filter: drop-shadow(0 0 2px #06b6d4); }
+    50% { filter: drop-shadow(0 0 6px #06b6d4); }
+}
+
+.ecg-line {
+    stroke-dasharray: 200;
+    animation: ecgPulse 2s ease-in-out infinite, ecgGlow 2s ease-in-out infinite;
+}
+
 /* Header - Premium Dark Professional Style (Siempria + Mobotix inspired) */
 .app-header {
     background: linear-gradient(135deg, #0a0f1a 0%, #111827 50%, #0a0f1a 100%);
