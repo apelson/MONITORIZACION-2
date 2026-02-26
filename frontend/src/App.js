@@ -2728,13 +2728,24 @@ const Dashboard = () => {
               
               {/* Mini Resource Indicators */}
               <div className="flex items-center gap-3 text-[10px]">
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1" title="CPU">
                   <Cpu className="w-3 h-3 text-emerald-400" />
                   <span className="text-emerald-400 font-mono">{headerResources.cpu || '--'}%</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1" title="RAM">
                   <Database className="w-3 h-3 text-blue-400" />
                   <span className="text-blue-400 font-mono">{headerResources.ram || '--'}%</span>
+                </div>
+                <div className="flex items-center gap-1" title="Disco">
+                  <HardDrive className="w-3 h-3 text-amber-400" />
+                  <span className="text-amber-400 font-mono">{headerResources.hdd || '--'}%</span>
+                </div>
+                <div className="hidden sm:flex items-center gap-1" title="Red">
+                  <Network className="w-3 h-3 text-purple-400" />
+                  <span className="text-purple-400 font-mono">
+                    ↑{headerResources.net_up?.toFixed(1) || '0'} ↓{headerResources.net_down?.toFixed(1) || '0'}
+                  </span>
+                  <span className="text-slate-500 text-[8px]">MB/s</span>
                 </div>
               </div>
               
