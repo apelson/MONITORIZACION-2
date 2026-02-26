@@ -118,3 +118,132 @@ async def send_test_telegram() -> dict:
             return {"success": False, "error": "; ".join(errors[:3])}
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+# Track last alert time to prevent spam (one alert per resource per 5 minutes)
+_last_resource_alert = {
+    "cpu": 0,
+    "ram": 0,
+    "hdd": 0
+}
+RESOURCE_ALERT_COOLDOWN = 300  # 5 minutes between alerts for same resource
+
+async def send_resource_alert_telegram(resource_type: str, value: float, threshold: int = 90) -> bool:
+    """
+    Send system resource alert via Telegram when CPU/RAM/HDD exceed threshold.
+    Includes cooldown to prevent alert spam.
+    
+    Args:
+        resource_type: 'cpu', 'ram', or 'hdd'
+        value: Current percentage value
+        threshold: Alert threshold (default 90%)
+    """
+    import time
+    
+    try:
+        # Check cooldown
+        current_time = time.time()
+        last_alert = _last_resource_alert.get(resource_type, 0)
+        
+        if current_time - last_alert < RESOURCE_ALERT_COOLDOWN:
+            # Still in cooldown period
+            return False
+        
+        config = await get_telegram_config()
+        if not config:
+            return False
+        
+        # Resource configurations
+        resource_configs = {
+            "cpu": {"emoji": "🔥", "name": "CPU", "icon": "⚡"},
+            "ram": {"emoji": "🧠", "name": "MEMORIA RAM", "icon": "💾"},
+            "hdd": {"emoji": "💿", "name": "DISCO DURO", "icon": "📀"}
+        }
+        
+        cfg = resource_configs.get(resource_type, {"emoji": "📊", "name": resource_type.upper(), "icon": "📈"})
+        
+        # Determine severity level
+        if value >= 95:
+            severity = "🔴 CRÍTICA"
+            status = "¡SATURACIÓN INMINENTE!"
+        elif value >= 90:
+            severity = "🟠 ALTA"
+            status = "Uso muy elevado"
+        else:
+            severity = "🟡 ADVERTENCIA"
+            status = "Uso elevado"
+        
+        message = f"""
+{cfg['emoji']} <b>ALERTA DE RECURSOS: {cfg['name']}</b>
+
+{cfg['icon']} <b>Uso actual:</b> {value:.1f}%
+⚠️ <b>Umbral:</b> {threshold}%
+📊 <b>Severidad:</b> {severity}
+💬 <b>Estado:</b> {status}
+
+<i>🖥️ WatchTower by Siempria</i>
+        """.strip()
+        
+        result = await send_telegram_message(message)
+        
+        if result.get("success"):
+            # Update last alert time
+            _last_resource_alert[resource_type] = current_time
+            logger.info(f"[Telegram] Resource alert sent: {resource_type} at {value:.1f}%")
+            return True
+        
+        return False
+        
+    except Exception as e:
+        logger.error(f"Error sending resource alert Telegram: {e}")
+        return False
+
+async def send_resource_recovery_telegram(resource_type: str, value: float, threshold: int = 90) -> bool:
+    """
+    Send recovery notification when resource usage drops below threshold.
+    Only sends if there was a previous alert.
+    """
+    import time
+    
+    try:
+        # Only send recovery if there was a recent alert
+        current_time = time.time()
+        last_alert = _last_resource_alert.get(resource_type, 0)
+        
+        # If no alert was sent in the last 30 minutes, don't send recovery
+        if current_time - last_alert > 1800 or last_alert == 0:
+            return False
+        
+        config = await get_telegram_config()
+        if not config:
+            return False
+        
+        resource_configs = {
+            "cpu": {"emoji": "✅", "name": "CPU", "icon": "⚡"},
+            "ram": {"emoji": "✅", "name": "MEMORIA RAM", "icon": "💾"},
+            "hdd": {"emoji": "✅", "name": "DISCO DURO", "icon": "📀"}
+        }
+        
+        cfg = resource_configs.get(resource_type, {"emoji": "✅", "name": resource_type.upper(), "icon": "📈"})
+        
+        message = f"""
+{cfg['emoji']} <b>RECUPERACIÓN: {cfg['name']}</b>
+
+{cfg['icon']} <b>Uso actual:</b> {value:.1f}%
+📉 <b>El uso ha vuelto a niveles normales</b>
+
+<i>🖥️ WatchTower by Siempria</i>
+        """.strip()
+        
+        result = await send_telegram_message(message)
+        
+        if result.get("success"):
+            # Reset last alert time to prevent recovery spam
+            _last_resource_alert[resource_type] = 0
+            logger.info(f"[Telegram] Resource recovery sent: {resource_type} at {value:.1f}%")
+            return True
+        
+        return False
+        
+    except Exception as e:
+        logger.error(f"Error sending resource recovery Telegram: {e}")
+        return False
