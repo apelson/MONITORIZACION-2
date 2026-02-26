@@ -7,7 +7,8 @@ import { toast } from 'sonner';
 import {
   HardDrive, Wifi, WifiOff, Plus, Trash2, RefreshCw, Edit2,
   CheckCircle, XCircle, AlertTriangle, Play, Square, Database,
-  Loader2, Eye, EyeOff, ChevronDown, ChevronUp, Search, Upload, FileUp
+  Loader2, Eye, EyeOff, ChevronDown, ChevronUp, Search, Upload, FileUp,
+  Wrench, ClipboardList
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
