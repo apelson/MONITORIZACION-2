@@ -1618,79 +1618,78 @@ const NOCDashboard = ({
             className="shrink-0 rounded-lg border border-slate-700/50 bg-slate-950/50 overflow-hidden"
           />
             
-          {/* Island Status List - replacing the mini map */}
-          <div className="flex-1 mt-1 min-h-[80px] overflow-hidden">
+          {/* Island Status List - with silhouettes */}
+          <div className="flex-1 mt-1 min-h-[100px] overflow-hidden">
             <ScrollArea className="h-full">
-              <div className="space-y-1 pr-2">
+              <div className="space-y-1.5 pr-2">
                 {devicesByIsland
-                  .sort((a, b) => b.offline - a.offline || b.total - a.total) // Sort by offline count, then total
+                  .sort((a, b) => b.offline - a.offline || b.total - a.total)
                   .map(island => {
                     const hasOffline = island.offline > 0;
                     const healthPercent = island.total > 0 ? Math.round(((island.total - island.offline) / island.total) * 100) : 100;
+                    const onlineCount = island.total - island.offline;
                     
                     return (
                       <div 
                         key={island.id}
                         className={cn(
-                          "flex items-center gap-2 p-1.5 rounded transition-all cursor-pointer hover:bg-slate-800/50",
-                          hasOffline ? "bg-red-500/10 border border-red-500/30" : "bg-emerald-500/5 border border-emerald-500/20"
+                          "flex items-center gap-3 p-2 rounded-lg transition-all cursor-pointer hover:bg-slate-800/70",
+                          hasOffline 
+                            ? "bg-red-500/10 border border-red-500/40" 
+                            : "bg-emerald-500/5 border border-emerald-500/20"
                         )}
                         onClick={() => {/* Could navigate to island details */}}
                       >
-                        {/* Status indicator */}
-                        <div className={cn(
-                          "w-2 h-2 rounded-full shrink-0",
-                          hasOffline ? "bg-red-500 animate-pulse" : "bg-emerald-500"
-                        )} />
+                        {/* Island silhouette */}
+                        <IslandSilhouette 
+                          islandId={island.id}
+                          online={onlineCount}
+                          total={island.total}
+                          size={36}
+                        />
                         
-                        {/* Island name */}
-                        <span className="text-[11px] text-white truncate flex-1 min-w-0">
-                          {island.name}
-                        </span>
-                        
-                        {/* Stats */}
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          {hasOffline && (
-                            <Badge className="bg-red-500/20 text-red-400 text-[9px] px-1 py-0">
-                              {island.offline}⬇
-                            </Badge>
-                          )}
-                          <span className={cn(
-                            "text-[10px] font-mono",
-                            hasOffline ? "text-red-400" : "text-emerald-400"
-                          )}>
-                            {island.total - island.offline}/{island.total}
-                          </span>
+                        {/* Island info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-medium text-white truncate">
+                              {island.name}
+                            </span>
+                            <span className={cn(
+                              "text-xs font-mono font-bold",
+                              hasOffline ? "text-red-400" : "text-emerald-400"
+                            )}>
+                              {onlineCount}/{island.total}
+                            </span>
+                          </div>
                           
-                          {/* Mini progress bar */}
-                          <div className="w-12 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                          {/* Progress bar */}
+                          <div className="w-full h-2 bg-slate-700/50 rounded-full overflow-hidden mt-1">
                             <div 
                               className={cn(
                                 "h-full rounded-full transition-all",
-                                healthPercent >= 95 ? "bg-emerald-500" :
-                                healthPercent >= 80 ? "bg-amber-500" : "bg-red-500"
+                                healthPercent >= 95 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" :
+                                healthPercent >= 80 ? "bg-gradient-to-r from-amber-500 to-amber-400" : 
+                                "bg-gradient-to-r from-red-500 to-red-400"
                               )}
                               style={{ width: `${healthPercent}%` }}
                             />
                           </div>
+                          
+                          {/* Offline badge */}
+                          {hasOffline && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <WifiOff className="w-3 h-3 text-red-400" />
+                              <span className="text-[10px] text-red-400 font-medium">
+                                {island.offline} dispositivo{island.offline > 1 ? 's' : ''} offline
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
                   })}
               </div>
             </ScrollArea>
-            
-            {/* Legend */}
-            <div className="flex justify-center gap-4 mt-1 pt-1 border-t border-slate-700/50">
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span className="text-[8px] text-slate-400">Online</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-[8px] text-slate-400">Offline</span>
-              </div>
-            </div>
           </div>
         </div>
 
