@@ -1581,29 +1581,62 @@ const NOCDashboard = ({
 
       {/* Bottom Sections */}
       <div className="grid grid-cols-5 gap-3 shrink-0" style={{ height: '35%' }}>
-        {/* Organizations */}
-        <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex flex-col min-h-0">
+        {/* Grabadores DVR - with uptime counters */}
+        <div className={cn(
+          "bg-slate-900/80 rounded-lg p-2 flex flex-col min-h-0",
+          (dahuaSummary.offline > 0) ? "border-2 border-red-500" : "border border-slate-700/50"
+        )}>
           <div className="flex items-center justify-between mb-1.5 shrink-0">
             <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-purple-400" />
-              <span className="text-sm font-semibold text-white">{t('noc.organizations', 'Organizaciones')}</span>
+              <HardDrive className="w-4 h-4 text-orange-400" />
+              <span className="text-sm font-semibold text-white">Grabadores DVR</span>
+              <Badge className={cn(
+                "text-[10px]",
+                dahuaSummary.offline > 0 ? "bg-red-500/20 text-red-400" : "bg-orange-500/20 text-orange-400"
+              )}>
+                {dahuaSummary.online}/{dahuaSummary.online + dahuaSummary.offline}
+              </Badge>
             </div>
-            <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-slate-400 hover:text-purple-400" onClick={() => handleMaximizeSection('organizations')} title="Maximizar">
+            <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-slate-400 hover:text-orange-400" onClick={() => handleMaximizeSection('dahua')} title="Maximizar">
               <Maximize2 className="w-3 h-3" />
             </Button>
           </div>
-          <ScrollArea className="flex-1">
-            <div className="space-y-1 pr-2">
-              {devicesByOrg.slice(0, 8).map(({ org, online, offline }) => (
-                <div key={org.id} className={cn("p-1.5 rounded border flex items-center justify-between", offline > 0 ? "bg-red-500/5 border-red-500/20" : "bg-slate-800/50 border-slate-700/30")}>
-                  <span className="text-[11px] text-white truncate flex-1">{org.name}</span>
-                  <div className="flex items-center gap-1 ml-2">
-                    <Badge className="bg-emerald-500/20 text-emerald-400 text-[9px] px-1 py-0">{online}</Badge>
-                    {offline > 0 && <Badge className="bg-red-500/20 text-red-400 text-[9px] px-1 py-0">{offline}</Badge>}
-                  </div>
-                </div>
-              ))}
+          
+          {/* Uptime Counters */}
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded p-1.5 text-center">
+              <p className="text-[9px] text-emerald-400 uppercase">Sin Incidencias</p>
+              <p className="text-sm font-mono text-emerald-400">
+                {dahuaSummary.offline === 0 ? (
+                  formatUptimeCounter(Date.now() - (lastIncidentTime || Date.now()))
+                ) : '00:00:00'}
+              </p>
             </div>
+            <div className="bg-cyan-500/10 border border-cyan-500/30 rounded p-1.5 text-center">
+              <p className="text-[9px] text-cyan-400 uppercase">Record</p>
+              <p className="text-sm font-mono text-cyan-400">
+                {formatUptimeCounter(recordUptime)}
+              </p>
+            </div>
+          </div>
+
+          <ScrollArea className="flex-1">
+            {dahuaDevices.filter(d => !d.online).length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full py-2">
+                <CheckCircle className="w-6 h-6 text-emerald-500 mb-1" />
+                <p className="text-[10px] text-emerald-400">Todos los grabadores online</p>
+              </div>
+            ) : (
+              <div className="space-y-1 pr-2">
+                {dahuaDevices.filter(d => !d.online).slice(0, 5).map(device => (
+                  <div key={device.id} className="p-1.5 rounded bg-red-500/10 border border-red-500/30 flex items-center gap-2">
+                    <HardDrive className="w-3 h-3 text-red-400 shrink-0" />
+                    <span className="text-[11px] text-white truncate flex-1">{device.name}</span>
+                    <Badge className="bg-red-500/20 text-red-400 text-[9px]">offline</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
           </ScrollArea>
         </div>
 
