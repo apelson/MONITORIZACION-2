@@ -1026,7 +1026,7 @@ async def download_file(filename: str):
     raise HTTPException(status_code=404, detail=f"File not found: {filename}")
 
 # Endpoint público para descargar actualización (sin auth)
-@app.get("/download-update-package")
+@api_router.get("/download-update-package")
 async def download_update_package_public():
     """Download siempria update package - no auth required"""
     file_path = "/app/backend/static_files/siempria_update.tar.gz"
