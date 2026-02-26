@@ -375,6 +375,43 @@ const NOCDashboard = ({
     return () => clearInterval(interval);
   }, [authAxios, soundEnabled]);
 
+  // Fetch VPN status
+  useEffect(() => {
+    const fetchVpnStatus = async () => {
+      if (!authAxios) return;
+      try {
+        const res = await authAxios.get('/vpn/status');
+        const newDevices = res.data.devices || [];
+        const newSummary = res.data.summary || { total: 0, online: 0, offline: 0 };
+        
+        // Check for status changes and notify
+        if (vpnDevicesRef.current.length > 0) {
+          newDevices.forEach(newDev => {
+            const oldDev = vpnDevicesRef.current.find(d => d.id === newDev.id);
+            if (oldDev && oldDev.online !== newDev.online) {
+              if (!newDev.online) {
+                toast.error(`🔴 VPN ${newDev.name} desconectado`);
+                if (soundEnabled && audioRef.current) {
+                  audioRef.current.play().catch(() => {});
+                }
+              } else {
+                toast.success(`🟢 VPN ${newDev.name} conectado`);
+              }
+            }
+          });
+        }
+        
+        vpnDevicesRef.current = newDevices;
+        setVpnSummary(newSummary);
+      } catch (error) {
+        console.error('Error fetching VPN status:', error);
+      }
+    };
+    fetchVpnStatus();
+    const interval = setInterval(fetchVpnStatus, 60000);
+    return () => clearInterval(interval);
+  }, [authAxios, soundEnabled]);
+
   // Statistics calculations (includes Dahua recorders)
   const stats = useMemo(() => {
     const cameraTotal = devices.length;
