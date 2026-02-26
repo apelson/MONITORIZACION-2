@@ -1,7 +1,7 @@
 /**
  * GroupFormDialog - Form for creating/editing groups
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,9 +26,13 @@ export const GroupFormDialog = ({ open, onOpenChange, group, organizations = [],
     color: "#22c55e" 
   });
   const [saving, setSaving] = useState(false);
+  const initializedRef = useRef(false);
+  const prevOpenRef = useRef(false);
 
+  // Only initialize form data when dialog opens, not on every render
   useEffect(() => {
-    if (open) {
+    // Only run when dialog is opening (transition from closed to open)
+    if (open && !prevOpenRef.current) {
       if (group) {
         setFormData({ 
           name: group.name || "", 
@@ -45,7 +49,8 @@ export const GroupFormDialog = ({ open, onOpenChange, group, organizations = [],
         });
       }
     }
-  }, [group, open, organizations]);
+    prevOpenRef.current = open;
+  }, [open, group]); // Remove organizations from dependencies
 
   const handleSubmit = async (e) => {
     e.preventDefault();
