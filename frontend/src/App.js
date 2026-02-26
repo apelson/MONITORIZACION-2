@@ -2056,18 +2056,24 @@ const Dashboard = () => {
     fetchingRef.current = true;
     try {
       // Load stats separately (fast, cached) and ALL devices
-      const [statsRes, devRes, orgRes, grpRes, typeRes, alertRes] = await Promise.all([
+      const [statsRes, devRes, orgRes, grpRes, typeRes, alertRes, dahuaRes] = await Promise.all([
         authAxios.get("/devices/stats"),
         authAxios.get("/devices?limit=1000"), 
         authAxios.get("/organizations"), 
         authAxios.get("/groups"),
         authAxios.get("/device-types"), 
-        authAxios.get("/alerts?period=month&limit=200")
+        authAxios.get("/alerts?period=month&limit=200"),
+        authAxios.get("/dahua/status").catch(() => ({ data: { total: 0, online: 0 } }))
       ]);
       
       // Use stats for header counters (faster)
       if (statsRes.data) {
         setDeviceStats(statsRes.data);
+      }
+      
+      // DVR/NVR stats
+      if (dahuaRes.data) {
+        setDvrStats({ total: dahuaRes.data.total || 0, online: dahuaRes.data.online || 0 });
       }
       
       const newDevices = devRes.data.devices || [];
