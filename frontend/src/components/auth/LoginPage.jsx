@@ -247,7 +247,7 @@ const LoginPage = ({ login }) => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label className="text-slate-300 text-sm">{t('auth.username', 'Usuario')}</Label>
               <div className="relative">
