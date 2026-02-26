@@ -498,6 +498,12 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
                               <div className="flex items-center gap-2">
                                 <h4 className="font-medium truncate">{device.name}</h4>
                                 {getRecordingIcon(device)}
+                                {device.maintenance_mode && (
+                                  <Wrench className="w-3.5 h-3.5 text-amber-500" title="En mantenimiento" />
+                                )}
+                                {device.has_open_incident && (
+                                  <ClipboardList className="w-3.5 h-3.5 text-blue-500" title="Incidencia abierta" />
+                                )}
                               </div>
                               <p className="text-xs text-muted-foreground truncate">
                                 SN: {device.serial_number}
