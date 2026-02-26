@@ -322,6 +322,15 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
                   const isOffline = device.status === 'offline';
                   const hasHighLatency = (device.response_time || 0) > 500;
                   const hasIssue = isOffline || hasHighLatency;
+                  const isDVR = device.isDahua || (device.device_type_id || '').toLowerCase().includes('dahua');
+                  const isNAS = (device.device_type_id || '').toLowerCase().includes('nas');
+                  const isServer = (device.device_type_id || '').toLowerCase().includes('server');
+                  
+                  // Determine device type icon/label
+                  let deviceTypeLabel = null;
+                  if (isDVR) deviceTypeLabel = { text: 'DVR', color: 'text-blue-500 bg-blue-500/10 border-blue-500/30' };
+                  else if (isNAS) deviceTypeLabel = { text: 'NAS', color: 'text-purple-500 bg-purple-500/10 border-purple-500/30' };
+                  else if (isServer) deviceTypeLabel = { text: 'SRV', color: 'text-cyan-500 bg-cyan-500/10 border-cyan-500/30' };
                   
                   return (
                     <div
@@ -351,16 +360,23 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
                             {device.name}
                           </span>
                         </div>
-                        {hasIssue && (
-                          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${
-                            isOffline ? "text-red-600 border-red-300" : "text-orange-600 border-orange-300"
-                          }`}>
-                            {isOffline ? "OFFLINE" : "LENTO"}
-                          </Badge>
-                        )}
+                        <div className="flex items-center gap-1">
+                          {deviceTypeLabel && (
+                            <Badge variant="outline" className={`text-[9px] px-1 py-0 ${deviceTypeLabel.color}`}>
+                              {deviceTypeLabel.text}
+                            </Badge>
+                          )}
+                          {hasIssue && (
+                            <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${
+                              isOffline ? "text-red-600 border-red-300" : "text-orange-600 border-orange-300"
+                            }`}>
+                              {isOffline ? "OFFLINE" : "LENTO"}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1 font-mono">
-                        {device.ip_address || device.ip}:{device.port}
+                        {device.ip_address || device.ip}{device.port ? `:${device.port}` : ''}
                       </p>
                       {device.location && (
                         <p className="text-xs text-muted-foreground mt-0.5 truncate">
