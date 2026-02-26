@@ -1719,9 +1719,21 @@ const NOCDashboard = ({
               <span className="text-sm font-semibold text-white">Offline</span>
               <Badge variant="outline" className={cn("text-[10px]", allOfflineDevices.length > 0 ? "border-red-500/50 text-red-400 bg-red-500/10" : "border-slate-500/30 text-slate-400")}>{allOfflineDevices.length}</Badge>
             </div>
-            <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-slate-400 hover:text-red-400" onClick={() => handleMaximizeSection('offline')} title="Maximizar">
-              <Maximize2 className="w-3 h-3" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={cn("h-5 w-5 p-0 text-slate-400 hover:text-cyan-400", refreshingOffline && "animate-spin")} 
+                onClick={handleRefreshOfflineDevices} 
+                disabled={refreshingOffline}
+                title="Forzar comprobación"
+              >
+                <RefreshCw className="w-3 h-3" />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-slate-400 hover:text-red-400" onClick={() => handleMaximizeSection('offline')} title="Maximizar">
+                <Maximize2 className="w-3 h-3" />
+              </Button>
+            </div>
           </div>
           <ScrollArea className="flex-1 h-full">
             {allOfflineDevices.length === 0 ? (
