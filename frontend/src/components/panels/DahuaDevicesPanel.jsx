@@ -267,6 +267,71 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
     });
   };
 
+  // Handle maintenance mode toggle
+  const handleToggleMaintenance = async (device) => {
+    setMaintenanceLoading(prev => ({ ...prev, [device.id]: true }));
+    try {
+      if (device.maintenance_mode) {
+        // Disable maintenance
+        await authAxios.delete(`/dahua/devices/${device.id}/maintenance`);
+        toast.success(`Mantenimiento desactivado para ${device.name}`);
+      } else {
+        // Enable maintenance (indefinite)
+        await authAxios.post(`/dahua/devices/${device.id}/maintenance`, {
+          duration_hours: null,
+          reason: 'Mantenimiento activado desde panel'
+        });
+        toast.success(`Mantenimiento activado para ${device.name}`);
+      }
+      fetchDevices();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al cambiar mantenimiento');
+    } finally {
+      setMaintenanceLoading(prev => ({ ...prev, [device.id]: false }));
+    }
+  };
+
+  // Handle create incident
+  const handleCreateIncident = async (device) => {
+    setIncidentLoading(prev => ({ ...prev, [device.id]: true }));
+    try {
+      await authAxios.post('/incidents', {
+        device_id: device.id,
+        device_name: device.name,
+        device_type: 'dahua',
+        title: `Incidencia - ${device.name}`,
+        description: `Incidencia creada desde panel de grabadores. Estado: ${device.online ? 'Online' : 'Offline'}`,
+        priority: device.online === false ? 'high' : 'medium',
+        status: 'open'
+      });
+      toast.success(`Incidencia creada para ${device.name}`);
+      fetchDevices();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al crear incidencia');
+    } finally {
+      setIncidentLoading(prev => ({ ...prev, [device.id]: false }));
+    }
+  };
+
+  // Filter and sort devices
+  const filteredDevices = devices
+    .filter(device => {
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      return (
+        device.name?.toLowerCase().includes(term) ||
+        device.serial_number?.toLowerCase().includes(term) ||
+        device.device_type?.toLowerCase().includes(term)
+      );
+    })
+    .sort((a, b) => {
+      // Offline first
+      if (a.online === false && b.online !== false) return -1;
+      if (b.online === false && a.online !== false) return 1;
+      // Then alphabetically
+      return (a.name || '').localeCompare(b.name || '');
+    });
+
   const getStatusIcon = (device) => {
     if (device.online === null || device.online === undefined) {
       return <HardDrive className="w-5 h-5 text-slate-400" />;
