@@ -37,13 +37,21 @@ const SystemStatusDashboard = ({ authAxios }) => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/system-status`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      let response;
+      if (authAxios) {
+        // Use authAxios if provided (preferred)
+        response = await authAxios.get('/system-status');
+      } else {
+        // Fallback to direct axios with token
+        const token = localStorage.getItem('token');
+        response = await axios.get(`${API}/system-status`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
       setStatus(response.data);
     } catch (err) {
-      setError(err.response?.data?.detail || err.message);
+      console.error('Error fetching system status:', err);
+      setError(err.response?.data?.detail || err.message || 'Error al conectar con el servidor');
     } finally {
       setLoading(false);
     }
@@ -53,7 +61,7 @@ const SystemStatusDashboard = ({ authAxios }) => {
     fetchStatus();
     const interval = setInterval(fetchStatus, 60000); // Update every 60s
     return () => clearInterval(interval);
-  }, []);
+  }, [authAxios]);
 
   return (
     <Card>
