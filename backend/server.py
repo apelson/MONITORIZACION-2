@@ -266,6 +266,12 @@ api_router.include_router(sla_reports_router)
 # Include Dahua P2P routes
 api_router.include_router(dahua_router)
 
+# Include VPN monitoring routes
+api_router.include_router(vpn_router)
+
+# Include System Stats routes
+api_router.include_router(system_stats_router)
+
 # Include download router for production updates
 api_router.include_router(download_router)
 
