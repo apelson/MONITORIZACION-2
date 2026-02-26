@@ -538,8 +538,39 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
                           <Button
                             variant="ghost"
                             size="icon"
+                            className={cn(
+                              "h-7 w-7",
+                              device.maintenance_mode && "text-amber-500 bg-amber-50"
+                            )}
+                            onClick={() => handleToggleMaintenance(device)}
+                            disabled={maintenanceLoading[device.id]}
+                            title={device.maintenance_mode ? "Quitar mantenimiento" : "Poner en mantenimiento"}
+                          >
+                            {maintenanceLoading[device.id] ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Wrench className="w-3.5 h-3.5" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                            onClick={() => handleCreateIncident(device)}
+                            disabled={incidentLoading[device.id]}
+                            title="Crear incidencia"
+                          >
+                            {incidentLoading[device.id] ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <ClipboardList className="w-3.5 h-3.5" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-7 w-7"
-                            onClick={() => handleCheckSingle(device.id)}
+                            onClick={() => handleCheckDevice(device.id)}
                             disabled={checking[device.id]}
                             title="Verificar"
                           >
@@ -553,7 +584,7 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7"
-                            onClick={() => handleEdit(device)}
+                            onClick={() => openEditModal(device)}
                             title="Editar"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -562,7 +593,7 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50"
-                            onClick={() => handleDelete(device.id)}
+                            onClick={() => handleDeleteDevice(device.id, device.name)}
                             title="Eliminar"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
