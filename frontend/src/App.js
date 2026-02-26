@@ -1146,16 +1146,35 @@ const OrganizationFormDialog = ({ open, onOpenChange, organization, onSave }) =>
 
 const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) => {
   const { t } = useTranslation();
-  const [formData, setFormData] = useState({ name: "", organization_id: "", description: "", color: "#22c55e" });
+  const [formData, setFormData] = useState({ name: "", organization_id: "", description: "", color: "#22c55e", island: "" });
   const [saving, setSaving] = useState(false);
   const colors = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#f97316", "#14b8a6", "#6366f1", "#a855f7", "#e11d48", "#0ea5e9", "#65a30d", "#dc2626", "#7c3aed", "#db2777", "#059669", "#ca8a04"];
   const prevOpenRef = useRef(false);
+  
+  // Canary Islands list
+  const islands = [
+    { id: "", name: "-- Sin especificar --" },
+    { id: "tenerife", name: "🏝️ Tenerife" },
+    { id: "gran_canaria", name: "🏝️ Gran Canaria" },
+    { id: "lanzarote", name: "🏝️ Lanzarote" },
+    { id: "fuerteventura", name: "🏝️ Fuerteventura" },
+    { id: "la_palma", name: "🏝️ La Palma" },
+    { id: "la_gomera", name: "🏝️ La Gomera" },
+    { id: "el_hierro", name: "🏝️ El Hierro" },
+    { id: "la_graciosa", name: "🏝️ La Graciosa" }
+  ];
 
   useEffect(() => {
     // Only initialize when dialog OPENS (transition from closed to open)
     if (open && !prevOpenRef.current) {
-      if (group) setFormData({ name: group.name || "", organization_id: group.organization_id || "", description: group.description || "", color: group.color || "#22c55e" });
-      else setFormData({ name: "", organization_id: organizations[0]?.id || "", description: "", color: "#22c55e" });
+      if (group) setFormData({ 
+        name: group.name || "", 
+        organization_id: group.organization_id || "", 
+        description: group.description || "", 
+        color: group.color || "#22c55e",
+        island: group.island || ""
+      });
+      else setFormData({ name: "", organization_id: organizations[0]?.id || "", description: "", color: "#22c55e", island: "" });
     }
     prevOpenRef.current = open;
   }, [open, group]); // REMOVED organizations from dependencies
@@ -1180,6 +1199,16 @@ const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) =
               <Select value={formData.organization_id} onValueChange={(v) => setFormData({ ...formData, organization_id: v })}>
                 <SelectTrigger><SelectValue placeholder={t('common.select', 'Seleccionar')} /></SelectTrigger>
                 <SelectContent>{organizations.map((o) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2"><Label>Isla (opcional)</Label>
+              <Select value={formData.island} onValueChange={(v) => setFormData({ ...formData, island: v })}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar isla" /></SelectTrigger>
+                <SelectContent>
+                  {islands.map((island) => (
+                    <SelectItem key={island.id} value={island.id}>{island.name}</SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
             <div className="space-y-2"><Label>{t('common.description', 'Descripción')}</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
