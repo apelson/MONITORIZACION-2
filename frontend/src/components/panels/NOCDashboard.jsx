@@ -1756,14 +1756,14 @@ const NOCDashboard = ({
               <Monitor className="w-5 h-5 text-cyan-400" />
             </div>
             <div>
-              <h1 className="text-lg font-bold bg-gradient-to-r from-cyan-400 to-blue-400 text-transparent bg-clip-text">
-                {t('noc.title', 'WatchTower NOC')}
+              <h1 className="text-base font-bold text-white flex items-center gap-2">
+                WatchTower NOC by SIEMPRIA
               </h1>
-              <p className="text-[10px] text-slate-400">{t('noc.subtitle', 'by SIEMPRIA')}</p>
+              <p className="text-[10px] text-slate-400">Centro de Operaciones de Red 24/7</p>
             </div>
           </div>
           <div className="h-8 w-px bg-slate-700" />
-          <img src={LOGO_URL} alt="Siempria" className="h-10 object-contain" />
+          <img src={LOGO_URL} alt="Siempria" className="h-8 object-contain" />
           <div className="h-8 w-px bg-slate-700" />
           {/* System Resource Monitor */}
           <SystemResourceMonitor authAxios={authAxios} />
