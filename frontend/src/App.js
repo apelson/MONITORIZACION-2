@@ -2900,7 +2900,7 @@ const Dashboard = () => {
                             <button 
                               key={name} 
                               className="flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
-                              onClick={() => setSelectedDeviceType(data.typeId)}
+                              onClick={() => setFilterTypeId(data.typeId)}
                               title={`Filtrar por ${displayName}`}
                             >
                               {idx > 0 && <span className="text-muted-foreground/50">•</span>}
