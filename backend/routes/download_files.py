@@ -18,6 +18,7 @@ FILES = {
     "translation_es.json": "/app/frontend/src/locales/es/translation.json",
     "translation_en.json": "/app/frontend/src/locales/en/translation.json",
     "App.js": "/app/frontend/src/App.js",
+    "App.css": "/app/frontend/src/App.css",
     # Additional panels
     "OrganizationsPanel.jsx": "/app/frontend/src/components/panels/OrganizationsPanel.jsx",
     "DeviceTypesPanel.jsx": "/app/frontend/src/components/panels/DeviceTypesPanel.jsx",
