@@ -2062,14 +2062,15 @@ const Dashboard = () => {
     fetchingRef.current = true;
     try {
       // Load stats separately (fast, cached) and ALL devices
-      const [statsRes, devRes, orgRes, grpRes, typeRes, alertRes, dahuaRes] = await Promise.all([
+      const [statsRes, devRes, orgRes, grpRes, typeRes, alertRes, dahuaRes, vpnRes] = await Promise.all([
         authAxios.get("/devices/stats"),
         authAxios.get("/devices?limit=1000"), 
         authAxios.get("/organizations"), 
         authAxios.get("/groups"),
         authAxios.get("/device-types"), 
         authAxios.get("/alerts?period=month&limit=200"),
-        authAxios.get("/dahua/status").catch(() => ({ data: { total: 0, online: 0 } }))
+        authAxios.get("/dahua/status").catch(() => ({ data: { summary: { total: 0, online: 0 } } })),
+        authAxios.get("/vpn/status").catch(() => ({ data: { total: 0, online: 0 } }))
       ]);
       
       // Use stats for header counters (faster)
@@ -2082,6 +2083,14 @@ const Dashboard = () => {
         setDvrStats({ 
           total: dahuaRes.data.summary.total || 0, 
           online: dahuaRes.data.summary.online || 0 
+        });
+      }
+      
+      // VPN stats
+      if (vpnRes.data) {
+        setVpnStats({ 
+          total: vpnRes.data.total || 0, 
+          online: vpnRes.data.online || 0 
         });
       }
       
