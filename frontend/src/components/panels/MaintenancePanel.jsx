@@ -477,6 +477,27 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh, onCreateIncident
                           ⏱️ {device.response_time}ms
                         </p>
                       )}
+                      {/* Action buttons */}
+                      <div className="flex items-center gap-2 mt-3 pt-2 border-t border-slate-200 dark:border-slate-700">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 h-7 text-xs text-amber-600 border-amber-500/30 hover:bg-amber-500/10"
+                          onClick={(e) => { e.stopPropagation(); handleEnableMaintenance(device); }}
+                        >
+                          <PauseCircle className="w-3 h-3 mr-1" />
+                          Mantenimiento
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 h-7 text-xs text-red-600 border-red-500/30 hover:bg-red-500/10"
+                          onClick={(e) => { e.stopPropagation(); handleOpenIncident(device); }}
+                        >
+                          <FileWarning className="w-3 h-3 mr-1" />
+                          Incidencia
+                        </Button>
+                      </div>
                     </div>
                   );
                 })}
@@ -485,6 +506,72 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh, onCreateIncident
           )}
         </CardContent>
       </Card>
+
+      {/* Incident Dialog */}
+      <Dialog open={showIncidentModal} onOpenChange={setShowIncidentModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileWarning className="w-5 h-5 text-red-500" />
+              Nueva Incidencia
+            </DialogTitle>
+            <DialogDescription>
+              Crear incidencia para {incidentDevice?.name}
+            </DialogDescription>
+          </DialogHeader>
+
+          {incidentDevice && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Título *</Label>
+                <Input
+                  value={incidentData.title}
+                  onChange={(e) => setIncidentData({ ...incidentData, title: e.target.value })}
+                  placeholder="Título de la incidencia"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Severidad</Label>
+                <Select value={incidentData.severity} onValueChange={(v) => setIncidentData({ ...incidentData, severity: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">🟢 Baja</SelectItem>
+                    <SelectItem value="medium">🟡 Media</SelectItem>
+                    <SelectItem value="high">🟠 Alta</SelectItem>
+                    <SelectItem value="critical">🔴 Crítica</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Descripción</Label>
+                <Textarea
+                  value={incidentData.description}
+                  onChange={(e) => setIncidentData({ ...incidentData, description: e.target.value })}
+                  placeholder="Describe el problema..."
+                  rows={5}
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowIncidentModal(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleCreateIncident} 
+              disabled={creatingIncident}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {creatingIncident ? "Creando..." : "Crear Incidencia"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Maintenance Mode Dialog */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
