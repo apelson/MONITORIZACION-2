@@ -203,7 +203,7 @@ const IncidentsPanel = ({ devices, authAxios }) => {
             </SelectContent>
           </Select>
         </div>
-        <Button onClick={() => { setEditingIncident(null); setFormData({ title: "", description: "", device_id: "", priority: "medium", category: "network" }); setShowDialog(true); }}>
+        <Button onClick={() => { setEditingIncident(null); setFormData({ title: "", description: "", device_id: "", priority: "medium", category: "network", status: "open" }); setShowDialog(true); }}>
           <Plus className="w-4 h-4 mr-2" />
           Nueva Incidencia
         </Button>
