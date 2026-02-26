@@ -841,14 +841,22 @@ async def enable_maintenance_mode(
         raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
     
     now = datetime.now(timezone.utc)
-    maintenance_until = now + timedelta(minutes=data.duration_minutes)
+    
+    # -1 means indefinite maintenance (set to year 2099)
+    if data.duration_minutes == -1:
+        maintenance_until = datetime(2099, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
+        duration_text = "indefinidamente"
+    else:
+        maintenance_until = now + timedelta(minutes=data.duration_minutes)
+        duration_text = f"por {data.duration_minutes} minutos"
     
     update_data = {
         "maintenance_mode": True,
         "maintenance_until": maintenance_until.isoformat(),
         "maintenance_reason": data.reason or "",
         "maintenance_started_by": current_user["username"],
-        "maintenance_started_at": now.isoformat()
+        "maintenance_started_at": now.isoformat(),
+        "maintenance_indefinite": data.duration_minutes == -1
     }
     
     await devices_collection.update_one({"id": device_id}, {"$set": update_data})
@@ -863,11 +871,11 @@ async def enable_maintenance_mode(
         target_type="device",
         target_id=device_id,
         target_name=device.get("name"),
-        details={"duration_minutes": data.duration_minutes, "reason": data.reason}
+        details={"duration_minutes": data.duration_minutes, "reason": data.reason, "indefinite": data.duration_minutes == -1}
     )
     
     return {
-        "message": f"Modo mantenimiento activado por {data.duration_minutes} minutos",
+        "message": f"Modo mantenimiento activado {duration_text}",
         "maintenance_until": maintenance_until.isoformat(),
         "device_id": device_id
     }
