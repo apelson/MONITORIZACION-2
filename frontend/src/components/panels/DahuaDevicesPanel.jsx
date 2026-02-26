@@ -491,68 +491,6 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
                   ))}
                 </div>
               </ScrollArea>
-                          )}
-
-                          {/* HDD Health */}
-                          {device.hdd_healthy !== null && device.hdd_healthy !== undefined && (
-                            <Badge
-                              variant="outline"
-                              className={
-                                device.hdd_healthy
-                                  ? "border-emerald-500 text-emerald-500"
-                                  : "border-red-500 text-red-500"
-                              }
-                            >
-                              {device.hdd_healthy ? (
-                                <CheckCircle className="w-3 h-3 mr-1" />
-                              ) : (
-                                <XCircle className="w-3 h-3 mr-1" />
-                              )}
-                              HDD
-                            </Badge>
-                          )}
-
-                          {/* Actions */}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCheckDevice(device.id)}
-                            disabled={checking[device.id]}
-                          >
-                            {checking[device.id] ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <RefreshCw className="w-4 h-4" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openEditModal(device)}
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteDevice(device.id, device.name)}
-                            className="text-red-500 hover:text-red-600"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Error message */}
-                      {device.last_error && (
-                        <p className="text-xs text-red-500 mt-2">
-                          Error: {device.last_error}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
             )}
           </CardContent>
         </CollapsibleContent>
