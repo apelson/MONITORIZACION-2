@@ -260,7 +260,7 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
                         variant="outline"
                         size="sm"
                         data-testid={`disable-maintenance-${device.id}`}
-                        onClick={() => handleDisableMaintenance(device.id, device.name)}
+                        onClick={() => handleDisableMaintenance(device)}
                         className="text-green-600 border-green-500/30 hover:bg-green-500/10"
                       >
                         <PlayCircle className="w-4 h-4 mr-1" />
