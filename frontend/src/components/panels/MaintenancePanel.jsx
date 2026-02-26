@@ -41,15 +41,31 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
   const fetchDahuaDevices = useCallback(async () => {
     try {
       const response = await authAxios.get("/dahua/devices");
-      const dahuaList = response.data || [];
+      // Handle both formats: array directly or {devices: []} or other object format
+      let dahuaList = [];
+      if (Array.isArray(response.data)) {
+        dahuaList = response.data;
+      } else if (response.data?.devices) {
+        dahuaList = response.data.devices;
+      } else if (response.data) {
+        // Try to extract array from any property
+        const possibleArrays = Object.values(response.data).filter(v => Array.isArray(v));
+        if (possibleArrays.length > 0) {
+          dahuaList = possibleArrays[0];
+        }
+      }
+      
+      console.log("[MaintenancePanel] Loaded", dahuaList.length, "dahua devices");
+      
       // Transform dahua devices to match regular device format
       const transformedDahua = dahuaList.map(d => ({
         ...d,
-        id: d.id || d.serial_number,
-        name: d.name || d.alias || `Grabador ${d.serial_number?.slice(-6)}`,
-        ip_address: d.host || d.ip,
-        ip: d.host || d.ip,
-        status: d.online ? 'online' : 'offline',
+        id: d.id || d.serial_number || d._id,
+        name: d.name || d.alias || d.device_name || `Grabador ${(d.serial_number || d.id || '').slice(-6)}`,
+        ip_address: d.host || d.ip || d.ip_address,
+        ip: d.host || d.ip || d.ip_address,
+        port: d.port || 37777,
+        status: d.online === true || d.status === 'online' ? 'online' : 'offline',
         device_type_id: 'dahua_dvr',
         isDahua: true // Flag to identify dahua devices
       }));
