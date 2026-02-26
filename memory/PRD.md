@@ -14,79 +14,75 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 8. ✅ Blank Screen Error Fix (DONE)
 9. ✅ System Resource Monitor in NOC Header (DONE - 26 Feb 2026)
 10. ✅ VPN Widget in NOC Dashboard (DONE - 26 Feb 2026)
+11. ✅ Maintenance Panel Improvements (DONE - 26 Feb 2026)
+12. ✅ System Status Data Loading Fix (DONE - 26 Feb 2026)
+13. ✅ Device Type Counter Filtering (DONE - 26 Feb 2026)
 
 ## What's Been Implemented (26 Feb 2026)
 
-### Rebranding - WatchTower by SIEMPRIA
-- Main header: "WatchTower" + "by SIEMPRIA"
-- NOC Dashboard header: "WatchTower NOC by SIEMPRIA" + "Centro de Operaciones de Red 24/7"
-- Footer: "WatchTower by Siempria"
-- WhatsApp/Telegram alerts: Updated messaging
-- Loading screen: Updated branding
+### Latest Changes (Session 2)
+
+#### 1. Maintenance Panel Improvements (`MaintenancePanel.jsx`)
+- Added search bar with placeholder "Buscar por nombre, IP, ubicación..."
+- Implemented sorting: offline devices first, then by high latency, then alphabetically
+- Excluded DVR/Dahua/NVR/grabador devices from the maintenance list
+- Added device count display ("X dispositivos disponibles")
+- Added visual indicators for offline (red) and high latency (orange) devices
+- Improved ScrollArea with fixed height (450px) for proper scrolling
+
+#### 2. System Status Data Loading Fix
+- Fixed frontend API call: Changed from `/settings/system-status/quick` to `/system-status`
+- Now correctly parses response: `res.data.system.cpu_percent` and `res.data.system.memory.percent`
+- Header status bar displays real-time CPU% and RAM% values
+- Data refreshes every 10 seconds
+
+#### 3. Device Type Counter Filtering
+- Confirmed working: Device type counters have `onClick={() => setFilterTypeId(data.typeId)}`
+- Clicking on type counters (CAMERAS, NAS, etc.) filters the device list
 
 ### Backend
 - **VPN Monitoring Routes** (`/app/backend/routes/vpn.py`)
-  - GET `/api/vpn/devices` - Lista todos los dispositivos VPN
-  - GET `/api/vpn/status` - Estado y resumen de VPNs
-  - POST `/api/vpn/devices` - Crear dispositivo VPN
-  - PUT `/api/vpn/devices/{id}` - Actualizar dispositivo VPN
-  - DELETE `/api/vpn/devices/{id}` - Eliminar dispositivo VPN
-  - POST `/api/vpn/devices/{id}/check` - Verificar un dispositivo específico
-  - POST `/api/vpn/check-all` - Verificar todos los dispositivos VPN
-
 - **System Stats Routes** (`/app/backend/routes/system_stats.py`)
-  - GET `/api/system/stats` - CPU, RAM, HDD, Network stats en tiempo real
+- **Settings Routes** (`/app/backend/routes/settings.py`) - `/system-status` endpoint with psutil
 
-- **Schedulers en server.py**
-  - Dahua devices check cada 5 minutos
-  - VPN devices check cada 5 minutos (ping monitoring)
-
-### Frontend
+### Frontend Components
 - **VPNWidget** (`/app/frontend/src/components/noc/widgets/VPNWidget.jsx`)
-  - Muestra túneles VPN online/offline
-  - Indicadores visuales con colores (verde/rojo)
-  - Refresh manual y automático cada minuto
-  - Notificaciones toast cuando cambia estado
-
 - **SystemResourceMonitor** (`/app/frontend/src/components/common/SystemResourceMonitor.jsx`)
-  - CPU % con barra de progreso horizontal y colores semáforo
-  - RAM % con barra de progreso horizontal
-  - HDD % con barra de progreso horizontal
-  - Network upload/download en formato decimal
+- **MaintenancePanel** (`/app/frontend/src/components/panels/MaintenancePanel.jsx`)
+- **ServerCard** (`/app/frontend/src/components/devices/ServerCard.jsx`)
 
-- **NOCDashboard Updates**
-  - Header con "WatchTower NOC by SIEMPRIA" + subtítulo
-  - SystemResourceMonitor integrado en header (estilo producción)
-  - VPNWidget integrado en grid de widgets
-  - Contador VPN añadido a la barra de estadísticas (10 columnas)
-  - Estado VPN con notificaciones de cambios
-
-## Verified Features
-- ✅ JIRA Integration in Settings > Integraciones > JIRA
-- ✅ Super Admin panel with tenant management
-- ✅ Grabadores section with Dahua P2P
-- ✅ All existing widgets functional
+## Verified Features (Test Report: iteration_20.json)
+- ✅ System status API returns CPU% and RAM%
+- ✅ Header status bar displays real resource data
+- ✅ MaintenancePanel has working search bar
+- ✅ MaintenancePanel sorting logic works
+- ✅ Device type counters filter device list
+- ✅ Settings page loads correctly
+- ✅ Login works with admin/admin123
 
 ## Architecture
 - **Frontend:** React (`/app/frontend/`)
 - **Backend:** FastAPI (`/app/backend/`)
 - **Database:** MongoDB
 
-## Key Files Modified/Created
-- `/app/backend/routes/vpn.py` (NEW)
-- `/app/backend/routes/system_stats.py` (NEW)
-- `/app/backend/server.py` (MODIFIED - routers + schedulers)
-- `/app/frontend/src/components/noc/widgets/VPNWidget.jsx` (NEW)
-- `/app/frontend/src/components/common/SystemResourceMonitor.jsx` (MODIFIED - production style)
-- `/app/frontend/src/components/panels/NOCDashboard.jsx` (MODIFIED - header + VPN widget)
-- `/app/frontend/src/App.js` (MODIFIED - rebranding)
-- `/app/frontend/src/locales/es/translation.json` (MODIFIED - NOC title)
-- `/app/frontend/src/locales/en/translation.json` (MODIFIED - NOC title)
+## Key Files Modified This Session
+- `/app/frontend/src/components/panels/MaintenancePanel.jsx` - Search, sort, DVR exclusion
+- `/app/frontend/src/App.js` - Fixed system status API call (line 2056)
+- `/app/backend/routes/settings.py` - System status endpoint
+
+## Pending Issues
+1. **Camera Preview Images** - Not loading in ServerCard. Backend endpoint works (curl verified), but frontend may have issues with authAxios prop passing or network calls. Needs browser Network tab debugging on user's production server.
+2. **Device Type Counter Filter Verification** - User reported "no veo cambios" in previous session. Code is correct, but may need verification on production.
 
 ## Backlog / Future Tasks
+- Infrastructure devices widget in NOC dashboard (ESXi, NAS monitoring)
 - Improve PWA experience
 - Create user documentation
-- Refactoring of App.js and NOCDashboard.jsx (POSTPONED)
+- Refactoring of App.js (monolith - over 3500 lines)
 
 ## Credentials
 - Admin user: admin / admin123
+- Production user: admin / Spw@16071977
+
+## Test Reports
+- `/app/test_reports/iteration_20.json` - All tests passed (100% backend, 100% frontend)
