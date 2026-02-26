@@ -194,21 +194,11 @@ const LoginPage = ({ login }) => {
         }} />
       </div>
       
-      {/* Left side - Info */}
+      {/* Left side - Info with Spectacular Logo */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center p-12 relative">
         <div className="max-w-md text-center">
-          {/* Camera animation */}
-          <div className="relative mb-8">
-            <div className="absolute inset-0 bg-cyan-500 rounded-full blur-3xl opacity-20 animate-pulse" style={{ transform: 'scale(2)' }} />
-            <div className="relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 p-8 rounded-full border border-cyan-500/30 shadow-2xl backdrop-blur-sm inline-block">
-              <Cctv className="w-24 h-24 text-cyan-400" style={{ animation: 'cameraMove 4s ease-in-out infinite' }} />
-            </div>
-            <div className="absolute top-4 right-4 flex items-center gap-1">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-            </div>
-          </div>
-          
-          <img src={LOGO_URL} alt="Siempria" className="h-20 mx-auto mb-6 object-contain" style={{ filter: 'drop-shadow(0 0 20px rgba(0,163,217,0.3))' }} />
+          {/* Spectacular animated logo */}
+          <SpectacularLogo />
           
           <h1 className="text-3xl font-light text-white mb-2">{t('login.title', 'Network Monitor')}</h1>
           <p className="text-cyan-400 mb-8">{t('login.subtitle', 'Sistema de Vigilancia Profesional')}</p>
