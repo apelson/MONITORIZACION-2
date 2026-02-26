@@ -2072,7 +2072,7 @@ const Dashboard = () => {
         authAxios.get("/alerts?period=month&limit=200"),
         authAxios.get("/dahua/status").catch(() => ({ data: { summary: { total: 0, online: 0 } } })),
         authAxios.get("/vpn/status").catch(() => ({ data: { summary: { total: 0, online: 0 } } })),
-        authAxios.get("/infrastructure").catch(() => ({ data: { devices: [] } }))
+        authAxios.get("/infrastructure/devices").catch(() => ({ data: [] }))
       ]);
       
       // Use stats for header counters (faster)
