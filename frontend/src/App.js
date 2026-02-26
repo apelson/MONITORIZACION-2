@@ -2242,6 +2242,8 @@ const Dashboard = () => {
         });
       }
       
+      const newDevices = devRes.data.devices || [];
+      
       // Infrastructure stats - count devices from main devices collection with infrastructure types
       // Types considered infrastructure: nas, server, esxi, qnap, synology
       const infraTypes = ['type-nas', 'type-server', 'nas', 'server', 'esxi', 'qnap', 'synology'];
@@ -2270,8 +2272,6 @@ const Dashboard = () => {
         total: uniqueInfra.length, 
         online: infraOnline 
       });
-      
-      const newDevices = devRes.data.devices || [];
       
       // Detect devices that went offline
       const newFailures = [];
