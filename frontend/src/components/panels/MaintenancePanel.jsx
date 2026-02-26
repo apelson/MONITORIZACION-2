@@ -164,7 +164,7 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
     });
     
     return filtered;
-  }, [devices, maintenanceDevices, searchQuery]);
+  }, [devices, dahuaDevices, maintenanceDevices, searchQuery]);
 
   return (
     <div className="space-y-6">
