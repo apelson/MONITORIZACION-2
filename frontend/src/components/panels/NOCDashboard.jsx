@@ -53,8 +53,9 @@ const INITIAL_LAYOUT = [
   { i: 'organizations', x: 0, y: 4, w: 3, h: 3, minW: 2, minH: 2 },
   { i: 'offline', x: 3, y: 4, w: 3, h: 3, minW: 2, minH: 2 },
   { i: 'dahua', x: 6, y: 4, w: 3, h: 3, minW: 2, minH: 2 },
-  { i: 'history', x: 9, y: 4, w: 3, h: 3, minW: 2, minH: 2 },
-  { i: 'alerts', x: 0, y: 7, w: 6, h: 3, minW: 3, minH: 2 },
+  { i: 'vpn', x: 9, y: 4, w: 3, h: 3, minW: 2, minH: 2 },
+  { i: 'history', x: 0, y: 7, w: 3, h: 3, minW: 2, minH: 2 },
+  { i: 'alerts', x: 3, y: 7, w: 6, h: 3, minW: 3, minH: 2 },
 ];
 
 const ICON_MAP = {
