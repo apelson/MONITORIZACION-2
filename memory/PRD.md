@@ -74,8 +74,9 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 
 ## Key Files Modified This Session
 - `/app/frontend/src/components/panels/MaintenancePanel.jsx` - Search, sort, DVR exclusion
-- `/app/frontend/src/App.js` - Fixed system status API call (line 2056)
+- `/app/frontend/src/App.js` - Real-time WebSocket metrics (lines 2053-2132)
 - `/app/backend/routes/settings.py` - System status endpoint
+- `/app/backend/routes/websocket.py` - New `/ws/system-metrics` endpoint for real-time data
 
 ## Pending Issues
 1. **Camera Preview Images** - Not loading in ServerCard. Backend endpoint works (curl verified), but frontend may have issues with authAxios prop passing or network calls. Needs browser Network tab debugging on user's production server.
