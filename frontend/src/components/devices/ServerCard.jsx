@@ -158,13 +158,14 @@ export const ServerCard = memo(({
 
   const isCamera = device.device_type_id === "type-camera" || deviceType?.icon === "camera";
   const canLoadImage = isCamera && device.status === "online";
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   // Load image on mount for cameras
   useEffect(() => {
     let mounted = true;
     
     const loadImage = async () => {
-      if (!canLoadImage || imageData) return;
+      if (!canLoadImage) return;
       
       setImageLoading(true);
       try {
@@ -173,6 +174,7 @@ export const ServerCard = memo(({
           const url = URL.createObjectURL(response.data);
           setImageData(url);
           setImageError(false);
+          setImageLoaded(true);
           setCaptureTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
         }
       } catch (e) {
@@ -191,14 +193,14 @@ export const ServerCard = memo(({
       setImageData(OFFLINE_PLACEHOLDER);
       setCaptureTime(null);
       setImageLoading(false);
-    } else if (canLoadImage) {
+    } else if (canLoadImage && !imageLoaded) {
       loadImage();
     } else if (!isCamera) {
       setImageLoading(false);
     }
     
     return () => { mounted = false; };
-  }, [device.id, device.status, isCamera, canLoadImage, authAxios]);
+  }, [device.id, device.status, isCamera, canLoadImage, authAxios, imageLoaded]);
 
   const showImage = isCamera && !imageLoading && (imageData || device.status === "offline");
   const displayImage = imageData || OFFLINE_PLACEHOLDER;
