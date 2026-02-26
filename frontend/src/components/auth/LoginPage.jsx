@@ -256,7 +256,7 @@ const LoginPage = ({ login }) => {
                   data-testid="login-username" 
                   value={username} 
                   onChange={(e) => { setUsername(e.target.value); setLoginError(""); }} 
-                  className="pl-11 h-12 bg-slate-900/80 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-cyan-500/20" 
+                  className="pl-10 h-10 bg-slate-900/80 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-cyan-500/20" 
                   placeholder={t('auth.username', 'Usuario')} 
                 />
               </div>
