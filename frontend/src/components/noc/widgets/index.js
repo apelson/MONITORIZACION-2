@@ -11,4 +11,6 @@ export { default as HistoryWidget } from './HistoryWidget';
 export { default as AlertsWidget } from './AlertsWidget';
 export { default as StatsWidget } from './StatsWidget';
 export { default as CriticalAlertsWidget } from './CriticalAlertsWidget';
+export { default as VPNWidget } from './VPNWidget';
+
 
