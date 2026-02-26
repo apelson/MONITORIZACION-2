@@ -425,14 +425,13 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh, onCreateIncident
                     <div
                       key={device.id}
                       data-testid={`device-maintenance-card-${device.id}`}
-                      className={`p-4 rounded-lg border transition-all hover:border-amber-500/50 hover:bg-amber-500/5 cursor-pointer ${
+                      className={`p-4 rounded-lg border transition-all ${
                         isOffline
                           ? "border-red-500/50 bg-red-500/10 ring-1 ring-red-500/30"
                           : hasHighLatency 
                           ? "border-orange-500/50 bg-orange-500/10"
                           : "border-green-500/30 bg-green-500/5"
                       }`}
-                      onClick={() => handleEnableMaintenance(device)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
