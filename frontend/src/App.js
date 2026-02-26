@@ -2796,12 +2796,12 @@ const Dashboard = () => {
                       <Database className={`w-3 h-3 ${baseColor}`} />
                       <span className={`${baseColor} font-mono font-semibold`}>{headerResources.ram || '--'}%</span>
                       {resourceHistory.ram.length > 5 && (
-                        <svg width="30" height="12" className="ml-1">
+                        <svg width="40" height="14" className="ml-1 opacity-80">
                           <polyline
                             fill="none"
                             stroke={alert.level === 'critical' ? '#ef4444' : alert.level === 'warning' ? '#f59e0b' : '#60a5fa'}
-                            strokeWidth="1"
-                            points={resourceHistory.ram.map((v, i) => `${i * (30 / Math.max(resourceHistory.ram.length - 1, 1))},${12 - (v / 100) * 12}`).join(' ')}
+                            strokeWidth="1.5"
+                            points={resourceHistory.ram.map((v, i) => `${i * (40 / Math.max(resourceHistory.ram.length - 1, 1))},${14 - (v / 100) * 14}`).join(' ')}
                           />
                         </svg>
                       )}
