@@ -159,48 +159,76 @@ export const ServerCard = memo(({
   const isCamera = device.device_type_id === "type-camera" || deviceType?.icon === "camera";
   const canLoadImage = isCamera && device.status === "online";
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
-  // Load image on mount for cameras
-  useEffect(() => {
-    let mounted = true;
+  // Load camera image
+  const loadCameraImage = useCallback(async () => {
+    if (!canLoadImage || !authAxios) {
+      console.log(`[ServerCard] Skip image load: canLoadImage=${canLoadImage}, authAxios=${!!authAxios}`);
+      return;
+    }
     
-    const loadImage = async () => {
-      if (!canLoadImage) return;
+    setImageLoading(true);
+    setImageError(false);
+    
+    try {
+      console.log(`[ServerCard] Loading image for device ${device.id}...`);
+      const response = await authAxios.get(`/image-proxy/${device.id}`, { 
+        responseType: 'blob',
+        timeout: 15000
+      });
       
-      setImageLoading(true);
-      try {
-        const response = await authAxios.get(`/image-proxy/${device.id}`, { responseType: 'blob' });
-        if (mounted && response.data && response.data.size > 0) {
-          const url = URL.createObjectURL(response.data);
-          setImageData(url);
-          setImageError(false);
-          setImageLoaded(true);
-          setCaptureTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      if (response.data && response.data.size > 0) {
+        // Revoke previous blob URL to prevent memory leak
+        if (imageData && imageData.startsWith('blob:')) {
+          URL.revokeObjectURL(imageData);
         }
-      } catch (e) {
-        console.error("Error loading image for device", device.id, ":", e?.response?.status || e.message);
-        if (mounted) {
-          setImageData(OFFLINE_PLACEHOLDER);
-          setImageError(true);
-          setCaptureTime(null);
-        }
-      } finally {
-        if (mounted) setImageLoading(false);
+        const url = URL.createObjectURL(response.data);
+        setImageData(url);
+        setImageLoaded(true);
+        setCaptureTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        console.log(`[ServerCard] Image loaded successfully for ${device.id}`);
+      } else {
+        throw new Error('Empty response');
       }
-    };
-    
+    } catch (e) {
+      console.error(`[ServerCard] Error loading image for ${device.id}:`, e?.response?.status || e.message);
+      setImageData(OFFLINE_PLACEHOLDER);
+      setImageError(true);
+      setCaptureTime(null);
+    } finally {
+      setImageLoading(false);
+    }
+  }, [device.id, canLoadImage, authAxios, imageData]);
+
+  // Load image on mount and when device status changes
+  useEffect(() => {
     if (device.status === "offline" && isCamera) {
       setImageData(OFFLINE_PLACEHOLDER);
       setCaptureTime(null);
       setImageLoading(false);
+      setImageLoaded(false);
     } else if (canLoadImage && !imageLoaded) {
-      loadImage();
+      loadCameraImage();
     } else if (!isCamera) {
       setImageLoading(false);
     }
     
-    return () => { mounted = false; };
-  }, [device.id, device.status, isCamera, canLoadImage, authAxios, imageLoaded]);
+    // Cleanup blob URL on unmount
+    return () => {
+      if (imageData && imageData.startsWith('blob:')) {
+        URL.revokeObjectURL(imageData);
+      }
+    };
+  }, [device.status, isCamera, canLoadImage, imageLoaded]);
+
+  // Manual refresh function
+  const handleRefreshImage = useCallback((e) => {
+    e?.stopPropagation();
+    setImageLoaded(false);
+    setRetryCount(prev => prev + 1);
+    loadCameraImage();
+  }, [loadCameraImage]);
 
   const showImage = isCamera && !imageLoading && (imageData || device.status === "offline");
   const displayImage = imageData || OFFLINE_PLACEHOLDER;
