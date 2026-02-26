@@ -9,8 +9,20 @@ import psutil
 
 from config import logger, SECRET_KEY, ALGORITHM
 from services.websocket_service import websocket_manager
+from services.telegram_service import send_resource_alert_telegram, send_resource_recovery_telegram
 
 router = APIRouter(prefix="/ws", tags=["websocket"])
+
+# Alert thresholds
+ALERT_THRESHOLD_WARNING = 75
+ALERT_THRESHOLD_CRITICAL = 90
+
+# Track alert state per resource
+_alert_state = {
+    "cpu": False,
+    "ram": False,
+    "hdd": False
+}
 
 def get_user_from_token(token: str) -> Optional[str]:
     """Extract user ID from JWT token"""
