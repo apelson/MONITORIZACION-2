@@ -36,7 +36,7 @@ done
 
 echo ""
 echo "📥 Descargando archivos actualizados..."
-API_URL="https://login-redesign-17.preview.emergentagent.com/api"
+API_URL="https://camera-preview-fix-1.preview.emergentagent.com/api"
 
 # Descargar cada archivo
 curl -s "$API_URL/download-frontend/components/settings/AIInsightsPanel.jsx" -o "$FRONTEND_DIR/components/settings/AIInsightsPanel.jsx"
