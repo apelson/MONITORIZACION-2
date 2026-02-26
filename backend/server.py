@@ -397,6 +397,14 @@ async def dl_devices_py():
         return FileResponse(file_path, filename="devices.py", media_type='text/plain; charset=utf-8')
     raise HTTPException(status_code=404, detail="File not found")
 
+@api_router.get("/dl/multitenancy")
+async def dl_multitenancy():
+    """Download multitenancy_service.py"""
+    file_path = "/app/backend/services/multitenancy_service.py"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="multitenancy_service.py", media_type='text/plain; charset=utf-8')
+    raise HTTPException(status_code=404, detail="File not found")
+
 # ============ ROOT & IMAGE PROXY ============
 
 @api_router.get("/")
