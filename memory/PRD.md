@@ -17,10 +17,37 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 11. ✅ Maintenance Panel Improvements (DONE - 26 Feb 2026)
 12. ✅ System Status Data Loading Fix (DONE - 26 Feb 2026)
 13. ✅ Device Type Counter Filtering (DONE - 26 Feb 2026)
+14. ✅ Bug "Editar Grupo" campo input se borra (CONFIRMED FIXED by user)
+15. ✅ Iconos de estado en dispositivos offline (Mantenimiento/Incidencia) (DONE - 26 Feb 2026)
+16. ✅ Campo "Isla" en formulario de grupos (DONE - 26 Feb 2026)
+17. ✅ Lista lateral de Islas con siluetas (DONE - 26 Feb 2026)
 
 ## What's Been Implemented (26 Feb 2026)
 
-### Latest Changes (Session 2)
+### Latest Changes (Session 3) - 26 Feb 2026
+
+#### 1. Iconos de Estado en Dispositivos Offline (Mantenimiento + Incidencia)
+- **Backend:** Modificado endpoint `/api/devices` para incluir campo `has_open_incident`
+- Consulta incidencias abiertas (status: open, in_progress) por device_id
+- Cada dispositivo ahora incluye flag `has_open_incident: true/false`
+- **Frontend:** Cambiado icono de incidencia de FileText a ClipboardList (📋)
+- Ambos iconos (🔧 mantenimiento y 📋 incidencia) pueden coexistir en la misma línea
+- Ubicación: `/app/frontend/src/components/panels/NOCDashboard.jsx` líneas 1862-1868
+
+#### 2. Campo "Isla" en Formulario de Grupos
+- **Backend:** Añadido campo `island` a modelos GroupCreate y GroupUpdate
+- Modificado endpoint POST `/api/groups` para guardar campo `island`
+- PUT automáticamente soporta el campo via model_dump()
+- **Frontend:** El campo ya estaba implementado en GroupFormDialog (App.js líneas 1204-1212)
+- Lista de islas: Tenerife, Gran Canaria, Lanzarote, Fuerteventura, La Palma, La Gomera, El Hierro, La Graciosa
+
+#### 3. Lista de Islas con Siluetas SVG
+- **Nuevo componente:** `/app/frontend/src/components/common/CanaryIslandsSilhouettes.jsx`
+- Siluetas SVG simplificadas de cada isla canaria
+- Colores dinámicos según estado (verde: >95% online, amarillo: >80%, rojo: <80%)
+- Animación pulsante cuando hay dispositivos offline
+- **NOCDashboard:** Lista mejorada más ancha con siluetas, barras de progreso y contador de offline
+- Ordenado por offline primero, luego por total de dispositivos
 
 #### 1. Real-Time System Metrics via WebSocket
 - Created new WebSocket endpoint `/api/ws/system-metrics`
