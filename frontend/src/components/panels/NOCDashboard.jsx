@@ -1704,13 +1704,16 @@ const NOCDashboard = ({
             </div>
             <div>
               <h1 className="text-lg font-bold bg-gradient-to-r from-cyan-400 to-blue-400 text-transparent bg-clip-text">
-                {t('noc.title', 'NOC Dashboard')}
+                {t('noc.title', 'WatchTower NOC')}
               </h1>
-              <p className="text-[10px] text-slate-400">{t('noc.subtitle', 'Centro de Operaciones de Red 24/7')}</p>
+              <p className="text-[10px] text-slate-400">{t('noc.subtitle', 'by SIEMPRIA')}</p>
             </div>
           </div>
           <div className="h-8 w-px bg-slate-700" />
           <img src={LOGO_URL} alt="Siempria" className="h-10 object-contain" />
+          <div className="h-8 w-px bg-slate-700" />
+          {/* System Resource Monitor */}
+          <SystemResourceMonitor authAxios={authAxios} />
         </div>
         
         <div className="flex items-center gap-3">
