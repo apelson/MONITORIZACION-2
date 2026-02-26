@@ -2878,7 +2878,9 @@ const Dashboard = () => {
                           const dtype = deviceTypes.find(t => t.name === name);
                           const Icon = dtype ? getIcon(dtype.icon) : Box;
                           const color = dtype?.color || '#888';
-                          const displayName = name === 'XVR/NVR' ? 'DVR/NVR' : name;
+                          // Skip DVR/NVR since it's already in header
+                          if (name === 'XVR/NVR' || name === 'DVR/NVR') return null;
+                          const displayName = name;
                           return (
                             <button 
                               key={name} 
