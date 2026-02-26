@@ -141,6 +141,31 @@ async def websocket_system_metrics(
                 prev_net = current_net
                 prev_time = current_time
                 
+                # Check for alerts and send Telegram notifications
+                # CPU Alert
+                if cpu_percent >= ALERT_THRESHOLD_CRITICAL and not _alert_state["cpu"]:
+                    _alert_state["cpu"] = True
+                    asyncio.create_task(send_resource_alert_telegram("cpu", cpu_percent, ALERT_THRESHOLD_CRITICAL))
+                elif cpu_percent < ALERT_THRESHOLD_WARNING and _alert_state["cpu"]:
+                    _alert_state["cpu"] = False
+                    asyncio.create_task(send_resource_recovery_telegram("cpu", cpu_percent, ALERT_THRESHOLD_CRITICAL))
+                
+                # RAM Alert
+                if memory.percent >= ALERT_THRESHOLD_CRITICAL and not _alert_state["ram"]:
+                    _alert_state["ram"] = True
+                    asyncio.create_task(send_resource_alert_telegram("ram", memory.percent, ALERT_THRESHOLD_CRITICAL))
+                elif memory.percent < ALERT_THRESHOLD_WARNING and _alert_state["ram"]:
+                    _alert_state["ram"] = False
+                    asyncio.create_task(send_resource_recovery_telegram("ram", memory.percent, ALERT_THRESHOLD_CRITICAL))
+                
+                # HDD Alert
+                if disk.percent >= ALERT_THRESHOLD_CRITICAL and not _alert_state["hdd"]:
+                    _alert_state["hdd"] = True
+                    asyncio.create_task(send_resource_alert_telegram("hdd", disk.percent, ALERT_THRESHOLD_CRITICAL))
+                elif disk.percent < ALERT_THRESHOLD_WARNING and _alert_state["hdd"]:
+                    _alert_state["hdd"] = False
+                    asyncio.create_task(send_resource_recovery_telegram("hdd", disk.percent, ALERT_THRESHOLD_CRITICAL))
+                
                 # Send metrics
                 await websocket.send_json({
                     "type": "metrics",
@@ -149,7 +174,12 @@ async def websocket_system_metrics(
                     "hdd": round(disk.percent, 1),
                     "net_up": round(net_up, 2),
                     "net_down": round(net_down, 2),
-                    "timestamp": current_time
+                    "timestamp": current_time,
+                    "alerts": {
+                        "cpu": _alert_state["cpu"],
+                        "ram": _alert_state["ram"],
+                        "hdd": _alert_state["hdd"]
+                    }
                 })
                 
                 # Wait 2 seconds before next update
