@@ -48,6 +48,7 @@ FILES = {
     "SystemStatusDashboard.jsx": "/app/frontend/src/components/settings/SystemStatusDashboard.jsx",
     "dahua.py": "/app/backend/routes/dahua.py",
     "GroupFormDialog.jsx": "/app/frontend/src/components/dialogs/GroupFormDialog.jsx",
+    "NOCDashboard.jsx": "/app/frontend/src/components/panels/NOCDashboard.jsx",
 }
 
 @router.get("/download/{filename}")
