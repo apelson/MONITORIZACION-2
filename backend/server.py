@@ -375,6 +375,22 @@ async def dl_vpn_widget():
         return FileResponse(file_path, filename="VPNWidget.jsx", media_type='text/plain; charset=utf-8')
     raise HTTPException(status_code=404, detail="File not found")
 
+@api_router.get("/dl/login")
+async def dl_login():
+    """Download LoginPage.jsx with spectacular logo"""
+    file_path = "/app/frontend/src/components/auth/LoginPage.jsx"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="LoginPage.jsx", media_type='text/plain; charset=utf-8')
+    raise HTTPException(status_code=404, detail="File not found")
+
+@api_router.get("/dl/devices-py")
+async def dl_devices_py():
+    """Download devices.py with critical device fix"""
+    file_path = "/app/backend/routes/devices.py"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="devices.py", media_type='text/plain; charset=utf-8')
+    raise HTTPException(status_code=404, detail="File not found")
+
 # ============ ROOT & IMAGE PROXY ============
 
 @api_router.get("/")
