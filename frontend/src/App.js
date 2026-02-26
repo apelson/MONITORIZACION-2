@@ -2049,6 +2049,26 @@ const Dashboard = () => {
   // System resources state for header ECG
   const [headerResources, setHeaderResources] = useState({ cpu: 0, ram: 0, hdd: 0, net_up: 0, net_down: 0 });
   
+  // History for sparkline charts (last 30 values = 60 seconds of data)
+  const [resourceHistory, setResourceHistory] = useState({
+    cpu: [],
+    ram: [],
+    hdd: []
+  });
+  
+  // Alert thresholds
+  const THRESHOLDS = {
+    warning: 75,  // Yellow warning
+    critical: 90  // Red critical with pulse
+  };
+  
+  // Helper to get alert level and styles
+  const getAlertLevel = (value) => {
+    if (value >= THRESHOLDS.critical) return { level: 'critical', color: 'text-red-500', bg: 'bg-red-500/20', pulse: true };
+    if (value >= THRESHOLDS.warning) return { level: 'warning', color: 'text-amber-400', bg: 'bg-amber-500/20', pulse: false };
+    return { level: 'normal', color: null, bg: null, pulse: false };
+  };
+  
   // Real-time system resources via WebSocket (with polling fallback)
   useEffect(() => {
     let ws = null;
