@@ -20,6 +20,7 @@ FILES = {
     "App.js": "/app/frontend/src/App.js",
     "App.css": "/app/frontend/src/App.css",
     "ServerCard.jsx": "/app/frontend/src/components/devices/ServerCard.jsx",
+    "DahuaDevicesPanel.jsx": "/app/frontend/src/components/panels/DahuaDevicesPanel.jsx",
     # Additional panels
     "OrganizationsPanel.jsx": "/app/frontend/src/components/panels/OrganizationsPanel.jsx",
     "DeviceTypesPanel.jsx": "/app/frontend/src/components/panels/DeviceTypesPanel.jsx",
