@@ -52,12 +52,17 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
   const [showPassword, setShowPassword] = useState({});
   const [statusSummary, setStatusSummary] = useState(null);
   const [expanded, setExpanded] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   
   // Import state
   const [showImportModal, setShowImportModal] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
   const fileInputRef = useRef(null);
+  
+  // Maintenance/Incident state
+  const [maintenanceLoading, setMaintenanceLoading] = useState({});
+  const [incidentLoading, setIncidentLoading] = useState({});
 
   const [formData, setFormData] = useState({
     name: '',
