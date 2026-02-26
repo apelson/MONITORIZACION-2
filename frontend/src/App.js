@@ -2424,51 +2424,41 @@ const Dashboard = () => {
               <img src={LOGO_URL} alt="WatchTower" className="md:hidden h-8 object-contain header-logo" />
             </div>
             
-            {/* Center: Status HUD - Compact Display */}
-            <div className="status-hud py-2 px-4 gap-3">
+            {/* Center: Status HUD - Ultra Compact */}
+            <div className="status-hud py-1 px-3 gap-2">
               <div className="status-hud-item online">
-                <div className="status-dot status-dot-online" />
-                <div className="flex flex-col items-center">
-                  <span className="status-count text-lg">{totalOnline}</span>
-                  <span className="status-hud-label hidden sm:block text-[9px]">ONLINE</span>
-                </div>
+                <div className="status-dot status-dot-online w-2 h-2" />
+                <span className="status-count text-sm font-semibold">{totalOnline}</span>
+                <span className="status-hud-label hidden sm:block text-[8px] opacity-70">ON</span>
               </div>
-              <div className="status-hud-divider" />
+              <div className="status-hud-divider h-4" />
               <button 
                 onClick={() => setFailuresDialogOpen(true)} 
-                className="status-hud-item offline hover:bg-red-500/10 px-2 py-1 rounded-full transition-all"
+                className="status-hud-item offline hover:bg-red-500/10 px-1.5 py-0.5 rounded transition-all"
                 title="Ver resumen de fallos"
               >
-                <div className="status-dot status-dot-offline" />
-                <div className="flex flex-col items-center">
-                  <span className="status-count text-lg">{totalOffline}</span>
-                  <span className="status-hud-label hidden sm:block text-[9px]">OFFLINE</span>
-                </div>
-                {recentFailures.length > 0 && <Bell className="w-3 h-3 text-red-400 animate-pulse ml-1" />}
+                <div className="status-dot status-dot-offline w-2 h-2" />
+                <span className="status-count text-sm font-semibold">{totalOffline}</span>
+                <span className="status-hud-label hidden sm:block text-[8px] opacity-70">OFF</span>
+                {recentFailures.length > 0 && <Bell className="w-2.5 h-2.5 text-red-400 animate-pulse" />}
               </button>
-              <div className="status-hud-divider" />
+              <div className="status-hud-divider h-4" />
               <button 
                 onClick={() => setActiveTab('dahua')} 
-                className="status-hud-item dvr hover:bg-blue-500/10 px-2 py-1 rounded-full transition-all"
-                title="Ver Grabadores DVR/NVR"
+                className="status-hud-item hover:bg-blue-500/10 px-1.5 py-0.5 rounded transition-all"
+                title="Grabadores DVR/NVR"
               >
-                <HardDrive className="w-4 h-4 text-blue-400" />
-                <div className="flex flex-col items-center">
-                  <span className="status-count text-blue-400 text-lg">{dvrStats.online}/{dvrStats.total}</span>
-                  <span className="status-hud-label hidden sm:block text-blue-400 text-[9px]">DVR</span>
-                </div>
+                <HardDrive className="w-3.5 h-3.5 text-blue-400" />
+                <span className="status-count text-blue-400 text-sm font-semibold">{dvrStats.online}/{dvrStats.total}</span>
               </button>
-              <div className="status-hud-divider" />
+              <div className="status-hud-divider h-4" />
               <button 
                 onClick={() => setActiveTab('devices')} 
-                className="status-hud-item vpn hover:bg-green-500/10 px-2 py-1 rounded-full transition-all"
-                title="Ver VPN Tunnels"
+                className="status-hud-item hover:bg-green-500/10 px-1.5 py-0.5 rounded transition-all"
+                title="VPN Tunnels"
               >
-                <Network className="w-4 h-4 text-green-400" />
-                <div className="flex flex-col items-center">
-                  <span className="status-count text-green-400 text-lg">{vpnStats.online}/{vpnStats.total}</span>
-                  <span className="status-hud-label hidden sm:block text-green-400 text-[9px]">VPN</span>
-                </div>
+                <Network className="w-3.5 h-3.5 text-green-400" />
+                <span className="status-count text-green-400 text-sm font-semibold">{vpnStats.online}/{vpnStats.total}</span>
               </button>
             </div>
 
