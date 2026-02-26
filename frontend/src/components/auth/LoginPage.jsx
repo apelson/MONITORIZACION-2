@@ -215,11 +215,11 @@ const LoginPage = ({ login }) => {
           WATCH TOWER
         </h1>
         
-        <p className="text-lg tracking-[0.3em] uppercase mb-1 text-white font-semibold">
+        <p className="text-base tracking-[0.25em] mb-1 text-white font-medium">
           by Siempria
         </p>
         
-        <p className="text-slate-500 text-xs tracking-wider mb-8">
+        <p className="text-slate-500 text-[11px] tracking-wider mb-6">
           Centro de Operaciones de Red 24/7
         </p>
 
