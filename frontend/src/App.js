@@ -2042,6 +2042,9 @@ const Dashboard = () => {
   const onlineCount = deviceStats.online || devices.filter(d => d.status === 'online').length;
   const offlineCount = deviceStats.offline || devices.filter(d => d.status === 'offline').length;
   const craCount = deviceStats.cra || devices.filter(d => d.is_cra === true).length;
+  
+  // DVR/NVR count state
+  const [dvrStats, setDvrStats] = useState({ total: 0, online: 0 });
 
   const fetchAll = useCallback(async () => {
     // Prevent concurrent calls
