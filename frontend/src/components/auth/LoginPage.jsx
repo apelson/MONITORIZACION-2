@@ -321,7 +321,7 @@ const LoginPage = ({ login }) => {
         </div>
 
         {/* Features */}
-        <div className="mt-8 flex flex-wrap justify-center gap-6 text-xs text-slate-500">
+        <div className="mt-5 flex flex-wrap justify-center gap-6 text-xs text-slate-500">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-cyan-500" />
             <span>Monitoreo 24/7</span>
@@ -337,7 +337,7 @@ const LoginPage = ({ login }) => {
         </div>
 
         {/* Contact */}
-        <div className="mt-6 flex flex-wrap justify-center gap-4 text-xs">
+        <div className="mt-4 flex flex-wrap justify-center gap-4 text-xs">
           <a href="mailto:soporte@siempria.com" className="flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300">
             <Mail className="w-3.5 h-3.5" />
             soporte@siempria.com
@@ -348,20 +348,18 @@ const LoginPage = ({ login }) => {
           </a>
         </div>
 
-        {/* Footer */}
-        <div className="mt-6 text-center text-slate-600 text-[10px] space-y-1">
-          <p>© {new Date().getFullYear()} Siempria - Todos los derechos reservados</p>
-          <p>Distribuidor Autorizado Mobotix para España y Portugal</p>
-        </div>
-        
-        {/* Partner logo */}
-        <div className="mt-4">
-          <div className="bg-white/90 rounded-lg px-4 py-2 inline-block">
+        {/* Footer + Partner in same row */}
+        <div className="mt-4 flex items-center justify-center gap-6">
+          <div className="text-slate-600 text-[10px]">
+            <p>© {new Date().getFullYear()} Siempria</p>
+            <p>Distribuidor Autorizado Mobotix</p>
+          </div>
+          <div className="bg-white/90 rounded-lg px-3 py-1.5 inline-block">
             <img 
               src={MOBOTIX_LOGO_URL} 
               alt="Mobotix" 
-              className="h-6 object-contain" 
-              onError={(e) => { e.target.parentElement.innerHTML = '<span class="text-sm font-bold text-slate-800">MOBOTIX</span>'; }} 
+              className="h-5 object-contain" 
+              onError={(e) => { e.target.parentElement.innerHTML = '<span class="text-xs font-bold text-slate-800">MOBOTIX</span>'; }} 
             />
           </div>
         </div>
@@ -369,7 +367,7 @@ const LoginPage = ({ login }) => {
         {/* SaaS Portal Link */}
         <button 
           onClick={() => window.location.href = '/saas'}
-          className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 border border-cyan-500/20 hover:border-cyan-500/40 text-cyan-400 text-xs"
+          className="mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 border border-cyan-500/20 hover:border-cyan-500/40 text-cyan-400 text-xs"
         >
           <Globe className="w-3.5 h-3.5" />
           Acceder al Portal SaaS
