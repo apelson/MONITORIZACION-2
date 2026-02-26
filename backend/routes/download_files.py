@@ -46,6 +46,7 @@ FILES = {
     "telegram_service.py": "/app/backend/services/telegram_service.py",
     "devices.py": "/app/backend/routes/devices.py",
     "SystemStatusDashboard.jsx": "/app/frontend/src/components/settings/SystemStatusDashboard.jsx",
+    "dahua.py": "/app/backend/routes/dahua.py",
 }
 
 @router.get("/download/{filename}")
