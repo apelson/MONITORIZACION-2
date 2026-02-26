@@ -117,14 +117,14 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 - **Database:** MongoDB
 
 ## Key Files Modified This Session
-- `/app/frontend/src/components/panels/MaintenancePanel.jsx` - Search, sort, DVR exclusion
-- `/app/frontend/src/App.js` - Real-time WebSocket metrics (lines 2053-2132)
-- `/app/backend/routes/settings.py` - System status endpoint
-- `/app/backend/routes/websocket.py` - New `/ws/system-metrics` endpoint for real-time data
+- `/app/frontend/src/components/panels/NOCDashboard.jsx` - Iconos de incidencia, siluetas de islas
+- `/app/frontend/src/components/common/CanaryIslandsSilhouettes.jsx` - NUEVO: componente SVG de islas
+- `/app/backend/routes/devices.py` - Campo has_open_incident en dispositivos
+- `/app/backend/routes/organizations.py` - Campo island en grupos
+- `/app/backend/models/__init__.py` - Modelos GroupCreate/GroupUpdate con island
 
 ## Pending Issues
-1. **Camera Preview Images** - Not loading in ServerCard. Backend endpoint works (curl verified), but frontend may have issues with authAxios prop passing or network calls. Needs browser Network tab debugging on user's production server.
-2. **Device Type Counter Filter Verification** - User reported "no veo cambios" in previous session. Code is correct, but may need verification on production.
+1. **Contador de Infraestructura (0/0)** - El usuario indica que no sabe de dónde viene este número. Posiblemente los dispositivos de infraestructura no están clasificados correctamente en la DB. Necesita revisión con el usuario para entender qué device_type_id usan sus dispositivos de infraestructura.
 
 ## Backlog / Future Tasks
 - Infrastructure devices widget in NOC dashboard (ESXi, NAS monitoring)
