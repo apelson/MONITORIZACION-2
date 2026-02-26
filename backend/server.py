@@ -1034,6 +1034,60 @@ async def download_update_package_public():
         return FileResponse(file_path, filename="siempria_update.tar.gz", media_type='application/gzip')
     raise HTTPException(status_code=404, detail="Update package not found")
 
+# Endpoint para descargar NOCDashboard corregido
+@app.get("/download-noc")
+async def download_noc_corrected():
+    """Download corrected NOCDashboard.jsx - no auth required"""
+    file_path = "/app/backend/static_files/NOCDashboard_corrected.jsx"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="NOCDashboard.jsx", media_type='text/plain')
+    raise HTTPException(status_code=404, detail="File not found")
+
+# Endpoint para descargar vpn.py
+@app.get("/download-vpn")
+async def download_vpn():
+    """Download vpn.py - no auth required"""
+    file_path = "/app/backend/routes/vpn.py"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="vpn.py", media_type='text/plain')
+    raise HTTPException(status_code=404, detail="File not found")
+
+# Endpoint para descargar system_stats.py
+@app.get("/download-system-stats")
+async def download_system_stats():
+    """Download system_stats.py - no auth required"""
+    file_path = "/app/backend/routes/system_stats.py"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="system_stats.py", media_type='text/plain')
+    raise HTTPException(status_code=404, detail="File not found")
+
+# Endpoint para descargar MiniECG.jsx
+@app.get("/download-mini-ecg")
+async def download_mini_ecg():
+    """Download MiniECG.jsx - no auth required"""
+    file_path = "/app/frontend/src/components/common/MiniECG.jsx"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="MiniECG.jsx", media_type='text/plain')
+    raise HTTPException(status_code=404, detail="File not found")
+
+# Endpoint para descargar SystemResourceMonitor.jsx
+@app.get("/download-system-monitor")
+async def download_system_monitor():
+    """Download SystemResourceMonitor.jsx - no auth required"""
+    file_path = "/app/frontend/src/components/common/SystemResourceMonitor.jsx"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="SystemResourceMonitor.jsx", media_type='text/plain')
+    raise HTTPException(status_code=404, detail="File not found")
+
+# Endpoint para descargar VPNWidget.jsx
+@app.get("/download-vpn-widget")
+async def download_vpn_widget():
+    """Download VPNWidget.jsx - no auth required"""
+    file_path = "/app/frontend/src/components/noc/widgets/VPNWidget.jsx"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="VPNWidget.jsx", media_type='text/plain')
+    raise HTTPException(status_code=404, detail="File not found")
+
 # Endpoint temporal para descargar App.js
 @app.get("/api/download/appjs")
 async def download_appjs():
