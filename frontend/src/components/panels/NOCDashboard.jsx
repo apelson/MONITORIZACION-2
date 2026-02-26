@@ -1719,7 +1719,7 @@ const NOCDashboard = ({
               <p className="text-[9px] text-emerald-400 uppercase">Sin Incidencias</p>
               <p className="text-sm font-mono text-emerald-400">
                 {dahuaSummary.offline === 0 ? (
-                  formatUptimeCounter(Date.now() - (lastIncidentTime || Date.now()))
+                  formatUptimeCounter(currentTime - (lastIncidentTime || currentTime))
                 ) : '00:00:00'}
               </p>
             </div>
