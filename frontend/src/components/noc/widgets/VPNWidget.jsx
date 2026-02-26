@@ -108,15 +108,15 @@ const VPNWidget = ({
         </div>
       </CardHeader>
 
-      <CardContent className="p-2 pt-0 flex-1 min-h-0">
+      <CardContent className="p-2 pt-0 flex-1 min-h-0 overflow-hidden">
         {vpnDevices.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-slate-500 py-4">
             <Shield className="w-8 h-8 mb-2 opacity-50" />
             <p className="text-xs">No hay túneles VPN configurados</p>
           </div>
         ) : (
-          <ScrollArea className="h-full">
-            <div className="space-y-1">
+          <ScrollArea className="h-full max-h-[300px]">
+            <div className="space-y-1 pr-2">
               {/* Offline devices first - with warning icon */}
               {offlineDevices.map(device => (
                 <div
