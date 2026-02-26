@@ -299,10 +299,10 @@ const IncidentsPanel = ({ devices, authAxios }) => {
               </div>
               <div>
                 <label className="text-sm font-medium">Dispositivo</label>
-                <Select value={formData.device_id} onValueChange={(v) => setFormData({ ...formData, device_id: v })}>
+                <Select value={formData.device_id || "none"} onValueChange={(v) => setFormData({ ...formData, device_id: v === "none" ? "" : v })}>
                   <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Ninguno</SelectItem>
+                    <SelectItem value="none">Ninguno</SelectItem>
                     {devices.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
