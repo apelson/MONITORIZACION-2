@@ -477,7 +477,7 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
             ) : (
               <ScrollArea className="h-[calc(100vh-350px)] min-h-[400px]">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pr-4">
-                  {devices.map((device) => (
+                  {filteredDevices.map((device) => (
                     <Card
                       key={device.id}
                       data-testid={`dahua-device-${device.id}`}
