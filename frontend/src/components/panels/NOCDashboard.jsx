@@ -1669,6 +1669,13 @@ const NOCDashboard = ({
             )}
           </ScrollArea>
         </div>
+
+        {/* VPN Tunnels Widget */}
+        <VPNWidget
+          authAxios={authAxios}
+          onDeviceClick={onDeviceClick}
+          editMode={editMode}
+        />
       </div>
 
       {/* Footer */}
