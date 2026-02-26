@@ -3395,7 +3395,7 @@ const Dashboard = () => {
               <IntegrationsPanel settings={settings} onSave={handleSaveSettings} authAxios={authAxios} />
               <TelegramSettings settings={settings} onSave={handleSaveSettings} authAxios={authAxios} />
               <MaintenancePanel authAxios={authAxios} devices={devices} onRefresh={fetchAll} />
-              <DahuaDevicesPanel authAxios={authAxios} groups={groups} organizations={organizations} />
+              {/* DahuaDevicesPanel removed from Settings - grabadores now appear in MaintenancePanel list */}
               <NotificationSettings />
               <ReportSettings authAxios={authAxios} />
               <SecurityPanel />
