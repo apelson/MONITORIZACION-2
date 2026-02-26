@@ -86,12 +86,12 @@ async def websocket_system_metrics(
     token: Optional[str] = Query(None)
 ):
     """
-    WebSocket endpoint for real-time system metrics (CPU, RAM)
+    WebSocket endpoint for real-time system metrics (CPU, RAM, HDD, Network)
     
     Connect with: ws://host/api/ws/system-metrics?token=<jwt_token>
     
     Sends metrics every 2 seconds:
-    - {"type": "metrics", "cpu": 25.5, "ram": 45.2, "timestamp": "..."}
+    - {"type": "metrics", "cpu": 25.5, "ram": 45.2, "hdd": 60.0, "net_up": 1.5, "net_down": 10.2}
     """
     # Authenticate user
     user_id = "anonymous"
@@ -101,19 +101,43 @@ async def websocket_system_metrics(
     await websocket.accept()
     logger.info(f"[WS-Metrics] Client {user_id} connected")
     
+    # Track previous network counters for calculating speed
+    prev_net = psutil.net_io_counters()
+    prev_time = asyncio.get_event_loop().time()
+    
     try:
         while True:
             try:
                 # Get system metrics
                 cpu_percent = psutil.cpu_percent(interval=0.1)
                 memory = psutil.virtual_memory()
+                disk = psutil.disk_usage('/')
+                
+                # Calculate network speed (bytes per second)
+                current_net = psutil.net_io_counters()
+                current_time = asyncio.get_event_loop().time()
+                time_delta = current_time - prev_time
+                
+                if time_delta > 0:
+                    # Convert to MB/s
+                    net_up = (current_net.bytes_sent - prev_net.bytes_sent) / time_delta / (1024 * 1024)
+                    net_down = (current_net.bytes_recv - prev_net.bytes_recv) / time_delta / (1024 * 1024)
+                else:
+                    net_up = 0
+                    net_down = 0
+                
+                prev_net = current_net
+                prev_time = current_time
                 
                 # Send metrics
                 await websocket.send_json({
                     "type": "metrics",
                     "cpu": round(cpu_percent, 1),
                     "ram": round(memory.percent, 1),
-                    "timestamp": asyncio.get_event_loop().time()
+                    "hdd": round(disk.percent, 1),
+                    "net_up": round(net_up, 2),
+                    "net_down": round(net_down, 2),
+                    "timestamp": current_time
                 })
                 
                 # Wait 2 seconds before next update
