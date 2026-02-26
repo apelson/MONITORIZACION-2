@@ -109,6 +109,7 @@ async def create_group(data: GroupCreate, current_user: dict = Depends(require_r
         "organization_id": data.organization_id,
         "description": data.description or "",
         "color": data.color or "#22c55e",
+        "island": data.island or "",
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await groups_collection.insert_one(group)
