@@ -1425,6 +1425,13 @@ const NOCDashboard = ({
           </div>
           <HardDrive className="w-7 h-7 text-orange-400 opacity-40" />
         </div>
+        <div className={cn("bg-slate-900/80 rounded-lg p-2 flex items-center justify-between", vpnSummary.offline > 0 ? "border-2 border-red-500 animate-pulse" : "border border-cyan-500/30")}>
+          <div>
+            <p className="text-[9px] text-cyan-400 uppercase">VPN</p>
+            <p className="text-2xl font-bold text-cyan-400">{vpnSummary.online}<span className="text-lg opacity-70">/{vpnSummary.total}</span></p>
+          </div>
+          <Shield className="w-7 h-7 text-cyan-400 opacity-40" />
+        </div>
       </div>
 
       {/* Main Grid - With edit mode indication */}
