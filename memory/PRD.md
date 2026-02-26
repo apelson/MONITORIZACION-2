@@ -31,6 +31,7 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 - Network shows upload/download speed in MB/s
 - **Alertas visuales:** Colores cambian según umbrales (75% warning amarillo, 90% critical rojo parpadeante)
 - **Sparklines:** Mini gráficas de tendencia mostrando los últimos 30 valores (~60 segundos de historial)
+- **Notificaciones Telegram:** Alertas automáticas cuando CPU/RAM/HDD superan 90%, con cooldown de 5 minutos y notificación de recuperación
 
 #### 2. Maintenance Panel Improvements (`MaintenancePanel.jsx`)
 - Added search bar with placeholder "Buscar por nombre, IP, ubicación..."
