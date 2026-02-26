@@ -1023,7 +1023,16 @@ async def download_file(filename: str):
     file_path = f"/app/backend/static_files/{filename}"
     if os.path.exists(file_path):
         return FileResponse(file_path, filename=filename, media_type='application/octet-stream')
-    return {"error": "File not found"}
+    raise HTTPException(status_code=404, detail=f"File not found: {filename}")
+
+# Endpoint público para descargar actualización (sin auth)
+@app.get("/download-update-package")
+async def download_update_package_public():
+    """Download siempria update package - no auth required"""
+    file_path = "/app/backend/static_files/siempria_update.tar.gz"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="siempria_update.tar.gz", media_type='application/gzip')
+    raise HTTPException(status_code=404, detail="Update package not found")
 
 # Endpoint temporal para descargar App.js
 @app.get("/api/download/appjs")
