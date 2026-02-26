@@ -2049,9 +2049,72 @@ const Dashboard = () => {
   // System resources state for header ECG
   const [headerResources, setHeaderResources] = useState({ cpu: 0, ram: 0 });
   
-  // Fetch system resources every 10 seconds
+  // Real-time system resources via WebSocket (with polling fallback)
   useEffect(() => {
-    const fetchResources = async () => {
+    let ws = null;
+    let reconnectTimer = null;
+    let pollInterval = null;
+    let isConnected = false;
+    
+    const connectWebSocket = () => {
+      try {
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsHost = window.location.host;
+        const wsToken = localStorage.getItem('token');
+        const wsUrl = `${wsProtocol}//${wsHost}/api/ws/system-metrics${wsToken ? `?token=${wsToken}` : ''}`;
+        
+        ws = new WebSocket(wsUrl);
+        
+        ws.onopen = () => {
+          console.log('[WS-Metrics] Connected - Real-time metrics enabled');
+          isConnected = true;
+          // Stop polling if WebSocket connected
+          if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+          }
+        };
+        
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'metrics') {
+              setHeaderResources({
+                cpu: data.cpu || 0,
+                ram: data.ram || 0
+              });
+            }
+          } catch (e) {
+            console.error('[WS-Metrics] Parse error:', e);
+          }
+        };
+        
+        ws.onclose = () => {
+          console.log('[WS-Metrics] Disconnected - Falling back to polling');
+          isConnected = false;
+          // Reconnect after 5 seconds
+          reconnectTimer = setTimeout(connectWebSocket, 5000);
+          // Start polling as fallback
+          if (!pollInterval) {
+            pollInterval = setInterval(fetchResourcesFallback, 3000);
+          }
+        };
+        
+        ws.onerror = (error) => {
+          console.error('[WS-Metrics] Error:', error);
+          ws.close();
+        };
+      } catch (e) {
+        console.error('[WS-Metrics] Connection failed:', e);
+        // Use polling as fallback
+        if (!pollInterval) {
+          pollInterval = setInterval(fetchResourcesFallback, 3000);
+        }
+      }
+    };
+    
+    const fetchResourcesFallback = async () => {
+      if (isConnected) return; // Skip if WebSocket is connected
       try {
         const res = await authAxios.get('/system-status');
         if (res.data?.system) {
@@ -2061,13 +2124,27 @@ const Dashboard = () => {
           });
         }
       } catch (e) {
-        // Silently fail - resources are optional
+        // Silently fail
       }
     };
     
-    fetchResources();
-    const interval = setInterval(fetchResources, 10000);
-    return () => clearInterval(interval);
+    // Initial fetch while WebSocket connects
+    fetchResourcesFallback();
+    
+    // Try WebSocket connection
+    connectWebSocket();
+    
+    return () => {
+      if (ws) {
+        ws.close();
+      }
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+      }
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    };
   }, [authAxios]);
   
   // Use cached stats for header (faster than counting all devices)
