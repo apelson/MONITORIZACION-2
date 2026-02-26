@@ -79,3 +79,55 @@ async def websocket_status():
         "active_connections": websocket_manager.get_connection_count(),
         "status": "running"
     }
+
+@router.websocket("/system-metrics")
+async def websocket_system_metrics(
+    websocket: WebSocket,
+    token: Optional[str] = Query(None)
+):
+    """
+    WebSocket endpoint for real-time system metrics (CPU, RAM)
+    
+    Connect with: ws://host/api/ws/system-metrics?token=<jwt_token>
+    
+    Sends metrics every 2 seconds:
+    - {"type": "metrics", "cpu": 25.5, "ram": 45.2, "timestamp": "..."}
+    """
+    # Authenticate user
+    user_id = "anonymous"
+    if token:
+        user_id = get_user_from_token(token) or "anonymous"
+    
+    await websocket.accept()
+    logger.info(f"[WS-Metrics] Client {user_id} connected")
+    
+    try:
+        while True:
+            try:
+                # Get system metrics
+                cpu_percent = psutil.cpu_percent(interval=0.1)
+                memory = psutil.virtual_memory()
+                
+                # Send metrics
+                await websocket.send_json({
+                    "type": "metrics",
+                    "cpu": round(cpu_percent, 1),
+                    "ram": round(memory.percent, 1),
+                    "timestamp": asyncio.get_event_loop().time()
+                })
+                
+                # Wait 2 seconds before next update
+                await asyncio.sleep(2)
+                
+            except Exception as e:
+                if "disconnect" in str(e).lower() or "close" in str(e).lower():
+                    break
+                logger.debug(f"[WS-Metrics] Error: {e}")
+                break
+                
+    except WebSocketDisconnect:
+        logger.info(f"[WS-Metrics] Client {user_id} disconnected")
+    except Exception as e:
+        logger.error(f"[WS-Metrics] Unexpected error: {e}")
+    finally:
+        logger.info(f"[WS-Metrics] Connection closed for {user_id}")
