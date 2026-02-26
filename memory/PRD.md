@@ -7,7 +7,7 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 1. ✅ JIRA Integration (DONE)
 2. ✅ Dahua DVR Scheduler (5-min interval) (DONE)
 3. ✅ Backup Functionality Fix (DONE)
-4. ✅ Application Rebranding to "WatchTower by Siempria" (DONE)
+4. ✅ Application Rebranding to "WatchTower by Siempria" (DONE - 26 Feb 2026)
 5. ✅ Onboarding Wizard (DONE)
 6. ✅ DVR Uptime Counter (DONE)
 7. ✅ OpenVPN Monitoring (DONE - 26 Feb 2026)
@@ -16,6 +16,13 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 10. ✅ VPN Widget in NOC Dashboard (DONE - 26 Feb 2026)
 
 ## What's Been Implemented (26 Feb 2026)
+
+### Rebranding - WatchTower by SIEMPRIA
+- Main header: "WatchTower" + "by SIEMPRIA"
+- NOC Dashboard header: "WatchTower NOC by SIEMPRIA" + "Centro de Operaciones de Red 24/7"
+- Footer: "WatchTower by Siempria"
+- WhatsApp/Telegram alerts: Updated messaging
+- Loading screen: Updated branding
 
 ### Backend
 - **VPN Monitoring Routes** (`/app/backend/routes/vpn.py`)
@@ -42,23 +49,23 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
   - Notificaciones toast cuando cambia estado
 
 - **SystemResourceMonitor** (`/app/frontend/src/components/common/SystemResourceMonitor.jsx`)
-  - CPU % con barra de progreso y colores semáforo
-  - RAM % con barra de progreso
-  - HDD % con barra de progreso
-  - Network upload/download en KB/s o MB/s
+  - CPU % con barra de progreso horizontal y colores semáforo
+  - RAM % con barra de progreso horizontal
+  - HDD % con barra de progreso horizontal
+  - Network upload/download en formato decimal
 
 - **NOCDashboard Updates**
-  - Header con "WatchTower NOC by SIEMPRIA"
-  - SystemResourceMonitor integrado en header
+  - Header con "WatchTower NOC by SIEMPRIA" + subtítulo
+  - SystemResourceMonitor integrado en header (estilo producción)
   - VPNWidget integrado en grid de widgets
-  - Contador VPN añadido a la barra de estadísticas (10 columnas ahora)
+  - Contador VPN añadido a la barra de estadísticas (10 columnas)
   - Estado VPN con notificaciones de cambios
 
-## Key Technical Details
-- VPN monitoring via ping (no OpenVPN management interface needed)
-- System stats usando psutil
-- WebSocket broadcasts para actualizaciones en tiempo real
-- Traducciones actualizadas en es/en
+## Verified Features
+- ✅ JIRA Integration in Settings > Integraciones > JIRA
+- ✅ Super Admin panel with tenant management
+- ✅ Grabadores section with Dahua P2P
+- ✅ All existing widgets functional
 
 ## Architecture
 - **Frontend:** React (`/app/frontend/`)
@@ -70,10 +77,11 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 - `/app/backend/routes/system_stats.py` (NEW)
 - `/app/backend/server.py` (MODIFIED - routers + schedulers)
 - `/app/frontend/src/components/noc/widgets/VPNWidget.jsx` (NEW)
-- `/app/frontend/src/components/common/SystemResourceMonitor.jsx` (NEW)
-- `/app/frontend/src/components/panels/NOCDashboard.jsx` (MODIFIED)
-- `/app/frontend/src/locales/es/translation.json` (MODIFIED)
-- `/app/frontend/src/locales/en/translation.json` (MODIFIED)
+- `/app/frontend/src/components/common/SystemResourceMonitor.jsx` (MODIFIED - production style)
+- `/app/frontend/src/components/panels/NOCDashboard.jsx` (MODIFIED - header + VPN widget)
+- `/app/frontend/src/App.js` (MODIFIED - rebranding)
+- `/app/frontend/src/locales/es/translation.json` (MODIFIED - NOC title)
+- `/app/frontend/src/locales/en/translation.json` (MODIFIED - NOC title)
 
 ## Backlog / Future Tasks
 - Improve PWA experience
