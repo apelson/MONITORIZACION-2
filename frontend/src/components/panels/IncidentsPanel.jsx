@@ -297,6 +297,20 @@ const IncidentsPanel = ({ devices, authAxios }) => {
                   </SelectContent>
                 </Select>
               </div>
+              {editingIncident && (
+                <div>
+                  <label className="text-sm font-medium">Estado</label>
+                  <Select value={formData.status || "open"} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="open">Abierta</SelectItem>
+                      <SelectItem value="in_progress">En Progreso</SelectItem>
+                      <SelectItem value="resolved">Resuelta</SelectItem>
+                      <SelectItem value="closed">Cerrada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div>
                 <label className="text-sm font-medium">Dispositivo</label>
                 <Select value={formData.device_id || "none"} onValueChange={(v) => setFormData({ ...formData, device_id: v === "none" ? "" : v })}>
