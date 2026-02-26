@@ -29,6 +29,8 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 - WebSocket reconnection on disconnect (5s delay)
 - Visual ECG animation shows live system load
 - Network shows upload/download speed in MB/s
+- **Alertas visuales:** Colores cambian según umbrales (75% warning amarillo, 90% critical rojo parpadeante)
+- **Sparklines:** Mini gráficas de tendencia mostrando los últimos 30 valores (~60 segundos de historial)
 
 #### 2. Maintenance Panel Improvements (`MaintenancePanel.jsx`)
 - Added search bar with placeholder "Buscar por nombre, IP, ubicación..."
