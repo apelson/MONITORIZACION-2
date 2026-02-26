@@ -2,8 +2,9 @@
 Temporary endpoint to download production files
 """
 from fastapi import APIRouter
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, FileResponse
 import os
+import subprocess
 
 router = APIRouter(tags=["download"])
 
