@@ -1888,9 +1888,9 @@ const NOCDashboard = ({
       <div className="flex items-center justify-between shrink-0 pt-2 border-t border-slate-800">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <Camera className="w-4 h-4 text-cyan-400" />
-            <span className="text-sm font-bold text-cyan-400">{devices.filter(d => d.device_type_id === 'type-camera').length}</span>
-            <span className="text-[10px] text-slate-500">Cámaras</span>
+            <Monitor className="w-4 h-4 text-cyan-400" />
+            <span className="text-sm font-bold text-cyan-400">{devices.length}</span>
+            <span className="text-[10px] text-slate-500">Dispositivos</span>
           </div>
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-purple-400" />
@@ -1898,9 +1898,14 @@ const NOCDashboard = ({
             <span className="text-[10px] text-slate-500">Grupos</span>
           </div>
         </div>
-        <div className="flex items-center gap-4 text-[10px] text-slate-500">
-          <span>soporte@siempria.com</span>
-          <span>822 22 00 22</span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <img src={LOGO_URL} alt="Siempria" className="h-5 object-contain opacity-60" />
+            <span className="text-[10px] text-slate-500">Desarrollado por Siempria</span>
+          </div>
+          <span className="text-[10px] text-slate-500">|</span>
+          <span className="text-[10px] text-slate-500">soporte@siempria.com</span>
+          <span className="text-[10px] text-slate-500">822 22 00 22</span>
         </div>
       </div>
     </>
