@@ -2242,18 +2242,34 @@ const Dashboard = () => {
         });
       }
       
-      // Infrastructure stats
+      // Infrastructure stats - count devices from main devices collection with infrastructure types
+      // Types considered infrastructure: nas, server, esxi, qnap, synology
+      const infraTypes = ['type-nas', 'type-server', 'nas', 'server', 'esxi', 'qnap', 'synology'];
+      const infraFromDevices = newDevices.filter(d => {
+        const typeId = (d.device_type_id || '').toLowerCase();
+        const name = (d.name || '').toLowerCase();
+        return infraTypes.some(t => typeId.includes(t) || name.includes(t));
+      });
+      
+      // Also check dedicated infrastructure collection
+      let infraFromCollection = [];
       if (infraRes.data) {
-        // Handle both formats: array directly or {devices: []}
-        const infraDevices = Array.isArray(infraRes.data) 
+        infraFromCollection = Array.isArray(infraRes.data) 
           ? infraRes.data 
           : (infraRes.data.devices || []);
-        const infraOnline = infraDevices.filter(d => d.status === 'online' || d.online === true).length;
-        setInfraStats({ 
-          total: infraDevices.length, 
-          online: infraOnline 
-        });
       }
+      
+      // Combine both sources (deduplicate by id)
+      const allInfraDevices = [...infraFromDevices, ...infraFromCollection];
+      const uniqueInfra = allInfraDevices.filter((d, index, self) => 
+        index === self.findIndex(t => t.id === d.id)
+      );
+      
+      const infraOnline = uniqueInfra.filter(d => d.status === 'online' || d.online === true).length;
+      setInfraStats({ 
+        total: uniqueInfra.length, 
+        online: infraOnline 
+      });
       
       const newDevices = devRes.data.devices || [];
       
