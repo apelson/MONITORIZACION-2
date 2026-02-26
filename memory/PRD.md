@@ -24,10 +24,11 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 
 #### 1. Real-Time System Metrics via WebSocket
 - Created new WebSocket endpoint `/api/ws/system-metrics`
-- CPU and RAM metrics update every 2 seconds in real-time
+- **CPU, RAM, HDD, y Red** se actualizan cada 2 segundos en tiempo real
 - Automatic fallback to HTTP polling (3s) if WebSocket fails
 - WebSocket reconnection on disconnect (5s delay)
 - Visual ECG animation shows live system load
+- Network shows upload/download speed in MB/s
 
 #### 2. Maintenance Panel Improvements (`MaintenancePanel.jsx`)
 - Added search bar with placeholder "Buscar por nombre, IP, ubicación..."
