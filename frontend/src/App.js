@@ -2038,6 +2038,17 @@ const Dashboard = () => {
   const isAdmin = user?.role === "admin";
   const isOperator = user?.role === "operator";
   const isTechnician = user?.role === "technician";
+  
+  // Clock state for header
+  const [currentTime, setCurrentTime] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  
+  // System resources state for header ECG
+  const [headerResources, setHeaderResources] = useState({ cpu: 0, ram: 0 });
+  
   // Use cached stats for header (faster than counting all devices)
   const onlineCount = deviceStats.online || devices.filter(d => d.status === 'online').length;
   const offlineCount = deviceStats.offline || devices.filter(d => d.status === 'offline').length;
