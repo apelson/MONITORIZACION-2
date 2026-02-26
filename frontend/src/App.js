@@ -2382,10 +2382,10 @@ const Dashboard = () => {
 
       {/* Header - Premium Professional Design */}
       <header className="app-header">
-        <div className="container mx-auto max-w-7xl px-4 md:px-6 py-4">
+        <div className="container mx-auto max-w-7xl px-4 md:px-6 py-3">
           <div className="flex items-center justify-between">
             {/* Logo Section - Left */}
-            <div className="flex items-center gap-3 md:gap-5">
+            <div className="flex items-center gap-2 md:gap-3">
               {/* Mobile hamburger menu button */}
               <Button
                 variant="ghost"
@@ -2393,51 +2393,51 @@ const Dashboard = () => {
                 className="md:hidden p-2 text-slate-300 hover:text-white hover:bg-slate-800/50"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                <Menu className="w-6 h-6" />
+                <Menu className="w-5 h-5" />
               </Button>
-              <img src={LOGO_URL} alt="Siempria" className="hidden md:block h-11 object-contain header-logo" />
+              <img src={LOGO_URL} alt="WatchTower" className="hidden md:block h-9 object-contain header-logo" />
               <div className="hidden md:block">
-                <h1 className="text-base font-bold tracking-wider header-brand-title" style={{fontFamily: "'JetBrains Mono', monospace"}}>
-                  WatchTower
+                <h1 className="text-sm font-bold tracking-wider header-brand-title" style={{fontFamily: "'JetBrains Mono', monospace"}}>
+                  WATCH TOWER
                 </h1>
-                <p className="header-brand-subtitle">by SIEMPRIA</p>
+                <p className="header-brand-subtitle text-[8px]">Administración</p>
               </div>
               {/* Mobile logo */}
-              <img src={LOGO_URL} alt="Siempria" className="md:hidden h-9 object-contain header-logo" />
+              <img src={LOGO_URL} alt="WatchTower" className="md:hidden h-8 object-contain header-logo" />
             </div>
             
-            {/* Center: Status HUD - Prominent Display */}
-            <div className="status-hud">
+            {/* Center: Status HUD - Compact Display */}
+            <div className="status-hud py-2 px-4 gap-3">
               <div className="status-hud-item online">
                 <div className="status-dot status-dot-online" />
                 <div className="flex flex-col items-center">
-                  <span className="status-count">{onlineCount}</span>
-                  <span className="status-hud-label hidden sm:block">ONLINE</span>
+                  <span className="status-count text-lg">{onlineCount}</span>
+                  <span className="status-hud-label hidden sm:block text-[9px]">ONLINE</span>
                 </div>
               </div>
               <div className="status-hud-divider" />
               <button 
                 onClick={() => setFailuresDialogOpen(true)} 
-                className="status-hud-item offline hover:bg-red-500/10 px-3 py-2 rounded-full transition-all"
+                className="status-hud-item offline hover:bg-red-500/10 px-2 py-1 rounded-full transition-all"
                 title="Ver resumen de fallos"
               >
                 <div className="status-dot status-dot-offline" />
                 <div className="flex flex-col items-center">
-                  <span className="status-count">{offlineCount}</span>
-                  <span className="status-hud-label hidden sm:block">OFFLINE</span>
+                  <span className="status-count text-lg">{offlineCount}</span>
+                  <span className="status-hud-label hidden sm:block text-[9px]">OFFLINE</span>
                 </div>
-                {recentFailures.length > 0 && <Bell className="w-4 h-4 text-red-400 animate-pulse ml-2" />}
+                {recentFailures.length > 0 && <Bell className="w-3 h-3 text-red-400 animate-pulse ml-1" />}
               </button>
               <div className="status-hud-divider" />
               <button 
-                onClick={() => setActiveTab('cra')} 
-                className="status-hud-item cra hover:bg-cyan-500/10 px-3 py-2 rounded-full transition-all"
-                title="Ver dispositivos CRA"
+                onClick={() => setActiveTab('dahua')} 
+                className="status-hud-item dvr hover:bg-blue-500/10 px-2 py-1 rounded-full transition-all"
+                title="Ver Grabadores DVR/NVR"
               >
-                <Shield className="w-4 h-4 text-cyan-400" />
+                <HardDrive className="w-4 h-4 text-blue-400" />
                 <div className="flex flex-col items-center">
-                  <span className="status-count text-cyan-400">{craCount}</span>
-                  <span className="status-hud-label hidden sm:block text-cyan-400">CRA</span>
+                  <span className="status-count text-blue-400 text-lg">{dvrStats.online}/{dvrStats.total}</span>
+                  <span className="status-hud-label hidden sm:block text-blue-400 text-[9px]">DVR</span>
                 </div>
               </button>
             </div>
