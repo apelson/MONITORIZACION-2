@@ -381,7 +381,7 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
               </div>
             )}
 
-            {/* Devices list */}
+            {/* Devices grid */}
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
@@ -393,14 +393,14 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
                 <p className="text-sm">Haz clic en "Añadir Grabador" para comenzar</p>
               </div>
             ) : (
-              <ScrollArea className="max-h-[500px]">
-                <div className="space-y-3">
+              <ScrollArea className="h-[calc(100vh-350px)] min-h-[400px]">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pr-4">
                   {devices.map((device) => (
-                    <div
+                    <Card
                       key={device.id}
                       data-testid={`dahua-device-${device.id}`}
                       className={cn(
-                        "p-4 rounded-lg border transition-all",
+                        "transition-all hover:shadow-md",
                         device.online === true
                           ? "border-emerald-500/30 bg-emerald-500/5"
                           : device.online === false
@@ -408,46 +408,89 @@ const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
                           : "border-slate-500/30 bg-slate-500/5"
                       )}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-3">
-                          {getStatusIcon(device)}
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-medium">{device.name}</h4>
-                              {getRecordingIcon(device)}
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3">
+                            {getStatusIcon(device)}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-medium truncate">{device.name}</h4>
+                                {getRecordingIcon(device)}
+                              </div>
+                              <p className="text-xs text-muted-foreground truncate">
+                                SN: {device.serial_number}
+                              </p>
+                              {device.device_type && (
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {device.device_type}
+                                </p>
+                              )}
+                              {device.last_check && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {new Date(device.last_check).toLocaleString('es-ES', {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'})}
+                                </p>
+                              )}
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                              SN: {device.serial_number}
-                            </p>
-                            {device.device_type && (
-                              <p className="text-xs text-muted-foreground">
-                                {device.device_type}
-                              </p>
-                            )}
-                            {device.last_check && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Última verificación: {new Date(device.last_check).toLocaleString()}
-                              </p>
-                            )}
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                          {/* Storage indicator */}
-                          {device.storage_used_percent !== null && device.storage_used_percent !== undefined && (
-                            <div className="w-24">
-                              <div className="flex items-center justify-between text-xs mb-1">
-                                <Database className="w-3 h-3" />
-                                <span>{device.storage_used_percent}%</span>
-                              </div>
-                              <Progress
-                                value={device.storage_used_percent}
-                                className={cn(
-                                  "h-1.5",
-                                  device.storage_used_percent > 90 ? "bg-red-200" : ""
-                                )}
-                              />
+                        {/* Storage indicator */}
+                        {device.storage_used_percent !== null && device.storage_used_percent !== undefined && (
+                          <div className="mt-3">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <span className="flex items-center gap-1"><Database className="w-3 h-3" /> Almacenamiento</span>
+                              <span>{device.storage_used_percent}%</span>
                             </div>
+                            <Progress
+                              value={device.storage_used_percent}
+                              className={cn(
+                                "h-1.5",
+                                device.storage_used_percent > 90 ? "bg-red-200" : ""
+                              )}
+                            />
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex items-center justify-end gap-1 mt-3 pt-3 border-t">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleCheckSingle(device.id)}
+                            disabled={checking[device.id]}
+                            title="Verificar"
+                          >
+                            {checking[device.id] ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <RefreshCw className="w-3.5 h-3.5" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleEdit(device)}
+                            title="Editar"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50"
+                            onClick={() => handleDelete(device.id)}
+                            title="Eliminar"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
                           )}
 
                           {/* HDD Health */}
