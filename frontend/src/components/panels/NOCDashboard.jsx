@@ -38,6 +38,8 @@ import HistoryWidget from '@/components/noc/widgets/HistoryWidget';
 import AlertsWidget from '@/components/noc/widgets/AlertsWidget';
 import CriticalAlertsWidget from '@/components/noc/widgets/CriticalAlertsWidget';
 import DahuaWidget from '@/components/noc/widgets/DahuaWidget';
+import VPNWidget from '@/components/noc/widgets/VPNWidget';
+import SystemResourceMonitor from '@/components/common/SystemResourceMonitor';
 
 // Logo Siempria (hexágono azul)
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_bd3cf608-7344-4385-a96f-f4dc04839f9f/artifacts/t15tym24_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png";
