@@ -615,8 +615,8 @@
     "activeUsers": "Active Users"
   },
   "noc": {
-    "title": "NOC Dashboard",
-    "subtitle": "Network Operations Center 24/7",
+    "title": "WatchTower NOC",
+    "subtitle": "by SIEMPRIA",
     "totalDevices": "Total Devices",
     "online": "Online",
     "offline": "Offline",
