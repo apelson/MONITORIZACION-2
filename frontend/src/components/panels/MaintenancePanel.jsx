@@ -144,6 +144,9 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
     // Combine regular devices with Dahua devices
     const allDevices = [...devices, ...dahuaDevices];
     
+    console.log("[MaintenancePanel] Total devices:", devices.length, "regulares +", dahuaDevices.length, "grabadores =", allDevices.length, "total");
+    console.log("[MaintenancePanel] En mantenimiento:", maintenanceDevices.length);
+    
     let filtered = allDevices.filter(
       (d) => !maintenanceDevices.find((m) => m.id === d.id)
     );
