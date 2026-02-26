@@ -1044,7 +1044,7 @@ async def download_noc_corrected():
     raise HTTPException(status_code=404, detail="File not found")
 
 # Endpoint para descargar vpn.py
-@app.get("/download-vpn")
+@api_router.get("/download-vpn")
 async def download_vpn():
     """Download vpn.py - no auth required"""
     file_path = "/app/backend/routes/vpn.py"
