@@ -153,17 +153,17 @@ const LoginPage = ({ login }) => {
       <div className="relative z-10 w-full max-w-lg flex flex-col items-center">
         
         {/* Logo with glow */}
-        <div className="relative mb-6">
+        <div className="relative mb-4">
           {/* Glow rings */}
           <div 
-            className="absolute inset-0 -m-8 rounded-full"
+            className="absolute inset-0 -m-6 rounded-full"
             style={{
               background: `conic-gradient(from ${phase * 57}deg, transparent, ${primaryColor}40, transparent, ${primaryColor}20, transparent)`,
-              filter: 'blur(20px)',
+              filter: 'blur(15px)',
             }}
           />
           <div 
-            className="absolute inset-0 -m-4 rounded-full"
+            className="absolute inset-0 -m-3 rounded-full"
             style={{
               background: `radial-gradient(circle, ${primaryColor}30 0%, transparent 70%)`,
               transform: `scale(${1.1 + Math.sin(phase * 2) * 0.1})`,
@@ -172,31 +172,31 @@ const LoginPage = ({ login }) => {
           
           {/* Logo container */}
           <div 
-            className="relative p-6 rounded-2xl"
+            className="relative p-4 rounded-xl"
             style={{
               background: 'linear-gradient(135deg, rgba(0,30,50,0.8) 0%, rgba(0,20,35,0.6) 100%)',
               border: `1px solid ${primaryColor}40`,
-              boxShadow: `0 0 40px ${primaryColor}20, inset 0 0 20px ${primaryColor}10`,
+              boxShadow: `0 0 30px ${primaryColor}20, inset 0 0 15px ${primaryColor}10`,
             }}
           >
             <img 
               src={SYMBOL_URL} 
               alt="WatchTower" 
-              className="w-24 h-24 object-contain"
+              className="w-20 h-20 object-contain"
               style={{
-                filter: `brightness(${1.05 + Math.sin(phase * 2) * 0.1}) drop-shadow(0 0 20px ${primaryColor})`,
+                filter: `brightness(${1.05 + Math.sin(phase * 2) * 0.1}) drop-shadow(0 0 15px ${primaryColor})`,
               }}
             />
             {/* REC indicator */}
-            <div className="absolute top-2 right-2 flex items-center gap-1">
+            <div className="absolute top-1.5 right-1.5 flex items-center gap-1">
               <div 
-                className="w-2 h-2 rounded-full bg-red-500"
+                className="w-1.5 h-1.5 rounded-full bg-red-500"
                 style={{ 
-                  boxShadow: '0 0 8px #ef4444',
+                  boxShadow: '0 0 6px #ef4444',
                   animation: 'pulse 1.5s ease-in-out infinite',
                 }}
               />
-              <span className="text-red-400 text-[8px] font-bold">REC</span>
+              <span className="text-red-400 text-[7px] font-bold">REC</span>
             </div>
           </div>
         </div>
