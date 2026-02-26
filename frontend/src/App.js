@@ -1397,10 +1397,10 @@ const FailuresDialog = ({ open, onOpenChange, failures, onClear }) => {
   // Generate WhatsApp message with all failures
   const getWhatsAppLink = () => {
     if (failures.length === 0) return null;
-    const message = `🚨 *ALERTA - Siempria Network Monitor*\n\n` +
+    const message = `🚨 *ALERTA - WatchTower by Siempria*\n\n` +
       `${failures.length} dispositivo(s) offline:\n\n` +
       failures.map(f => `❌ *${f.name}*\n   IP: ${f.ip}:${f.port}\n   Hora: ${f.time}`).join('\n\n') +
-      `\n\n_Enviado desde Siempria Network Monitor_`;
+      `\n\n_Enviado desde WatchTower_`;
     return `https://wa.me/${WHATSAPP_ALERT_NUMBER.replace('+', '')}?text=${encodeURIComponent(message)}`;
   };
 
@@ -1410,7 +1410,7 @@ const FailuresDialog = ({ open, onOpenChange, failures, onClear }) => {
       `❌ *${device.name}*\n` +
       `IP: ${device.ip}:${device.port}\n` +
       `Hora: ${device.time}\n\n` +
-      `_Siempria Network Monitor_`;
+      `_WatchTower by Siempria_`;
     return `https://wa.me/${WHATSAPP_ALERT_NUMBER.replace('+', '')}?text=${encodeURIComponent(message)}`;
   };
 
