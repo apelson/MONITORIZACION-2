@@ -251,12 +251,33 @@ async def get_devices(
     # If limit is 0 or not specified, return all devices (backwards compatible)
     if limit <= 0:
         devices = await devices_collection.find(query, {"_id": 0}).to_list(length=None)
-        return {"devices": devices}
+    else:
+        # Otherwise, apply pagination
+        limit = min(limit, 1000)  # Cap at 1000 max
+        skip = (page - 1) * limit
+        devices = await devices_collection.find(query, {"_id": 0}).skip(skip).limit(limit).to_list(length=limit)
     
-    # Otherwise, apply pagination
-    limit = min(limit, 1000)  # Cap at 1000 max
-    skip = (page - 1) * limit
-    devices = await devices_collection.find(query, {"_id": 0}).skip(skip).limit(limit).to_list(length=limit)
+    # Enrich with open incident status - query for devices that have open incidents
+    device_ids = [d["id"] for d in devices if d.get("id")]
+    if device_ids:
+        open_incident_device_ids = set()
+        open_incidents_cursor = incidents_collection.find(
+            {
+                "device_id": {"$in": device_ids},
+                "status": {"$in": ["open", "in_progress"]}  # Open or in progress
+            },
+            {"device_id": 1}
+        )
+        async for incident in open_incidents_cursor:
+            if incident.get("device_id"):
+                open_incident_device_ids.add(incident["device_id"])
+        
+        # Add has_open_incident flag to each device
+        for device in devices:
+            device["has_open_incident"] = device.get("id") in open_incident_device_ids
+    
+    if limit <= 0:
+        return {"devices": devices}
     
     return {
         "devices": devices,
