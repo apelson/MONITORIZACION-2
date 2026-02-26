@@ -367,6 +367,9 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
                     <SelectItem value="240">4 horas</SelectItem>
                     <SelectItem value="480">8 horas</SelectItem>
                     <SelectItem value="1440">24 horas</SelectItem>
+                    <SelectItem value="2880">48 horas</SelectItem>
+                    <SelectItem value="10080">1 semana</SelectItem>
+                    <SelectItem value="indefinite" className="font-bold text-amber-600">♾️ Indefinido</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
