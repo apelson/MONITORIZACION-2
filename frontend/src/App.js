@@ -2099,13 +2099,24 @@ const Dashboard = () => {
           try {
             const data = JSON.parse(event.data);
             if (data.type === 'metrics') {
+              const newCpu = data.cpu || 0;
+              const newRam = data.ram || 0;
+              const newHdd = data.hdd || 0;
+              
               setHeaderResources({
-                cpu: data.cpu || 0,
-                ram: data.ram || 0,
-                hdd: data.hdd || 0,
+                cpu: newCpu,
+                ram: newRam,
+                hdd: newHdd,
                 net_up: data.net_up || 0,
                 net_down: data.net_down || 0
               });
+              
+              // Update history (keep last 30 values)
+              setResourceHistory(prev => ({
+                cpu: [...prev.cpu.slice(-29), newCpu],
+                ram: [...prev.ram.slice(-29), newRam],
+                hdd: [...prev.hdd.slice(-29), newHdd]
+              }));
             }
           } catch (e) {
             console.error('[WS-Metrics] Parse error:', e);
