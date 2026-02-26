@@ -1080,7 +1080,7 @@ async def download_system_monitor():
     raise HTTPException(status_code=404, detail="File not found")
 
 # Endpoint para descargar VPNWidget.jsx
-@app.get("/download-vpn-widget")
+@api_router.get("/download-vpn-widget")
 async def download_vpn_widget():
     """Download VPNWidget.jsx - no auth required"""
     file_path = "/app/frontend/src/components/noc/widgets/VPNWidget.jsx"
