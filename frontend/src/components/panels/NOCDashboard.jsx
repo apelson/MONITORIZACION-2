@@ -1533,7 +1533,7 @@ const NOCDashboard = ({
       </div>
 
       {/* Bottom Sections */}
-      <div className="grid grid-cols-4 gap-3 shrink-0" style={{ height: '35%' }}>
+      <div className="grid grid-cols-5 gap-3 shrink-0" style={{ height: '35%' }}>
         {/* Organizations */}
         <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-2 flex flex-col min-h-0">
           <div className="flex items-center justify-between mb-1.5 shrink-0">
