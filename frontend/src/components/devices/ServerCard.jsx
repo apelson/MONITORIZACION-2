@@ -202,6 +202,7 @@ export const ServerCard = memo(({
 
   const showImage = isCamera && !imageLoading && (imageData || device.status === "offline");
   const displayImage = imageData || OFFLINE_PLACEHOLDER;
+  const hasCameraConfig = !!(device.camera_path || device.camera_user);
 
   const deviceWebUrl = `http://${device.ip_address}:${device.port}`;
   const cameraWebUrl = hasCameraConfig ? 
@@ -212,7 +213,7 @@ export const ServerCard = memo(({
   };
 
   return (
-    <Card ref={cardRef} data-testid={`device-card-${device.id}`} className="server-card fade-in hover:-translate-y-0.5 transition-transform duration-200 overflow-hidden">
+    <Card data-testid={`device-card-${device.id}`} className="server-card fade-in hover:-translate-y-0.5 transition-transform duration-200 overflow-hidden">
       {showImage && (
         <div className="aspect-[4/3] bg-muted overflow-hidden relative group">
           {imageLoading ? (
