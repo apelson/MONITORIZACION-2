@@ -75,12 +75,14 @@ class GroupCreate(BaseModel):
     organization_id: str
     description: Optional[str] = ""
     color: Optional[str] = "#22c55e"
+    island: Optional[str] = ""
 
 class GroupUpdate(BaseModel):
     name: Optional[str] = None
     organization_id: Optional[str] = None
     description: Optional[str] = None
     color: Optional[str] = None
+    island: Optional[str] = None
 
 # ============ DEVICE TYPE MODELS ============
 
