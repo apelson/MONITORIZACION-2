@@ -435,3 +435,96 @@ async def get_dahua_last_incident(current_user: dict = Depends(get_current_user)
     )
     
     return {"last_incident": record.get("last_incident") if record else None}
+
+
+# ============ MAINTENANCE MODE FOR DAHUA DEVICES ============
+
+class DahuaMaintenanceRequest(BaseModel):
+    duration_minutes: int  # -1 for indefinite
+    reason: Optional[str] = None
+
+
+@router.post("/dahua/devices/{device_id}/maintenance")
+async def enable_dahua_maintenance(
+    device_id: str,
+    data: DahuaMaintenanceRequest,
+    current_user: dict = Depends(require_role(["admin", "manager"]))
+):
+    """Enable maintenance mode for a Dahua device"""
+    from datetime import timedelta
+    
+    # Find device by id or serial_number
+    device = await dahua_devices_collection.find_one({
+        "$or": [
+            {"id": device_id},
+            {"serial_number": device_id}
+        ]
+    })
+    
+    if not device:
+        raise HTTPException(status_code=404, detail="Grabador no encontrado")
+    
+    now = datetime.now(timezone.utc)
+    
+    # -1 means indefinite maintenance (set to year 2099)
+    if data.duration_minutes == -1:
+        maintenance_until = datetime(2099, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
+        duration_text = "indefinidamente"
+    else:
+        maintenance_until = now + timedelta(minutes=data.duration_minutes)
+        duration_text = f"por {data.duration_minutes} minutos"
+    
+    update_data = {
+        "maintenance_mode": True,
+        "maintenance_until": maintenance_until.isoformat(),
+        "maintenance_reason": data.reason or "",
+        "maintenance_started_by": current_user["username"],
+        "maintenance_started_at": now.isoformat(),
+        "maintenance_indefinite": data.duration_minutes == -1
+    }
+    
+    await dahua_devices_collection.update_one(
+        {"$or": [{"id": device_id}, {"serial_number": device_id}]},
+        {"$set": update_data}
+    )
+    
+    return {
+        "message": f"Modo mantenimiento activado {duration_text}",
+        "device_id": device_id,
+        "maintenance_until": maintenance_until.isoformat()
+    }
+
+
+@router.delete("/dahua/devices/{device_id}/maintenance")
+async def disable_dahua_maintenance(
+    device_id: str,
+    current_user: dict = Depends(require_role(["admin", "manager"]))
+):
+    """Disable maintenance mode for a Dahua device"""
+    # Find device by id or serial_number
+    device = await dahua_devices_collection.find_one({
+        "$or": [
+            {"id": device_id},
+            {"serial_number": device_id}
+        ]
+    })
+    
+    if not device:
+        raise HTTPException(status_code=404, detail="Grabador no encontrado")
+    
+    update_data = {
+        "maintenance_mode": False,
+        "maintenance_until": None,
+        "maintenance_reason": None,
+        "maintenance_started_by": None,
+        "maintenance_started_at": None,
+        "maintenance_indefinite": False
+    }
+    
+    await dahua_devices_collection.update_one(
+        {"$or": [{"id": device_id}, {"serial_number": device_id}]},
+        {"$set": update_data}
+    )
+    
+    return {"message": "Modo mantenimiento desactivado", "device_id": device_id}
+
