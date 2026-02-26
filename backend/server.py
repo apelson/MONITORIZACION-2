@@ -252,6 +252,15 @@ async def lifespan(app: FastAPI):
     )
     logger.info("Dahua scheduler started - checking every 5 minutes")
     
+    # Add VPN devices check every 5 minutes
+    scheduler.add_job(
+        periodic_vpn_check,
+        IntervalTrigger(minutes=5),
+        id="vpn_check",
+        replace_existing=True
+    )
+    logger.info("VPN scheduler started - checking every 5 minutes")
+    
     scheduler.start()
     logger.info("Scheduler started for daily reports")
     
