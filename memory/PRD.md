@@ -33,7 +33,20 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 - **Sparklines:** Mini gráficas de tendencia mostrando los últimos 30 valores (~60 segundos de historial)
 - **Notificaciones Telegram:** Alertas automáticas cuando CPU/RAM/HDD superan 90%, con cooldown de 5 minutos y notificación de recuperación
 
-#### 2. Maintenance Panel Improvements (`MaintenancePanel.jsx`)
+#### 3. Widget de Infraestructura en NOC Dashboard
+- Nuevo componente `InfrastructureWidget.jsx` para mostrar ESXi, NAS, etc.
+- Contador de infraestructura añadido al header (púrpura)
+- Muestra dispositivos offline con alerta visual
+- Mini métricas de CPU/RAM por dispositivo
+- Link directo al panel completo de infraestructura
+
+#### 4. Mejoras en ServerCard (Imágenes de Cámara)
+- Refactorizada lógica de carga de imágenes con mejor manejo de errores
+- Añadido botón de refresh manual para actualizar imagen
+- Mejor logging para debugging en consola
+- Limpieza de blob URLs para evitar memory leaks
+
+#### 5. Maintenance Panel Improvements (`MaintenancePanel.jsx`)
 - Added search bar with placeholder "Buscar por nombre, IP, ubicación..."
 - Implemented sorting: offline devices first, then by high latency, then alphabetically
 - Excluded DVR/Dahua/NVR/grabador devices from the maintenance list
