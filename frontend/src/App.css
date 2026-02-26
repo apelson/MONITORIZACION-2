@@ -290,9 +290,6 @@
     padding: 0;
     transition: all 0.3s ease;
     overflow: hidden;
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
 }
 
 .server-card:hover {
