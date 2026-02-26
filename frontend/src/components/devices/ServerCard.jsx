@@ -157,68 +157,48 @@ export const ServerCard = memo(({
   const TypeIcon = deviceType ? getIcon(deviceType.icon) : Server;
 
   const isCamera = device.device_type_id === "type-camera" || deviceType?.icon === "camera";
-  const hasCameraConfig = !!(device.camera_path || device.camera_user || device.image_url);
-  // Always try to load image for online cameras
   const canLoadImage = isCamera && device.status === "online";
 
-  // Lazy load image
-  const cardRef = useCallback(node => {
-    if (!node) return;
+  // Load image on mount for cameras
+  useEffect(() => {
+    let mounted = true;
     
     const loadImage = async () => {
-      if (imageData) return;
-      setImageLoading(true);
+      if (!canLoadImage || imageData) return;
       
-      if (canLoadImage) {
-        try {
-          const response = await authAxios.get(`/image-proxy/${device.id}`, { responseType: 'blob' });
-          if (response.data && response.data.size > 0) {
-            const url = URL.createObjectURL(response.data);
-            setImageData(url);
-            setImageError(false);
-            setCaptureTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-          } else {
-            throw new Error("Empty response");
-          }
-        } catch (e) {
-          console.error("Error loading image for device", device.id, ":", e?.response?.status || e.message);
+      setImageLoading(true);
+      try {
+        const response = await authAxios.get(`/image-proxy/${device.id}`, { responseType: 'blob' });
+        if (mounted && response.data && response.data.size > 0) {
+          const url = URL.createObjectURL(response.data);
+          setImageData(url);
+          setImageError(false);
+          setCaptureTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        }
+      } catch (e) {
+        console.error("Error loading image for device", device.id, ":", e?.response?.status || e.message);
+        if (mounted) {
           setImageData(OFFLINE_PLACEHOLDER);
           setImageError(true);
           setCaptureTime(null);
         }
-      } else {
-        setImageData(OFFLINE_PLACEHOLDER);
+      } finally {
+        if (mounted) setImageLoading(false);
       }
-      setImageLoading(false);
     };
     
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting && !imageData && isCamera) {
-            loadImage();
-          }
-        });
-      },
-      { threshold: 0.1, rootMargin: '100px' }
-    );
-    
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [imageData, isCamera, canLoadImage, device.id, authAxios]);
-
-  useEffect(() => {
     if (device.status === "offline" && isCamera) {
       setImageData(OFFLINE_PLACEHOLDER);
       setCaptureTime(null);
       setImageLoading(false);
-    } else if (device.image_url && !isCamera) {
-      setImageData(device.image_url);
-      setImageLoading(false);
+    } else if (canLoadImage) {
+      loadImage();
     } else if (!isCamera) {
       setImageLoading(false);
     }
-  }, [device.status, device.image_url, isCamera]);
+    
+    return () => { mounted = false; };
+  }, [device.id, device.status, isCamera, canLoadImage, authAxios]);
 
   const showImage = isCamera && !imageLoading && (imageData || device.status === "offline");
   const displayImage = imageData || OFFLINE_PLACEHOLDER;
