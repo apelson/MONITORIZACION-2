@@ -181,31 +181,37 @@ async def periodic_dahua_check():
     logger.info("=" * 50)
 
 async def periodic_vpn_check():
-    """Scheduled task for periodic VPN checks - runs every 5 minutes"""
+    """Scheduled task for periodic VPN checks - runs every 5 minutes
+    Uses existing devices collection with VPN type"""
     logger.info("[VPN SCHEDULER] Starting VPN devices check")
     try:
-        from routes.vpn import vpn_collection, ping_host
-        devices = await vpn_collection.find({"enabled": {"$ne": False}}, {"_id": 0}).to_list(length=100)
+        from config import devices_collection, device_types_collection
         
-        online_count = 0
-        offline_count = 0
+        # Get VPN device type ID
+        vpn_type = await device_types_collection.find_one(
+            {"$or": [
+                {"name": {"$regex": "vpn", "$options": "i"}},
+                {"name": {"$regex": "tunnel", "$options": "i"}}
+            ]},
+            {"_id": 0}
+        )
         
-        for device in devices:
-            result = await ping_host(device["host"])
-            update_data = {
-                "online": result["online"],
-                "response_time_ms": result["response_time_ms"],
-                "last_check": datetime.now(timezone.utc).isoformat(),
-            }
-            if result["online"]:
-                update_data["last_online"] = datetime.now(timezone.utc).isoformat()
-                online_count += 1
-            else:
-                offline_count += 1
-            
-            await vpn_collection.update_one({"id": device["id"]}, {"$set": update_data})
+        if not vpn_type:
+            # Fallback: search by name containing VPN
+            devices = await devices_collection.find(
+                {"name": {"$regex": "vpn", "$options": "i"}},
+                {"_id": 0}
+            ).to_list(length=100)
+        else:
+            devices = await devices_collection.find(
+                {"device_type_id": vpn_type.get("id")},
+                {"_id": 0}
+            ).to_list(length=100)
         
-        logger.info(f"[VPN SCHEDULER] Completed: {len(devices)} devices, Online={online_count}, Offline={offline_count}")
+        online_count = sum(1 for d in devices if d.get("status") == "online")
+        offline_count = len(devices) - online_count
+        
+        logger.info(f"[VPN SCHEDULER] Found {len(devices)} VPN devices, Online={online_count}, Offline={offline_count}")
         
         # Broadcast VPN status update via WebSocket
         if websocket_manager:
