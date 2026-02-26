@@ -123,9 +123,12 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
   };
 
   // Filter devices that are NOT in maintenance and match search
-  // Now includes ALL devices including DVRs/Grabadores
+  // Now includes ALL devices including DVRs/Grabadores (Dahua)
   const availableDevices = useMemo(() => {
-    let filtered = devices.filter(
+    // Combine regular devices with Dahua devices
+    const allDevices = [...devices, ...dahuaDevices];
+    
+    let filtered = allDevices.filter(
       (d) => !maintenanceDevices.find((m) => m.id === d.id)
     );
     
@@ -136,7 +139,8 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
         (d.name || '').toLowerCase().includes(query) ||
         (d.ip_address || d.ip || '').toLowerCase().includes(query) ||
         (d.location || '').toLowerCase().includes(query) ||
-        (d.brand || '').toLowerCase().includes(query)
+        (d.brand || '').toLowerCase().includes(query) ||
+        (d.serial_number || '').toLowerCase().includes(query)
       );
     }
     
