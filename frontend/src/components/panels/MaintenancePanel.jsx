@@ -217,7 +217,7 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
 
       {/* Available Devices to put in Maintenance */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
             <PauseCircle className="w-5 h-5 text-blue-500" />
             Activar Modo Mantenimiento
@@ -226,43 +226,113 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
             Selecciona un dispositivo para pausar temporalmente las alertas
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {/* Search bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              data-testid="maintenance-search-input"
+              placeholder="Buscar por nombre, IP, ubicación..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          
+          {/* Device count and info */}
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>{availableDevices.length} dispositivos disponibles</span>
+            {availableDevices.some(d => d.status === 'offline') && (
+              <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50">
+                <WifiOff className="w-3 h-3 mr-1" />
+                Offline primero
+              </Badge>
+            )}
+          </div>
+
           {availableDevices.length === 0 ? (
-            <p className="text-center text-muted-foreground py-4">
-              No hay dispositivos disponibles
-            </p>
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              {searchQuery ? (
+                <>
+                  <Search className="w-10 h-10 text-muted-foreground mb-3" />
+                  <p className="text-muted-foreground">No se encontraron dispositivos</p>
+                  <p className="text-sm text-muted-foreground">Intenta con otro término de búsqueda</p>
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-10 h-10 text-green-500 mb-3" />
+                  <p className="text-muted-foreground">No hay dispositivos disponibles</p>
+                </>
+              )}
+            </div>
           ) : (
-            <ScrollArea className="max-h-[400px]">
+            <ScrollArea className="h-[450px] pr-3">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {availableDevices.map((device) => (
-                  <div
-                    key={device.id}
-                    data-testid={`device-maintenance-card-${device.id}`}
-                    className={`p-4 rounded-lg border transition-all hover:border-amber-500/50 hover:bg-amber-500/5 cursor-pointer ${
-                      device.status === "online"
-                        ? "border-green-500/30 bg-green-500/5"
-                        : "border-red-500/30 bg-red-500/5"
-                    }`}
-                    onClick={() => handleEnableMaintenance(device)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`w-2 h-2 rounded-full ${
-                            device.status === "online" ? "bg-green-500" : "bg-red-500"
-                          }`}
-                        />
-                        <span className="font-medium text-sm truncate max-w-[150px]">
-                          {device.name}
-                        </span>
+                {availableDevices.map((device) => {
+                  const isOffline = device.status === 'offline';
+                  const hasHighLatency = (device.response_time || 0) > 500;
+                  const hasIssue = isOffline || hasHighLatency;
+                  
+                  return (
+                    <div
+                      key={device.id}
+                      data-testid={`device-maintenance-card-${device.id}`}
+                      className={`p-4 rounded-lg border transition-all hover:border-amber-500/50 hover:bg-amber-500/5 cursor-pointer ${
+                        isOffline
+                          ? "border-red-500/50 bg-red-500/10 ring-1 ring-red-500/30"
+                          : hasHighLatency 
+                          ? "border-orange-500/50 bg-orange-500/10"
+                          : "border-green-500/30 bg-green-500/5"
+                      }`}
+                      onClick={() => handleEnableMaintenance(device)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {isOffline ? (
+                            <WifiOff className="w-4 h-4 text-red-500" />
+                          ) : (
+                            <div
+                              className={`w-2 h-2 rounded-full ${
+                                hasHighLatency ? "bg-orange-500" : "bg-green-500"
+                              } ${!isOffline && "animate-pulse"}`}
+                            />
+                          )}
+                          <span className="font-medium text-sm truncate max-w-[130px]">
+                            {device.name}
+                          </span>
+                        </div>
+                        {hasIssue && (
+                          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${
+                            isOffline ? "text-red-600 border-red-300" : "text-orange-600 border-orange-300"
+                          }`}>
+                            {isOffline ? "OFFLINE" : "LENTO"}
+                          </Badge>
+                        )}
                       </div>
-                      <Wrench className="w-4 h-4 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground mt-1 font-mono">
+                        {device.ip_address || device.ip}:{device.port}
+                      </p>
+                      {device.location && (
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                          📍 {device.location}
+                        </p>
+                      )}
+                      {hasHighLatency && !isOffline && (
+                        <p className="text-xs text-orange-600 mt-1">
+                          ⏱️ {device.response_time}ms
+                        </p>
+                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {device.ip}:{device.port}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </ScrollArea>
           )}
