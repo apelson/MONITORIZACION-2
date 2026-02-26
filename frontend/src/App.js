@@ -2043,14 +2043,15 @@ const Dashboard = () => {
   const offlineCount = deviceStats.offline || devices.filter(d => d.status === 'offline').length;
   const craCount = deviceStats.cra || devices.filter(d => d.is_cra === true).length;
   
-  // DVR/NVR and VPN count state
+  // DVR/NVR, VPN and Infrastructure count state
   const [dvrStats, setDvrStats] = useState({ total: 0, online: 0 });
   const [vpnStats, setVpnStats] = useState({ total: 0, online: 0 });
+  const [infraStats, setInfraStats] = useState({ total: 0, online: 0 });
   
-  // Total count including VPN and DVR
-  const totalDevices = devices.length + dvrStats.total + vpnStats.total;
-  const totalOnline = onlineCount + dvrStats.online + vpnStats.online;
-  const totalOffline = offlineCount + (dvrStats.total - dvrStats.online) + (vpnStats.total - vpnStats.online);
+  // Total count including VPN, DVR and Infrastructure
+  const totalDevices = devices.length + dvrStats.total + vpnStats.total + infraStats.total;
+  const totalOnline = onlineCount + dvrStats.online + vpnStats.online + infraStats.online;
+  const totalOffline = offlineCount + (dvrStats.total - dvrStats.online) + (vpnStats.total - vpnStats.online) + (infraStats.total - infraStats.online);
 
   const fetchAll = useCallback(async () => {
     // Prevent concurrent calls
