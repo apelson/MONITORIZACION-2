@@ -44,6 +44,8 @@ FILES = {
     "InfrastructureWidget.jsx": "/app/frontend/src/components/noc/widgets/InfrastructureWidget.jsx",
     "websocket.py": "/app/backend/routes/websocket.py",
     "telegram_service.py": "/app/backend/services/telegram_service.py",
+    "devices.py": "/app/backend/routes/devices.py",
+    "SystemStatusDashboard.jsx": "/app/frontend/src/components/settings/SystemStatusDashboard.jsx",
 }
 
 @router.get("/download/{filename}")
