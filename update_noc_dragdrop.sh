@@ -7,7 +7,7 @@
 set -e
 
 # Configuración
-EMERGENT_URL="https://camera-preview-fix-1.preview.emergentagent.com"
+EMERGENT_URL="https://noc-watchwatch.preview.emergentagent.com"
 FRONTEND_DIR="/home/monitorizacion/Documentos/MONITORIZACION-main/frontend/src"
 BACKEND_DIR="/home/monitorizacion/Documentos/MONITORIZACION-main/backend"
 
