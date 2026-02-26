@@ -212,8 +212,6 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh, onCreateIncident
       toast.error(error.response?.data?.detail || "Error al desactivar mantenimiento");
     }
   };
-    }
-  };
 
   const formatRemainingTime = (minutes) => {
     if (minutes === -1 || minutes === null) {
