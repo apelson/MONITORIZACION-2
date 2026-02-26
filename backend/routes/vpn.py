@@ -1,5 +1,6 @@
 """
 VPN Monitoring Routes - OpenVPN tunnel monitoring via ping
+Uses existing devices with device_type_id for VPN Tunnel
 """
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
@@ -10,30 +11,23 @@ import subprocess
 import uuid
 
 from services.auth_service import get_current_user, require_role
-from config import db, logger
+from config import db, logger, devices_collection, device_types_collection
 
 router = APIRouter(prefix="/vpn", tags=["vpn"])
 
-# Collection for VPN devices
-vpn_collection = db.vpn_devices
-
-# ============ Pydantic Models ============
-class VPNDeviceCreate(BaseModel):
-    name: str
-    host: str  # IP or hostname to ping
-    description: Optional[str] = None
-    organization_id: Optional[str] = None
-    group_id: Optional[str] = None
-
-class VPNDeviceUpdate(BaseModel):
-    name: Optional[str] = None
-    host: Optional[str] = None
-    description: Optional[str] = None
-    organization_id: Optional[str] = None
-    group_id: Optional[str] = None
-    enabled: Optional[bool] = None
-
 # ============ Helper Functions ============
+
+async def get_vpn_type_id():
+    """Get the device type ID for VPN Tunnel"""
+    vpn_type = await device_types_collection.find_one(
+        {"$or": [
+            {"name": {"$regex": "vpn", "$options": "i"}},
+            {"name": {"$regex": "tunnel", "$options": "i"}}
+        ]},
+        {"_id": 0}
+    )
+    return vpn_type.get("id") if vpn_type else None
+
 async def ping_host(host: str, timeout: int = 3) -> dict:
     """Ping a host and return status with response time"""
     try:
