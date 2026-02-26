@@ -1253,3 +1253,37 @@ async def download_update():
     if os.path.exists(file_path):
         return FileResponse(file_path, filename="siempria-update.tar.gz", media_type="application/gzip")
     return {"error": "File not found"}
+
+# Dynamic file download endpoint
+@api_router.get("/download/{filename:path}")
+async def download_file(filename: str):
+    """Download individual source files for production updates"""
+    import os
+    from fastapi.responses import PlainTextResponse
+    
+    # Map filenames to actual paths
+    file_mappings = {
+        "App.js": "/app/frontend/src/App.js",
+        "MaintenancePanel.jsx": "/app/frontend/src/components/panels/MaintenancePanel.jsx",
+        "ServerCard.jsx": "/app/frontend/src/components/devices/ServerCard.jsx",
+        "InfrastructureWidget.jsx": "/app/frontend/src/components/noc/widgets/InfrastructureWidget.jsx",
+        "websocket.py": "/app/backend/routes/websocket.py",
+        "telegram_service.py": "/app/backend/services/telegram_service.py",
+    }
+    
+    file_path = file_mappings.get(filename)
+    if not file_path or not os.path.exists(file_path):
+        return PlainTextResponse(f"File not found: {filename}", status_code=404)
+    
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # Determine content type
+    if filename.endswith('.py'):
+        media_type = "text/x-python"
+    elif filename.endswith('.js') or filename.endswith('.jsx'):
+        media_type = "application/javascript"
+    else:
+        media_type = "text/plain"
+    
+    return PlainTextResponse(content, media_type=media_type)
