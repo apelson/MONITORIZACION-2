@@ -157,7 +157,8 @@ export const ServerCard = memo(({
   const TypeIcon = deviceType ? getIcon(deviceType.icon) : Server;
 
   const isCamera = device.device_type_id === "type-camera" || deviceType?.icon === "camera";
-  const hasCameraConfig = !!(device.camera_user && device.camera_password && device.camera_path);
+  const hasCameraConfig = !!(device.camera_path || (device.camera_user && device.camera_password));
+  const canLoadImage = isCamera && device.status === "online" && (hasCameraConfig || device.image_url);
 
   // Lazy load image
   const cardRef = useCallback(node => {
@@ -167,7 +168,7 @@ export const ServerCard = memo(({
       if (imageData) return;
       setImageLoading(true);
       
-      if (hasCameraConfig && device.status === "online") {
+      if (canLoadImage) {
         try {
           const response = await authAxios.get(`/image-proxy/${device.id}`, { responseType: 'blob' });
           if (response.data) {
@@ -177,6 +178,7 @@ export const ServerCard = memo(({
             setCaptureTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
           }
         } catch (e) {
+          console.error("Error loading image:", e);
           setImageData(OFFLINE_PLACEHOLDER);
           setImageError(true);
           setCaptureTime(null);
@@ -188,7 +190,7 @@ export const ServerCard = memo(({
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach(entry => {
-          if (entry.isIntersecting && !imageData && isCamera && hasCameraConfig && device.status === "online") {
+          if (entry.isIntersecting && !imageData && isCamera && canLoadImage) {
             loadImage();
           }
         });
@@ -198,7 +200,7 @@ export const ServerCard = memo(({
     
     observer.observe(node);
     return () => observer.disconnect();
-  }, [imageData, isCamera, hasCameraConfig, device.status, device.id, authAxios]);
+  }, [imageData, isCamera, canLoadImage, device.id, authAxios]);
 
   useEffect(() => {
     if (device.status === "offline" && isCamera) {
