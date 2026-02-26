@@ -180,6 +180,47 @@ async def periodic_dahua_check():
         logger.error(f"[DAHUA SCHEDULER] Error checking Dahua devices: {e}")
     logger.info("=" * 50)
 
+async def periodic_vpn_check():
+    """Scheduled task for periodic VPN checks - runs every 5 minutes"""
+    logger.info("[VPN SCHEDULER] Starting VPN devices check")
+    try:
+        from routes.vpn import vpn_collection, ping_host
+        devices = await vpn_collection.find({"enabled": {"$ne": False}}, {"_id": 0}).to_list(length=100)
+        
+        online_count = 0
+        offline_count = 0
+        
+        for device in devices:
+            result = await ping_host(device["host"])
+            update_data = {
+                "online": result["online"],
+                "response_time_ms": result["response_time_ms"],
+                "last_check": datetime.now(timezone.utc).isoformat(),
+            }
+            if result["online"]:
+                update_data["last_online"] = datetime.now(timezone.utc).isoformat()
+                online_count += 1
+            else:
+                offline_count += 1
+            
+            await vpn_collection.update_one({"id": device["id"]}, {"$set": update_data})
+        
+        logger.info(f"[VPN SCHEDULER] Completed: {len(devices)} devices, Online={online_count}, Offline={offline_count}")
+        
+        # Broadcast VPN status update via WebSocket
+        if websocket_manager:
+            await websocket_manager.broadcast({
+                "type": "vpn_status_update",
+                "data": {
+                    "total": len(devices),
+                    "online": online_count,
+                    "offline": offline_count,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+            })
+    except Exception as e:
+        logger.error(f"[VPN SCHEDULER] Error checking VPN devices: {e}")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Create database indexes for performance
