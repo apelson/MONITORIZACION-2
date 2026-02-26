@@ -2757,25 +2757,88 @@ const Dashboard = () => {
                 </div>
               </div>
               
-              {/* Mini Resource Indicators */}
-              <div className="flex items-center gap-3 text-[10px]">
-                <div className="flex items-center gap-1" title="CPU">
-                  <Cpu className="w-3 h-3 text-emerald-400" />
-                  <span className="text-emerald-400 font-mono">{headerResources.cpu || '--'}%</span>
-                </div>
-                <div className="flex items-center gap-1" title="RAM">
-                  <Database className="w-3 h-3 text-blue-400" />
-                  <span className="text-blue-400 font-mono">{headerResources.ram || '--'}%</span>
-                </div>
-                <div className="flex items-center gap-1" title="Disco">
-                  <HardDrive className="w-3 h-3 text-amber-400" />
-                  <span className="text-amber-400 font-mono">{headerResources.hdd || '--'}%</span>
-                </div>
-                <div className="hidden sm:flex items-center gap-1" title="Red">
+              {/* Mini Resource Indicators with Alerts and Sparklines */}
+              <div className="flex items-center gap-4 text-[10px]">
+                {/* CPU */}
+                {(() => {
+                  const alert = getAlertLevel(headerResources.cpu);
+                  const baseColor = alert.level === 'normal' ? 'text-emerald-400' : alert.color;
+                  return (
+                    <div 
+                      className={`flex items-center gap-1.5 px-2 py-0.5 rounded ${alert.bg || ''} ${alert.pulse ? 'animate-pulse' : ''}`}
+                      title={`CPU: ${headerResources.cpu}%${alert.level !== 'normal' ? ` - ¡${alert.level.toUpperCase()}!` : ''}`}
+                    >
+                      <Cpu className={`w-3 h-3 ${baseColor}`} />
+                      <span className={`${baseColor} font-mono font-semibold`}>{headerResources.cpu || '--'}%</span>
+                      {resourceHistory.cpu.length > 5 && (
+                        <svg width="30" height="12" className="ml-1">
+                          <polyline
+                            fill="none"
+                            stroke={alert.level === 'critical' ? '#ef4444' : alert.level === 'warning' ? '#f59e0b' : '#34d399'}
+                            strokeWidth="1"
+                            points={resourceHistory.cpu.map((v, i) => `${i * (30 / Math.max(resourceHistory.cpu.length - 1, 1))},${12 - (v / 100) * 12}`).join(' ')}
+                          />
+                        </svg>
+                      )}
+                    </div>
+                  );
+                })()}
+                
+                {/* RAM */}
+                {(() => {
+                  const alert = getAlertLevel(headerResources.ram);
+                  const baseColor = alert.level === 'normal' ? 'text-blue-400' : alert.color;
+                  return (
+                    <div 
+                      className={`flex items-center gap-1.5 px-2 py-0.5 rounded ${alert.bg || ''} ${alert.pulse ? 'animate-pulse' : ''}`}
+                      title={`RAM: ${headerResources.ram}%${alert.level !== 'normal' ? ` - ¡${alert.level.toUpperCase()}!` : ''}`}
+                    >
+                      <Database className={`w-3 h-3 ${baseColor}`} />
+                      <span className={`${baseColor} font-mono font-semibold`}>{headerResources.ram || '--'}%</span>
+                      {resourceHistory.ram.length > 5 && (
+                        <svg width="30" height="12" className="ml-1">
+                          <polyline
+                            fill="none"
+                            stroke={alert.level === 'critical' ? '#ef4444' : alert.level === 'warning' ? '#f59e0b' : '#60a5fa'}
+                            strokeWidth="1"
+                            points={resourceHistory.ram.map((v, i) => `${i * (30 / Math.max(resourceHistory.ram.length - 1, 1))},${12 - (v / 100) * 12}`).join(' ')}
+                          />
+                        </svg>
+                      )}
+                    </div>
+                  );
+                })()}
+                
+                {/* HDD */}
+                {(() => {
+                  const alert = getAlertLevel(headerResources.hdd);
+                  const baseColor = alert.level === 'normal' ? 'text-amber-400' : alert.color;
+                  return (
+                    <div 
+                      className={`flex items-center gap-1.5 px-2 py-0.5 rounded ${alert.bg || ''} ${alert.pulse ? 'animate-pulse' : ''}`}
+                      title={`Disco: ${headerResources.hdd}%${alert.level !== 'normal' ? ` - ¡${alert.level.toUpperCase()}!` : ''}`}
+                    >
+                      <HardDrive className={`w-3 h-3 ${baseColor}`} />
+                      <span className={`${baseColor} font-mono font-semibold`}>{headerResources.hdd || '--'}%</span>
+                      {resourceHistory.hdd.length > 5 && (
+                        <svg width="30" height="12" className="ml-1">
+                          <polyline
+                            fill="none"
+                            stroke={alert.level === 'critical' ? '#ef4444' : alert.level === 'warning' ? '#f59e0b' : '#fbbf24'}
+                            strokeWidth="1"
+                            points={resourceHistory.hdd.map((v, i) => `${i * (30 / Math.max(resourceHistory.hdd.length - 1, 1))},${12 - (v / 100) * 12}`).join(' ')}
+                          />
+                        </svg>
+                      )}
+                    </div>
+                  );
+                })()}
+                
+                {/* Network - no alerts, just display */}
+                <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5" title="Tráfico de Red">
                   <Network className="w-3 h-3 text-purple-400" />
-                  <span className="text-purple-400 font-mono">
-                    ↑{headerResources.net_up?.toFixed(1) || '0'} ↓{headerResources.net_down?.toFixed(1) || '0'}
-                  </span>
+                  <span className="text-emerald-400 font-mono">↑{headerResources.net_up?.toFixed(1) || '0'}</span>
+                  <span className="text-blue-400 font-mono">↓{headerResources.net_down?.toFixed(1) || '0'}</span>
                   <span className="text-slate-500 text-[8px]">MB/s</span>
                 </div>
               </div>
