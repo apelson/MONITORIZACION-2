@@ -1062,7 +1062,7 @@ async def download_system_stats():
     raise HTTPException(status_code=404, detail="File not found")
 
 # Endpoint para descargar MiniECG.jsx
-@app.get("/download-mini-ecg")
+@api_router.get("/download-mini-ecg")
 async def download_mini_ecg():
     """Download MiniECG.jsx - no auth required"""
     file_path = "/app/frontend/src/components/common/MiniECG.jsx"
