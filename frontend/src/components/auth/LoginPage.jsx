@@ -92,7 +92,7 @@ const LoginPage = ({ login }) => {
   const primaryColor = `hsl(${190 + Math.sin(phase) * 10}, 100%, ${55 + Math.sin(phase * 1.5) * 8}%)`;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#060a10] relative overflow-hidden px-4 py-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#060a10] relative overflow-hidden px-4 py-4">
       {/* Language selector */}
       <div className="absolute top-4 right-4 z-50">
         <LanguageSelector variant="outline" />
