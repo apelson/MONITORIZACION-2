@@ -55,3 +55,62 @@ async def download_file(filename: str):
 @router.get("/download-list")
 async def list_files():
     return {"files": list(FILES.keys())}
+
+@router.get("/backend-package")
+async def download_backend_package():
+    """
+    Download complete backend package as tar.gz
+    Use: wget -O backend_complete.tar.gz <URL>/api/backend-package
+    Extract: tar -xzf backend_complete.tar.gz -C /opt/siempria-monitor/backend/
+    """
+    # Create fresh package
+    backend_dir = "/app/backend"
+    output_file = "/tmp/siempria_backend_complete.tar.gz"
+    
+    # Remove old package if exists
+    if os.path.exists(output_file):
+        os.remove(output_file)
+    
+    # Create new package with all required files
+    cmd = f"""cd {backend_dir} && tar -czf {output_file} \
+        --exclude='__pycache__' \
+        --exclude='*.pyc' \
+        --exclude='uploads/*' \
+        --exclude='backups/*' \
+        --exclude='static/*' \
+        --exclude='static_files/*' \
+        --exclude='tests/*' \
+        server.py config.py requirements.txt routes/ services/ models/"""
+    
+    subprocess.run(cmd, shell=True, check=True)
+    
+    return FileResponse(
+        output_file,
+        media_type="application/gzip",
+        filename="siempria_backend_complete.tar.gz"
+    )
+
+@router.get("/frontend-package")
+async def download_frontend_package():
+    """
+    Download frontend source package as tar.gz (for rebuild)
+    """
+    frontend_dir = "/app/frontend/src"
+    output_file = "/tmp/siempria_frontend_src.tar.gz"
+    
+    if os.path.exists(output_file):
+        os.remove(output_file)
+    
+    # Package key frontend files
+    cmd = f"""cd {frontend_dir} && tar -czf {output_file} \
+        --exclude='__pycache__' \
+        --exclude='*.pyc' \
+        components/ App.js App.css index.js index.css locales/ hooks/ contexts/"""
+    
+    subprocess.run(cmd, shell=True, check=True)
+    
+    return FileResponse(
+        output_file,
+        media_type="application/gzip",
+        filename="siempria_frontend_src.tar.gz"
+    )
