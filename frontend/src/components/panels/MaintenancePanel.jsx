@@ -100,13 +100,23 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
     try {
       // -1 means indefinite maintenance
       const durationValue = duration === "indefinite" ? -1 : parseInt(duration);
-      await authAxios.post(`/devices/${selectedDevice.id}/maintenance`, {
+      
+      // Use different endpoint for Dahua devices
+      const endpoint = selectedDevice.isDahua 
+        ? `/dahua/devices/${selectedDevice.id}/maintenance`
+        : `/devices/${selectedDevice.id}/maintenance`;
+      
+      await authAxios.post(endpoint, {
         duration_minutes: durationValue,
         reason: reason || null
       });
       toast.success(`Modo mantenimiento activado para ${selectedDevice.name}`);
       setShowModal(false);
+      setSelectedDevice(null);
+      setDuration("60");
+      setReason("");
       fetchMaintenanceDevices();
+      fetchDahuaDevices();
       if (onRefresh) onRefresh();
     } catch (error) {
       toast.error(error.response?.data?.detail || "Error al activar mantenimiento");
@@ -115,14 +125,22 @@ const MaintenancePanel = ({ authAxios, devices = [], onRefresh }) => {
     }
   };
 
-  const handleDisableMaintenance = async (deviceId, deviceName) => {
+  const handleDisableMaintenance = async (device) => {
     try {
-      await authAxios.delete(`/devices/${deviceId}/maintenance`);
-      toast.success(`Modo mantenimiento desactivado para ${deviceName}`);
+      // Use different endpoint for Dahua devices
+      const endpoint = device.isDahua 
+        ? `/dahua/devices/${device.id}/maintenance`
+        : `/devices/${device.id}/maintenance`;
+      
+      await authAxios.delete(endpoint);
+      toast.success(`Modo mantenimiento desactivado para ${device.name}`);
       fetchMaintenanceDevices();
+      fetchDahuaDevices();
       if (onRefresh) onRefresh();
     } catch (error) {
       toast.error(error.response?.data?.detail || "Error al desactivar mantenimiento");
+    }
+  };
     }
   };
 
