@@ -1777,6 +1777,8 @@ const NOCDashboard = ({
                 {allOfflineDevices.map(device => {
                   const Icon = device.deviceType === 'dahua' ? HardDrive : getDeviceIcon(device);
                   const label = device.typeLabel;
+                  const isInMaintenance = device.maintenance_mode === true;
+                  const hasOpenIncident = device.has_open_incident === true;
                   // Color based on type
                   const labelColor = {
                     'DVR': 'bg-orange-500/20 text-orange-400',
@@ -1789,13 +1791,31 @@ const NOCDashboard = ({
                     'CAM': 'bg-pink-500/20 text-pink-400'
                   }[label] || 'bg-slate-500/20 text-slate-400';
                   return (
-                    <div key={device.id} className="p-1.5 rounded bg-red-500/5 border border-red-500/20 flex items-center justify-between cursor-pointer hover:bg-red-500/10" onClick={() => onDeviceClick?.(device)}>
+                    <div 
+                      key={device.id} 
+                      className={cn(
+                        "p-1.5 rounded border flex items-center justify-between cursor-pointer transition-all",
+                        isInMaintenance 
+                          ? "bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20" 
+                          : "bg-red-500/5 border-red-500/20 hover:bg-red-500/10"
+                      )} 
+                      onClick={() => onDeviceClick?.(device)}
+                    >
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <Icon className="w-3 h-3 text-red-400 shrink-0" />
+                        <Icon className={cn("w-3 h-3 shrink-0", isInMaintenance ? "text-amber-400" : "text-red-400")} />
                         <span className="text-[11px] text-white truncate">{device.name}</span>
                         {label && <Badge className={`${labelColor} text-[8px] px-1 py-0`}>{label}</Badge>}
+                        {/* Status icons */}
+                        {isInMaintenance && (
+                          <Wrench className="w-3 h-3 text-amber-400 shrink-0" title="En mantenimiento" />
+                        )}
+                        {hasOpenIncident && (
+                          <FileText className="w-3 h-3 text-blue-400 shrink-0" title="Incidencia abierta" />
+                        )}
                       </div>
-                      <span className="text-[10px] text-red-400 ml-2">{formatTimeSince(device.last_status_change)}</span>
+                      <span className={cn("text-[10px] ml-2", isInMaintenance ? "text-amber-400" : "text-red-400")}>
+                        {isInMaintenance ? "🔧" : formatTimeSince(device.last_status_change)}
+                      </span>
                     </div>
                   );
                 })}
