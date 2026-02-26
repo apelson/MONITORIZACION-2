@@ -67,13 +67,13 @@ const ICON_MAP = {
   shield: Shield, box: Box, layers: Layers
 };
 
-// Canary Islands map configuration
+// Canary Islands map configuration with silhouette IDs
 const CANARY_ISLANDS = [
-  { id: 'LP', name: 'La Palma', x: 80, y: 340, abbrev: 'LP' },
-  { id: 'TF', name: 'Tenerife', x: 140, y: 420, abbrev: 'TF' },
-  { id: 'GC', name: 'Gran Canaria', x: 220, y: 360, abbrev: 'GC' },
-  { id: 'FV', name: 'Fuerteventura', x: 310, y: 280, abbrev: 'FV' },
-  { id: 'LZ', name: 'Lanzarote', x: 290, y: 200, abbrev: 'LZ' },
+  { id: 'LP', name: 'La Palma', silhouetteId: 'LP', abbrev: 'LP' },
+  { id: 'TF', name: 'Tenerife', silhouetteId: 'TF', abbrev: 'TF' },
+  { id: 'GC', name: 'Gran Canaria', silhouetteId: 'GC', abbrev: 'GC' },
+  { id: 'FV', name: 'Fuerteventura', silhouetteId: 'FV', abbrev: 'FV' },
+  { id: 'LZ', name: 'Lanzarote', silhouetteId: 'LZ', abbrev: 'LZ' },
 ];
 
 // Presentation sections
