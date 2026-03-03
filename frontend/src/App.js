@@ -3934,6 +3934,7 @@ const MobileDashboardWrapper = ({ onExitMobile }) => {
       alerts={alerts}
       deviceTypes={deviceTypes}
       user={user}
+      authAxios={authAxios}
       onRefresh={fetchData}
       onClose={onExitMobile}
       loading={loading}

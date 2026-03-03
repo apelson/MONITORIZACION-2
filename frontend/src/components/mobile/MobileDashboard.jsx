@@ -8,7 +8,7 @@ import {
   Monitor, Wifi, WifiOff, AlertTriangle, Building2, Clock,
   Camera, HardDrive, Server, Router, Shield, Bell, 
   ChevronRight, RefreshCw, Eye, X, Menu, Home, Settings,
-  Activity, Wrench, ClipboardList, MapPin, Phone, Search
+  Activity, Wrench, ClipboardList, MapPin, Phone, Search, BellRing
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import { PushToggle } from '@/components/settings/PushNotificationToggle';
 
 // Icon map for device types
 const ICON_MAP = {
@@ -40,6 +41,7 @@ const MobileDashboard = ({
   alerts = [],
   deviceTypes = [],
   user,
+  authAxios,
   onDeviceClick,
   onRefresh,
   onClose,
@@ -169,6 +171,16 @@ const MobileDashboard = ({
                     Organizaciones
                   </Button>
                 </div>
+                
+                {/* Push Notifications Toggle */}
+                <div className="absolute bottom-20 left-4 right-4 p-3 bg-slate-800 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <BellRing className="w-4 h-4 text-amber-400" />
+                    <span className="text-sm font-medium text-white">Alertas Push CRA</span>
+                  </div>
+                  <PushToggle authAxios={authAxios} className="text-white" />
+                </div>
+                
                 <div className="absolute bottom-6 left-4 right-4">
                   <div className="text-xs text-slate-500 text-center">
                     {user?.username} • {user?.role}

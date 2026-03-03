@@ -76,6 +76,7 @@ from routes.download_files import router as download_router
 from routes.dahua import router as dahua_router
 from routes.vpn import router as vpn_router
 from routes.system_stats import router as system_stats_router
+from routes.push_notifications import router as push_router
 from services.websocket_service import websocket_manager
 from services.device_service import set_websocket_manager
 from services.dahua_service import dahua_service
@@ -311,6 +312,9 @@ api_router.include_router(superadmin_tenants_router)
 
 # Include JIRA integration routes
 api_router.include_router(jira_router)
+
+# Include Push notifications router
+api_router.include_router(push_router)
 
 # Include WebSocket router
 api_router.include_router(websocket_router)
