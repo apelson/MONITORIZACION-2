@@ -72,6 +72,7 @@ import { AlertBell, DeviceStatusGrid, DeviceHistoryModal } from "@/components/al
 import useWebSocketAlerts from "@/hooks/useWebSocketAlerts";
 import LoginPage from "@/components/auth/LoginPage";
 import ServerCard from "@/components/devices/ServerCard";
+import MobileDashboard from "@/components/mobile/MobileDashboard";
 
 import { API_URL as BACKEND_URL, API } from './config';
 // Logo principal de Siempria (hexágono azul)
@@ -1901,7 +1902,7 @@ const SectionLoading = ({ message = "Cargando..." }) => (
 );
 
 // ============ DASHBOARD ============
-const Dashboard = () => {
+const Dashboard = ({ onShowMobile }) => {
   const { t } = useTranslation();
   const { user, logout, authAxios, canAccessSection, hasPermission } = useAuth();
   const [devices, setDevices] = useState([]);
@@ -2782,6 +2783,11 @@ const Dashboard = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem><RoleBadge role={user?.role} /></DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  {onShowMobile && (
+                    <DropdownMenuItem onClick={onShowMobile} className="gap-2">
+                      <Smartphone className="w-4 h-4" />Vista Móvil
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={logout} className="text-destructive gap-2">
                     <LogOut className="w-4 h-4" />{t('auth.logout')}
                   </DropdownMenuItem>
@@ -3826,9 +3832,33 @@ const Dashboard = () => {
 
 // ============ APP ============
 function App() { return <AuthProvider><AppContent /></AuthProvider>; }
+
+// Mobile detection hook
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      // Check screen width and touch capability
+      const isMobileScreen = window.innerWidth < 768;
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isMobileAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      setIsMobile(isMobileScreen && (isTouchDevice || isMobileAgent));
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  return isMobile;
+};
+
 const AppContent = () => { 
   const { user, loading, login } = useAuth(); 
   const [showLoading, setShowLoading] = useState(true);
+  const isMobile = useIsMobile();
+  const [forceMobileView, setForceMobileView] = useState(false);
   
   useEffect(() => {
     // Show loading screen for at least 2.5 seconds on initial load
@@ -3836,7 +3866,79 @@ const AppContent = () => {
     return () => clearTimeout(timer);
   }, []);
   
+  // Check localStorage for mobile preference
+  useEffect(() => {
+    const savedPref = localStorage.getItem('forceMobileView');
+    if (savedPref === 'true') setForceMobileView(true);
+  }, []);
+  
   if (showLoading || loading) return <LoadingScreen />; 
-  return user ? <Dashboard /> : <LoginPage login={login} />; 
+  
+  // Show mobile dashboard if on mobile device or forced
+  const showMobile = isMobile || forceMobileView;
+  
+  return user ? (showMobile ? <MobileDashboardWrapper onExitMobile={() => {
+    setForceMobileView(false);
+    localStorage.setItem('forceMobileView', 'false');
+  }} /> : <Dashboard onShowMobile={() => {
+    setForceMobileView(true);
+    localStorage.setItem('forceMobileView', 'true');
+  }} />) : <LoginPage login={login} />; 
 };
+
+// Wrapper for mobile dashboard that provides data
+const MobileDashboardWrapper = ({ onExitMobile }) => {
+  const { authAxios, user } = useAuth();
+  const [devices, setDevices] = useState([]);
+  const [organizations, setOrganizations] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [alerts, setAlerts] = useState([]);
+  const [deviceTypes, setDeviceTypes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = useCallback(async () => {
+    if (!authAxios) return;
+    setLoading(true);
+    try {
+      const [devRes, orgRes, grpRes, alertRes, typesRes] = await Promise.all([
+        authAxios.get('/devices'),
+        authAxios.get('/organizations'),
+        authAxios.get('/groups'),
+        authAxios.get('/alerts?limit=50'),
+        authAxios.get('/device-types')
+      ]);
+      setDevices(devRes.data.devices || devRes.data || []);
+      setOrganizations(orgRes.data.organizations || orgRes.data || []);
+      setGroups(grpRes.data.groups || grpRes.data || []);
+      setAlerts(alertRes.data.alerts || alertRes.data || []);
+      setDeviceTypes(typesRes.data.device_types || typesRes.data || []);
+    } catch (err) {
+      console.error('Error loading mobile data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [authAxios]);
+
+  useEffect(() => {
+    fetchData();
+    // Auto refresh every 30 seconds
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  return (
+    <MobileDashboard
+      devices={devices}
+      organizations={organizations}
+      groups={groups}
+      alerts={alerts}
+      deviceTypes={deviceTypes}
+      user={user}
+      onRefresh={fetchData}
+      onClose={onExitMobile}
+      loading={loading}
+    />
+  );
+};
+
 export default App;

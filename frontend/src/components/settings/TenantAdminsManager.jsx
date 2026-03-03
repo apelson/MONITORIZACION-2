@@ -895,7 +895,7 @@ const TenantAdminsManager = ({ authAxios }) => {
                           <IconComponent className={`w-4 h-4 ${isEnabled ? 'text-foreground' : 'text-red-400'}`} />
                         </div>
                         <div>
-                          <p className={`font-medium ${isEnabled ? 'text-white' : 'text-red-300'}`}>
+                          <p className={`font-medium ${isEnabled ? 'text-foreground' : 'text-red-300'}`}>
                             {config.label}
                           </p>
                           <p className="text-xs text-muted-foreground">{config.description}</p>

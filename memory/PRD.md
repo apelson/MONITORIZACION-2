@@ -21,10 +21,43 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 15. ✅ Iconos de estado en dispositivos offline (Mantenimiento/Incidencia) (DONE - 26 Feb 2026)
 16. ✅ Campo "Isla" en formulario de grupos (DONE - 26 Feb 2026)
 17. ✅ Lista lateral de Islas con siluetas (DONE - 26 Feb 2026)
+18. ✅ Mobile Dashboard - Vista Móvil Optimizada (DONE - 03 Mar 2026)
+19. ✅ TenantAdminsManager UI Fix - Colores legibles (DONE - 03 Mar 2026)
 
-## What's Been Implemented (26 Feb 2026)
+## What's Been Implemented (03 Mar 2026)
 
-### Latest Changes (Session 3) - 26 Feb 2026
+### Latest Changes (Session 4) - 03 Mar 2026
+
+#### 1. Mobile Dashboard - Vista Móvil Optimizada
+- **Nuevo componente:** `/app/frontend/src/components/mobile/MobileDashboard.jsx`
+- Dashboard optimizado para dispositivos móviles con diseño dark theme
+- Header sticky con hora, botón de refresh y menú lateral (Sheet)
+- Stats bar con contadores: Online, Offline, Total + indicador CRA
+- Tabs: Resumen, Dispositivos, Alertas
+- Vista de dispositivos offline con indicadores de estado (CRA, mantenimiento, incidencia)
+- Lista de organizaciones con barras de progreso y conteo offline
+- Bottom navigation fijo: Inicio, Dispositivos, Alertas, Orgs
+- Búsqueda y filtrado por organización
+- Auto-refresh cada 30 segundos
+
+#### 2. Detección Automática de Móviles
+- Hook `useIsMobile()` en App.js detecta dispositivos móviles por:
+  - Screen width < 768px
+  - Touch capability (`ontouchstart` o `maxTouchPoints`)
+  - User agent móvil (Android, iPhone, iPad, etc.)
+- Opción "Vista Móvil" en menú de usuario para cambiar manualmente
+- Persistencia de preferencia en localStorage
+
+#### 3. MobileDashboardWrapper
+- Wrapper component que provee datos al MobileDashboard
+- Fetches: devices, organizations, groups, alerts, deviceTypes
+- Auto-refresh cada 30 segundos
+
+#### 4. TenantAdminsManager UI Fix
+- Corregido problema de texto no legible en fondo blanco
+- Cambiado `text-white` a `text-foreground` para compatibilidad con temas claro/oscuro
+
+### Previous Sessions (26 Feb 2026)
 
 #### 1. Iconos de Estado en Dispositivos Offline (Mantenimiento + Incidencia)
 - **Backend:** Modificado endpoint `/api/devices` para incluir campo `has_open_incident`
@@ -117,20 +150,23 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 - **Database:** MongoDB
 
 ## Key Files Modified This Session
-- `/app/frontend/src/components/panels/NOCDashboard.jsx` - Iconos de incidencia, siluetas de islas
-- `/app/frontend/src/components/common/CanaryIslandsSilhouettes.jsx` - NUEVO: componente SVG de islas
-- `/app/backend/routes/devices.py` - Campo has_open_incident en dispositivos
-- `/app/backend/routes/organizations.py` - Campo island en grupos
-- `/app/backend/models/__init__.py` - Modelos GroupCreate/GroupUpdate con island
+- `/app/frontend/src/components/mobile/MobileDashboard.jsx` - NUEVO: Dashboard móvil optimizado
+- `/app/frontend/src/App.js` - Hook useIsMobile, MobileDashboardWrapper, opción Vista Móvil en menú
+- `/app/frontend/src/components/settings/TenantAdminsManager.jsx` - Fix colores de texto
 
 ## Pending Issues
-1. **Contador de Infraestructura (0/0)** - El usuario indica que no sabe de dónde viene este número. Posiblemente los dispositivos de infraestructura no están clasificados correctamente en la DB. Necesita revisión con el usuario para entender qué device_type_id usan sus dispositivos de infraestructura.
+1. **Contador de Infraestructura (0/0)** - Posiblemente los dispositivos de infraestructura no están clasificados correctamente en la DB.
+2. **Welcome Tour** - El componente base está creado pero necesita targeting de elementos reales con data-testid.
+3. **Sistema de alertas sonoras** - Pendiente verificación del usuario.
 
 ## Backlog / Future Tasks
-- Infrastructure devices widget in NOC dashboard (ESXi, NAS monitoring)
-- Improve PWA experience
-- Create user documentation
-- Refactoring of App.js (monolith - over 3500 lines)
+- Wizard de Configuración Inicial para admins nuevos
+- Mapa interactivo de Canarias (clicable)
+- Centro de Ayuda Integrado
+- Dashboard personalizable por usuario
+- Documentación exportable (PDF/HTML)
+- Vídeos tutoriales
+- Refactoring de App.js (monolito - más de 3800 líneas)
 
 ## Credentials
 - Admin user: admin / admin123
