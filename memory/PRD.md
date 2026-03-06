@@ -164,10 +164,37 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
    - Lista Negra Permanente (añadir/eliminar)
    - Eventos de Seguridad Recientes
 
+### Features Implementadas en Esta Sesión
+
+#### Fail2ban Integration (COMPLETADO)
+- **Backend Service**: `/app/backend/services/fail2ban_service.py`
+  - Detección del estado de fail2ban en el sistema
+  - Gestión de configuración (max_retry, ban_time, find_time)
+  - Ban/unban manual de IPs
+  - Generación de guía de instalación con configuración de jail y filtros
+  - Sincronización con sistema de seguridad interno
+  
+- **Backend Routes**: `/app/backend/routes/fail2ban.py`
+  - `GET /api/fail2ban/status` - Estado general de fail2ban
+  - `GET /api/fail2ban/jail/{name}` - Estado de un jail específico
+  - `GET/POST /api/fail2ban/config` - Configuración
+  - `POST /api/fail2ban/ban` - Bloquear IP manualmente
+  - `POST /api/fail2ban/unban` - Desbloquear IP
+  - `GET /api/fail2ban/logs` - Historial de acciones
+  - `GET /api/fail2ban/installation-guide` - Guía de instalación completa
+
+- **Frontend Component**: `/app/frontend/src/components/settings/Fail2banPanel.jsx`
+  - Panel completo con estadísticas visuales
+  - Tabs: Acciones | Configuración | Historial
+  - Guía de instalación con comandos copiables
+  - Gestión de IPs bloqueadas
+  - Integración con SecurityPanel existente
+
 ### Security Features Implementadas
 - **Backend:** `/app/backend/services/security_service.py` - Brute force protection, IP blocking, security events
 - **Backend Routes:** `/app/backend/routes/security.py` - APIs for blacklist management
 - **Frontend:** SecurityPanel en App.js (líneas 1634-1841) - Gestión de IPs bloqueadas
+- **NEW: Fail2ban Panel** - Detección de intrusiones a nivel de sistema operativo
 
 ## Pending Issues
 1. **Contador de Infraestructura (0/0)** - Posiblemente los dispositivos de infraestructura no están clasificados correctamente en la DB.

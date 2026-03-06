@@ -77,6 +77,7 @@ from routes.dahua import router as dahua_router
 from routes.vpn import router as vpn_router
 from routes.system_stats import router as system_stats_router
 from routes.push_notifications import router as push_router
+from routes.fail2ban import router as fail2ban_router
 from services.websocket_service import websocket_manager
 from services.device_service import set_websocket_manager
 from services.dahua_service import dahua_service
@@ -334,6 +335,9 @@ api_router.include_router(system_stats_router)
 
 # Include download router for production updates
 api_router.include_router(download_router)
+
+# Include fail2ban integration routes
+api_router.include_router(fail2ban_router)
 
 # ============ DOWNLOAD ENDPOINTS FOR PRODUCTION UPDATE ============
 

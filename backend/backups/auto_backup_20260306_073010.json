@@ -1,0 +1,140 @@
+{
+  "version": "1.0",
+  "created_at": "2026-03-06T07:30:05.317207+00:00",
+  "collections": {
+    "organizations": [
+      {
+        "id": "deaeccae-ec00-4129-9fb7-152d80a1a115",
+        "name": "DOMINGO ALONSO GROUP",
+        "description": "Test tenant organization",
+        "color": "#f97316",
+        "is_cra": false,
+        "tenant_id": "tenant_dagroup",
+        "created_at": "2026-02-24T15:06:59.266239+00:00"
+      }
+    ],
+    "groups": [
+      {
+        "id": "266d8c0d-7e89-46fb-88c5-91f4e1382959",
+        "name": "Test Grupo DAGroup",
+        "organization_id": "deaeccae-ec00-4129-9fb7-152d80a1a115",
+        "description": "",
+        "color": "#22c55e",
+        "created_at": "2026-02-24T15:12:54.599416+00:00"
+      }
+    ],
+    "devices": [],
+    "device_types": [
+      {
+        "id": "type-camera",
+        "name": "Cámara",
+        "icon": "video",
+        "color": "#00a3d9",
+        "is_default": true,
+        "is_critical": false
+      },
+      {
+        "id": "type-nvr",
+        "name": "NVR/DVR",
+        "icon": "hard-drive",
+        "color": "#10b981",
+        "is_default": true,
+        "is_critical": true
+      },
+      {
+        "id": "type-switch",
+        "name": "Switch",
+        "icon": "network",
+        "color": "#f59e0b",
+        "is_default": true,
+        "is_critical": false
+      },
+      {
+        "id": "type-router",
+        "name": "Router",
+        "icon": "router",
+        "color": "#ef4444",
+        "is_default": true,
+        "is_critical": false
+      },
+      {
+        "id": "type-server",
+        "name": "Servidor",
+        "icon": "server",
+        "color": "#8b5cf6",
+        "is_default": true,
+        "is_critical": true
+      },
+      {
+        "id": "type-nas",
+        "name": "NAS",
+        "icon": "database",
+        "color": "#0ea5e9",
+        "is_default": true,
+        "is_critical": true
+      },
+      {
+        "id": "type-other",
+        "name": "Otro",
+        "icon": "box",
+        "color": "#6b7280",
+        "is_default": true,
+        "is_critical": false
+      }
+    ],
+    "users": [
+      {
+        "id": "f7660d01-101f-49b2-aded-0fba343e431a",
+        "username": "admin",
+        "email": "admin@siempria.com",
+        "password_hash": "$2b$12$WhxdgSQvFOBVj1GREHTK8uRUMkuGI735GHhdXTGEGkfS31UUnCB5a",
+        "role": "admin",
+        "full_name": "Super Administrador",
+        "is_active": true,
+        "created_at": "2026-02-24T15:04:01.901645+00:00",
+        "organization_ids": []
+      },
+      {
+        "id": "6364a65d-71c7-4fbf-83d1-7a5d4ddfa0ef",
+        "username": "dagroup",
+        "email": "admin@domingoalonso.com",
+        "password_hash": "$2b$12$OueBXabg9EK7DHVDVBdp7OiSUz4XIgFgawrj7TtzcHQSz4M7AF7DW",
+        "role": "tenant_admin",
+        "full_name": "Admin Domingo Alonso",
+        "is_active": true,
+        "tenant_id": "tenant_dagroup",
+        "organization_ids": [
+          "deaeccae-ec00-4129-9fb7-152d80a1a115"
+        ],
+        "created_at": "2026-02-24T15:06:59.551308+00:00",
+        "feature_flags": {
+          "devices": true,
+          "alerts": true,
+          "cra": false,
+          "dahua": true,
+          "live_view": true,
+          "incidents": true,
+          "reports": true,
+          "ai_insights": false,
+          "gallery": true
+        },
+        "updated_at": "2026-02-24T19:17:16.876281+00:00"
+      }
+    ],
+    "alerts": [],
+    "settings": [
+      {
+        "type": "uptime_record",
+        "record": {
+          "days": 0,
+          "hours": 22,
+          "minutes": 53,
+          "seconds": 31
+        },
+        "updated_at": "2026-02-25T22:53:32.064545+00:00"
+      }
+    ],
+    "scheduled_reports": [],
+    "public_dashboards": []
+  }
+}
