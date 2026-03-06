@@ -3516,9 +3516,9 @@ const Dashboard = ({ onShowMobile }) => {
                 offline: devices.filter(d => d.status !== 'online').length
               }}
               alertStats={{
-                critical: alerts.filter(a => a.severity === 'critical').length,
-                warnings: alerts.filter(a => a.severity === 'warning').length,
-                info: alerts.filter(a => a.severity === 'info').length
+                critical: alerts.filter(a => a.alert_type === 'device_down').length,
+                recovered: alerts.filter(a => a.alert_type === 'device_up').length,
+                total: alerts.length
               }}
               systemStats={{
                 cpu: 0,
@@ -3529,10 +3529,16 @@ const Dashboard = ({ onShowMobile }) => {
                 connected: devices.filter(d => d.is_cra && d.status === 'online').length > 0,
                 events: 0
               }}
+              craDevices={devices.filter(d => d.is_cra)}
               dahuaDevices={Array(dvrStats.total).fill().map((_, i) => ({ 
                 id: i, 
                 status: i < dvrStats.online ? 'online' : 'offline' 
               }))}
+              vpnStats={{
+                total: vpnStats.total,
+                online: vpnStats.online,
+                offline: vpnStats.total - vpnStats.online
+              }}
               alerts={alerts}
             />
           </TabsContent>
