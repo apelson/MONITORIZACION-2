@@ -78,6 +78,70 @@ async def delete_organization(org_id: str, current_user: dict = Depends(require_
         raise HTTPException(status_code=404, detail="Organización no encontrada")
     return {"message": "Organización eliminada"}
 
+
+# ============ ORGANIZATION FEATURE FLAGS ============
+
+# Default feature flags for organizations
+DEFAULT_ORG_FEATURE_FLAGS = {
+    "devices": True,
+    "alerts": True,
+    "cra": True,
+    "dahua": True,
+    "live_view": True,
+    "incidents": True,
+    "reports": True,
+    "ai_insights": True,
+    "gallery": True,
+    "vpn": True,
+    "infrastructure": True,
+}
+
+@router.get("/organizations/{org_id}/features")
+async def get_organization_features(org_id: str, current_user: dict = Depends(require_role(["admin"]))):
+    """Get feature flags for an organization"""
+    org = await organizations_collection.find_one({"id": org_id}, {"_id": 0})
+    if not org:
+        raise HTTPException(status_code=404, detail="Organización no encontrada")
+    
+    # Return existing flags or defaults
+    features = org.get("feature_flags", DEFAULT_ORG_FEATURE_FLAGS)
+    return {"organization_id": org_id, "name": org.get("name"), "feature_flags": features}
+
+
+@router.put("/organizations/{org_id}/features")
+async def update_organization_features(org_id: str, feature_flags: dict, current_user: dict = Depends(require_role(["admin"]))):
+    """Update feature flags for an organization (superadmin only)"""
+    org = await organizations_collection.find_one({"id": org_id})
+    if not org:
+        raise HTTPException(status_code=404, detail="Organización no encontrada")
+    
+    # Validate feature flags
+    valid_flags = set(DEFAULT_ORG_FEATURE_FLAGS.keys())
+    cleaned_flags = {k: bool(v) for k, v in feature_flags.items() if k in valid_flags}
+    
+    # Merge with defaults for any missing flags
+    final_flags = {**DEFAULT_ORG_FEATURE_FLAGS, **cleaned_flags}
+    
+    await organizations_collection.update_one(
+        {"id": org_id},
+        {"$set": {"feature_flags": final_flags, "features_updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "Features actualizados", "organization_id": org_id, "feature_flags": final_flags}
+
+
+@router.get("/organizations/all/features")
+async def get_all_organizations_features(current_user: dict = Depends(require_role(["admin"]))):
+    """Get all organizations with their feature flags (superadmin dashboard)"""
+    orgs = await organizations_collection.find({}, {"_id": 0, "id": 1, "name": 1, "feature_flags": 1}).to_list(length=None)
+    
+    # Ensure all orgs have feature_flags
+    for org in orgs:
+        if "feature_flags" not in org:
+            org["feature_flags"] = DEFAULT_ORG_FEATURE_FLAGS
+    
+    return {"organizations": orgs}
+
 # ============ GROUPS ============
 
 @router.get("/groups")

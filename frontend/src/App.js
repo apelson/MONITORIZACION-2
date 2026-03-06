@@ -66,8 +66,10 @@ import SystemStatusDashboard from "@/components/settings/SystemStatusDashboard";
 import RolesManager from "@/components/settings/RolesManager";
 import SuperAdminTab from "@/components/settings/SuperAdminTab";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
+import WelcomeTour, { useWelcomeTour } from "@/components/onboarding/WelcomeTour";
 import TenantAdminsManager from "@/components/settings/TenantAdminsManager";
 import Fail2banPanel from "@/components/settings/Fail2banPanel";
+import HelpCenter from "@/components/settings/HelpCenter";
 import SectionLoader, { useDelayedLoading } from "@/components/common/SectionLoader";
 import { AlertBell, DeviceStatusGrid, DeviceHistoryModal } from "@/components/alerts";
 import useWebSocketAlerts from "@/hooks/useWebSocketAlerts";
@@ -1925,6 +1927,14 @@ const Dashboard = ({ onShowMobile }) => {
   const [filterStats, setFilterStats] = useState(false);  // New: filter by has_statistics
   const [searchQuery, setSearchQuery] = useState("");  // NEW: Search by name
 
+  // Welcome Tour
+  const { isOpen: showTour, showTour: openTour, hideTour: closeTour, checkFirstVisit } = useWelcomeTour();
+  
+  // Check for first visit on mount
+  useEffect(() => {
+    checkFirstVisit();
+  }, [checkFirstVisit]);
+
   // Dialogs
   const [deviceDialogOpen, setDeviceDialogOpen] = useState(false);
   const [orgDialogOpen, setOrgDialogOpen] = useState(false);
@@ -3447,6 +3457,7 @@ const Dashboard = ({ onShowMobile }) => {
               <ScheduledReportsPanel organizations={organizations} authAxios={authAxios} />
               <DailyReportPanel authAxios={authAxios} />
               <BackupPanel authAxios={authAxios} />
+              <HelpCenter onStartTour={openTour} />
             </div>
           </TabsContent>}
           {isAdmin && <TabsContent value="superadmin"><SuperAdminTab authAxios={authAxios} /></TabsContent>}
@@ -3828,6 +3839,13 @@ const Dashboard = ({ onShowMobile }) => {
           </div>
         </div>
       </footer>
+      
+      {/* Welcome Tour */}
+      <WelcomeTour 
+        isOpen={showTour} 
+        onClose={closeTour} 
+        onComplete={closeTour}
+      />
     </div>
   );
 };

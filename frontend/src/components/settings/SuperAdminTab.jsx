@@ -16,9 +16,10 @@ import { toast } from 'sonner';
 import {
   Building2, Users, Server, Plus, Pencil, Trash2, Eye,
   Shield, BarChart3, RefreshCw, Search, Ban, Check,
-  Calendar, Mail, Monitor, Activity, ChevronRight, UserCog
+  Calendar, Mail, Monitor, Activity, ChevronRight, UserCog, Settings2
 } from 'lucide-react';
 import TenantAdminsManager from './TenantAdminsManager';
+import OrganizationFeaturesManager from './OrganizationFeaturesManager';
 
 const SuperAdminTab = ({ authAxios }) => {
   const [activeSubTab, setActiveSubTab] = useState('tenant-admins');
@@ -161,10 +162,14 @@ const SuperAdminTab = ({ authAxios }) => {
 
       {/* Internal Tabs */}
       <Tabs value={activeSubTab} onValueChange={setActiveSubTab}>
-        <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:inline-flex">
+        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
           <TabsTrigger value="tenant-admins" className="gap-2">
             <UserCog className="w-4 h-4" />
             Usuarios Tenant
+          </TabsTrigger>
+          <TabsTrigger value="org-features" className="gap-2">
+            <Settings2 className="w-4 h-4" />
+            Features Org.
           </TabsTrigger>
           <TabsTrigger value="saas-tenants" className="gap-2">
             <Building2 className="w-4 h-4" />
@@ -175,6 +180,11 @@ const SuperAdminTab = ({ authAxios }) => {
         {/* Tenant Admins Tab (Main Platform Multi-tenancy) */}
         <TabsContent value="tenant-admins" className="mt-6">
           <TenantAdminsManager authAxios={authAxios} />
+        </TabsContent>
+
+        {/* Organization Features Tab */}
+        <TabsContent value="org-features" className="mt-6">
+          <OrganizationFeaturesManager authAxios={authAxios} />
         </TabsContent>
 
         {/* SaaS Tenants Tab (Multi-database system) */}

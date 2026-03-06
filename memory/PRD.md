@@ -168,27 +168,31 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 
 #### Fail2ban Integration (COMPLETADO)
 - **Backend Service**: `/app/backend/services/fail2ban_service.py`
-  - Detección del estado de fail2ban en el sistema
-  - Gestión de configuración (max_retry, ban_time, find_time)
-  - Ban/unban manual de IPs
-  - Generación de guía de instalación con configuración de jail y filtros
-  - Sincronización con sistema de seguridad interno
-  
 - **Backend Routes**: `/app/backend/routes/fail2ban.py`
-  - `GET /api/fail2ban/status` - Estado general de fail2ban
-  - `GET /api/fail2ban/jail/{name}` - Estado de un jail específico
-  - `GET/POST /api/fail2ban/config` - Configuración
-  - `POST /api/fail2ban/ban` - Bloquear IP manualmente
-  - `POST /api/fail2ban/unban` - Desbloquear IP
-  - `GET /api/fail2ban/logs` - Historial de acciones
-  - `GET /api/fail2ban/installation-guide` - Guía de instalación completa
-
 - **Frontend Component**: `/app/frontend/src/components/settings/Fail2banPanel.jsx`
-  - Panel completo con estadísticas visuales
-  - Tabs: Acciones | Configuración | Historial
-  - Guía de instalación con comandos copiables
-  - Gestión de IPs bloqueadas
-  - Integración con SecurityPanel existente
+
+#### Gestión de Features por Organización (COMPLETADO)
+- **Backend**: Endpoints en `/app/backend/routes/organizations.py`:
+  - `GET /api/organizations/{org_id}/features` - Obtener features de una org
+  - `PUT /api/organizations/{org_id}/features` - Actualizar features
+  - `GET /api/organizations/all/features` - Listar todas las orgs con features
+- **Frontend**: `/app/frontend/src/components/settings/OrganizationFeaturesManager.jsx`
+  - Panel para gestionar features (Dispositivos, Alertas, CRA, Dahua, Live View, etc.)
+  - Toggle individual por feature y organización
+  - Acciones "Todos" y "Ninguno" por organización
+
+#### Welcome Tour (COMPLETADO)
+- **Component**: `/app/frontend/src/components/onboarding/WelcomeTour.jsx`
+- 7 pasos guiados: Bienvenida, Dispositivos, Alertas, Grabadores, Estadísticas, Configuración, Finalización
+- Se muestra automáticamente en la primera visita
+- Puede reiniciarse desde Centro de Ayuda
+
+#### Centro de Ayuda Integrado (COMPLETADO)
+- **Component**: `/app/frontend/src/components/settings/HelpCenter.jsx`
+- Guías rápidas (Primeros pasos, Añadir dispositivos, etc.)
+- FAQs expandibles por categoría (Dispositivos, Alertas, Grabadores, CRA, Usuarios)
+- Información de contacto de soporte
+- Botón para reiniciar el Welcome Tour
 
 ### Security Features Implementadas
 - **Backend:** `/app/backend/services/security_service.py` - Brute force protection, IP blocking, security events
@@ -203,15 +207,12 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 4. **Dominio siempriapp.com** - Configuración NAT en MikroTik del usuario (fuera del scope de desarrollo)
 
 ## Backlog / Future Tasks
-- Integrar fail2ban para detección de intrusiones a nivel sistema
-- Gestión de features por tenant desde superadmin
-- Wizard de Configuración Inicial para admins nuevos
 - Mapa interactivo de Canarias (clicable)
-- Centro de Ayuda Integrado
 - Dashboard personalizable por usuario
 - Documentación exportable (PDF/HTML)
 - Vídeos tutoriales
 - Refactoring de App.js (monolito - más de 3800 líneas)
+- Wizard de Configuración Inicial para admins nuevos (OnboardingWizard existe pero necesita mejoras)
 
 ## Test Users
 - **admin** - Role: admin - Password: admin123 (superadmin, ve todo)
