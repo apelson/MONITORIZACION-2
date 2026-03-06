@@ -783,3 +783,271 @@ async def clear_device_ftp_history(
         "message": f"Historial eliminado para dispositivo {device_id}",
         "deleted_count": result.deleted_count
     }
+
+
+
+# ============ CAMERA STATISTICS ENDPOINTS ============
+from config import camera_statistics_collection
+import ssl
+import urllib.request
+import json as json_module
+
+@router.get("/statistics/{camera_id}")
+async def get_camera_statistics(
+    camera_id: str,
+    period: str = Query("week-current", description="Period: day-current, day-last, week-current, week-last, month-current, month-last"),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get counting statistics from a Mobotix camera.
+    First tries to fetch from camera, then falls back to stored data.
+    """
+    camera = await devices_collection.find_one({"id": camera_id}, {"_id": 0})
+    if not camera:
+        raise HTTPException(status_code=404, detail="Cámara no encontrada")
+    
+    if not camera.get("has_statistics"):
+        raise HTTPException(status_code=400, detail="Esta cámara no tiene estadísticas habilitadas")
+    
+    # Parse period
+    parts = period.split("-")
+    report_type = parts[0] if len(parts) > 0 else "week"
+    export_range = parts[1] if len(parts) > 1 else "current"
+    
+    try:
+        protocol = camera.get("camera_protocol", "http")
+        ip = camera.get("ip_address")
+        port = camera.get("port", 80)
+        user = camera.get("camera_user", "")
+        password = camera.get("camera_password", "")
+        
+        # Build URL for Mobotix stat_export
+        url = f"{protocol}://{ip}:{port}/control/stat_export?report&export_type={report_type}&export_range={export_range}&export_format=json"
+        
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        
+        auth_string = base64.b64encode(f"{user}:{password}".encode()).decode()
+        req = urllib.request.Request(url)
+        req.add_header("Authorization", f"Basic {auth_string}")
+        
+        with urllib.request.urlopen(req, timeout=20, context=ctx) as response:
+            data = json_module.loads(response.read().decode())
+            
+            # Store the statistics for historical reference
+            await store_statistics(camera_id, camera.get("name"), period, data)
+            
+            return {
+                "camera_id": camera_id,
+                "camera_name": camera.get("name"),
+                "period": period,
+                "report_type": report_type,
+                "export_range": export_range,
+                "tables": data.get("tables", []),
+                "source": "camera"
+            }
+    except Exception as e:
+        logger.error(f"Error fetching statistics from camera {camera_id}: {e}")
+        
+        # Try to get stored statistics
+        stored = await get_stored_statistics(camera_id, period)
+        if stored:
+            return {
+                "camera_id": camera_id,
+                "camera_name": camera.get("name"),
+                "period": period,
+                "tables": stored.get("tables", []),
+                "source": "stored",
+                "stored_at": stored.get("timestamp")
+            }
+        
+        raise HTTPException(status_code=500, detail=f"Error al obtener estadísticas y no hay datos almacenados: {str(e)}")
+
+
+@router.get("/heatmap/{camera_id}")
+async def get_camera_heatmap(
+    camera_id: str,
+    period: str = Query("week-last", description="Period: day-last, week-last, month-last"),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get heatmap image from a Mobotix camera.
+    Returns the image as a binary response.
+    """
+    camera = await devices_collection.find_one({"id": camera_id}, {"_id": 0})
+    if not camera:
+        raise HTTPException(status_code=404, detail="Cámara no encontrada")
+    
+    if not camera.get("has_statistics"):
+        raise HTTPException(status_code=400, detail="Esta cámara no tiene estadísticas habilitadas")
+    
+    # Parse period
+    parts = period.split("-")
+    heatmap_type = parts[0] if len(parts) > 0 else "week"
+    export_range = parts[1] if len(parts) > 1 else "last"
+    
+    try:
+        protocol = camera.get("camera_protocol", "http")
+        ip = camera.get("ip_address")
+        port = camera.get("port", 80)
+        user = camera.get("camera_user", "")
+        password = camera.get("camera_password", "")
+        
+        # Build URL for Mobotix heatmap
+        url = f"{protocol}://{ip}:{port}/control/stat_export?heatmap&export_type={heatmap_type}&export_range={export_range}&start=0800&end=2200&daylist=1,2,3,4,5,6&export_format=jpeg&legend=1"
+        
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        
+        auth_string = base64.b64encode(f"{user}:{password}".encode()).decode()
+        req = urllib.request.Request(url)
+        req.add_header("Authorization", f"Basic {auth_string}")
+        
+        with urllib.request.urlopen(req, timeout=20, context=ctx) as response:
+            image_data = response.read()
+            
+            # Store the heatmap for historical reference
+            await store_heatmap(camera_id, camera.get("name"), period, image_data)
+            
+            return Response(
+                content=image_data,
+                media_type="image/jpeg",
+                headers={"Content-Disposition": f"inline; filename=heatmap_{camera_id}_{period}.jpg"}
+            )
+    except Exception as e:
+        logger.error(f"Error fetching heatmap from camera {camera_id}: {e}")
+        
+        # Try to get stored heatmap
+        stored = await get_stored_heatmap(camera_id, period)
+        if stored:
+            return Response(
+                content=stored.get("image_data"),
+                media_type="image/jpeg",
+                headers={
+                    "Content-Disposition": f"inline; filename=heatmap_{camera_id}_{period}.jpg",
+                    "X-Source": "stored",
+                    "X-Stored-At": stored.get("timestamp", "")
+                }
+            )
+        
+        raise HTTPException(status_code=500, detail=f"Error al obtener mapa de calor y no hay datos almacenados: {str(e)}")
+
+
+async def store_statistics(camera_id: str, camera_name: str, period: str, data: dict):
+    """Store statistics in database for historical reference"""
+    try:
+        doc = {
+            "camera_id": camera_id,
+            "camera_name": camera_name,
+            "period": period,
+            "type": "counting",
+            "tables": data.get("tables", []),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "date": datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        }
+        
+        # Update or insert (upsert) based on camera_id, period, and date
+        await camera_statistics_collection.update_one(
+            {"camera_id": camera_id, "period": period, "date": doc["date"], "type": "counting"},
+            {"$set": doc},
+            upsert=True
+        )
+    except Exception as e:
+        logger.error(f"Error storing statistics: {e}")
+
+
+async def get_stored_statistics(camera_id: str, period: str):
+    """Get the most recent stored statistics for a camera"""
+    try:
+        doc = await camera_statistics_collection.find_one(
+            {"camera_id": camera_id, "period": period, "type": "counting"},
+            {"_id": 0},
+            sort=[("timestamp", -1)]
+        )
+        return doc
+    except Exception as e:
+        logger.error(f"Error getting stored statistics: {e}")
+        return None
+
+
+async def store_heatmap(camera_id: str, camera_name: str, period: str, image_data: bytes):
+    """Store heatmap in database for historical reference"""
+    try:
+        doc = {
+            "camera_id": camera_id,
+            "camera_name": camera_name,
+            "period": period,
+            "type": "heatmap",
+            "image_data": image_data,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "date": datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        }
+        
+        # Update or insert (upsert) based on camera_id, period, and date
+        await camera_statistics_collection.update_one(
+            {"camera_id": camera_id, "period": period, "date": doc["date"], "type": "heatmap"},
+            {"$set": doc},
+            upsert=True
+        )
+    except Exception as e:
+        logger.error(f"Error storing heatmap: {e}")
+
+
+async def get_stored_heatmap(camera_id: str, period: str):
+    """Get the most recent stored heatmap for a camera"""
+    try:
+        doc = await camera_statistics_collection.find_one(
+            {"camera_id": camera_id, "period": period, "type": "heatmap"},
+            {"_id": 0},
+            sort=[("timestamp", -1)]
+        )
+        return doc
+    except Exception as e:
+        logger.error(f"Error getting stored heatmap: {e}")
+        return None
+
+
+@router.get("/statistics-history/{camera_id}")
+async def get_statistics_history(
+    camera_id: str,
+    days: int = Query(30, ge=1, le=365, description="Number of days of history"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get historical statistics for a camera"""
+    camera = await devices_collection.find_one({"id": camera_id}, {"_id": 0})
+    if not camera:
+        raise HTTPException(status_code=404, detail="Cámara no encontrada")
+    
+    from datetime import timedelta
+    start_date = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
+    
+    history = await camera_statistics_collection.find(
+        {
+            "camera_id": camera_id,
+            "type": "counting",
+            "date": {"$gte": start_date}
+        },
+        {"_id": 0, "image_data": 0}
+    ).sort("date", -1).to_list(length=days)
+    
+    return {
+        "camera_id": camera_id,
+        "camera_name": camera.get("name"),
+        "days": days,
+        "history": history
+    }
+
+
+@router.get("/cameras-with-statistics")
+async def get_cameras_with_statistics(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get list of cameras that have statistics enabled"""
+    cameras = await devices_collection.find(
+        {"has_statistics": True, "device_type_id": "type-camera"},
+        {"_id": 0, "id": 1, "name": 1, "ip_address": 1, "group_id": 1, "status": 1}
+    ).to_list(length=100)
+    
+    return {"cameras": cameras, "total": len(cameras)}

@@ -39,6 +39,7 @@ incidents_collection = db["incidents"]  # NEW: Incidents/tickets
 device_images_collection = db["device_images"]  # NEW: Device installation images
 ftp_history_collection = db["ftp_history"]  # FTP status change history for auditing
 roles_collection = db["roles"]  # Role-based permission system
+camera_statistics_collection = db["camera_statistics"]  # Daily camera statistics (counting, heatmaps)
 
 # ============ DATABASE INDEXES FOR PERFORMANCE ============
 async def create_indexes():
