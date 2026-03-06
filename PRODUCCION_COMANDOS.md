@@ -9,7 +9,7 @@
 cd /ruta/a/tu/backend
 
 # Descargar el archivo actualizado
-curl -o routes/websocket.py "https://noc-security-hub.preview.emergentagent.com/api/download-file?path=websocket.py"
+curl -o routes/websocket.py "https://noc-dashboard-3.preview.emergentagent.com/api/download-file?path=websocket.py"
 
 # O editar manualmente - cambiar las líneas del import:
 # ANTES:
@@ -46,7 +46,7 @@ cd /root/siempria-monitor/backend
 cp routes/websocket.py routes/websocket.py.backup
 
 # 3. Descargar archivo actualizado
-curl -o routes/websocket.py "https://noc-security-hub.preview.emergentagent.com/api/download-file?path=websocket.py"
+curl -o routes/websocket.py "https://noc-dashboard-3.preview.emergentagent.com/api/download-file?path=websocket.py"
 
 # 4. Reiniciar el backend
 # Si usas systemd:
@@ -85,8 +85,8 @@ npm run build
 cp -r build/* /var/www/siempria/
 
 # === OPCIÓN 2: Descargar archivos actualizados ===
-curl -o src/components/noc/DraggableGrid.jsx "https://noc-security-hub.preview.emergentagent.com/api/download-file?path=DraggableGrid.jsx"
-curl -o src/components/panels/NOCDashboard.jsx "https://noc-security-hub.preview.emergentagent.com/api/download-file?path=NOCDashboard.jsx"
+curl -o src/components/noc/DraggableGrid.jsx "https://noc-dashboard-3.preview.emergentagent.com/api/download-file?path=DraggableGrid.jsx"
+curl -o src/components/panels/NOCDashboard.jsx "https://noc-dashboard-3.preview.emergentagent.com/api/download-file?path=NOCDashboard.jsx"
 
 # Luego reconstruir
 npm run build

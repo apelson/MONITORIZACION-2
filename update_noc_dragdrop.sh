@@ -7,7 +7,7 @@
 set -e
 
 # Configuración
-EMERGENT_URL="https://noc-security-hub.preview.emergentagent.com"
+EMERGENT_URL="https://noc-dashboard-3.preview.emergentagent.com"
 FRONTEND_DIR="/home/monitorizacion/Documentos/MONITORIZACION-main/frontend/src"
 BACKEND_DIR="/home/monitorizacion/Documentos/MONITORIZACION-main/backend"
 

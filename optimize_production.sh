@@ -90,7 +90,7 @@ if grep -q "DEVICES_PER_PAGE = 12" frontend/src/App.js 2>/dev/null; then
     echo "   App.js ya optimizado"
 else
     echo "   Descargando App.js optimizado..."
-    curl -s -o frontend/src/App.js "https://noc-security-hub.preview.emergentagent.com/api/download-file?path=App.js"
+    curl -s -o frontend/src/App.js "https://noc-dashboard-3.preview.emergentagent.com/api/download-file?path=App.js"
 fi
 
 # 4. Rebuild y restart

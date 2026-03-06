@@ -12,7 +12,7 @@ import {
   Info, Globe, Calendar, Copy, Cctv, ExternalLink, GripVertical, Phone,
   BarChart3, TrendingUp, Flame, ArrowUpDown, Wrench, Trophy, PieChart, Upload,
   Archive, RotateCcw, CloudDownload, FolderArchive, FileSearch, AlertTriangle, Cpu, Thermometer, HardDrive as HardDriveIcon, X, Search, ClipboardList, CheckCircle, MessageSquare, Smartphone,
-  Volume2, VolumeX, Database, VideoOff, Video, Menu
+  Volume2, VolumeX, Database, VideoOff, Video, Menu, PlayCircle
 } from "lucide-react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from '@dnd-kit/sortable';
@@ -76,6 +76,9 @@ import useWebSocketAlerts from "@/hooks/useWebSocketAlerts";
 import LoginPage from "@/components/auth/LoginPage";
 import ServerCard from "@/components/devices/ServerCard";
 import MobileDashboard from "@/components/mobile/MobileDashboard";
+import CanaryIslandsMap from "@/components/maps/CanaryIslandsMap";
+import CustomizableDashboard from "@/components/dashboard/CustomizableDashboard";
+import VideoTutorials from "@/components/help/VideoTutorials";
 
 import { API_URL as BACKEND_URL, API } from './config';
 // Logo principal de Siempria (hexágono azul)
@@ -3104,6 +3107,30 @@ const Dashboard = ({ onShowMobile }) => {
                   <span>{t('nav.incidents', 'Incidencias')}</span>
                 </button>
               )}
+              {/* Map Button */}
+              <button
+                onClick={() => { setActiveTab('map'); setMobileMenuOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'map' ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-300 hover:bg-slate-800'}`}
+              >
+                <MapPin className="w-5 h-5 text-emerald-500" />
+                <span>Mapa Canarias</span>
+              </button>
+              {/* My Dashboard Button */}
+              <button
+                onClick={() => { setActiveTab('mydashboard'); setMobileMenuOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'mydashboard' ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-300 hover:bg-slate-800'}`}
+              >
+                <Layers className="w-5 h-5 text-indigo-500" />
+                <span>Mi Dashboard</span>
+              </button>
+              {/* Video Tutorials Button */}
+              <button
+                onClick={() => { setActiveTab('tutorials'); setMobileMenuOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === 'tutorials' ? 'bg-red-500/20 text-red-400' : 'text-slate-300 hover:bg-slate-800'}`}
+              >
+                <PlayCircle className="w-5 h-5 text-red-500" />
+                <span>Tutoriales</span>
+              </button>
               {canAccessSection('settings') && (
                 <button
                   onClick={() => { setActiveTab('settings'); setMobileMenuOpen(false); }}
@@ -3174,6 +3201,9 @@ const Dashboard = ({ onShowMobile }) => {
               {canAccessSection('users') && <TabsTrigger data-testid="tab-users" value="users" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Users className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.users')}</span><span className="sm:hidden">Users</span></TabsTrigger>}
               {isAdmin && <TabsTrigger data-testid="tab-logs" value="logs" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><FileSearch className="w-3 h-3 sm:w-4 sm:h-4" />Logs</TabsTrigger>}
               {canAccessSection('incidents') && <TabsTrigger data-testid="tab-incidents" value="incidents" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><ClipboardList className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.incidents')}</span><span className="sm:hidden">Incid.</span></TabsTrigger>}
+              <TabsTrigger data-testid="tab-map" value="map" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-500" /><span className="hidden sm:inline">Mapa</span><span className="sm:hidden">Mapa</span></TabsTrigger>
+              <TabsTrigger data-testid="tab-mydashboard" value="mydashboard" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Layers className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-500" /><span className="hidden sm:inline">Mi Dashboard</span><span className="sm:hidden">Dash</span></TabsTrigger>
+              <TabsTrigger data-testid="tab-tutorials" value="tutorials" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><PlayCircle className="w-3 h-3 sm:w-4 sm:h-4 text-red-500" /><span className="hidden sm:inline">Tutoriales</span><span className="sm:hidden">Tutos</span></TabsTrigger>
               {canAccessSection('settings') && <TabsTrigger data-testid="tab-settings" value="settings" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Settings className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.settings')}</span><span className="sm:hidden">Config</span></TabsTrigger>}
               {isAdmin && <TabsTrigger data-testid="tab-superadmin" value="superadmin" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"><Shield className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">Super Admin</span><span className="sm:hidden">Admin</span></TabsTrigger>}
             </TabsList>
@@ -3460,6 +3490,52 @@ const Dashboard = ({ onShowMobile }) => {
               <HelpCenter onStartTour={openTour} />
             </div>
           </TabsContent>}
+          
+          {/* Interactive Map */}
+          <TabsContent value="map">
+            <CanaryIslandsMap 
+              devices={devices} 
+              organizations={organizations}
+              onIslandClick={(island, stats) => {
+                toast.info(`${island.name}: ${stats.total} dispositivos (${stats.online} online, ${stats.offline} offline)`);
+              }}
+              onDeviceClick={(device) => {
+                setActiveTab('devices');
+                toast.info(`Dispositivo: ${device.name}`);
+              }}
+            />
+          </TabsContent>
+          
+          {/* Customizable Dashboard */}
+          <TabsContent value="mydashboard">
+            <CustomizableDashboard 
+              deviceStats={{
+                total: devices.length,
+                online: devices.filter(d => d.status === 'online').length,
+                offline: devices.filter(d => d.status !== 'online').length
+              }}
+              alertStats={{
+                critical: alerts.filter(a => a.severity === 'critical').length,
+                warnings: alerts.filter(a => a.severity === 'warning').length,
+                info: alerts.filter(a => a.severity === 'info').length
+              }}
+              systemStats={{
+                cpu: 0, // These would come from real-time system monitoring
+                ram: 0,
+                disk: 0
+              }}
+              craStatus={{
+                connected: devices.filter(d => d.is_cra && d.status === 'online').length > 0,
+                events: 0
+              }}
+            />
+          </TabsContent>
+          
+          {/* Video Tutorials */}
+          <TabsContent value="tutorials">
+            <VideoTutorials />
+          </TabsContent>
+          
           {isAdmin && <TabsContent value="superadmin"><SuperAdminTab authAxios={authAxios} /></TabsContent>}
         </Tabs>
       </main>
