@@ -13,7 +13,7 @@ cd /opt/siempria-monitor
 # ============================================
 echo "📥 Descargando archivos..."
 
-BASE_URL="https://noc-mobile-beta.preview.emergentagent.com/api/download-file"
+BASE_URL="https://noc-security-hub.preview.emergentagent.com/api/download-file"
 
 # NOCDashboard principal
 curl -o frontend/src/components/panels/NOCDashboard.jsx "$BASE_URL?path=NOCDashboard.jsx"

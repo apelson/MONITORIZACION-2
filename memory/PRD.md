@@ -154,12 +154,30 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 - `/app/frontend/src/App.js` - Hook useIsMobile, MobileDashboardWrapper, opción Vista Móvil en menú
 - `/app/frontend/src/components/settings/TenantAdminsManager.jsx` - Fix colores de texto
 
+## Session 06 Mar 2026 - Estado Verificado
+
+### Issues Resueltos del Handoff
+1. ✅ **Login 500 Error** - FUNCIONAL. El handoff mencionaba un TypeError pero el código actual ya estaba correcto. Login probado exitosamente con curl y UI.
+2. ✅ **Multi-tenancy Data Leak** - FUNCIONAL. Usuario `dagroup` (tenant_admin) ve correctamente 0 dispositivos, 0 CRA, 0 VPN porque su organización no tiene dispositivos asignados.
+3. ✅ **Security Panel Integration** - YA INTEGRADO. El panel de seguridad está visible en Settings con funcionalidad completa:
+   - IPs Bloqueadas Temporalmente
+   - Lista Negra Permanente (añadir/eliminar)
+   - Eventos de Seguridad Recientes
+
+### Security Features Implementadas
+- **Backend:** `/app/backend/services/security_service.py` - Brute force protection, IP blocking, security events
+- **Backend Routes:** `/app/backend/routes/security.py` - APIs for blacklist management
+- **Frontend:** SecurityPanel en App.js (líneas 1634-1841) - Gestión de IPs bloqueadas
+
 ## Pending Issues
 1. **Contador de Infraestructura (0/0)** - Posiblemente los dispositivos de infraestructura no están clasificados correctamente en la DB.
 2. **Welcome Tour** - El componente base está creado pero necesita targeting de elementos reales con data-testid.
 3. **Sistema de alertas sonoras** - Pendiente verificación del usuario.
+4. **Dominio siempriapp.com** - Configuración NAT en MikroTik del usuario (fuera del scope de desarrollo)
 
 ## Backlog / Future Tasks
+- Integrar fail2ban para detección de intrusiones a nivel sistema
+- Gestión de features por tenant desde superadmin
 - Wizard de Configuración Inicial para admins nuevos
 - Mapa interactivo de Canarias (clicable)
 - Centro de Ayuda Integrado
@@ -167,6 +185,10 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 - Documentación exportable (PDF/HTML)
 - Vídeos tutoriales
 - Refactoring de App.js (monolito - más de 3800 líneas)
+
+## Test Users
+- **admin** - Role: admin - Password: admin123 (superadmin, ve todo)
+- **dagroup** - Role: tenant_admin - Password: Test123! - Org: deaeccae-ec00-4129-9fb7-152d80a1a115 (ve solo su organización)
 
 ## Credentials
 - Admin user: admin / admin123
