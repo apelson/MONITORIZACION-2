@@ -3509,6 +3509,7 @@ const Dashboard = ({ onShowMobile }) => {
           {/* Customizable Dashboard */}
           <TabsContent value="mydashboard">
             <CustomizableDashboard 
+              authAxios={authAxios}
               deviceStats={{
                 total: devices.length,
                 online: devices.filter(d => d.status === 'online').length,
@@ -3520,7 +3521,7 @@ const Dashboard = ({ onShowMobile }) => {
                 info: alerts.filter(a => a.severity === 'info').length
               }}
               systemStats={{
-                cpu: 0, // These would come from real-time system monitoring
+                cpu: 0,
                 ram: 0,
                 disk: 0
               }}
@@ -3528,6 +3529,11 @@ const Dashboard = ({ onShowMobile }) => {
                 connected: devices.filter(d => d.is_cra && d.status === 'online').length > 0,
                 events: 0
               }}
+              dahuaDevices={Array(dvrStats.total).fill().map((_, i) => ({ 
+                id: i, 
+                status: i < dvrStats.online ? 'online' : 'offline' 
+              }))}
+              alerts={alerts}
             />
           </TabsContent>
           

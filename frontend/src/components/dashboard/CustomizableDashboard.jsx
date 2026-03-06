@@ -1,8 +1,9 @@
 /**
  * CustomizableDashboard - Dashboard con widgets personalizables
  * Permite al usuario configurar qué widgets ver y en qué orden
+ * Obtiene datos en tiempo real del sistema y grabadores
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +16,7 @@ import {
   LayoutDashboard, Settings2, GripVertical, Eye, EyeOff,
   Camera, Bell, Shield, HardDrive, BarChart3, Activity,
   Server, Network, Users, AlertTriangle, Clock, Thermometer,
-  RefreshCw, Save, RotateCcw, Plus
+  RefreshCw, Save, RotateCcw, Plus, CheckCircle, XCircle
 } from 'lucide-react';
 
 // Available widgets configuration
@@ -88,17 +89,55 @@ const WidgetContent = ({ widget, data }) => {
         return (
           <div className="space-y-3">
             <div>
-              <div className="flex justify-between text-sm mb-1"><span>CPU</span><span>{data?.cpu || 0}%</span></div>
-              <div className="h-2 bg-gray-200 rounded-full"><div className="h-2 bg-blue-500 rounded-full" style={{width: `${data?.cpu || 0}%`}}></div></div>
+              <div className="flex justify-between text-sm mb-1"><span>CPU</span><span>{Math.round(data?.cpu || 0)}%</span></div>
+              <div className="h-2 bg-gray-200 rounded-full"><div className="h-2 bg-cyan-500 rounded-full transition-all" style={{width: `${data?.cpu || 0}%`}}></div></div>
             </div>
             <div>
-              <div className="flex justify-between text-sm mb-1"><span>RAM</span><span>{data?.ram || 0}%</span></div>
-              <div className="h-2 bg-gray-200 rounded-full"><div className="h-2 bg-green-500 rounded-full" style={{width: `${data?.ram || 0}%`}}></div></div>
+              <div className="flex justify-between text-sm mb-1"><span>RAM</span><span>{Math.round(data?.ram || 0)}%</span></div>
+              <div className="h-2 bg-gray-200 rounded-full"><div className="h-2 bg-purple-500 rounded-full transition-all" style={{width: `${data?.ram || 0}%`}}></div></div>
             </div>
             <div>
-              <div className="flex justify-between text-sm mb-1"><span>Disco</span><span>{data?.disk || 0}%</span></div>
-              <div className="h-2 bg-gray-200 rounded-full"><div className="h-2 bg-purple-500 rounded-full" style={{width: `${data?.disk || 0}%`}}></div></div>
+              <div className="flex justify-between text-sm mb-1"><span>Disco</span><span>{Math.round(data?.disk || 0)}%</span></div>
+              <div className="h-2 bg-gray-200 rounded-full"><div className="h-2 bg-amber-500 rounded-full transition-all" style={{width: `${data?.disk || 0}%`}}></div></div>
             </div>
+          </div>
+        );
+      case 'dahua-status':
+        return (
+          <div className="text-center">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div><p className="text-2xl font-bold text-blue-600">{data?.total || 0}</p><p className="text-xs text-muted-foreground">Total</p></div>
+              <div><p className="text-2xl font-bold text-green-600">{data?.online || 0}</p><p className="text-xs text-muted-foreground">Online</p></div>
+              <div><p className="text-2xl font-bold text-red-600">{data?.offline || 0}</p><p className="text-xs text-muted-foreground">Offline</p></div>
+            </div>
+            {data?.total > 0 && (
+              <p className="text-xs text-muted-foreground mt-2">
+                {Math.round((data?.online / data?.total) * 100) || 0}% disponibilidad
+              </p>
+            )}
+          </div>
+        );
+      case 'recent-alerts':
+        return (
+          <div className="space-y-2">
+            {data?.alerts && data.alerts.length > 0 ? (
+              data.alerts.slice(0, 5).map((alert, idx) => (
+                <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className={`w-4 h-4 ${alert.severity === 'critical' ? 'text-red-500' : 'text-yellow-500'}`} />
+                    <span className="truncate max-w-[200px]">{alert.message || alert.title}</span>
+                  </div>
+                  <Badge variant={alert.severity === 'critical' ? 'destructive' : 'secondary'} className="text-xs">
+                    {alert.severity}
+                  </Badge>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-4 text-muted-foreground">
+                <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-500" />
+                <p className="text-sm">Sin alertas recientes</p>
+              </div>
+            )}
           </div>
         );
       default:
@@ -126,10 +165,34 @@ const WidgetContent = ({ widget, data }) => {
   );
 };
 
-const CustomizableDashboard = ({ deviceStats, alertStats, systemStats, craStatus }) => {
+const CustomizableDashboard = ({ deviceStats, alertStats, systemStats, craStatus, authAxios, dahuaDevices = [], alerts = [] }) => {
   const [layout, setLayout] = useState(DEFAULT_LAYOUT);
   const [showConfig, setShowConfig] = useState(false);
   const [draggedWidget, setDraggedWidget] = useState(null);
+  const [realTimeSystemStats, setRealTimeSystemStats] = useState(null);
+  const intervalRef = useRef(null);
+
+  // Fetch real-time system stats
+  const fetchSystemStats = useCallback(async () => {
+    if (!authAxios) return;
+    try {
+      const res = await authAxios.get('/system/stats');
+      setRealTimeSystemStats({
+        cpu: res.data.cpu?.percent || 0,
+        ram: res.data.ram?.percent || 0,
+        disk: res.data.disk?.percent || 0
+      });
+    } catch (error) {
+      console.error('Error fetching system stats:', error);
+    }
+  }, [authAxios]);
+
+  // Calculate Dahua stats
+  const dahuaStats = {
+    total: dahuaDevices.length,
+    online: dahuaDevices.filter(d => d.status === 'online' || d.is_online).length,
+    offline: dahuaDevices.filter(d => d.status !== 'online' && !d.is_online).length
+  };
 
   // Load saved layout from localStorage
   useEffect(() => {
@@ -142,6 +205,15 @@ const CustomizableDashboard = ({ deviceStats, alertStats, systemStats, craStatus
       }
     }
   }, []);
+
+  // Fetch system stats on mount and set interval
+  useEffect(() => {
+    fetchSystemStats();
+    intervalRef.current = setInterval(fetchSystemStats, 5000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [fetchSystemStats]);
 
   // Save layout to localStorage
   const saveLayout = useCallback(() => {
@@ -188,9 +260,14 @@ const CustomizableDashboard = ({ deviceStats, alertStats, systemStats, craStatus
       case 'alerts-summary':
         return alertStats;
       case 'system-resources':
-        return systemStats;
+        // Use real-time stats if available, otherwise fall back to props
+        return realTimeSystemStats || systemStats;
       case 'cra-status':
         return craStatus;
+      case 'dahua-status':
+        return dahuaStats;
+      case 'recent-alerts':
+        return { alerts: alerts.slice(0, 5) };
       default:
         return {};
     }
