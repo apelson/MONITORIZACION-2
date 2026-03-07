@@ -17,14 +17,44 @@ router = APIRouter(prefix="/brand-statistics", tags=["brand-statistics"])
 brand_statistics_collection = db["brand_statistics"]
 brand_daily_collection = db["brand_daily_statistics"]
 
-# Supported vehicle brands
+# Supported vehicle brands with logos
 VEHICLE_BRANDS = [
-    {"id": "audi", "name": "AUDI", "color": "#BB0A1E"},
-    {"id": "volkswagen", "name": "VOLKSWAGEN", "color": "#001E50"},
-    {"id": "skoda", "name": "SKODA", "color": "#4BA82E"},
-    {"id": "honda", "name": "HONDA", "color": "#CC0000"},
-    {"id": "ducati", "name": "DUCATI", "color": "#D40000"},
-    {"id": "daocasion", "name": "DAOCASION", "color": "#FF6B00"}
+    {
+        "id": "audi", 
+        "name": "AUDI", 
+        "color": "#BB0A1E",
+        "logo": "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/g8sy2ozg_Logo_audi.jpg"
+    },
+    {
+        "id": "volkswagen", 
+        "name": "VOLKSWAGEN", 
+        "color": "#001E50",
+        "logo": "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/d772iqi2_Volkswagen_logo_2019.svg.png"
+    },
+    {
+        "id": "skoda", 
+        "name": "SKODA", 
+        "color": "#4BA82E",
+        "logo": "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/vbhseao1_%C5%A0koda_nieuw.png"
+    },
+    {
+        "id": "honda", 
+        "name": "HONDA", 
+        "color": "#CC0000",
+        "logo": "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/syfdh3vw_Honda_Logo.svg.png"
+    },
+    {
+        "id": "ducati", 
+        "name": "DUCATI", 
+        "color": "#D40000",
+        "logo": "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/380b1h0d_Ducati_red_logo.PNG"
+    },
+    {
+        "id": "daocasion", 
+        "name": "DAOCASION", 
+        "color": "#FF6B00",
+        "logo": "https://customer-assets.emergentagent.com/job_56a630f4-4ecb-45b7-b12a-65eeb5453053/artifacts/617ni5eo_dag_ocasion.png"
+    }
 ]
 
 
@@ -93,7 +123,8 @@ async def get_brand_ranking(
             ranking.append({
                 **r,
                 "brand_name": brand_info["name"],
-                "brand_color": brand_info["color"]
+                "brand_color": brand_info["color"],
+                "brand_logo": brand_info.get("logo", "")
             })
     
     # If no data, return all brands with zero counts
@@ -103,6 +134,7 @@ async def get_brand_ranking(
                 "brand_id": b["id"],
                 "brand_name": b["name"],
                 "brand_color": b["color"],
+                "brand_logo": b.get("logo", ""),
                 "total_visits": 0,
                 "entries": 0,
                 "exits": 0,
@@ -362,3 +394,131 @@ async def clear_test_data(
         "statistics_deleted": stats_result.deleted_count,
         "daily_deleted": daily_result.deleted_count
     }
+
+
+
+# Store for real-time counting data (in-memory cache)
+realtime_counting_cache = {
+    "last_update": None,
+    "cameras": {},
+    "totals": {"entries": 0, "exits": 0}
+}
+
+
+@router.get("/realtime")
+async def get_realtime_counting(
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get real-time counting data from all configured cameras.
+    This returns the latest cached data from the polling service.
+    """
+    return {
+        "last_update": realtime_counting_cache.get("last_update"),
+        "cameras": realtime_counting_cache.get("cameras", {}),
+        "totals": realtime_counting_cache.get("totals", {"entries": 0, "exits": 0}),
+        "brands": VEHICLE_BRANDS
+    }
+
+
+@router.post("/realtime/refresh")
+async def refresh_realtime_counting(
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Manually trigger a refresh of real-time counting data from all cameras.
+    """
+    from services.mobotix_counting_service import fetch_all_cameras_counting
+    
+    try:
+        result = await fetch_all_cameras_counting()
+        realtime_counting_cache["last_update"] = datetime.now(timezone.utc).isoformat()
+        realtime_counting_cache["cameras"] = result.get("cameras", {})
+        realtime_counting_cache["totals"] = result.get("totals", {"entries": 0, "exits": 0})
+        
+        return {
+            "success": True,
+            "message": "Real-time data refreshed",
+            "last_update": realtime_counting_cache["last_update"],
+            "cameras_count": len(realtime_counting_cache["cameras"])
+        }
+    except Exception as e:
+        logger.error(f"Error refreshing real-time data: {e}")
+        return {
+            "success": False,
+            "message": str(e),
+            "last_update": realtime_counting_cache.get("last_update")
+        }
+
+
+@router.get("/cameras-config")
+async def get_cameras_config(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get list of cameras configured for brand statistics counting"""
+    cameras_config_collection = db["brand_cameras_config"]
+    cameras = await cameras_config_collection.find({}, {"_id": 0}).to_list(length=100)
+    return {"cameras": cameras, "total": len(cameras)}
+
+
+@router.post("/cameras-config")
+async def add_camera_config(
+    camera_id: str = Body(...),
+    camera_name: str = Body(...),
+    brand_id: str = Body(...),
+    island: str = Body(...),
+    ip: str = Body(...),
+    port: int = Body(default=443),
+    username: str = Body(...),
+    password: str = Body(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Add a camera configuration for brand statistics counting"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Only admin can configure cameras")
+    
+    if brand_id not in [b["id"] for b in VEHICLE_BRANDS]:
+        raise HTTPException(status_code=400, detail=f"Invalid brand_id")
+    
+    cameras_config_collection = db["brand_cameras_config"]
+    
+    config = {
+        "camera_id": camera_id,
+        "camera_name": camera_name,
+        "brand_id": brand_id,
+        "island": island,
+        "ip": ip,
+        "port": port,
+        "username": username,
+        "password": password,
+        "enabled": True,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_by": current_user.get("username")
+    }
+    
+    # Upsert by camera_id
+    await cameras_config_collection.update_one(
+        {"camera_id": camera_id},
+        {"$set": config},
+        upsert=True
+    )
+    
+    return {"message": "Camera configuration saved", "camera_id": camera_id}
+
+
+@router.delete("/cameras-config/{camera_id}")
+async def delete_camera_config(
+    camera_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a camera configuration"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Only admin can configure cameras")
+    
+    cameras_config_collection = db["brand_cameras_config"]
+    result = await cameras_config_collection.delete_one({"camera_id": camera_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Camera not found")
+    
+    return {"message": "Camera configuration deleted", "camera_id": camera_id}

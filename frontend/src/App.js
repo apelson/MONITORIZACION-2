@@ -42,6 +42,7 @@ import LiveViewer from "@/components/panels/LiveViewer";
 import AlertsPanel from "@/components/panels/AlertsPanel";
 import StatisticsPanel from "@/components/panels/StatisticsPanel";
 import BrandRankingPanel from "@/components/panels/BrandRankingPanel";
+import RealtimeCountingNOC from "@/components/panels/RealtimeCountingNOC";
 import IncidentsPanel from "@/components/panels/IncidentsPanel";
 import AccessLogsPanel from "@/components/panels/AccessLogsPanel";
 import BackupPanel from "@/components/panels/BackupPanel";
@@ -3197,6 +3198,7 @@ const Dashboard = ({ onShowMobile }) => {
                 </TabsTrigger>
               )}
               {canAccessSection('statistics') && <TabsTrigger data-testid="tab-statistics" value="statistics" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('stats.title', 'Estadísticas')}</span><span className="sm:hidden">Stats</span></TabsTrigger>}
+              {canAccessSection('statistics') && <TabsTrigger data-testid="tab-counting-noc" value="counting-noc" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Activity className="w-3 h-3 sm:w-4 sm:h-4 text-cyan-500" /><span className="hidden sm:inline">NOC Conteo</span><span className="sm:hidden">NOC</span></TabsTrigger>}
               {canAccessSection('organizations') && <TabsTrigger data-testid="tab-structure" value="structure" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Building2 className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.structure', 'Estructura')}</span><span className="sm:hidden">Org.</span></TabsTrigger>}
               {canAccessSection('devices') && <TabsTrigger data-testid="tab-types" value="types" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Tag className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.types', 'Tipos')}</span><span className="sm:hidden">Tipos</span></TabsTrigger>}
               {canAccessSection('alerts') && <TabsTrigger data-testid="tab-alerts" value="alerts" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Bell className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.alerts', 'Alertas')}</span><span className="sm:hidden">Alert.</span>{alerts.length > 0 && <Badge variant="secondary" className="ml-1 h-4 sm:h-5 px-1 text-[10px] sm:text-xs">{alerts.length}</Badge>}</TabsTrigger>}
@@ -3427,6 +3429,11 @@ const Dashboard = ({ onShowMobile }) => {
                 <StatisticsPanel devices={devices} groups={groups} authAxios={authAxios} />
               </div>
             </div>
+          </TabsContent>
+
+          {/* NOC de Conteo en Tiempo Real */}
+          <TabsContent value="counting-noc">
+            <RealtimeCountingNOC authAxios={authAxios} />
           </TabsContent>
 
           <TabsContent value="structure">

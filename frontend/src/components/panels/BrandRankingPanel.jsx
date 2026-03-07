@@ -276,14 +276,29 @@ const BrandRankingPanel = ({ authAxios }) => {
 
                         {/* Brand info */}
                         <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <div 
-                              className="w-4 h-4 rounded-full" 
-                              style={{ backgroundColor: brand.brand_color }}
-                            />
+                          <div className="flex items-center gap-3">
+                            {/* Brand Logo */}
+                            {brand.brand_logo && (
+                              <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center bg-white p-1 shadow-sm">
+                                <img 
+                                  src={brand.brand_logo} 
+                                  alt={brand.brand_name}
+                                  className="max-w-full max-h-full object-contain"
+                                  onError={(e) => e.target.style.display = 'none'}
+                                />
+                              </div>
+                            )}
+                            {!brand.brand_logo && (
+                              <div 
+                                className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold"
+                                style={{ backgroundColor: brand.brand_color }}
+                              >
+                                {brand.brand_name.charAt(0)}
+                              </div>
+                            )}
                             <span className="font-semibold text-lg">{brand.brand_name}</span>
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1 ml-13">
                             <span className="flex items-center gap-1">
                               <ArrowDown className="w-3 h-3 text-green-500" />
                               {brand.entries || 0} entradas
