@@ -155,6 +155,30 @@ DEFAULT_ROLES = [
         },
         "group_access": "all",
         "organization_access": "all"
+    },
+    {
+        "id": "statistics_viewer",
+        "name": "Visor de Estadísticas",
+        "description": "Acceso solo a estadísticas de marcas y conteo",
+        "is_system": True,
+        "permissions": {
+            "devices": [],
+            "gallery": [],
+            "cra": [],
+            "live": [],
+            "statistics": ["view", "export"],
+            "alerts": [],
+            "users": [],
+            "settings": [],
+            "export": ["csv", "excel"],
+            "organizations": [],
+            "groups": [],
+            "reports": ["view"],
+            "incidents": [],
+            "roles": []
+        },
+        "group_access": "all",
+        "organization_access": "all"
     }
 ]
 

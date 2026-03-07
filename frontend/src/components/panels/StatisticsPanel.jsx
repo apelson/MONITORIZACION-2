@@ -34,10 +34,28 @@ const StatisticsPanel = ({ devices, groups, authAxios }) => {
   const [endDate, setEndDate] = useState("");
   const chartRef = useRef(null);
   
+  // Fetch cameras with statistics from backend
   useEffect(() => {
-    const statsDevices = devices.filter(d => d.has_statistics === true && d.device_type_id === "type-camera");
-    setCamerasWithStats(statsDevices);
-  }, [devices]);
+    const fetchCamerasWithStats = async () => {
+      try {
+        // First try to get cameras from backend endpoint
+        const response = await authAxios.get('/camera-stream/cameras-with-statistics');
+        if (response.data.cameras && response.data.cameras.length > 0) {
+          setCamerasWithStats(response.data.cameras);
+        } else {
+          // Fallback: filter devices locally
+          const statsDevices = devices.filter(d => d.has_statistics === true && d.device_type_id === "type-camera");
+          setCamerasWithStats(statsDevices);
+        }
+      } catch (error) {
+        console.error('Error fetching cameras with statistics:', error);
+        // Fallback: filter devices locally
+        const statsDevices = devices.filter(d => d.has_statistics === true && d.device_type_id === "type-camera");
+        setCamerasWithStats(statsDevices);
+      }
+    };
+    fetchCamerasWithStats();
+  }, [devices, authAxios]);
   
   const chartData = useMemo(() => {
     if (!reportData?.tables?.[0]?.data) return [];

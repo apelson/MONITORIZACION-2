@@ -1,176 +1,200 @@
 <analysis>**original_problem_statement:**
-The user's primary goal is to enhance their NOC (Network Operations Center) dashboard, which runs on a live production server. The work involves fixing critical bugs, adding enterprise-grade security features, and implementing new UI functionalities.
+The user's primary goal is to enhance their NOC (Network Operations Center) dashboard. The initial work involved fixing a critical production login failure and deploying several new features (Fail2ban management, Superadmin feature flags, Welcome Tour, Help Center).
 
-The main priorities are resolving a production login failure, implementing a feature management system for the superadmin, integrating  for intrusion detection, and building out a backlog of user-facing features like a Welcome Tour, Help Center, an interactive map, and a customizable dashboard.
+After successfully deploying these, the user provided feedback and requested further enhancements:
+1.  **Replace the Canary Islands SVG Map:** The current SVG map is not visually appealing or clear. It must be replaced with a real interactive map (e.g., using Leaflet.js and OpenStreetMap) that shows device locations accurately, pulling data from the main NOC dashboard where island counts are already correct.
+2.  **Implement a Brand Visit Ranking System:** The camera statistics feature's primary goal is to track visits for different vehicle brands (AUDI, VOLKSWAGEN, SKODA, HONDA, DUCATI, DAOCASION). This requires:
+    *   A system to process camera counting data and associate it with these brands.
+    *   A UI to display a ranking of brand visits, comparable across different islands.
+    *   A dedicated user role (statistics_viewer) with access only to this real-time counting data and its historical view.
+3.  **Enhance the Statistics Section:**
+    *   Create a historical data storage and visualization system for the brand visit counts.
+    *   Implement a background job/scheduler to automatically collect and store this data daily.
+    *   Fix the camera selection dropdown in the Statistics tab, which is currently empty.
+4.  **Complete the Video Tutorials Section:** The section is implemented, but all videos are placeholders. The user may need guidance or scripts to create the actual video content.
 
 **PRODUCT REQUIREMENTS:**
-1.  **Production Stability:** Fix the  on the  endpoint on the user's production server. This is the top priority and a major blocker.
-2.  **Superadmin Feature Management:** Implement a UI for the  to enable or disable specific features (e.g., CRA, Dahua, Live View) for each tenant organization.
-3.  **Cybersecurity Enhancements:** Integrate  into the system, with a UI panel in the settings to monitor its status, manage blocked IPs, and view an installation guide.
-4.  **User Experience (Backlog):**
-    *   Implement a Welcome Tour for new users.
-    *   Create an integrated Help Center.
-    *   Develop an interactive map of the Canary Islands (presumably to show device locations).
-    *   Build a customizable dashboard with draggable widgets.
-    *   Create a section for video tutorials.
-5.  **Network Configuration:** Resolve the issue where the  domain is inaccessible (user-side router configuration).
+1.  **(P0) Real Interactive Map:** Replace the current  (SVG-based) with a Leaflet/OpenStreetMap implementation. It must accurately display device counts per island, using the logic already present in the  component.
+2.  **(P0) Brand Ranking Statistics:** Build the full-stack functionality for the vehicle brand ranking system. This includes backend logic to process camera counting data and a new UI to display the rankings.
+3.  **(P1) Statistics User Role:** Create a new user role () with restricted permissions to only view the brand ranking dashboard and related statistics.
+4.  **(P1) Historical Statistics:** Implement a database schema () and backend services to store daily brand visit counts. Create UI components (charts, tables) to visualize this historical data.
+5.  **(P2) Automated Data Collection:** Create a scheduled task (e.g., cron job, APScheduler) to periodically fetch and store statistics from cameras.
+6.  **(P2) Populate Video Tutorials:** Provide a way to link real videos (e.g., from YouTube or self-hosted) to the  component.
 
 **User's preferred language**: Spanish
 
 **what currently exists?**
-The application is a full-stack NOC dashboard (FastAPI, React, MongoDB). A significant amount of work has been done in the preview environment, and the user has been attempting to deploy these changes to their production server at .
-
-**Completed in Preview Environment:**
--   **Fail2ban Integration:** A complete backend service (), API routes (), and a frontend management UI () have been created and integrated.
--   **Feature Management:** Backend endpoints and a frontend UI () for superadmins to control features per organization have been implemented.
--   **User Experience:** A  and  have been created and integrated into the application.
-
-**Production Environment Status:**
--   The deployment of the new features by the user has been unsuccessful, leading to a critical bug.
--   The login functionality is broken, returning a 500 Internal Server Error.
+The application is a full-stack NOC dashboard. The production login issue has been fixed, and several new features have been successfully deployed and are live on the user's production server.
+- **New UI Tabs:** Mapa, Mi Dashboard, and Tutoriales have been added to the main interface.
+- **Customizable Dashboard:** This feature is functional. The widgets for Estado Grabadores (DVR/NVRs) and Recursos del Sistema (CPU/RAM/Disk) are now connected to live backend data and update in real-time. The Resumen Alertas and Alertas Recientes widgets correctly interpret alert types from the database. The Estado VPN widget is also integrated.
+- **Statistics Backend:** New endpoints (, ) and a new MongoDB collection () have been created to fetch and store camera statistics (counting and heatmaps) as a fallback.
+- **Production Server:** The server's disk space has been successfully expanded from 300GB to 600GB.
 
 **Last working item**:
--   Last item agent was working: The agent started implementing the backlog features requested by the user. It created the initial skeleton components for an **Interactive Map** () and a **Customizable Dashboard** ( and ). These components exist but are not yet integrated into the UI or functional.
+-   Last item agent was working: The agent was starting to implement the user's new, high-priority requests. It began by analyzing the existing  code to understand how to source data for the new, improved Leaflet-based map. The agent also received credentials for a live camera with counting enabled to begin development on the Brand Ranking System.
 -   Status: IN PROGRESS
 -   Agent Testing Done: N
--   Which testing method agent to use? Frontend testing agent or screenshot tool, but only after the components are integrated into the main UI.
+-   Which testing method agent to use? Frontend testing agent or screenshot tool for the new map. Backend testing for the new statistics logic.
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   Issue 1: Production Login is broken with a 500 Internal Server Error. (P0 - BLOCKER)
--   Issue 2: User is struggling to deploy the agent's code to the production server. (P0 - BLOCKER)
--   Issue 3:  domain is inaccessible from the internet due to user's router configuration. (P2)
+-   Issue 1: The current SVG map is not acceptable and needs to be replaced with a real map. (P0)
 
 **Issues Detail:**
--   **Issue 1: Production Login is broken with a 500 Internal Server Error.**
-    -   Description: The user's production server returns a  upon login attempts. The agent diagnosed the root cause from user-provided logs: . The function call in  does not match the updated function signature in the security service.
-    -   Attempted fixes: The agent provided a  command to patch the file on the user's server, but it's unclear if it was executed successfully amidst other deployment issues.
+-   **Issue 1: Replace SVG Map with a real interactive map.**
+    -   Description: The user is dissatisfied with the custom-drawn SVG map in . It's not visually clear, and the user wants a real map solution like OpenStreetMap, rendered via a library like Leaflet. The data for device counts per island should be sourced from the existing NOC logic, which is already accurate.
+    -   Attempted fixes: The SVG map was the first attempt. No fix has been attempted yet.
     -   Next debug checklist:
-        1.  Instruct the user to run the  command again to ensure the fix is applied: 
-        2.  Instruct the user to restart the backend service: .
-        3.  Ask the user to test the login with  /  (password was reset via a script).
-        4.  If it fails, request the latest backend logs: -- No entries --.
-    -   Status: BLOCKED
-    -   Is recurring issue? Y (It was the blocker from the previous fork, now recurring in production).
-    -   Should Test frontend/backend/both after fix? Backend
-    -   Blocked on other issue: Issue 2.
-
--   **Issue 2: User is struggling to deploy the agent's code to the production server.**
-    -   Description: The user has faced multiple errors (syntax errors, incomplete files, failed builds) while trying to apply the new features (, etc.) to their live server using the provided shell commands. This indicates a problem with the deployment process itself, possibly related to copy-pasting complex multi-line commands.
-    -   Attempted fixes: The agent provided several methods (heredoc with ,  scripts, a downloadable  script). All failed for the user.
-    -   Next debug checklist:
-        1.  Once the login is fixed, create a single, robust, self-contained deployment script for all the new features (Fail2ban, Feature Management, Welcome Tour, Help Center).
-        2.  Provide the user with a simple, two-step process:  and .
-    -   Status: BLOCKED
-    -   Is recurring issue? Y
-    -   Should Test frontend/backend/both after fix? Both
-    -   Blocked on other issue: This issue blocks the fix for Issue 1.
-
--   **Issue 3:  domain is inaccessible.**
-    -   Description: The application is only accessible via its public IP. The user's MikroTik router NAT rules need to be more specific.
-    -   Attempted fixes: Agent provided instructions.
-    -   Next debug checklist: Remind the user to adjust the NAT rules to specify the **Dst. Address** (public IP) and **In. Interface** (WAN interface).
-    -   Status: NOT STARTED (Pending user action).
+        1.  Choose a React-friendly map library (e.g., ).
+        2.  Install the library (yarn add v1.22.22
+[1/4] Resolving packages...
+[2/4] Fetching packages...
+[3/4] Linking dependencies...
+[4/4] Building fresh packages...
+success Saved lockfile.
+success Saved 3 new dependencies.
+info Direct dependencies
+├─ leaflet@1.9.4
+└─ react-leaflet@5.0.0
+info All dependencies
+├─ @react-leaflet/core@3.0.0
+├─ leaflet@1.9.4
+└─ react-leaflet@5.0.0
+Done in 0.56s.).
+        3.  Create a new map component (e.g., ).
+        4.  Integrate the new component into , replacing the old one.
+        5.  Pass the island device count data (sourced from the NOC logic) as props to the new map component to display markers or clusters.
+    -   Status: NOT STARTED
     -   Is recurring issue? N
-    -   Should Test frontend/backend/both after fix? N/A (External configuration).
+    -   Should Test frontend/backend/both after fix? Frontend
     -   Blocked on other issue: No.
 
 **In progress Task List**:
--   Task 1: Implement backlog features (Map, Dashboard, Videos). (P1)
+-   Task 1: Implement the Brand Visit Ranking System. (P0)
+-   Task 2: Fix the empty camera dropdown in the Statistics tab. (P1)
+-   Task 3: Create the statistics_viewer user role. (P1)
 
 **Task Detail:**
--   **Task 1: Implement backlog features.**
-    -   Where to resume: Integrate the skeleton components (, ) into the main UI. Then, build out their functionality and create the video tutorials section.
-    -   What will be achieved with this? Fulfills the user's request for new dashboard capabilities.
-    -   Status: IN PROGRESS
+-   **Task 1: Implement the Brand Visit Ranking System.**
+    -   Where to resume: Use the provided live camera credentials to understand the data structure of the counting events. Design a new backend endpoint and frontend component to process this data for the specified brands (AUDI, VW, etc.) and display it as a ranked list.
+    -   What will be achieved with this? A core new feature that provides business intelligence on brand popularity per location.
+    -   Status: NOT STARTED
+    -   Should Test frontend/backend/both after fix? Both
+    -   Blocked on something: No.
+
+-   **Task 2: Fix the empty camera dropdown in the Statistics tab.**
+    -   Where to resume: The backend endpoint  already exists. The frontend component  needs to be modified to call this endpoint and populate the camera selection dropdown with the results.
+    -   What will be achieved with this? This will unblock the entire statistics section, allowing the user to select cameras.
+    -   Status: NOT STARTED
     -   Should Test frontend/backend/both after fix? Frontend
-    -   Blocked on something: The production login issues (Issue 1 & 2). The user needs to see the previously completed work deployed and stable before moving on.
+    -   Blocked on something: No.
+
+-   **Task 3: Create the statistics_viewer user role.**
+    -   Where to resume: The application already has a role-based access control system. A new role  needs to be added. The frontend and backend logic needs to be updated to restrict this role's access to only the new brand ranking/statistics pages.
+    -   What will be achieved with this? Fulfills the user's requirement for a limited-access user type.
+    -   Status: NOT STARTED
+    -   Should Test frontend/backend/both after fix? Both
+    -   Blocked on something: The statistics pages need to be built first.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   (P0) Integrate the  and  components into the main dashboard UI.
-    -   (P1) Create a new component/section for Video Tutorials and integrate it.
-    -   (P1) Implement the interactive logic for the Canary Islands map.
-    -   (P2) Implement the drag-and-drop and widget configuration logic for the customizable dashboard.
+    -   (P1) Implement the historical data storage and visualization for the brand ranking system.
+    -   (P1) Create a background scheduler to automate the daily collection of statistics.
 -   **Future Tasks:**
-    -   Refactor the monolithic  file.
-    -   Guide the user through the full  setup and configuration on their server using the UI's installation guide.
+    -   (P2) Work with the user to add real video content to the Video Tutorials section.
+    -   (P2) Refactor the monolithic  file into a proper routing structure.
 
 **Completed work in this session**
--   **Production Bug Diagnosis:** Identified the root cause of the  on the production login endpoint.
--   **Fail2ban Integration:** Built a full-stack feature for managing  from the UI (, , ).
--   **Superadmin Feature Management:** Implemented the UI and backend to allow superadmins to control features for tenant organizations (, updated ).
--   **Welcome Tour:** Created and integrated a multi-step welcome tour for new users ().
--   **Help Center:** Created and integrated a comprehensive help center with FAQs and support info ().
--   **Backlog Implementation (Started):** Created skeleton components for the interactive map and customizable dashboard.
+-   **Production Backlog Deployment:** Successfully implemented and deployed three major backlog features to the user's production server:
+    -    (initial SVG version)
+    -   
+    -   
+-   **Production Deployment Process:** Successfully guided the user through a complex manual deployment using  and  scripts after initial  and  methods failed. Fixed build errors related to duplicate imports.
+-   **Dashboard Widget Enhancement:**
+    -   Connected the Recursos del Sistema widget to fetch and display live CPU, RAM, and Disk stats from the  endpoint.
+    -   Connected the Estado Grabadores widget to correctly count and display stats for Dahua DVRs/NVRs.
+    -   Connected the Estado VPN widget to its data source.
+    -   Fixed the Resumen Alertas widget to correctly count alerts based on  ('device_down', 'device_up') instead of the non-existent  field.
+-   **Camera Statistics Backend:**
+    -   Created new endpoints in  to handle statistics and heatmap requests.
+    -   Created a new MongoDB collection  to store daily data as a fallback.
+-   **Server Maintenance:** Guided the user to successfully resize their production server's primary disk partition from ~300GB to ~600GB without data loss.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Production Debugging:** Diagnosing issues on a live user-managed server by analyzing logs and screenshots, and providing precise shell commands for fixes.
--   **System-level Integration:** Interacting with a command-line tool () from a FastAPI backend using Python's  module to create a web-based management UI.
--   **Feature Flags:** A system for superadmins to control feature access for entire tenant organizations.
+-   **Live Data Integration in React:** Refactoring a static React component () to fetch and display real-time data by passing an Axios instance as a prop and using  with .
+-   **Remote Server Maintenance:** Guiding a user through critical system administration tasks like disk partition resizing (, ) and file manipulation (, Python scripts) via shell commands.
+-   **Fallback Data Caching:** Designing backend endpoints that attempt to fetch live data from a device, and if that fails, serve the last known good data from a MongoDB collection.
 
 **key DB schema**
--   **fail2ban_logs**: (New) Stores a history of  actions like bans and unbans.
--   **fail2ban_config**: (New) Stores the user's configuration settings for the custom  jail.
--   **organizations**: The schema for this collection was implicitly extended to support .
+-   **camera_statistics**: (New) 
 
 **All files of reference**
--    (Location of the production login bug)
--    (Heavily modified to integrate new components)
--    (New)
--    (New)
--   User-provided -- No entries -- logs and screenshots are crucial for debugging the production environment.
+-    (Production file, heavily modified to integrate all new components and pass data props).
+-    (Production file, rewritten to be dynamic).
+-    (Production file, new statistics and heatmap endpoints added).
+-    (Production file, new  added).
+-    (Production file, slated for replacement).
+-    (New production file).
 
 **Areas that need refactoring**:
--    is over 3800 lines and acts as a single-page application container for almost all UI components and logic. It should be broken down into a proper routing structure with separate page components.
+-    remains a massive monolithic file (>3800 lines) handling state, data fetching, and rendering for almost the entire application. It is the source of many deployment complexities and should be broken down into a proper routing structure with page-level components.
 
 **key api endpoints**
--   : (New) A suite of endpoints to get status, manage configuration, and ban/unban IPs via .
--   : (New) Endpoint for superadmins to update feature flags for a specific organization.
--   : The critical production endpoint that is currently failing.
+-    (New)
+-    (New)
+-    (New)
+-    (New)
+-    (Used by the dashboard widget)
+-    (Used by the dashboard widget)
+-    (Used by the dashboard widget)
 
 **Critical Info for New Agent**
--   **FOCUS ON PRODUCTION FIRST:** Your absolute first priority is to help the user fix their production login issue. The user is completely blocked. Guide them through applying the  command to fix  and restarting the service. Confirm they can log in before doing anything else.
--   **SIMPLIFY DEPLOYMENT:** The user struggles with multi-step shell commands. Once the login is fixed, you must provide a simple, single-script solution for deploying the features that are already built (Fail2ban, Feature Management, etc.). Do not assume the user can correctly execute complex copy-paste instructions.
--   **WORK ON BACKLOG AFTER STABILITY:** Do not proceed with implementing the map, dashboard, or other new features until the user confirms their production environment is stable and the previously-built features are working correctly.
+-   **User's Top Priority:** The user is highly focused on the new Brand Ranking System and replacing the ugly SVG map. You must start with one of these two tasks. Do not work on other things until these are addressed.
+-   **Replace the Map:** The current  is considered unacceptable by the user. Do not try to improve it. It must be completely replaced with a component using a real map library like .
+-   **Brand Ranking is Key:** The statistics feature is not about generic device stats; it's specifically for ranking vehicle brand visits. You have credentials for a live camera to see the data format. The brands are: AUDI, VOLKSWAGEN, SKODA, HONDA, DUCATI, DAOCASION.
+-   **Production Environment:** All work is being deployed directly to the user's production server at . Be extremely careful with the deployment commands you provide. The Python script method for creating files has proven most reliable for this user.
 
 **documents and test reports created in this job**
--    was updated to reflect completed work.
+-   The  file was updated to reflect the completed backlog items.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Reports deployment of  failed due to a syntax error from copying placeholder text.
-2.  **Agent:** Acknowledges the issue and tries providing a downloadable script.
-3.  **User:** Reports the script download failed.
-4.  **Agent:** Switches to providing python heredoc commands.
-5.  **User:** Reports this method created incomplete files, causing a broken UI and a  on login. Provides a screenshot.
-6.  **Agent:** Diagnoses the new error and asks for server logs.
-7.  **User:** Provides nginx and backend logs. Confirms login fails with both old and new passwords.
-8.  **Agent:** Analyzes logs, finds the  in , and provides the  command to fix it.
-9.  **User:** Asks what tasks are still pending.
-10. **User:** Agrees with the plan to fix the login bug, then implement feature management, and finally work on the backlog (Map, Dashboard, etc.).
+1.  **User:** Asks how to delete old backups after creating new ones.
+2.  **Agent:** Provides  commands to clean up old backup files.
+3.  **User:** Pastes commands showing they are creating more backups.
+4.  **Agent:** Clarifies that the backups are duplicates and provides the cleanup commands again.
+5.  **User:** Gives critical feedback on the newly deployed features. The SVG map is ugly and doesn't show devices correctly. He wants a real map that pulls data from the main NOC view. He also introduces the new requirement for a brand-ranking system based on camera counting, and a special user role to view it.
+6.  **Agent:** Acknowledges the feedback and outlines a new plan to implement a Leaflet map, the brand ranking system, and the statistics user role.
+7.  **User:** lets go, Im ready, are you? - Signals start of a new work session.
+8.  **Agent:** Asks the user to prioritize between the Map and the Statistics system.
+9.  **User:** Chooses to start with the map and provides detailed requirements for the Brand Ranking system, including the list of brands, the goal (ranking visits), and credentials for a live camera.
+10. **Agent:** Confirms the plan and begins by investigating the existing NOC code to source data for the new map.
 
 **Project Health Check:**
--   **Broken**: The user's **production environment** is non-functional due to a  on login.
--   **Mocked**: The preview environment is functional, but components may show empty states due to a lack of production data.
+-   **Broken**: The Statistics tab is partially broken because the camera dropdown is not populated. The user considers the current map implementation aesthetically broken.
+-   **Mocked**: The  component is fully functional but contains only placeholder links.
 
 **3rd Party Integrations**
 -   : For push notifications.
 -   : For frontend icons.
--   : Used by the AI service.
 -   , , : For 2FA functionality.
+-   **Upcoming:**  and  for the new map.
 
 **Testing status**
 -   Testing agent used after significant changes: NO
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: None
--   Known regressions: The login functionality, which was fixed in the preview environment, has regressed in the user's production environment due to a failed deployment.
+-   Known regressions: None.
 
 **Credentials to test flow:**
--   The password for the  user on the production server has been reset to .
+-   Production Login:  /  (or user's current password ).
+-   Mobotix Camera with Counting:
+    -   URL: 
+    -   User: 
+    -   Pass: 
 
 **What agent forgot to execute**
--   The agent did not provide a simple, foolproof deployment method initially, which led to the user's production environment breaking. A single, downloadable script should have been the primary method.
--   The backlog items (Map, Customizable Dashboard) were started but are far from complete. They are just component shells without any logic or UI integration.</analysis>
+-   The agent implemented the backlog items as requested, but the initial map implementation (SVG) did not meet the user's quality expectations, requiring it to be redone.
+-   The widgets in the  were initially deployed with static data, requiring a second round of work to connect them to live data. This could have been done in a single step.</analysis>

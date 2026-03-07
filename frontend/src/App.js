@@ -41,6 +41,7 @@ import CRADashboard from "@/components/panels/CRADashboard";
 import LiveViewer from "@/components/panels/LiveViewer";
 import AlertsPanel from "@/components/panels/AlertsPanel";
 import StatisticsPanel from "@/components/panels/StatisticsPanel";
+import BrandRankingPanel from "@/components/panels/BrandRankingPanel";
 import IncidentsPanel from "@/components/panels/IncidentsPanel";
 import AccessLogsPanel from "@/components/panels/AccessLogsPanel";
 import BackupPanel from "@/components/panels/BackupPanel";
@@ -76,7 +77,7 @@ import useWebSocketAlerts from "@/hooks/useWebSocketAlerts";
 import LoginPage from "@/components/auth/LoginPage";
 import ServerCard from "@/components/devices/ServerCard";
 import MobileDashboard from "@/components/mobile/MobileDashboard";
-import CanaryIslandsMap from "@/components/maps/CanaryIslandsMap";
+import LeafletCanaryMap from "@/components/maps/LeafletCanaryMap";
 import CustomizableDashboard from "@/components/dashboard/CustomizableDashboard";
 import VideoTutorials from "@/components/help/VideoTutorials";
 
@@ -448,6 +449,11 @@ const AuthProvider = ({ children }) => {
 
   // Helper function to check if user can access a section
   const canAccessSection = (section) => {
+    // Special handling for statistics_viewer role - only access statistics
+    if (user?.role === 'statistics_viewer') {
+      return section === 'statistics';
+    }
+    
     // First check role-based permissions
     if (userPermissions?.permissions) {
       const sectionPerms = userPermissions.permissions[section] || [];
@@ -2090,6 +2096,7 @@ const Dashboard = ({ onShowMobile }) => {
   const isAdmin = user?.role === "admin";
   const isOperator = user?.role === "operator";
   const isTechnician = user?.role === "technician";
+  const isStatisticsViewer = user?.role === "statistics_viewer";
   
   // Clock state for header
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -3407,7 +3414,19 @@ const Dashboard = ({ onShowMobile }) => {
 
           {/* Statistics Tab */}
           <TabsContent value="statistics">
-            <StatisticsPanel devices={devices} groups={groups} authAxios={authAxios} />
+            <div className="space-y-6">
+              {/* Brand Ranking Section */}
+              <BrandRankingPanel authAxios={authAxios} />
+              
+              {/* Camera Statistics Section */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Estadísticas de Cámaras (MxAnalytics)
+                </h3>
+                <StatisticsPanel devices={devices} groups={groups} authAxios={authAxios} />
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="structure">
@@ -3491,11 +3510,12 @@ const Dashboard = ({ onShowMobile }) => {
             </div>
           </TabsContent>}
           
-          {/* Interactive Map */}
+          {/* Interactive Map with Leaflet */}
           <TabsContent value="map">
-            <CanaryIslandsMap 
+            <LeafletCanaryMap 
               devices={devices} 
               organizations={organizations}
+              groups={groups}
               onIslandClick={(island, stats) => {
                 toast.info(`${island.name}: ${stats.total} dispositivos (${stats.online} online, ${stats.offline} offline)`);
               }}

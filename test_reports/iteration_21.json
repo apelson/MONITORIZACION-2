@@ -1,0 +1,115 @@
+{
+  "summary": "Iteration 21 - Testing new features: LeafletCanaryMap (interactive map), BrandRankingPanel (vehicle brand visit ranking), and brand-statistics API endpoints. All 14 backend tests pass. All frontend components verified working via Playwright.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "passed_tests": [
+    "GET /api/brand-statistics/brands - returns 6 brands (AUDI, VOLKSWAGEN, SKODA, HONDA, DUCATI, DAOCASION)",
+    "GET /api/brand-statistics/ranking - returns ranking with period, island filters",
+    "GET /api/brand-statistics/ranking?period=day - day filter works",
+    "GET /api/brand-statistics/ranking?period=month - month filter works",
+    "GET /api/brand-statistics/ranking?island=tenerife - island filter works",
+    "GET /api/brand-statistics/summary - returns today/week/month visits",
+    "GET /api/brand-statistics/ranking-by-island - returns matrix with 7 islands x 6 brands",
+    "POST /api/brand-statistics/record - records visit events correctly",
+    "POST /api/brand-statistics/record with invalid brand returns 400",
+    "GET /api/brand-statistics/daily-trend/{brand_id} - returns trend data",
+    "All brand-statistics endpoints require authentication",
+    "LeafletCanaryMap displays interactive OpenStreetMap with 7 Canary Islands",
+    "LeafletCanaryMap has map style buttons: Calles, Satélite, Terreno",
+    "LeafletCanaryMap has zoom controls (+, -, expand)",
+    "LeafletCanaryMap has island selector chips (TF, GC, LZ, FV, LP, LG, EH)",
+    "LeafletCanaryMap shows island details panel when clicking island chip",
+    "LeafletCanaryMap has legend (Todo OK, Con alertas, Sin dispositivos)",
+    "BrandRankingPanel displays all 6 vehicle brands with colors",
+    "BrandRankingPanel has sub-tabs: Ranking, Gráficos, Por Isla",
+    "BrandRankingPanel Ranking tab shows brand positions with entries/exits",
+    "BrandRankingPanel Gráficos tab shows bar chart and pie chart",
+    "BrandRankingPanel Por Isla tab shows island comparison matrix table",
+    "BrandRankingPanel has island filter dropdown (Todas las islas + 7 islands)",
+    "BrandRankingPanel has period filter dropdown (Hoy, Esta semana, Este mes, Este año)",
+    "BrandRankingPanel header shows: Marca Líder, Visitas Hoy, Esta Semana, Este Mes"
+  ],
+
+  "failed_tests": [],
+
+  "test_report_links": [
+    "/app/backend/tests/test_brand_statistics.py",
+    "/app/test_reports/pytest/pytest_brand_statistics.xml"
+  ],
+
+  "action_items": [],
+
+  "critical_code_review_comments": [
+    "LeafletCanaryMap correctly implements Leaflet with OpenStreetMap tiles and custom markers",
+    "BrandRankingPanel integrates well with backend API using authAxios",
+    "brand_statistics.py properly handles all 6 vehicle brands with MongoDB aggregation",
+    "All data-testid attributes implemented: brand-ranking-panel",
+    "Map styles switch between OpenStreetMap (Calles), ArcGIS (Satélite), OpenTopoMap (Terreno)",
+    "Island comparison table correctly shows all 7 Canary Islands with brand visit counts"
+  ],
+
+  "updated_files": [
+    "/app/backend/tests/test_brand_statistics.py"
+  ],
+
+  "success_rate": {
+    "backend": "100% (14/14 tests passed)",
+    "frontend": "100% (All UI features verified)"
+  },
+
+  "test_credentials": {
+    "admin": {"username": "admin", "password": "admin123"}
+  },
+
+  "seed_data_creation": "Test data created via POST /api/brand-statistics/record endpoint (cleaned up)",
+
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+
+  "context_for_next_testing_agent": "Iteration 21 verified 3 new features: (1) LeafletCanaryMap showing 7 Canary Islands using OpenStreetMap with custom markers showing device counts per island, zoom controls, and 3 map styles (Calles, Satélite, Terreno). (2) BrandRankingPanel in Statistics tab showing ranking of 6 vehicle brands (AUDI, VOLKSWAGEN, SKODA, HONDA, DUCATI, DAOCASION) with charts, island filters, and period filters. (3) Brand statistics API with /brands, /ranking, /summary, /ranking-by-island, /record, and /daily-trend endpoints. Note: Visit counts are zero in dev environment - this is expected as no real visit data exists.",
+
+  "features_verified": {
+    "leaflet_canary_map": {
+      "location": "Mapa tab",
+      "tile_providers": ["OpenStreetMap (Calles)", "ArcGIS (Satélite)", "OpenTopoMap (Terreno)"],
+      "islands_displayed": ["Tenerife", "Gran Canaria", "Lanzarote", "Fuerteventura", "La Palma", "La Gomera", "El Hierro"],
+      "island_chips": ["TF", "GC", "LZ", "FV", "LP", "LG", "EH"],
+      "zoom_controls": true,
+      "legend": ["Todo OK (green)", "Con alertas (red)", "Sin dispositivos (gray)"],
+      "island_detail_panel": true
+    },
+    "brand_ranking_panel": {
+      "location": "Statistics tab",
+      "brands": ["AUDI", "VOLKSWAGEN", "SKODA", "HONDA", "DUCATI", "DAOCASION"],
+      "sub_tabs": ["Ranking", "Gráficos", "Por Isla"],
+      "header_stats": ["Marca Líder", "Visitas Hoy", "Esta Semana", "Este Mes"],
+      "filters": {
+        "island": ["Todas las islas", "Tenerife", "Gran Canaria", "Lanzarote", "Fuerteventura", "La Palma", "La Gomera", "El Hierro"],
+        "period": ["Hoy", "Esta semana", "Este mes", "Este año"]
+      },
+      "data_testid": "brand-ranking-panel"
+    },
+    "brand_statistics_api": {
+      "endpoints": [
+        "GET /api/brand-statistics/brands",
+        "GET /api/brand-statistics/ranking",
+        "GET /api/brand-statistics/summary",
+        "GET /api/brand-statistics/ranking-by-island",
+        "POST /api/brand-statistics/record",
+        "GET /api/brand-statistics/daily-trend/{brand_id}"
+      ],
+      "brands_count": 6,
+      "islands_count": 7
+    }
+  }
+}
