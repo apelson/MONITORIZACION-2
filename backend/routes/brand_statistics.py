@@ -60,7 +60,13 @@ VEHICLE_BRANDS = [
         "id": "daocasion", 
         "name": "DAOCASION", 
         "color": "#FF6B00",
-        "logo": "https://customer-assets.emergentagent.com/job_56a630f4-4ecb-45b7-b12a-65eeb5453053/artifacts/617ni5eo_dag_ocasion.png"
+        "logo": "https://customer-assets.emergentagent.com/job_56a630f4-4ecb-45b7-b12a-65eeb5453053/artifacts/58znr83b_dag_ocasion_color.png"
+    },
+    {
+        "id": "ocasion-domingo-alonso", 
+        "name": "Ocasión Domingo Alonso", 
+        "color": "#1E5AA8",
+        "logo": "https://customer-assets.emergentagent.com/job_56a630f4-4ecb-45b7-b12a-65eeb5453053/artifacts/2sliyeer_dag_ocasion_color.png"
     }
 ]
 
@@ -930,5 +936,211 @@ async def export_summary(
     return {
         "year": year,
         "summary": summary,
+        "brands": VEHICLE_BRANDS
+    }
+
+
+
+@router.get("/history/compare-months")
+async def compare_months(
+    month1: int = Query(..., ge=1, le=12, description="Month 1 (1-12)"),
+    year1: int = Query(..., description="Year 1"),
+    month2: int = Query(..., ge=1, le=12, description="Month 2 (1-12)"),
+    year2: int = Query(..., description="Year 2"),
+    brand_id: Optional[str] = None,
+    island: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Compare visits between two specific months (e.g., March 2025 vs March 2026)
+    """
+    # Build date patterns
+    month1_pattern = f"{year1}-{str(month1).zfill(2)}"
+    month2_pattern = f"{year2}-{str(month2).zfill(2)}"
+    
+    query1 = {"date": {"$regex": f"^{month1_pattern}"}}
+    query2 = {"date": {"$regex": f"^{month2_pattern}"}}
+    
+    if brand_id:
+        query1["brand_id"] = brand_id
+        query2["brand_id"] = brand_id
+    if island:
+        query1["island"] = island
+        query2["island"] = island
+    
+    # Get data for both months
+    month1_data = await brand_daily_collection.find(query1, {"_id": 0}).to_list(length=500)
+    month2_data = await brand_daily_collection.find(query2, {"_id": 0}).to_list(length=500)
+    
+    # Aggregate by brand
+    month1_by_brand = {}
+    month2_by_brand = {}
+    
+    for record in month1_data:
+        bid = record.get("brand_id")
+        if bid:
+            month1_by_brand[bid] = month1_by_brand.get(bid, 0) + (record.get("visits", 0) or 0)
+    
+    for record in month2_data:
+        bid = record.get("brand_id")
+        if bid:
+            month2_by_brand[bid] = month2_by_brand.get(bid, 0) + (record.get("visits", 0) or 0)
+    
+    # Build comparison
+    comparison = []
+    month_names = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", 
+                   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+    
+    for brand in VEHICLE_BRANDS:
+        visits1 = month1_by_brand.get(brand["id"], 0)
+        visits2 = month2_by_brand.get(brand["id"], 0)
+        change = visits2 - visits1
+        change_percent = ((visits2 - visits1) / visits1 * 100) if visits1 > 0 else 0
+        
+        comparison.append({
+            "brand_id": brand["id"],
+            "brand_name": brand["name"],
+            "brand_color": brand["color"],
+            "brand_logo": brand.get("logo", ""),
+            "month1_visits": visits1,
+            "month2_visits": visits2,
+            "change": change,
+            "change_percent": round(change_percent, 2),
+            "trend": "up" if change > 0 else "down" if change < 0 else "stable"
+        })
+    
+    return {
+        "period1": {
+            "month": month1,
+            "month_name": month_names[month1],
+            "year": year1,
+            "total": sum(month1_by_brand.values())
+        },
+        "period2": {
+            "month": month2,
+            "month_name": month_names[month2],
+            "year": year2,
+            "total": sum(month2_by_brand.values())
+        },
+        "island": island,
+        "comparison": comparison
+    }
+
+
+@router.get("/history/compare-weeks")
+async def compare_weeks(
+    week1: int = Query(..., ge=1, le=53, description="Week number 1"),
+    year1: int = Query(..., description="Year 1"),
+    week2: int = Query(..., ge=1, le=53, description="Week number 2"),
+    year2: int = Query(..., description="Year 2"),
+    brand_id: Optional[str] = None,
+    island: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Compare visits between two specific weeks (e.g., Week 10 2025 vs Week 10 2026)
+    """
+    query1 = {"year": year1, "week": week1}
+    query2 = {"year": year2, "week": week2}
+    
+    if brand_id:
+        query1["brand_id"] = brand_id
+        query2["brand_id"] = brand_id
+    if island:
+        query1["island"] = island
+        query2["island"] = island
+    
+    # Get data for both weeks
+    week1_data = await brand_weekly_collection.find(query1, {"_id": 0}).to_list(length=100)
+    week2_data = await brand_weekly_collection.find(query2, {"_id": 0}).to_list(length=100)
+    
+    # Aggregate by brand
+    week1_by_brand = {r.get("brand_id"): r.get("visits", 0) for r in week1_data}
+    week2_by_brand = {r.get("brand_id"): r.get("visits", 0) for r in week2_data}
+    
+    # Build comparison
+    comparison = []
+    for brand in VEHICLE_BRANDS:
+        visits1 = week1_by_brand.get(brand["id"], 0)
+        visits2 = week2_by_brand.get(brand["id"], 0)
+        change = visits2 - visits1
+        change_percent = ((visits2 - visits1) / visits1 * 100) if visits1 > 0 else 0
+        
+        comparison.append({
+            "brand_id": brand["id"],
+            "brand_name": brand["name"],
+            "brand_color": brand["color"],
+            "brand_logo": brand.get("logo", ""),
+            "week1_visits": visits1,
+            "week2_visits": visits2,
+            "change": change,
+            "change_percent": round(change_percent, 2),
+            "trend": "up" if change > 0 else "down" if change < 0 else "stable"
+        })
+    
+    return {
+        "period1": {
+            "week": week1,
+            "year": year1,
+            "total": sum(week1_by_brand.values())
+        },
+        "period2": {
+            "week": week2,
+            "year": year2,
+            "total": sum(week2_by_brand.values())
+        },
+        "island": island,
+        "comparison": comparison
+    }
+
+
+@router.get("/history/by-island")
+async def get_history_by_island(
+    start_date: str = Query(..., description="YYYY-MM-DD"),
+    end_date: str = Query(..., description="YYYY-MM-DD"),
+    brand_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get historical data grouped by island for comparison
+    """
+    query = {"date": {"$gte": start_date, "$lte": end_date}}
+    if brand_id:
+        query["brand_id"] = brand_id
+    
+    pipeline = [
+        {"$match": query},
+        {"$group": {
+            "_id": {"island": "$island", "brand_id": "$brand_id"},
+            "total_visits": {"$sum": "$visits"},
+            "days_count": {"$sum": 1}
+        }},
+        {"$sort": {"total_visits": -1}}
+    ]
+    
+    results = await brand_daily_collection.aggregate(pipeline).to_list(length=500)
+    
+    # Organize by island
+    islands_data = {}
+    islands = ["tenerife", "gran-canaria", "lanzarote", "fuerteventura", "la-palma", "la-gomera", "el-hierro"]
+    
+    for island in islands:
+        islands_data[island] = {
+            "total": 0,
+            "brands": {}
+        }
+    
+    for r in results:
+        island = r["_id"].get("island")
+        brand_id = r["_id"].get("brand_id")
+        
+        if island and island in islands_data:
+            islands_data[island]["total"] += r["total_visits"]
+            islands_data[island]["brands"][brand_id] = r["total_visits"]
+    
+    return {
+        "start_date": start_date,
+        "end_date": end_date,
+        "islands": islands_data,
         "brands": VEHICLE_BRANDS
     }

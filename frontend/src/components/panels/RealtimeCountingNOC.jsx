@@ -20,7 +20,8 @@ const BRAND_LOGOS = {
   skoda: "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/vbhseao1_%C5%A0koda_nieuw.png",
   honda: "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/syfdh3vw_Honda_Logo.svg.png",
   ducati: "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/380b1h0d_Ducati_red_logo.PNG",
-  daocasion: "https://customer-assets.emergentagent.com/job_56a630f4-4ecb-45b7-b12a-65eeb5453053/artifacts/617ni5eo_dag_ocasion.png"
+  daocasion: "https://customer-assets.emergentagent.com/job_56a630f4-4ecb-45b7-b12a-65eeb5453053/artifacts/58znr83b_dag_ocasion_color.png",
+  "ocasion-domingo-alonso": "https://customer-assets.emergentagent.com/job_56a630f4-4ecb-45b7-b12a-65eeb5453053/artifacts/2sliyeer_dag_ocasion_color.png"
 };
 
 const BRAND_COLORS = {
@@ -29,7 +30,8 @@ const BRAND_COLORS = {
   skoda: "#4BA82E",
   honda: "#CC0000",
   ducati: "#D40000",
-  daocasion: "#FF6B00"
+  daocasion: "#FF6B00",
+  "ocasion-domingo-alonso": "#1E5AA8"
 };
 
 const RealtimeCountingNOC = ({ authAxios }) => {
