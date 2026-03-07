@@ -270,6 +270,72 @@ async def lifespan(app: FastAPI):
     )
     logger.info("VPN scheduler started - checking every 5 minutes")
     
+    # Add brand statistics snapshot every hour
+    async def store_brand_statistics_snapshot():
+        """Store hourly snapshot of brand statistics"""
+        try:
+            from services.mobotix_counting_service import fetch_all_cameras_counting
+            from routes.brand_statistics import brand_hourly_collection, brand_daily_collection, brand_weekly_collection, VEHICLE_BRANDS
+            
+            data = await fetch_all_cameras_counting()
+            now = datetime.now(timezone.utc)
+            today = now.strftime("%Y-%m-%d")
+            hour = now.strftime("%H:00")
+            week_num = now.isocalendar()[1]
+            year = now.year
+            
+            for cam_id, cam_data in data.get("cameras", {}).items():
+                if cam_data.get("status") != "online":
+                    continue
+                
+                brand_id = cam_data.get("brand_id")
+                island = cam_data.get("island")
+                visits = cam_data.get("entries", 0)  # Solo entradas
+                
+                if not brand_id:
+                    continue
+                
+                # Store hourly
+                await brand_hourly_collection.update_one(
+                    {"brand_id": brand_id, "island": island, "date": today, "hour": hour},
+                    {"$set": {"visits": visits, "camera_id": cam_id, "updated_at": now.isoformat()}},
+                    upsert=True
+                )
+                
+                # Store daily
+                await brand_daily_collection.update_one(
+                    {"brand_id": brand_id, "island": island, "date": today},
+                    {"$set": {
+                        "visits": visits,
+                        "brand_name": next((b["name"] for b in VEHICLE_BRANDS if b["id"] == brand_id), brand_id),
+                        "updated_at": now.isoformat()
+                    }},
+                    upsert=True
+                )
+                
+                # Store weekly
+                await brand_weekly_collection.update_one(
+                    {"brand_id": brand_id, "island": island, "year": year, "week": week_num},
+                    {"$set": {
+                        "visits": visits,
+                        "brand_name": next((b["name"] for b in VEHICLE_BRANDS if b["id"] == brand_id), brand_id),
+                        "updated_at": now.isoformat()
+                    }},
+                    upsert=True
+                )
+            
+            logger.info(f"[SCHEDULER] Brand statistics snapshot stored at {now.isoformat()}")
+        except Exception as e:
+            logger.error(f"[SCHEDULER] Error storing brand statistics: {e}")
+    
+    scheduler.add_job(
+        store_brand_statistics_snapshot,
+        IntervalTrigger(hours=1),
+        id="brand_stats_snapshot",
+        replace_existing=True
+    )
+    logger.info("Brand statistics scheduler started - storing every hour")
+    
     scheduler.start()
     logger.info("Scheduler started for daily reports")
     

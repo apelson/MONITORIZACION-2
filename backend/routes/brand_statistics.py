@@ -2,20 +2,27 @@
 Brand Statistics Routes - Vehicle brand visit ranking system
 Processes camera counting data and associates with vehicle brands:
 AUDI, VOLKSWAGEN, SKODA, HONDA, DUCATI, DAOCASION
+
+Only ENTRIES (visits) are tracked - exits are ignored.
 """
 from fastapi import APIRouter, HTTPException, Depends, Query, Body
+from fastapi.responses import StreamingResponse
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
 import uuid
+import csv
+import io
 
 from config import db, devices_collection, logger
 from services.auth_service import get_current_user
 
 router = APIRouter(prefix="/brand-statistics", tags=["brand-statistics"])
 
-# MongoDB collection for brand statistics
+# MongoDB collections
 brand_statistics_collection = db["brand_statistics"]
 brand_daily_collection = db["brand_daily_statistics"]
+brand_hourly_collection = db["brand_hourly_statistics"]
+brand_weekly_collection = db["brand_weekly_statistics"]
 
 # Supported vehicle brands with logos
 VEHICLE_BRANDS = [
@@ -522,3 +529,406 @@ async def delete_camera_config(
         raise HTTPException(status_code=404, detail="Camera not found")
     
     return {"message": "Camera configuration deleted", "camera_id": camera_id}
+
+
+
+# ==================== HISTORICAL DATA ENDPOINTS ====================
+
+@router.post("/store-snapshot")
+async def store_counting_snapshot(
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Store current counting data as a historical snapshot.
+    Should be called periodically (e.g., every hour) to build history.
+    Only stores ENTRIES (visits).
+    """
+    from services.mobotix_counting_service import fetch_all_cameras_counting
+    
+    try:
+        data = await fetch_all_cameras_counting()
+        now = datetime.now(timezone.utc)
+        today = now.strftime("%Y-%m-%d")
+        hour = now.strftime("%H:00")
+        week_num = now.isocalendar()[1]
+        year = now.year
+        
+        stored_count = 0
+        
+        for cam_id, cam_data in data.get("cameras", {}).items():
+            if cam_data.get("status") != "online":
+                continue
+            
+            brand_id = cam_data.get("brand_id")
+            island = cam_data.get("island")
+            visits = cam_data.get("entries", 0)  # Solo entradas
+            
+            if not brand_id:
+                continue
+            
+            # Store hourly snapshot
+            await brand_hourly_collection.update_one(
+                {
+                    "brand_id": brand_id,
+                    "island": island,
+                    "date": today,
+                    "hour": hour
+                },
+                {
+                    "$set": {
+                        "visits": visits,
+                        "camera_id": cam_id,
+                        "camera_name": cam_data.get("camera_name"),
+                        "updated_at": now.isoformat()
+                    }
+                },
+                upsert=True
+            )
+            
+            # Update daily aggregate
+            await brand_daily_collection.update_one(
+                {
+                    "brand_id": brand_id,
+                    "island": island,
+                    "date": today
+                },
+                {
+                    "$set": {
+                        "visits": visits,
+                        "brand_name": next((b["name"] for b in VEHICLE_BRANDS if b["id"] == brand_id), brand_id),
+                        "updated_at": now.isoformat()
+                    }
+                },
+                upsert=True
+            )
+            
+            # Update weekly aggregate
+            await brand_weekly_collection.update_one(
+                {
+                    "brand_id": brand_id,
+                    "island": island,
+                    "year": year,
+                    "week": week_num
+                },
+                {
+                    "$set": {
+                        "visits": visits,
+                        "brand_name": next((b["name"] for b in VEHICLE_BRANDS if b["id"] == brand_id), brand_id),
+                        "updated_at": now.isoformat()
+                    }
+                },
+                upsert=True
+            )
+            
+            stored_count += 1
+        
+        return {
+            "success": True,
+            "message": f"Stored snapshot for {stored_count} cameras",
+            "timestamp": now.isoformat(),
+            "date": today,
+            "hour": hour
+        }
+    except Exception as e:
+        logger.error(f"Error storing snapshot: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/history/daily")
+async def get_daily_history(
+    brand_id: Optional[str] = None,
+    island: Optional[str] = None,
+    start_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    end_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    days: int = Query(30, ge=1, le=365),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get daily historical data for visits (entries only)"""
+    if not start_date:
+        start_date = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
+    if not end_date:
+        end_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    query = {"date": {"$gte": start_date, "$lte": end_date}}
+    if brand_id:
+        query["brand_id"] = brand_id
+    if island:
+        query["island"] = island
+    
+    records = await brand_daily_collection.find(
+        query,
+        {"_id": 0}
+    ).sort("date", 1).to_list(length=1000)
+    
+    return {
+        "data": records,
+        "start_date": start_date,
+        "end_date": end_date,
+        "total_records": len(records)
+    }
+
+
+@router.get("/history/weekly")
+async def get_weekly_history(
+    brand_id: Optional[str] = None,
+    island: Optional[str] = None,
+    year: Optional[int] = None,
+    weeks: int = Query(12, ge=1, le=52),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get weekly historical data for visits"""
+    now = datetime.now(timezone.utc)
+    current_year = year or now.year
+    current_week = now.isocalendar()[1]
+    
+    query = {"year": current_year}
+    if brand_id:
+        query["brand_id"] = brand_id
+    if island:
+        query["island"] = island
+    
+    records = await brand_weekly_collection.find(
+        query,
+        {"_id": 0}
+    ).sort([("year", -1), ("week", -1)]).to_list(length=weeks * 10)
+    
+    return {
+        "data": records,
+        "year": current_year,
+        "current_week": current_week,
+        "total_records": len(records)
+    }
+
+
+@router.get("/history/compare")
+async def compare_periods(
+    brand_id: str,
+    period1_start: str = Query(..., description="YYYY-MM-DD"),
+    period1_end: str = Query(..., description="YYYY-MM-DD"),
+    period2_start: str = Query(..., description="YYYY-MM-DD"),
+    period2_end: str = Query(..., description="YYYY-MM-DD"),
+    island: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Compare visits between two periods"""
+    query1 = {
+        "brand_id": brand_id,
+        "date": {"$gte": period1_start, "$lte": period1_end}
+    }
+    query2 = {
+        "brand_id": brand_id,
+        "date": {"$gte": period2_start, "$lte": period2_end}
+    }
+    
+    if island:
+        query1["island"] = island
+        query2["island"] = island
+    
+    # Get period 1 data
+    period1_data = await brand_daily_collection.find(query1, {"_id": 0}).to_list(length=1000)
+    period1_total = sum(r.get("visits", 0) for r in period1_data)
+    
+    # Get period 2 data
+    period2_data = await brand_daily_collection.find(query2, {"_id": 0}).to_list(length=1000)
+    period2_total = sum(r.get("visits", 0) for r in period2_data)
+    
+    # Calculate change
+    change = period2_total - period1_total
+    change_percent = ((period2_total - period1_total) / period1_total * 100) if period1_total > 0 else 0
+    
+    brand_info = next((b for b in VEHICLE_BRANDS if b["id"] == brand_id), None)
+    
+    return {
+        "brand_id": brand_id,
+        "brand_name": brand_info["name"] if brand_info else brand_id,
+        "island": island,
+        "period1": {
+            "start": period1_start,
+            "end": period1_end,
+            "total_visits": period1_total,
+            "days": len(period1_data)
+        },
+        "period2": {
+            "start": period2_start,
+            "end": period2_end,
+            "total_visits": period2_total,
+            "days": len(period2_data)
+        },
+        "comparison": {
+            "change": change,
+            "change_percent": round(change_percent, 2),
+            "trend": "up" if change > 0 else "down" if change < 0 else "stable"
+        }
+    }
+
+
+@router.get("/history/year-over-year")
+async def year_over_year_comparison(
+    brand_id: Optional[str] = None,
+    island: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Compare current year vs previous year"""
+    now = datetime.now(timezone.utc)
+    current_year = now.year
+    previous_year = current_year - 1
+    
+    query_current = {"year": current_year}
+    query_previous = {"year": previous_year}
+    
+    if brand_id:
+        query_current["brand_id"] = brand_id
+        query_previous["brand_id"] = brand_id
+    if island:
+        query_current["island"] = island
+        query_previous["island"] = island
+    
+    # Aggregate by brand for current year
+    pipeline_current = [
+        {"$match": query_current},
+        {"$group": {
+            "_id": "$brand_id",
+            "total_visits": {"$sum": "$visits"}
+        }}
+    ]
+    
+    pipeline_previous = [
+        {"$match": query_previous},
+        {"$group": {
+            "_id": "$brand_id",
+            "total_visits": {"$sum": "$visits"}
+        }}
+    ]
+    
+    current_data = await brand_weekly_collection.aggregate(pipeline_current).to_list(100)
+    previous_data = await brand_weekly_collection.aggregate(pipeline_previous).to_list(100)
+    
+    # Build comparison
+    comparison = []
+    for brand in VEHICLE_BRANDS:
+        current_visits = next((d["total_visits"] for d in current_data if d["_id"] == brand["id"]), 0)
+        previous_visits = next((d["total_visits"] for d in previous_data if d["_id"] == brand["id"]), 0)
+        
+        change = current_visits - previous_visits
+        change_percent = ((current_visits - previous_visits) / previous_visits * 100) if previous_visits > 0 else 0
+        
+        comparison.append({
+            "brand_id": brand["id"],
+            "brand_name": brand["name"],
+            "brand_color": brand["color"],
+            "current_year": current_year,
+            "current_visits": current_visits,
+            "previous_year": previous_year,
+            "previous_visits": previous_visits,
+            "change": change,
+            "change_percent": round(change_percent, 2),
+            "trend": "up" if change > 0 else "down" if change < 0 else "stable"
+        })
+    
+    return {
+        "current_year": current_year,
+        "previous_year": previous_year,
+        "island": island,
+        "comparison": comparison
+    }
+
+
+# ==================== EXPORT ENDPOINTS ====================
+
+@router.get("/export/csv")
+async def export_csv(
+    start_date: str = Query(..., description="YYYY-MM-DD"),
+    end_date: str = Query(..., description="YYYY-MM-DD"),
+    brand_id: Optional[str] = None,
+    island: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Export historical data to CSV"""
+    query = {"date": {"$gte": start_date, "$lte": end_date}}
+    if brand_id:
+        query["brand_id"] = brand_id
+    if island:
+        query["island"] = island
+    
+    records = await brand_daily_collection.find(
+        query,
+        {"_id": 0}
+    ).sort("date", 1).to_list(length=10000)
+    
+    # Create CSV
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Header
+    writer.writerow(["Fecha", "Marca", "Isla", "Visitas", "Actualizado"])
+    
+    # Data rows
+    for record in records:
+        brand_info = next((b for b in VEHICLE_BRANDS if b["id"] == record.get("brand_id")), None)
+        writer.writerow([
+            record.get("date", ""),
+            brand_info["name"] if brand_info else record.get("brand_id", ""),
+            record.get("island", ""),
+            record.get("visits", 0),
+            record.get("updated_at", "")
+        ])
+    
+    output.seek(0)
+    
+    filename = f"visitas_{start_date}_{end_date}.csv"
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@router.get("/export/summary")
+async def export_summary(
+    year: int = Query(None),
+    current_user: dict = Depends(get_current_user)
+):
+    """Export annual summary by brand"""
+    if not year:
+        year = datetime.now(timezone.utc).year
+    
+    # Aggregate by brand and month
+    pipeline = [
+        {"$match": {"date": {"$regex": f"^{year}"}}},
+        {"$addFields": {
+            "month": {"$substr": ["$date", 5, 2]}
+        }},
+        {"$group": {
+            "_id": {"brand_id": "$brand_id", "month": "$month"},
+            "total_visits": {"$sum": "$visits"}
+        }},
+        {"$sort": {"_id.brand_id": 1, "_id.month": 1}}
+    ]
+    
+    results = await brand_daily_collection.aggregate(pipeline).to_list(200)
+    
+    # Build summary by brand
+    summary = {}
+    for brand in VEHICLE_BRANDS:
+        summary[brand["id"]] = {
+            "brand_name": brand["name"],
+            "brand_color": brand["color"],
+            "months": {str(m).zfill(2): 0 for m in range(1, 13)},
+            "total": 0
+        }
+    
+    for r in results:
+        brand_id = r["_id"]["brand_id"]
+        month = r["_id"]["month"]
+        visits = r["total_visits"]
+        
+        if brand_id in summary:
+            summary[brand_id]["months"][month] = visits
+            summary[brand_id]["total"] += visits
+    
+    return {
+        "year": year,
+        "summary": summary,
+        "brands": VEHICLE_BRANDS
+    }

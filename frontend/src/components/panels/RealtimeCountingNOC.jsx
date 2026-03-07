@@ -153,29 +153,13 @@ const RealtimeCountingNOC = ({ authAxios }) => {
           </div>
           
           {/* Summary Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
             <div className="bg-white/10 rounded-lg p-4">
               <div className="flex items-center gap-2 text-green-400 mb-1">
                 <TrendingDown className="w-4 h-4" />
-                <span className="text-sm">Entradas</span>
+                <span className="text-sm">Visitas (Entradas)</span>
               </div>
               <p className="text-3xl font-bold">{totals.entries.toLocaleString()}</p>
-            </div>
-            
-            <div className="bg-white/10 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-red-400 mb-1">
-                <TrendingUp className="w-4 h-4" />
-                <span className="text-sm">Salidas</span>
-              </div>
-              <p className="text-3xl font-bold">{totals.exits.toLocaleString()}</p>
-            </div>
-            
-            <div className="bg-white/10 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-blue-400 mb-1">
-                <Activity className="w-4 h-4" />
-                <span className="text-sm">Total Visitas</span>
-              </div>
-              <p className="text-3xl font-bold">{(totals.entries + totals.exits).toLocaleString()}</p>
             </div>
             
             <div className="bg-white/10 rounded-lg p-4">
@@ -188,6 +172,14 @@ const RealtimeCountingNOC = ({ authAxios }) => {
                 <span className="text-sm ml-2 text-slate-400">online</span>
               </p>
             </div>
+            
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-amber-400 mb-1">
+                <Clock className="w-4 h-4" />
+                <span className="text-sm">Última Sync</span>
+              </div>
+              <p className="text-xl font-bold">{lastRefresh ? lastRefresh.toLocaleTimeString() : '-'}</p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -195,9 +187,9 @@ const RealtimeCountingNOC = ({ authAxios }) => {
       {/* Brand Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {brands.map(brand => {
-          const brandData = brandTotals[brand.id] || { entries: 0, exits: 0, cameras: 0 };
-          const totalVisits = brandData.entries + brandData.exits;
-          const maxVisits = Math.max(...Object.values(brandTotals).map(b => (b.entries || 0) + (b.exits || 0)), 1);
+          const brandData = brandTotals[brand.id] || { entries: 0, cameras: 0 };
+          const totalVisits = brandData.entries; // Solo entradas
+          const maxVisits = Math.max(...Object.values(brandTotals).map(b => b.entries || 0), 1);
           const percentage = (totalVisits / maxVisits) * 100;
           
           return (
@@ -238,7 +230,7 @@ const RealtimeCountingNOC = ({ authAxios }) => {
                     </div>
                   </div>
                   
-                  {/* Total badge */}
+                  {/* Total badge - Solo visitas (entradas) */}
                   <div 
                     className="text-right px-3 py-2 rounded-lg"
                     style={{ backgroundColor: `${brand.color}15` }}
@@ -259,20 +251,6 @@ const RealtimeCountingNOC = ({ authAxios }) => {
                       '--progress-background': brand.color 
                     }}
                   />
-                </div>
-                
-                {/* Entry/Exit stats */}
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-900/20 rounded">
-                    <TrendingDown className="w-4 h-4 text-green-600" />
-                    <span className="text-muted-foreground">Entradas:</span>
-                    <span className="font-semibold">{brandData.entries.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 bg-red-50 dark:bg-red-900/20 rounded">
-                    <TrendingUp className="w-4 h-4 text-red-600" />
-                    <span className="text-muted-foreground">Salidas:</span>
-                    <span className="font-semibold">{brandData.exits.toLocaleString()}</span>
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -322,7 +300,7 @@ const RealtimeCountingNOC = ({ authAxios }) => {
                   
                   {cam.status === 'online' && (
                     <div className="text-right">
-                      <p className="font-bold">{(cam.entries || 0) + (cam.exits || 0)}</p>
+                      <p className="font-bold">{cam.entries || 0}</p>
                       <p className="text-xs text-muted-foreground">visitas</p>
                     </div>
                   )}

@@ -298,24 +298,14 @@ const BrandRankingPanel = ({ authAxios }) => {
                             )}
                             <span className="font-semibold text-lg">{brand.brand_name}</span>
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1 ml-13">
-                            <span className="flex items-center gap-1">
-                              <ArrowDown className="w-3 h-3 text-green-500" />
-                              {brand.entries || 0} entradas
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <ArrowUp className="w-3 h-3 text-red-500" />
-                              {brand.exits || 0} salidas
-                            </span>
-                          </div>
                         </div>
 
-                        {/* Stats */}
+                        {/* Stats - Solo visitas (entradas) */}
                         <div className="text-right">
                           <p className="text-2xl font-bold" style={{ color: brand.brand_color }}>
-                            {brand.total_visits.toLocaleString()}
+                            {(brand.entries || 0).toLocaleString()}
                           </p>
-                          <p className="text-sm text-muted-foreground">{percentage}%</p>
+                          <p className="text-sm text-muted-foreground">visitas</p>
                         </div>
                       </div>
                     );
