@@ -44,6 +44,7 @@ import StatisticsPanel from "@/components/panels/StatisticsPanel";
 import BrandRankingPanel from "@/components/panels/BrandRankingPanel";
 import RealtimeCountingNOC from "@/components/panels/RealtimeCountingNOC";
 import HistoricalStatsPanel from "@/components/panels/HistoricalStatsPanel";
+import CameraConfigPanel from "@/components/panels/CameraConfigPanel";
 import IncidentsPanel from "@/components/panels/IncidentsPanel";
 import AccessLogsPanel from "@/components/panels/AccessLogsPanel";
 import BackupPanel from "@/components/panels/BackupPanel";
@@ -3201,6 +3202,7 @@ const Dashboard = ({ onShowMobile }) => {
               {canAccessSection('statistics') && <TabsTrigger data-testid="tab-statistics" value="statistics" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('stats.title', 'Estadísticas')}</span><span className="sm:hidden">Stats</span></TabsTrigger>}
               {canAccessSection('statistics') && <TabsTrigger data-testid="tab-counting-noc" value="counting-noc" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Activity className="w-3 h-3 sm:w-4 sm:h-4 text-cyan-500" /><span className="hidden sm:inline">NOC Conteo</span><span className="sm:hidden">NOC</span></TabsTrigger>}
               {canAccessSection('statistics') && <TabsTrigger data-testid="tab-historical" value="historical" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Clock className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500" /><span className="hidden sm:inline">Histórico</span><span className="sm:hidden">Hist</span></TabsTrigger>}
+              {isAdmin && <TabsTrigger data-testid="tab-camera-config" value="camera-config" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Settings className="w-3 h-3 sm:w-4 sm:h-4 text-purple-500" /><span className="hidden sm:inline">Config Cámaras</span><span className="sm:hidden">Cams</span></TabsTrigger>}
               {canAccessSection('organizations') && <TabsTrigger data-testid="tab-structure" value="structure" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Building2 className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.structure', 'Estructura')}</span><span className="sm:hidden">Org.</span></TabsTrigger>}
               {canAccessSection('devices') && <TabsTrigger data-testid="tab-types" value="types" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Tag className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.types', 'Tipos')}</span><span className="sm:hidden">Tipos</span></TabsTrigger>}
               {canAccessSection('alerts') && <TabsTrigger data-testid="tab-alerts" value="alerts" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"><Bell className="w-3 h-3 sm:w-4 sm:h-4" /><span className="hidden sm:inline">{t('nav.alerts', 'Alertas')}</span><span className="sm:hidden">Alert.</span>{alerts.length > 0 && <Badge variant="secondary" className="ml-1 h-4 sm:h-5 px-1 text-[10px] sm:text-xs">{alerts.length}</Badge>}</TabsTrigger>}
@@ -3442,6 +3444,13 @@ const Dashboard = ({ onShowMobile }) => {
           <TabsContent value="historical">
             <HistoricalStatsPanel authAxios={authAxios} />
           </TabsContent>
+
+          {/* Camera Config Tab - Admin Only */}
+          {isAdmin && (
+            <TabsContent value="camera-config">
+              <CameraConfigPanel authAxios={authAxios} />
+            </TabsContent>
+          )}
 
           <TabsContent value="structure">
             <OrganizationsPanel organizations={organizations} groups={groups} devices={devices} canEdit={canEdit}

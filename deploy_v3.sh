@@ -13,7 +13,7 @@ cd /opt/siempria-monitor
 # ============================================
 echo "📥 Descargando archivos..."
 
-BASE_URL="https://brand-ranking-stats.preview.emergentagent.com/api/download-file"
+BASE_URL="https://noc-vehicle-counting.preview.emergentagent.com/api/download-file"
 
 # === FRONTEND ===
 
