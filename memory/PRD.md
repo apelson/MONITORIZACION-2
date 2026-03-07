@@ -30,92 +30,63 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 24. ✅ Interactive Canary Islands Map (DONE - 06 Mar 2026)
 25. ✅ Customizable Dashboard (DONE - 06 Mar 2026)
 26. ✅ Video Tutorials Section (DONE - 06 Mar 2026)
+27. ✅ **Real Interactive Map with Leaflet/OpenStreetMap** (DONE - 07 Mar 2026)
+28. ✅ **Brand Visit Ranking System** (DONE - 07 Mar 2026)
+29. ✅ **Statistics Viewer Role** (DONE - 07 Mar 2026)
 
-## What's Been Implemented (06 Mar 2026)
+## What's Been Implemented (07 Mar 2026)
 
-### Latest Session - 06 Mar 2026
+### Latest Session - 07 Mar 2026
 
-#### 1. Mapa Interactivo de las Islas Canarias
-- **Componente:** `/app/frontend/src/components/maps/CanaryIslandsMap.jsx`
-- **Tab:** "Mapa" con icono de MapPin verde
+#### 1. Mapa Interactivo Real con Leaflet
+- **Componente:** `/app/frontend/src/components/maps/LeafletCanaryMap.jsx`
+- **Reemplaza:** El anterior mapa SVG (CanaryIslandsMap.jsx)
+- **Tecnologías:** react-leaflet, leaflet, OpenStreetMap
 - **Funcionalidades:**
-  - SVG de las 7 islas canarias (Tenerife, Gran Canaria, Lanzarote, Fuerteventura, La Palma, La Gomera, El Hierro)
-  - Estadísticas por isla: total/online/offline dispositivos
-  - Colores dinámicos según estado (verde OK, rojo con alertas)
-  - Controles de zoom (acercar, alejar, restablecer)
-  - Tooltips al pasar sobre las islas
-  - Panel detallado al hacer clic en una isla
-  - Brújula y leyenda integradas
-  - Animación de pulso para islas con dispositivos offline
+  - Mapa real de las Islas Canarias usando OpenStreetMap
+  - 3 estilos de mapa: Calles (OpenStreetMap), Satélite (ArcGIS), Terreno (OpenTopoMap)
+  - Marcadores interactivos para cada isla con conteo de dispositivos
+  - Chips de selección rápida de islas (TF, GC, LZ, FV, LP, LG, EH)
+  - Panel de detalles al seleccionar una isla
+  - Controles de zoom y navegación
+  - Leyenda de estados (Todo OK, Con alertas, Sin dispositivos)
+  - Coordenadas reales de las 7 islas canarias
 
-#### 2. Dashboard Personalizable
-- **Componente:** `/app/frontend/src/components/dashboard/CustomizableDashboard.jsx`
-- **Tab:** "Mi Dashboard" con icono de Layers índigo
+#### 2. Sistema de Ranking de Visitas por Marca
+- **Componente Frontend:** `/app/frontend/src/components/panels/BrandRankingPanel.jsx`
+- **Backend Routes:** `/app/backend/routes/brand_statistics.py`
+- **Marcas Soportadas:** AUDI, VOLKSWAGEN, SKODA, HONDA, DUCATI, DAOCASION
 - **Funcionalidades:**
-  - 12 widgets disponibles para elegir
-  - Configuración guardada en localStorage
-  - Dialog de personalización con switches por widget
-  - Ordenamiento de widgets con botones arriba/abajo
-  - Botón restaurar a configuración por defecto
-  - Widgets implementados:
-    - Estadísticas de Dispositivos
-    - Resumen de Alertas
-    - Estado CRA
-    - Estado Grabadores
-    - Estado VPN
-    - Recursos del Sistema (CPU/RAM/Disco)
-    - Alertas Recientes
-    - Gráfico de Uptime
-    - Usuarios Conectados
-    - Salud del Servidor
-    - Acciones Rápidas
-    - Reloj y Fecha
+  - Ranking de marcas por número de visitas
+  - Filtros por isla (7 islas canarias) y período (día, semana, mes, año)
+  - 3 sub-tabs: Ranking, Gráficos, Por Isla
+  - Gráfico de barras horizontal por marca
+  - Gráfico de pie para distribución de visitas
+  - Tabla comparativa de visitas por isla
+  - Estadísticas en header: Marca Líder, Visitas Hoy, Esta Semana, Este Mes
+  - API endpoints:
+    - GET /api/brand-statistics/brands
+    - GET /api/brand-statistics/ranking
+    - GET /api/brand-statistics/summary
+    - GET /api/brand-statistics/ranking-by-island
+    - POST /api/brand-statistics/record
+    - GET /api/brand-statistics/daily-trend/{brand_id}
 
-#### 3. Video Tutoriales
-- **Componente:** `/app/frontend/src/components/help/VideoTutorials.jsx`
-- **Tab:** "Tutoriales" con icono de PlayCircle rojo
-- **Funcionalidades:**
-  - 8 tutoriales predefinidos
-  - Búsqueda por título y descripción
-  - Filtros por categoría: Básicos, Dispositivos, Alertas, Seguridad, Usuarios, Reportes
-  - Badges de dificultad: Principiante, Intermedio, Avanzado
-  - Sección de "Tutoriales Destacados"
-  - Thumbnails con duración
-  - Contador de vistas
-  - Modal de reproducción de video
-  - Sección "Empezar Rápido" con links directos
-
-#### 4. Integración en UI Principal
-- **Nuevos tabs en App.js:**
-  - `tab-map`: Mapa de Canarias
-  - `tab-mydashboard`: Mi Dashboard
-  - `tab-tutorials`: Tutoriales
-- **Nuevos botones en menú móvil** para las tres secciones
-- **Imports añadidos:**
-  - `CanaryIslandsMap`
-  - `CustomizableDashboard`
-  - `VideoTutorials`
-  - Icono `PlayCircle`
+#### 3. Rol Statistics Viewer
+- **Definición:** `/app/backend/routes/roles.py` - Nuevo rol "statistics_viewer"
+- **Permisos:** Solo acceso a la sección de Estadísticas
+- **Frontend:** Lógica en `canAccessSection()` para restringir navegación
 
 ### Previous Sessions
 
 #### Session 06 Mar 2026 - Features Implementadas
-
-**Fail2ban Integration (COMPLETADO)**
-- Backend Service: `/app/backend/services/fail2ban_service.py`
-- Backend Routes: `/app/backend/routes/fail2ban.py`
-- Frontend Component: `/app/frontend/src/components/settings/Fail2banPanel.jsx`
-
-**Gestión de Features por Organización (COMPLETADO)**
-- Backend endpoints en `/app/backend/routes/organizations.py`
-- Frontend: `/app/frontend/src/components/settings/OrganizationFeaturesManager.jsx`
-
-**Welcome Tour (COMPLETADO)**
-- Component: `/app/frontend/src/components/onboarding/WelcomeTour.jsx`
-- 7 pasos guiados
-
-**Centro de Ayuda Integrado (COMPLETADO)**
-- Component: `/app/frontend/src/components/settings/HelpCenter.jsx`
+- Fail2ban Integration
+- Gestión de Features por Organización
+- Welcome Tour (7 pasos)
+- Centro de Ayuda Integrado
+- Interactive Canary Islands Map (SVG - ahora reemplazado)
+- Customizable Dashboard
+- Video Tutorials
 
 ## Architecture
 - **Frontend:** React (`/app/frontend/`)
@@ -123,23 +94,23 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 - **Database:** MongoDB
 
 ## Key Files Modified This Session
-- `/app/frontend/src/App.js` - Añadidos imports y tabs para Map, MyDashboard, Tutorials
-- `/app/frontend/src/components/maps/CanaryIslandsMap.jsx` - YA EXISTÍA, verificado funcionando
-- `/app/frontend/src/components/dashboard/CustomizableDashboard.jsx` - YA EXISTÍA, verificado funcionando
-- `/app/frontend/src/components/help/VideoTutorials.jsx` - NUEVO, creado en esta sesión
+- `/app/frontend/src/App.js` - Integración de LeafletCanaryMap y BrandRankingPanel
+- `/app/frontend/src/components/maps/LeafletCanaryMap.jsx` - NUEVO
+- `/app/frontend/src/components/panels/BrandRankingPanel.jsx` - NUEVO
+- `/app/backend/routes/brand_statistics.py` - NUEVO
+- `/app/backend/routes/roles.py` - Añadido rol statistics_viewer
+- `/app/backend/server.py` - Registro de brand_statistics_router
 
 ## Pending Issues
 1. **Contador de Infraestructura (0/0)** - Posiblemente los dispositivos de infraestructura no están clasificados correctamente en la DB.
-2. **Sistema de alertas sonoras** - Pendiente verificación del usuario.
-3. **Dominio siempriapp.com** - Configuración NAT en MikroTik del usuario (fuera del scope de desarrollo)
 
 ## Backlog / Future Tasks
+- (P1) Almacenamiento histórico de datos de visitas por marca
+- (P1) Scheduler automático para recolección diaria de estadísticas
+- (P2) Añadir videos reales a la sección de Tutoriales
+- (P2) Refactoring de App.js (monolito - más de 4000 líneas)
 - Drag-and-drop reordering for customizable dashboard widgets
-- Real video content for tutorials (currently placeholder)
-- Real-time system stats integration for dashboard widgets
 - Documentación exportable (PDF/HTML)
-- Refactoring de App.js (monolito - más de 4000 líneas)
-- Wizard de Configuración Inicial mejorado
 
 ## Test Users
 - **admin** - Role: admin - Password: admin123 (superadmin, ve todo)
@@ -148,6 +119,10 @@ Sistema de monitorización de red profesional para Siempria. La plataforma permi
 ## Credentials
 - Admin user: admin / admin123
 - Production user: admin / Spw@16071977
+- Mobotix Camera with Counting:
+  - URL: https://212.64.162.40:40002/
+  - User: admin
+  - Pass: Spw6009
 
 ## Test Reports
-- `/app/test_reports/iteration_20.json` - All tests passed (100% backend, 100% frontend)
+- `/app/test_reports/iteration_21.json` - All tests passed (100% backend, 100% frontend)
