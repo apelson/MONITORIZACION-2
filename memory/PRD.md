@@ -82,19 +82,51 @@ GET  /api/brand-statistics/summary
 ```
 /app
 ├── backend
-│   ├── routes/brand_statistics.py (endpoints)
+│   ├── routes/brand_statistics.py (CRUD marcas/centros)
+│   ├── routes/upload.py (upload de logos)
 │   ├── services/mobotix_counting_service.py (conexión cámaras)
 │   └── server.py (scheduler cada hora)
 └── frontend/src/components/panels/
     ├── RealtimeCountingNOC.jsx (NOC tiempo real)
     ├── BrandRankingPanel.jsx (ranking marcas)
     ├── HistoricalStatsPanel.jsx (histórico + comparativas)
-    └── CameraConfigPanel.jsx (configuración de cámaras) ✨ NUEVO
+    ├── CameraConfigPanel.jsx (configuración de cámaras)
+    └── BrandCenterManager.jsx (gestión marcas/centros con upload) ✨ ACTUALIZADO
 ```
 
 ### Scheduler Automático:
 - Cada **1 hora** almacena snapshot de todas las cámaras
 - Guarda en 3 colecciones: hourly, daily, weekly
+
+## Latest Session - 08 Mar 2026
+
+### ✅ COMPLETADO - Gestor de Marcas y Centros con Upload de Logos
+
+#### Funcionalidades Implementadas:
+1. **🏷️ CRUD Completo de Marcas**
+   - GET /api/brand-statistics/brands - Lista de marcas
+   - POST /api/brand-statistics/brands - Crear marca
+   - PUT /api/brand-statistics/brands/{id} - Actualizar marca
+   - DELETE /api/brand-statistics/brands/{id} - Soft delete
+
+2. **🏢 CRUD Completo de Centros**
+   - GET /api/brand-statistics/centers - Lista de centros (7 islas Canarias)
+   - POST /api/brand-statistics/centers - Crear centro con isla/marca
+   - DELETE /api/brand-statistics/centers/{id} - Soft delete
+
+3. **📤 Upload de Logos (NUEVO)**
+   - POST /api/upload - Subir imágenes
+   - Formatos: JPG, PNG, GIF, WebP, SVG (máx 5MB)
+   - UI con toggle URL / Subir archivo
+
+4. **🎨 UI BrandCenterManager.jsx**
+   - Tab Marcas/Centros en menú principal
+   - Cards con logos, colores, botones Editar/Eliminar
+   - Dialog Nueva Marca con selector de color y upload de logo
+
+#### Testing:
+- 17/17 backend tests pasados ✅
+- UI completamente verificada ✅
 
 ## Pending Issues
 - (P1) La comparación de meses no renderiza resultados correctamente
@@ -102,8 +134,12 @@ GET  /api/brand-statistics/summary
 ## Pending Tasks
 - (P0) Desplegar cambios en servidor de producción del usuario
 - (P1) Debug comparación histórica mes vs mes
+- (P1) Verificar datos del mapa por isla (issue reportado)
+- (P1) NOC Competitivo - Dashboard leaderboard tiempo real
+- (P1) Cron Job automático cada 5 min para datos de cámaras
+- (P2) Permisos granulares de usuario
+- (P2) Script deploy.sh
 - (P2) Añadir más cámaras de otras marcas
-- (P2) Videos reales en Tutoriales
 - (P2) Refactorizar App.js (4000+ líneas)
 
 ## Credentials
