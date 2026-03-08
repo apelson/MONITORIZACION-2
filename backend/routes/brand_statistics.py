@@ -334,6 +334,105 @@ async def get_brand_ranking(
     }
 
 
+@router.get("/ranking-by-center")
+async def get_ranking_by_center(
+    period: str = Query("day", description="Period: day, week, month, year"),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get center visit ranking for competitive dashboard.
+    Returns aggregated visit counts per center (brand + island combination) sorted by total visits.
+    """
+    # Calculate date range
+    now = datetime.now(timezone.utc)
+    if period == "day":
+        start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif period == "week":
+        start_date = now - timedelta(days=7)
+    elif period == "month":
+        start_date = now - timedelta(days=30)
+    elif period == "year":
+        start_date = now - timedelta(days=365)
+    else:
+        start_date = now - timedelta(days=7)
+    
+    today = now.strftime("%Y-%m-%d")
+    
+    # Aggregate by center (brand + island combination) from daily stats
+    pipeline = [
+        {"$match": {"date": today}},
+        {"$group": {
+            "_id": {"brand_id": "$brand_id", "island": "$island"},
+            "total_visits": {"$sum": "$visits"}
+        }},
+        {"$project": {
+            "brand_id": "$_id.brand_id",
+            "island": "$_id.island",
+            "total_visits": 1,
+            "_id": 0
+        }},
+        {"$sort": {"total_visits": -1}}
+    ]
+    
+    results = await brand_daily_collection.aggregate(pipeline).to_list(length=100)
+    
+    # Get brands and centers from DB for enrichment
+    brands = await get_brands_from_db()
+    centers = await get_centers_from_db()
+    
+    # Build ranking with enriched data
+    ranking = []
+    for r in results:
+        brand_info = next((b for b in brands if b["id"] == r["brand_id"]), None)
+        island_info = next((c for c in centers if c.get("island") == r["island"] or c.get("id") == r["island"]), None)
+        
+        if brand_info:
+            # Create a unique center identifier
+            center_name = f"{brand_info['name']} - {island_info['name'] if island_info else r['island'].replace('-', ' ').title()}"
+            
+            ranking.append({
+                "center_id": f"{r['brand_id']}_{r['island']}",
+                "center_name": center_name,
+                "brand_id": r["brand_id"],
+                "brand_name": brand_info["name"],
+                "brand_color": brand_info["color"],
+                "brand_logo": brand_info.get("logo", ""),
+                "island": r["island"],
+                "island_name": island_info["name"] if island_info else r["island"].replace("-", " ").title(),
+                "total_visits": r["total_visits"]
+            })
+    
+    # If no data, return empty list
+    if not ranking:
+        # Build list of possible centers from brands x islands
+        islands = ["tenerife", "gran-canaria", "lanzarote", "fuerteventura", "la-palma", "la-gomera", "el-hierro"]
+        island_names = {
+            "tenerife": "Tenerife", "gran-canaria": "Gran Canaria", "lanzarote": "Lanzarote",
+            "fuerteventura": "Fuerteventura", "la-palma": "La Palma", "la-gomera": "La Gomera", "el-hierro": "El Hierro"
+        }
+        for brand in brands:
+            for island in islands:
+                ranking.append({
+                    "center_id": f"{brand['id']}_{island}",
+                    "center_name": f"{brand['name']} - {island_names.get(island, island)}",
+                    "brand_id": brand["id"],
+                    "brand_name": brand["name"],
+                    "brand_color": brand["color"],
+                    "brand_logo": brand.get("logo", ""),
+                    "island": island,
+                    "island_name": island_names.get(island, island),
+                    "total_visits": 0
+                })
+    
+    return {
+        "ranking": ranking,
+        "period": period,
+        "start_date": start_date.isoformat(),
+        "end_date": now.isoformat(),
+        "total_centers": len(ranking)
+    }
+
+
 @router.get("/ranking-by-island")
 async def get_ranking_by_island(
     period: str = Query("week", description="Period: day, week, month, year"),

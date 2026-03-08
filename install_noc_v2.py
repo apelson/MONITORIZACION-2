@@ -1,4 +1,151 @@
-/**
+#!/usr/bin/env python3
+"""
+NOC WatchTower Installer v2
+Incluye: NOC Competitivo con ranking por centro + botón flotante
+
+INSTRUCCIONES DE USO:
+1. Copiar este archivo a tu servidor
+2. Ejecutar: python3 install_noc_v2.py
+3. Reiniciar los servicios:
+   - Backend: sudo systemctl restart watchtower-backend  (o tu comando)
+   - Frontend: cd frontend && npm run build && sudo systemctl restart nginx
+"""
+
+import os
+import sys
+
+# Detectar rutas automáticamente
+POSSIBLE_PATHS = [
+    "/opt/watchtower",
+    "/var/www/watchtower", 
+    "/home/siempria/watchtower",
+    os.path.expanduser("~/watchtower"),
+    "/app"
+]
+
+BASE_PATH = None
+for path in POSSIBLE_PATHS:
+    if os.path.exists(path):
+        BASE_PATH = path
+        break
+
+if not BASE_PATH:
+    print("ERROR: No se encontró el directorio del proyecto")
+    print("Por favor, define BASE_PATH manualmente en este script")
+    sys.exit(1)
+
+print(f"Usando directorio base: {BASE_PATH}")
+
+# ============================================================
+# ARCHIVO 1: Backend - brand_statistics.py (añadir endpoint)
+# ============================================================
+
+RANKING_BY_CENTER_ENDPOINT = '''
+@router.get("/ranking-by-center")
+async def get_ranking_by_center(
+    period: str = Query("day", description="Period: day, week, month, year"),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get center visit ranking for competitive dashboard.
+    Returns aggregated visit counts per center (brand + island combination) sorted by total visits.
+    """
+    # Calculate date range
+    now = datetime.now(timezone.utc)
+    if period == "day":
+        start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif period == "week":
+        start_date = now - timedelta(days=7)
+    elif period == "month":
+        start_date = now - timedelta(days=30)
+    elif period == "year":
+        start_date = now - timedelta(days=365)
+    else:
+        start_date = now - timedelta(days=7)
+    
+    today = now.strftime("%Y-%m-%d")
+    
+    # Aggregate by center (brand + island combination) from daily stats
+    pipeline = [
+        {"$match": {"date": today}},
+        {"$group": {
+            "_id": {"brand_id": "$brand_id", "island": "$island"},
+            "total_visits": {"$sum": "$visits"}
+        }},
+        {"$project": {
+            "brand_id": "$_id.brand_id",
+            "island": "$_id.island",
+            "total_visits": 1,
+            "_id": 0
+        }},
+        {"$sort": {"total_visits": -1}}
+    ]
+    
+    results = await brand_daily_collection.aggregate(pipeline).to_list(length=100)
+    
+    # Get brands and centers from DB for enrichment
+    brands = await get_brands_from_db()
+    centers = await get_centers_from_db()
+    
+    # Build ranking with enriched data
+    ranking = []
+    for r in results:
+        brand_info = next((b for b in brands if b["id"] == r["brand_id"]), None)
+        island_info = next((c for c in centers if c.get("island") == r["island"] or c.get("id") == r["island"]), None)
+        
+        if brand_info:
+            # Create a unique center identifier
+            center_name = f"{brand_info['name']} - {island_info['name'] if island_info else r['island'].replace('-', ' ').title()}"
+            
+            ranking.append({
+                "center_id": f"{r['brand_id']}_{r['island']}",
+                "center_name": center_name,
+                "brand_id": r["brand_id"],
+                "brand_name": brand_info["name"],
+                "brand_color": brand_info["color"],
+                "brand_logo": brand_info.get("logo", ""),
+                "island": r["island"],
+                "island_name": island_info["name"] if island_info else r["island"].replace("-", " ").title(),
+                "total_visits": r["total_visits"]
+            })
+    
+    # If no data, return empty list
+    if not ranking:
+        # Build list of possible centers from brands x islands
+        islands = ["tenerife", "gran-canaria", "lanzarote", "fuerteventura", "la-palma", "la-gomera", "el-hierro"]
+        island_names = {
+            "tenerife": "Tenerife", "gran-canaria": "Gran Canaria", "lanzarote": "Lanzarote",
+            "fuerteventura": "Fuerteventura", "la-palma": "La Palma", "la-gomera": "La Gomera", "el-hierro": "El Hierro"
+        }
+        for brand in brands:
+            for island in islands:
+                ranking.append({
+                    "center_id": f"{brand['id']}_{island}",
+                    "center_name": f"{brand['name']} - {island_names.get(island, island)}",
+                    "brand_id": brand["id"],
+                    "brand_name": brand["name"],
+                    "brand_color": brand["color"],
+                    "brand_logo": brand.get("logo", ""),
+                    "island": island,
+                    "island_name": island_names.get(island, island),
+                    "total_visits": 0
+                })
+    
+    return {
+        "ranking": ranking,
+        "period": period,
+        "start_date": start_date.isoformat(),
+        "end_date": now.isoformat(),
+        "total_centers": len(ranking)
+    }
+
+'''
+
+# ============================================================
+# ARCHIVO 2: Frontend - NOCCompetitivo.jsx
+# ============================================================
+
+NOC_COMPETITIVO_JSX = '''/**
  * NOCCompetitivo - Real-time competitive leaderboard dashboard
  * Optimized for 55" displays - NO SCROLL, all content visible
  * Shows brand ranking + center ranking + island statistics
@@ -494,3 +641,279 @@ const NOCCompetitivo = ({ authAxios, isFullscreen = false, onClose }) => {
 };
 
 export default NOCCompetitivo;
+'''
+
+# ============================================================
+# ARCHIVO 3: Frontend - NOCCompetitivoFloatingButton.jsx
+# ============================================================
+
+NOC_FLOATING_BUTTON_JSX = '''/**
+ * NOCCompetitivoFloatingButton - Floating lateral button for NOC Competitivo
+ * Same style as CRA and LiveViewer buttons
+ * Shows real-time ranking stats with expand on hover
+ */
+import { useState, useEffect, useCallback } from 'react';
+import { Trophy, Crown, ChevronRight, TrendingUp, MapPin, Users } from 'lucide-react';
+import { Badge } from '../ui/badge';
+import NOCCompetitivo from '@/components/panels/NOCCompetitivo';
+
+const NOCCompetitivoFloatingButton = ({ authAxios, onClick, isActive }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [stats, setStats] = useState({ total: 0, leader: null, islands: 0 });
+  const [loading, setLoading] = useState(true);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await authAxios.get('/brand-statistics/ranking', {
+        params: { period: 'day' }
+      });
+      const ranking = response.data.ranking || [];
+      const total = ranking.reduce((sum, item) => sum + (item.total_visits || 0), 0);
+      const leader = ranking.length > 0 ? ranking[0] : null;
+      
+      // Count islands with activity
+      const islandsResponse = await authAxios.get('/brand-statistics/history/by-island', {
+        params: { 
+          start_date: new Date().toISOString().split('T')[0],
+          end_date: new Date().toISOString().split('T')[0]
+        }
+      });
+      const islandsData = islandsResponse.data.islands || {};
+      const activeIslands = Object.values(islandsData).filter(i => i.total > 0).length;
+      
+      setStats({ total, leader, islands: activeIslands });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [authAxios]);
+
+  useEffect(() => {
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000);
+    return () => clearInterval(interval);
+  }, [fetchStats]);
+
+  const handleClick = () => {
+    setIsOpen(true);
+  };
+
+  if (loading) {
+    return (
+      <div className="fixed right-0 z-50" style={{ top: 'calc(33% + 200px)' }}>
+        <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-2 sm:p-3 rounded-l-xl shadow-lg animate-pulse">
+          <Trophy className="w-5 h-5 sm:w-6 sm:h-6" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div 
+        className="fixed right-0 z-50 transition-all duration-300"
+        style={{ top: 'calc(33% + 200px)' }}
+        onMouseEnter={() => setIsExpanded(true)}
+        onMouseLeave={() => setIsExpanded(false)}
+        data-testid="noc-competitivo-btn"
+      >
+        <div 
+          className={`
+            flex items-center cursor-pointer shadow-2xl rounded-l-xl overflow-hidden
+            transition-all duration-300
+            bg-gradient-to-r from-amber-500 via-orange-500 to-orange-600 text-white
+            hover:from-amber-400 hover:via-orange-400 hover:to-orange-500
+            ${isActive || isOpen ? 'ring-4 ring-orange-300 ring-opacity-50' : ''}
+          `}
+          onClick={handleClick}
+        >
+          {/* Icon section */}
+          <div className={`p-2 sm:p-3 flex flex-col items-center justify-center ${isExpanded ? 'sm:border-r border-white/20' : ''}`}>
+            <Trophy className="w-5 h-5 sm:w-8 sm:h-8" />
+            {stats.total > 0 && (
+              <span className="text-[10px] sm:text-xs font-bold mt-0.5 sm:mt-1">
+                {stats.total.toLocaleString('es-ES')}
+              </span>
+            )}
+          </div>
+
+          {/* Expanded content */}
+          <div className={`overflow-hidden transition-all duration-300 hidden sm:block ${isExpanded ? 'w-52 opacity-100' : 'w-0 opacity-0'}`}>
+            <div className="p-3 whitespace-nowrap">
+              <div className="font-bold text-sm mb-1 flex items-center gap-2">
+                <Crown className="w-4 h-4 text-yellow-200" />
+                NOC Competitivo
+              </div>
+              
+              <div className="space-y-1 text-xs">
+                {stats.leader && (
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3" />
+                      Líder
+                    </span>
+                    <Badge variant="secondary" className="bg-white/20 text-white h-5 max-w-[80px] truncate">
+                      {stats.leader.brand_name}
+                    </Badge>
+                  </div>
+                )}
+                
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1">
+                    <Users className="w-3 h-3" />
+                    Visitas hoy
+                  </span>
+                  <Badge variant="secondary" className="bg-white/20 text-white h-5">
+                    {stats.total.toLocaleString('es-ES')}
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    Islas activas
+                  </span>
+                  <Badge variant="secondary" className="bg-white/20 text-white h-5">
+                    {stats.islands}/7
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="mt-2 pt-2 border-t border-white/20 flex items-center justify-between text-xs">
+                <span>Ver ranking</span>
+                <ChevronRight className="w-4 h-4" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pulse animation for live indicator */}
+        <div className="absolute top-1 sm:top-2 left-1 sm:left-2 pointer-events-none">
+          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-yellow-300 rounded-full animate-pulse" />
+        </div>
+      </div>
+
+      {/* Fullscreen NOC Competitivo Dashboard */}
+      {isOpen && (
+        <NOCCompetitivo 
+          authAxios={authAxios} 
+          isFullscreen={true}
+          onClose={() => setIsOpen(false)}
+        />
+      )}
+    </>
+  );
+};
+
+export default NOCCompetitivoFloatingButton;
+'''
+
+# ============================================================
+# FUNCIONES DE INSTALACIÓN
+# ============================================================
+
+def write_file(path, content):
+    """Escribe un archivo creando directorios si es necesario"""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(content)
+    print(f"  ✓ Creado: {path}")
+
+def add_endpoint_to_backend():
+    """Añade el endpoint ranking-by-center al backend"""
+    backend_file = os.path.join(BASE_PATH, "backend/routes/brand_statistics.py")
+    
+    if not os.path.exists(backend_file):
+        print(f"  ✗ No se encontró: {backend_file}")
+        return False
+    
+    with open(backend_file, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # Verificar si ya existe el endpoint
+    if "ranking-by-center" in content:
+        print(f"  ⚠ El endpoint ranking-by-center ya existe en {backend_file}")
+        return True
+    
+    # Buscar donde insertar (antes de ranking-by-island)
+    marker = '@router.get("/ranking-by-island")'
+    if marker not in content:
+        print(f"  ✗ No se encontró el marcador para insertar el endpoint")
+        return False
+    
+    # Insertar el nuevo endpoint antes del marcador
+    new_content = content.replace(marker, RANKING_BY_CENTER_ENDPOINT + "\n\n" + marker)
+    
+    with open(backend_file, 'w', encoding='utf-8') as f:
+        f.write(new_content)
+    
+    print(f"  ✓ Añadido endpoint ranking-by-center a {backend_file}")
+    return True
+
+def install_frontend_files():
+    """Instala los archivos del frontend"""
+    # NOCCompetitivo.jsx
+    noc_path = os.path.join(BASE_PATH, "frontend/src/components/panels/NOCCompetitivo.jsx")
+    write_file(noc_path, NOC_COMPETITIVO_JSX)
+    
+    # NOCCompetitivoFloatingButton.jsx
+    button_path = os.path.join(BASE_PATH, "frontend/src/components/common/NOCCompetitivoFloatingButton.jsx")
+    write_file(button_path, NOC_FLOATING_BUTTON_JSX)
+
+def check_app_js_import():
+    """Verifica si App.js tiene el import del botón flotante"""
+    app_js = os.path.join(BASE_PATH, "frontend/src/App.js")
+    
+    if not os.path.exists(app_js):
+        print(f"  ⚠ No se encontró App.js en {app_js}")
+        return
+    
+    with open(app_js, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    if "NOCCompetitivoFloatingButton" not in content:
+        print("""
+  ⚠ ATENCIÓN: Necesitas añadir el botón flotante a App.js manualmente:
+  
+  1. Añadir import:
+     import NOCCompetitivoFloatingButton from "@/components/common/NOCCompetitivoFloatingButton";
+  
+  2. Añadir componente en el JSX (cerca de otros botones flotantes):
+     <NOCCompetitivoFloatingButton authAxios={authAxios} />
+""")
+    else:
+        print("  ✓ App.js ya tiene el import de NOCCompetitivoFloatingButton")
+
+def main():
+    print("=" * 60)
+    print("  NOC WatchTower Installer v2")
+    print("  Ranking por Centro + Botón Flotante")
+    print("=" * 60)
+    print()
+    
+    print("1. Actualizando backend (brand_statistics.py)...")
+    add_endpoint_to_backend()
+    print()
+    
+    print("2. Instalando archivos frontend...")
+    install_frontend_files()
+    print()
+    
+    print("3. Verificando App.js...")
+    check_app_js_import()
+    print()
+    
+    print("=" * 60)
+    print("  INSTALACIÓN COMPLETADA")
+    print("=" * 60)
+    print()
+    print("Siguiente paso - Reiniciar servicios:")
+    print("  1. Backend: sudo systemctl restart watchtower-backend")
+    print("  2. Frontend: cd frontend && npm run build")
+    print("  3. Nginx: sudo systemctl restart nginx")
+    print()
+
+if __name__ == "__main__":
+    main()

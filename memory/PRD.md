@@ -165,8 +165,34 @@ GET  /api/brand-statistics/summary
 ## Pending Issues
 - (P1) La comparación de meses no renderiza resultados correctamente
 
+## Latest Session - 08 Mar 2026 (Afternoon)
+
+### ✅ COMPLETADO - Ranking por Centro en NOC Competitivo
+
+#### Funcionalidades Implementadas:
+1. **🏪 Nuevo Endpoint Backend**: `/api/brand-statistics/ranking-by-center`
+   - Agrega visitas por combinación marca + isla
+   - Devuelve ranking ordenado por total de visitas
+   - Incluye logo, color de marca y nombre de isla
+
+2. **📊 UI Actualizada NOCCompetitivo.jsx**
+   - Nuevas pestañas: "Marcas" y "Centros"
+   - Vista de ranking de centros con:
+     - Posición, logo de marca, nombre del centro
+     - Isla a la que pertenece
+     - Barra de progreso y número de visitas
+   - Componente `CenterRankingRow` para mostrar centro + isla
+
+3. **📜 Script de Instalación**: `install_noc_v2.py`
+   - Instala automáticamente los cambios en el servidor de producción
+   - Sin necesidad de editar archivos manualmente con nano
+
+#### Testing:
+- Backend endpoint probado con curl ✅
+- Frontend compilado sin errores ✅
+
 ## Pending Tasks
-- (P0) Desplegar cambios en servidor de producción del usuario
+- (P0) **Desplegar cambios** - Ejecutar install_noc_v2.py en servidor de producción
 - (P1) Debug comparación histórica mes vs mes
 - (P1) Verificar datos del mapa por isla (issue reportado)
 - (P2) Permisos granulares de usuario
