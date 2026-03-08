@@ -7,7 +7,7 @@
 set -e
 
 # Configuración
-EMERGENT_URL="https://noc-vehicle-counting.preview.emergentagent.com"
+EMERGENT_URL="https://brand-center-mgr.preview.emergentagent.com"
 FRONTEND_DIR="/home/monitorizacion/Documentos/MONITORIZACION-main/frontend/src"
 BACKEND_DIR="/home/monitorizacion/Documentos/MONITORIZACION-main/backend"
 

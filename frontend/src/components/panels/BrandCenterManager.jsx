@@ -1,11 +1,12 @@
 /**
  * BrandCenterManager - Complete CRUD for brands and centers
  * Allows admins to create, edit, delete brands and centers/locations
+ * Supports logo upload via file or URL
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Building2, Plus, Trash2, Edit, RefreshCw, Save, X, Palette, Image,
-  MapPin, Tag, Check, AlertCircle, Store
+  MapPin, Tag, Check, AlertCircle, Store, Upload, Link
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,9 @@ const BrandCenterManager = ({ authAxios }) => {
   const [brandDialogOpen, setBrandDialogOpen] = useState(false);
   const [editingBrand, setEditingBrand] = useState(null);
   const [brandForm, setBrandForm] = useState({ id: '', name: '', color: '#666666', logo: '' });
+  const [logoInputMode, setLogoInputMode] = useState('url'); // 'url' or 'upload'
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
   
   // Center dialog state
   const [centerDialogOpen, setCenterDialogOpen] = useState(false);
@@ -66,6 +70,7 @@ const BrandCenterManager = ({ authAxios }) => {
   const handleAddBrand = () => {
     setEditingBrand(null);
     setBrandForm({ id: '', name: '', color: '#666666', logo: '' });
+    setLogoInputMode('url');
     setBrandDialogOpen(true);
   };
 
@@ -77,7 +82,52 @@ const BrandCenterManager = ({ authAxios }) => {
       color: brand.color || '#666666', 
       logo: brand.logo || '' 
     });
+    setLogoInputMode('url');
     setBrandDialogOpen(true);
+  };
+
+  // Handle logo file upload
+  const handleLogoUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Tipo de archivo no permitido. Usa: JPG, PNG, GIF, WebP o SVG');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Archivo demasiado grande. Máximo 5MB');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await authAxios.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      // Construct full URL from the response
+      const baseUrl = authAxios.defaults.baseURL || '';
+      const logoUrl = baseUrl + response.data.url;
+      
+      setBrandForm(prev => ({ ...prev, logo: logoUrl }));
+      toast.success('Logo subido correctamente');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error(error.response?.data?.detail || 'Error al subir el logo');
+    }
+    setUploading(false);
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSaveBrand = async () => {
@@ -351,15 +401,92 @@ const BrandCenterManager = ({ authAxios }) => {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>URL del Logo</Label>
-              <Input 
-                placeholder="https://..." 
-                value={brandForm.logo} 
-                onChange={(e) => setBrandForm({...brandForm, logo: e.target.value})}
-              />
+              <Label>Logo</Label>
+              {/* Toggle between URL and Upload */}
+              <div className="flex gap-2 mb-2">
+                <Button
+                  type="button"
+                  variant={logoInputMode === 'url' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setLogoInputMode('url')}
+                  className="flex-1"
+                >
+                  <Link className="w-4 h-4 mr-2" /> URL
+                </Button>
+                <Button
+                  type="button"
+                  variant={logoInputMode === 'upload' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setLogoInputMode('upload')}
+                  className="flex-1"
+                >
+                  <Upload className="w-4 h-4 mr-2" /> Subir archivo
+                </Button>
+              </div>
+              
+              {logoInputMode === 'url' ? (
+                <Input 
+                  placeholder="https://..." 
+                  value={brandForm.logo} 
+                  onChange={(e) => setBrandForm({...brandForm, logo: e.target.value})}
+                />
+              ) : (
+                <div className="space-y-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                    id="logo-upload"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        Subiendo...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Seleccionar imagen
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Formatos: JPG, PNG, GIF, WebP, SVG (máx 5MB)
+                  </p>
+                </div>
+              )}
+              
+              {/* Logo Preview */}
               {brandForm.logo && (
-                <div className="flex justify-center p-4 bg-muted rounded-lg">
-                  <img src={brandForm.logo} alt="Preview" className="max-h-16 object-contain" onError={(e) => e.target.src=''} />
+                <div className="flex justify-center p-4 bg-muted rounded-lg relative">
+                  <img 
+                    src={brandForm.logo} 
+                    alt="Preview" 
+                    className="max-h-16 object-contain" 
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'block';
+                    }} 
+                  />
+                  <span className="text-sm text-muted-foreground hidden">Error al cargar imagen</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute top-1 right-1"
+                    onClick={() => setBrandForm({...brandForm, logo: ''})}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
               )}
             </div>

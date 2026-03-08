@@ -7,7 +7,7 @@ import requests
 import os
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://noc-vehicle-counting.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://brand-center-mgr.preview.emergentagent.com').rstrip('/')
 
 class TestAuthentication:
     """Authentication endpoint tests"""
