@@ -131,35 +131,36 @@ GET  /api/brand-statistics/summary
 ### ✅ COMPLETADO - NOC Competitivo (Dashboard Leaderboard)
 
 #### Funcionalidades Implementadas:
-1. **🏆 Dashboard Competitivo Fullscreen**
+1. **🏆 Dashboard Competitivo Fullscreen (optimizado 55")**
+   - Sin scroll - todo visible en pantalla grande
    - Podium visual con top 3 marcas (oro, plata, bronce)
-   - Ranking completo con todas las marcas
-   - Barras de progreso animadas
-   - Logos de marcas en podium y ranking
+   - Ranking completo a la IZQUIERDA con las 7 marcas
+   - **Estadísticas por Isla** a la DERECHA (7 islas)
+   - Total Islas Canarias con "Isla líder" destacada
 
-2. **🔘 Botón Flotante**
-   - Icono de trofeo dorado
-   - Tooltip con "Ranking Hoy" y líder actual
-   - Click abre dashboard fullscreen
+2. **🔘 Botón Flotante Lateral**
+   - Estilo igual que CRA y Directo
+   - Color naranja/amber (gradient)
+   - Icono de trofeo
+   - Expande al hover mostrando líder e islas activas
 
 3. **🔄 Auto-Refresh**
    - Actualización automática cada 30 segundos
    - Toggle para activar/desactivar
    - Indicador visual de última actualización
 
-4. **📊 UI Features**
-   - Header con total de visitas y hora
-   - Animaciones de entrada
-   - Corona para 1er lugar
-   - Medallas para 2º y 3º lugar
+4. **⏱️ Cron Job Cada 5 Minutos**
+   - Scheduler en backend cada 5 minutos
+   - Guarda estadísticas horarias, diarias y semanales
+   - Garantiza histórico aunque las cámaras tengan retención limitada
 
 #### Componentes:
-- `NOCCompetitivo.jsx` - Dashboard principal
-- `NOCCompetitivoFloatingButton.jsx` - Botón flotante
+- `NOCCompetitivo.jsx` - Dashboard principal sin scroll
+- `NOCCompetitivoFloatingButton.jsx` - Botón lateral estilo CRA
 
 #### Testing:
 - 16/16 backend tests pasados ✅
-- 10/10 UI tests pasados ✅
+- 100% UI tests pasados ✅
 
 ## Pending Issues
 - (P1) La comparación de meses no renderiza resultados correctamente
@@ -168,9 +169,7 @@ GET  /api/brand-statistics/summary
 - (P0) Desplegar cambios en servidor de producción del usuario
 - (P1) Debug comparación histórica mes vs mes
 - (P1) Verificar datos del mapa por isla (issue reportado)
-- (P1) Cron Job automático cada 5 min para datos de cámaras
 - (P2) Permisos granulares de usuario
-- (P2) Script deploy.sh
 - (P2) Añadir más cámaras de otras marcas
 - (P2) Refactorizar App.js (4000+ líneas)
 
