@@ -12,15 +12,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
-// Island configuration with colors
+// Island configuration with colors and PNG paths
 const ISLANDS = [
-  { id: 'tenerife', name: 'Tenerife', shortName: 'TF', color: '#8B5CF6' },
-  { id: 'gran-canaria', name: 'Gran Canaria', shortName: 'GC', color: '#10B981' },
-  { id: 'lanzarote', name: 'Lanzarote', shortName: 'LZ', color: '#3B82F6' },
-  { id: 'fuerteventura', name: 'Fuerteventura', shortName: 'FV', color: '#F59E0B' },
-  { id: 'la-palma', name: 'La Palma', shortName: 'LP', color: '#06B6D4' },
-  { id: 'la-gomera', name: 'La Gomera', shortName: 'LG', color: '#EC4899' },
-  { id: 'el-hierro', name: 'El Hierro', shortName: 'EH', color: '#F97316' }
+  { id: 'tenerife', name: 'Tenerife', shortName: 'TF', color: '#8B5CF6', png: '/islands/tenerife.png' },
+  { id: 'gran-canaria', name: 'Gran Canaria', shortName: 'GC', color: '#10B981', png: '/islands/grancanaria.png' },
+  { id: 'lanzarote', name: 'Lanzarote', shortName: 'LZ', color: '#3B82F6', png: '/islands/lanzarote.png' },
+  { id: 'fuerteventura', name: 'Fuerteventura', shortName: 'FV', color: '#F59E0B', png: '/islands/fuerteventura.png' },
+  { id: 'la-palma', name: 'La Palma', shortName: 'LP', color: '#06B6D4', png: '/islands/lapalma.png' },
+  { id: 'la-gomera', name: 'La Gomera', shortName: 'LG', color: '#EC4899', png: null },
+  { id: 'el-hierro', name: 'El Hierro', shortName: 'EH', color: '#F97316', png: null }
 ];
 
 // Animated number component
@@ -179,25 +179,62 @@ const CenterRankingRow = ({ rank, center, maxVisits }) => {
   );
 };
 
-// Island stats card
+// Island stats card with PNG silhouette
 const IslandCard = ({ island, data, maxVisits }) => {
   const percentage = maxVisits > 0 ? (data.total / maxVisits) * 100 : 0;
+  const hasVisits = data.total > 0;
+  
+  // Filter style based on activity
+  const getFilterStyle = () => {
+    if (!hasVisits) return { filter: 'brightness(0.3) grayscale(1)' };
+    return { filter: `brightness(0.9) sepia(1) saturate(2) hue-rotate(80deg)` }; // Green tint for active
+  };
   
   return (
     <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700 hover:border-slate-500 transition-colors">
-      <div className="flex items-center gap-2 mb-2">
-        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: island.color }} />
-        <span className="font-semibold text-white text-sm">{island.shortName}</span>
-        <span className="text-xs text-slate-400 truncate">{island.name}</span>
-      </div>
-      <div className="text-2xl font-bold text-white mb-1">
-        <AnimatedNumber value={data.total || 0} />
-      </div>
-      <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
-        <div 
-          className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${percentage}%`, backgroundColor: island.color }}
-        />
+      <div className="flex items-start gap-3">
+        {/* Island silhouette */}
+        {island.png ? (
+          <div className="relative flex-shrink-0 w-12 h-12">
+            <img 
+              src={island.png}
+              alt={island.name}
+              className={cn(
+                "w-full h-full object-contain transition-all duration-300",
+                !hasVisits && "opacity-40"
+              )}
+              style={getFilterStyle()}
+            />
+          </div>
+        ) : (
+          <div 
+            className={cn(
+              "w-12 h-12 rounded-lg flex items-center justify-center text-lg font-bold text-white",
+              !hasVisits && "opacity-40"
+            )}
+            style={{ backgroundColor: island.color }}
+          >
+            {island.shortName}
+          </div>
+        )}
+        
+        {/* Island info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: island.color }} />
+            <span className="font-semibold text-white text-sm">{island.shortName}</span>
+            <span className="text-xs text-slate-400 truncate">{island.name}</span>
+          </div>
+          <div className="text-2xl font-bold text-white mb-1">
+            <AnimatedNumber value={data.total || 0} />
+          </div>
+          <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+            <div 
+              className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${percentage}%`, backgroundColor: island.color }}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
