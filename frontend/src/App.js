@@ -61,6 +61,7 @@ import DahuaDevicesPanel from "@/components/panels/DahuaDevicesPanel";
 import CRAFloatingButton from "@/components/common/CRAFloatingButton";
 import LiveViewerFloatingButton from "@/components/common/LiveViewerFloatingButton";
 import NOCFloatingButton from "@/components/common/NOCFloatingButton";
+import NOCCompetitivoFloatingButton from "@/components/common/NOCCompetitivoFloatingButton";
 import NOCDashboard from "@/components/panels/NOCDashboard";
 import NotificationSettings from "@/components/settings/NotificationSettings";
 import TelegramSettings from "@/components/settings/TelegramSettings";
@@ -3626,6 +3627,9 @@ const Dashboard = ({ onShowMobile }) => {
         onClick={() => setNocDashboardOpen(true)}
         offlineCount={deviceStats.offline}
       />
+
+      {/* NOC Competitivo Floating Button */}
+      <NOCCompetitivoFloatingButton authAxios={authAxios} />
 
       {/* NOC Dashboard Full Screen */}
       {nocDashboardOpen && (
