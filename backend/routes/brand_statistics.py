@@ -23,58 +23,226 @@ brand_statistics_collection = db["brand_statistics"]
 brand_daily_collection = db["brand_daily_statistics"]
 brand_hourly_collection = db["brand_hourly_statistics"]
 brand_weekly_collection = db["brand_weekly_statistics"]
+brands_collection = db["brands"]
+centers_collection = db["centers"]
 
-# Supported vehicle brands with logos
-VEHICLE_BRANDS = [
-    {
-        "id": "audi", 
-        "name": "AUDI", 
-        "color": "#BB0A1E",
-        "logo": "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/g8sy2ozg_Logo_audi.jpg"
-    },
-    {
-        "id": "volkswagen", 
-        "name": "VOLKSWAGEN", 
-        "color": "#001E50",
-        "logo": "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/d772iqi2_Volkswagen_logo_2019.svg.png"
-    },
-    {
-        "id": "skoda", 
-        "name": "SKODA", 
-        "color": "#4BA82E",
-        "logo": "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/vbhseao1_%C5%A0koda_nieuw.png"
-    },
-    {
-        "id": "honda", 
-        "name": "HONDA", 
-        "color": "#CC0000",
-        "logo": "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/syfdh3vw_Honda_Logo.svg.png"
-    },
-    {
-        "id": "ducati", 
-        "name": "DUCATI", 
-        "color": "#D40000",
-        "logo": "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/380b1h0d_Ducati_red_logo.PNG"
-    },
-    {
-        "id": "daocasion", 
-        "name": "DAOCASION", 
-        "color": "#FF6B00",
-        "logo": "https://customer-assets.emergentagent.com/job_56a630f4-4ecb-45b7-b12a-65eeb5453053/artifacts/58znr83b_dag_ocasion_color.png"
-    },
-    {
-        "id": "ocasion-domingo-alonso", 
-        "name": "Ocasión Domingo Alonso", 
-        "color": "#1E5AA8",
-        "logo": "https://customer-assets.emergentagent.com/job_56a630f4-4ecb-45b7-b12a-65eeb5453053/artifacts/2sliyeer_dag_ocasion_color.png"
-    }
+# Default vehicle brands (used to seed the database)
+DEFAULT_BRANDS = [
+    {"id": "audi", "name": "AUDI", "color": "#BB0A1E", "logo": "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/g8sy2ozg_Logo_audi.jpg", "active": True},
+    {"id": "volkswagen", "name": "VOLKSWAGEN", "color": "#001E50", "logo": "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/d772iqi2_Volkswagen_logo_2019.svg.png", "active": True},
+    {"id": "skoda", "name": "SKODA", "color": "#4BA82E", "logo": "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/vbhseao1_%C5%A0koda_nieuw.png", "active": True},
+    {"id": "honda", "name": "HONDA", "color": "#CC0000", "logo": "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/syfdh3vw_Honda_Logo.svg.png", "active": True},
+    {"id": "ducati", "name": "DUCATI", "color": "#D40000", "logo": "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/380b1h0d_Ducati_red_logo.PNG", "active": True},
+    {"id": "daocasion", "name": "DAOCASION", "color": "#FF6B00", "logo": "https://customer-assets.emergentagent.com/job_56a630f4-4ecb-45b7-b12a-65eeb5453053/artifacts/58znr83b_dag_ocasion_color.png", "active": True},
+    {"id": "ocasion-domingo-alonso", "name": "Ocasión Domingo Alonso", "color": "#1E5AA8", "logo": "https://customer-assets.emergentagent.com/job_56a630f4-4ecb-45b7-b12a-65eeb5453053/artifacts/2sliyeer_dag_ocasion_color.png", "active": True}
 ]
+
+# Default centers/islands
+DEFAULT_CENTERS = [
+    {"id": "tenerife", "name": "Tenerife", "island": "tenerife", "active": True},
+    {"id": "gran-canaria", "name": "Gran Canaria", "island": "gran-canaria", "active": True},
+    {"id": "lanzarote", "name": "Lanzarote", "island": "lanzarote", "active": True},
+    {"id": "fuerteventura", "name": "Fuerteventura", "island": "fuerteventura", "active": True},
+    {"id": "la-palma", "name": "La Palma", "island": "la-palma", "active": True},
+    {"id": "la-gomera", "name": "La Gomera", "island": "la-gomera", "active": True},
+    {"id": "el-hierro", "name": "El Hierro", "island": "el-hierro", "active": True}
+]
+
+
+async def get_brands_from_db():
+    """Get brands from database, seed if empty"""
+    brands = await brands_collection.find({"active": True}, {"_id": 0}).to_list(length=100)
+    if not brands:
+        # Seed default brands
+        for brand in DEFAULT_BRANDS:
+            await brands_collection.update_one({"id": brand["id"]}, {"$set": brand}, upsert=True)
+        brands = DEFAULT_BRANDS
+    return brands
+
+
+async def get_centers_from_db():
+    """Get centers from database, seed if empty"""
+    centers = await centers_collection.find({"active": True}, {"_id": 0}).to_list(length=100)
+    if not centers:
+        # Seed default centers
+        for center in DEFAULT_CENTERS:
+            await centers_collection.update_one({"id": center["id"]}, {"$set": center}, upsert=True)
+        centers = DEFAULT_CENTERS
+    return centers
+
+
+# Legacy compatibility - for old code that uses VEHICLE_BRANDS
+VEHICLE_BRANDS = DEFAULT_BRANDS
 
 
 @router.get("/brands")
 async def get_brands(current_user: dict = Depends(get_current_user)):
-    """Get list of supported vehicle brands"""
-    return {"brands": VEHICLE_BRANDS}
+    """Get list of vehicle brands from database"""
+    brands = await get_brands_from_db()
+    return {"brands": brands}
+
+
+@router.post("/brands")
+async def create_brand(
+    id: str = Body(...),
+    name: str = Body(...),
+    color: str = Body(default="#666666"),
+    logo: str = Body(default=""),
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new brand"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Solo admin puede gestionar marcas")
+    
+    existing = await brands_collection.find_one({"id": id})
+    if existing:
+        raise HTTPException(status_code=400, detail="Ya existe una marca con ese ID")
+    
+    brand = {
+        "id": id,
+        "name": name,
+        "color": color,
+        "logo": logo,
+        "active": True,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await brands_collection.insert_one(brand)
+    return {"message": "Marca creada", "brand": {k: v for k, v in brand.items() if k != "_id"}}
+
+
+@router.put("/brands/{brand_id}")
+async def update_brand(
+    brand_id: str,
+    name: str = Body(None),
+    color: str = Body(None),
+    logo: str = Body(None),
+    active: bool = Body(None),
+    current_user: dict = Depends(get_current_user)
+):
+    """Update an existing brand"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Solo admin puede gestionar marcas")
+    
+    update_data = {}
+    if name is not None: update_data["name"] = name
+    if color is not None: update_data["color"] = color
+    if logo is not None: update_data["logo"] = logo
+    if active is not None: update_data["active"] = active
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    result = await brands_collection.update_one({"id": brand_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Marca no encontrada")
+    
+    updated = await brands_collection.find_one({"id": brand_id}, {"_id": 0})
+    return {"message": "Marca actualizada", "brand": updated}
+
+
+@router.delete("/brands/{brand_id}")
+async def delete_brand(
+    brand_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a brand (soft delete - sets active=False)"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Solo admin puede gestionar marcas")
+    
+    result = await brands_collection.update_one(
+        {"id": brand_id}, 
+        {"$set": {"active": False, "deleted_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Marca no encontrada")
+    
+    return {"message": "Marca eliminada", "brand_id": brand_id}
+
+
+# ============== CENTERS/ISLANDS MANAGEMENT ==============
+
+@router.get("/centers")
+async def get_centers(current_user: dict = Depends(get_current_user)):
+    """Get list of centers/islands from database"""
+    centers = await get_centers_from_db()
+    return {"centers": centers}
+
+
+@router.post("/centers")
+async def create_center(
+    id: str = Body(...),
+    name: str = Body(...),
+    island: str = Body(None),
+    address: str = Body(default=""),
+    brand_id: str = Body(None),
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new center/location"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Solo admin puede gestionar centros")
+    
+    existing = await centers_collection.find_one({"id": id})
+    if existing:
+        raise HTTPException(status_code=400, detail="Ya existe un centro con ese ID")
+    
+    center = {
+        "id": id,
+        "name": name,
+        "island": island or id,
+        "address": address,
+        "brand_id": brand_id,
+        "active": True,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await centers_collection.insert_one(center)
+    return {"message": "Centro creado", "center": {k: v for k, v in center.items() if k != "_id"}}
+
+
+@router.put("/centers/{center_id}")
+async def update_center(
+    center_id: str,
+    name: str = Body(None),
+    island: str = Body(None),
+    address: str = Body(None),
+    brand_id: str = Body(None),
+    active: bool = Body(None),
+    current_user: dict = Depends(get_current_user)
+):
+    """Update an existing center"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Solo admin puede gestionar centros")
+    
+    update_data = {}
+    if name is not None: update_data["name"] = name
+    if island is not None: update_data["island"] = island
+    if address is not None: update_data["address"] = address
+    if brand_id is not None: update_data["brand_id"] = brand_id
+    if active is not None: update_data["active"] = active
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    result = await centers_collection.update_one({"id": center_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Centro no encontrado")
+    
+    updated = await centers_collection.find_one({"id": center_id}, {"_id": 0})
+    return {"message": "Centro actualizado", "center": updated}
+
+
+@router.delete("/centers/{center_id}")
+async def delete_center(
+    center_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a center (soft delete)"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Solo admin puede gestionar centros")
+    
+    result = await centers_collection.update_one(
+        {"id": center_id}, 
+        {"$set": {"active": False, "deleted_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Centro no encontrado")
+    
+    return {"message": "Centro eliminado", "center_id": center_id}
 
 
 @router.get("/ranking")
