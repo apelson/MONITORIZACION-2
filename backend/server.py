@@ -330,11 +330,11 @@ async def lifespan(app: FastAPI):
     
     scheduler.add_job(
         store_brand_statistics_snapshot,
-        IntervalTrigger(hours=1),
+        IntervalTrigger(minutes=5),
         id="brand_stats_snapshot",
         replace_existing=True
     )
-    logger.info("Brand statistics scheduler started - storing every hour")
+    logger.info("Brand statistics scheduler started - storing every 5 minutes")
     
     scheduler.start()
     logger.info("Scheduler started for daily reports")

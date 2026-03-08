@@ -1,21 +1,20 @@
 /**
- * NOCCompetitivoFloatingButton - Floating button to open NOC Competitivo dashboard
- * Shows quick stats and opens fullscreen competitive leaderboard
+ * NOCCompetitivoFloatingButton - Floating lateral button for NOC Competitivo
+ * Same style as CRA and LiveViewer buttons
+ * Shows real-time ranking stats with expand on hover
  */
 import { useState, useEffect, useCallback } from 'react';
-import { Trophy, X, TrendingUp, Users, Flame } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { Trophy, Crown, ChevronRight, TrendingUp, MapPin, Users } from 'lucide-react';
+import { Badge } from '../ui/badge';
 import NOCCompetitivo from '@/components/panels/NOCCompetitivo';
 
-const NOCCompetitivoFloatingButton = ({ authAxios }) => {
+const NOCCompetitivoFloatingButton = ({ authAxios, onClick, isActive }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [quickStats, setQuickStats] = useState({ total: 0, leader: null });
-  const [isHovered, setIsHovered] = useState(false);
-  
-  // Fetch quick stats for the badge
-  const fetchQuickStats = useCallback(async () => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [stats, setStats] = useState({ total: 0, leader: null, islands: 0 });
+  const [loading, setLoading] = useState(true);
+
+  const fetchStats = useCallback(async () => {
     try {
       const response = await authAxios.get('/brand-statistics/ranking', {
         params: { period: 'day' }
@@ -23,85 +22,130 @@ const NOCCompetitivoFloatingButton = ({ authAxios }) => {
       const ranking = response.data.ranking || [];
       const total = ranking.reduce((sum, item) => sum + (item.total_visits || 0), 0);
       const leader = ranking.length > 0 ? ranking[0] : null;
-      setQuickStats({ total, leader });
+      
+      // Count islands with activity
+      const islandsResponse = await authAxios.get('/brand-statistics/history/by-island', {
+        params: { 
+          start_date: new Date().toISOString().split('T')[0],
+          end_date: new Date().toISOString().split('T')[0]
+        }
+      });
+      const islandsData = islandsResponse.data.islands || {};
+      const activeIslands = Object.values(islandsData).filter(i => i.total > 0).length;
+      
+      setStats({ total, leader, islands: activeIslands });
     } catch (error) {
-      console.error('Error fetching quick stats:', error);
+      console.error('Error fetching stats:', error);
+    } finally {
+      setLoading(false);
     }
   }, [authAxios]);
-  
+
   useEffect(() => {
-    fetchQuickStats();
-    const interval = setInterval(fetchQuickStats, 60000); // Update every minute
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
-  }, [fetchQuickStats]);
-  
+  }, [fetchStats]);
+
+  const handleClick = () => {
+    setIsOpen(true);
+  };
+
+  if (loading) {
+    return (
+      <div className="fixed right-0 z-50" style={{ top: 'calc(33% + 200px)' }}>
+        <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-2 sm:p-3 rounded-l-xl shadow-lg animate-pulse">
+          <Trophy className="w-5 h-5 sm:w-6 sm:h-6" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-      {/* Floating Button */}
       <div 
-        className="fixed bottom-44 right-6 z-40"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        className="fixed right-0 z-50 transition-all duration-300"
+        style={{ top: 'calc(33% + 200px)' }}
+        onMouseEnter={() => setIsExpanded(true)}
+        onMouseLeave={() => setIsExpanded(false)}
+        data-testid="noc-competitivo-btn"
       >
-        {/* Quick stats tooltip on hover */}
-        <div className={cn(
-          "absolute bottom-full right-0 mb-2 transition-all duration-300",
-          isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
-        )}>
-          <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 shadow-xl min-w-[200px]">
-            <div className="text-xs text-slate-400 mb-2">Ranking Hoy</div>
-            {quickStats.leader && (
-              <div className="flex items-center gap-2 mb-2">
-                <Trophy className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm font-medium text-white">{quickStats.leader.brand_name}</span>
-                <Badge variant="secondary" className="ml-auto text-xs">
-                  {(quickStats.leader.total_visits || 0).toLocaleString('es-ES')}
-                </Badge>
-              </div>
+        <div 
+          className={`
+            flex items-center cursor-pointer shadow-2xl rounded-l-xl overflow-hidden
+            transition-all duration-300
+            bg-gradient-to-r from-amber-500 via-orange-500 to-orange-600 text-white
+            hover:from-amber-400 hover:via-orange-400 hover:to-orange-500
+            ${isActive || isOpen ? 'ring-4 ring-orange-300 ring-opacity-50' : ''}
+          `}
+          onClick={handleClick}
+        >
+          {/* Icon section */}
+          <div className={`p-2 sm:p-3 flex flex-col items-center justify-center ${isExpanded ? 'sm:border-r border-white/20' : ''}`}>
+            <Trophy className="w-5 h-5 sm:w-8 sm:h-8" />
+            {stats.total > 0 && (
+              <span className="text-[10px] sm:text-xs font-bold mt-0.5 sm:mt-1">
+                {stats.total.toLocaleString('es-ES')}
+              </span>
             )}
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <Users className="w-3 h-3" />
-              <span>{quickStats.total.toLocaleString('es-ES')} visitas totales</span>
+          </div>
+
+          {/* Expanded content */}
+          <div className={`overflow-hidden transition-all duration-300 hidden sm:block ${isExpanded ? 'w-52 opacity-100' : 'w-0 opacity-0'}`}>
+            <div className="p-3 whitespace-nowrap">
+              <div className="font-bold text-sm mb-1 flex items-center gap-2">
+                <Crown className="w-4 h-4 text-yellow-200" />
+                NOC Competitivo
+              </div>
+              
+              <div className="space-y-1 text-xs">
+                {stats.leader && (
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3" />
+                      Líder
+                    </span>
+                    <Badge variant="secondary" className="bg-white/20 text-white h-5 max-w-[80px] truncate">
+                      {stats.leader.brand_name}
+                    </Badge>
+                  </div>
+                )}
+                
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1">
+                    <Users className="w-3 h-3" />
+                    Visitas hoy
+                  </span>
+                  <Badge variant="secondary" className="bg-white/20 text-white h-5">
+                    {stats.total.toLocaleString('es-ES')}
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    Islas activas
+                  </span>
+                  <Badge variant="secondary" className="bg-white/20 text-white h-5">
+                    {stats.islands}/7
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="mt-2 pt-2 border-t border-white/20 flex items-center justify-between text-xs">
+                <span>Ver ranking</span>
+                <ChevronRight className="w-4 h-4" />
+              </div>
             </div>
           </div>
         </div>
-        
-        {/* Main button */}
-        <Button
-          onClick={() => setIsOpen(true)}
-          className={cn(
-            "relative h-14 w-14 rounded-full shadow-lg transition-all duration-300",
-            "bg-gradient-to-br from-yellow-500 via-amber-500 to-orange-600",
-            "hover:from-yellow-400 hover:via-amber-400 hover:to-orange-500",
-            "hover:scale-110 hover:shadow-xl hover:shadow-amber-500/30",
-            "border-2 border-yellow-300/50"
-          )}
-          data-testid="noc-competitivo-btn"
-        >
-          <Trophy className="w-6 h-6 text-white" />
-          
-          {/* Pulse animation when there are visits */}
-          {quickStats.total > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500 items-center justify-center">
-                <Flame className="w-2.5 h-2.5 text-white" />
-              </span>
-            </span>
-          )}
-        </Button>
-        
-        {/* Label */}
-        <div className={cn(
-          "absolute -left-24 top-1/2 -translate-y-1/2 transition-all duration-300 whitespace-nowrap pointer-events-none",
-          isHovered ? "opacity-100 -translate-x-0" : "opacity-0 translate-x-2"
-        )}>
-          <span className="bg-slate-900/90 text-white text-xs px-2 py-1 rounded-md shadow-lg">
-            NOC Competitivo
-          </span>
+
+        {/* Pulse animation for live indicator */}
+        <div className="absolute top-1 sm:top-2 left-1 sm:left-2 pointer-events-none">
+          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-yellow-300 rounded-full animate-pulse" />
         </div>
       </div>
-      
+
       {/* Fullscreen NOC Competitivo Dashboard */}
       {isOpen && (
         <NOCCompetitivo 
