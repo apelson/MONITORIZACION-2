@@ -128,6 +128,39 @@ GET  /api/brand-statistics/summary
 - 17/17 backend tests pasados ✅
 - UI completamente verificada ✅
 
+### ✅ COMPLETADO - NOC Competitivo (Dashboard Leaderboard)
+
+#### Funcionalidades Implementadas:
+1. **🏆 Dashboard Competitivo Fullscreen**
+   - Podium visual con top 3 marcas (oro, plata, bronce)
+   - Ranking completo con todas las marcas
+   - Barras de progreso animadas
+   - Logos de marcas en podium y ranking
+
+2. **🔘 Botón Flotante**
+   - Icono de trofeo dorado
+   - Tooltip con "Ranking Hoy" y líder actual
+   - Click abre dashboard fullscreen
+
+3. **🔄 Auto-Refresh**
+   - Actualización automática cada 30 segundos
+   - Toggle para activar/desactivar
+   - Indicador visual de última actualización
+
+4. **📊 UI Features**
+   - Header con total de visitas y hora
+   - Animaciones de entrada
+   - Corona para 1er lugar
+   - Medallas para 2º y 3º lugar
+
+#### Componentes:
+- `NOCCompetitivo.jsx` - Dashboard principal
+- `NOCCompetitivoFloatingButton.jsx` - Botón flotante
+
+#### Testing:
+- 16/16 backend tests pasados ✅
+- 10/10 UI tests pasados ✅
+
 ## Pending Issues
 - (P1) La comparación de meses no renderiza resultados correctamente
 
@@ -135,7 +168,6 @@ GET  /api/brand-statistics/summary
 - (P0) Desplegar cambios en servidor de producción del usuario
 - (P1) Debug comparación histórica mes vs mes
 - (P1) Verificar datos del mapa por isla (issue reportado)
-- (P1) NOC Competitivo - Dashboard leaderboard tiempo real
 - (P1) Cron Job automático cada 5 min para datos de cámaras
 - (P2) Permisos granulares de usuario
 - (P2) Script deploy.sh
