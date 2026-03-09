@@ -24,8 +24,8 @@ const LiveViewerFloatingButton = ({ authAxios, onClick, isActive, devices = [] }
 
   return (
     <div 
-      className={`fixed right-0 z-50 transition-all duration-300 sm:block`}
-      style={{ top: 'calc(33% + 100px)' }}
+      className="fixed right-0 z-50 transition-all duration-300 sm:block"
+      style={{ top: '280px' }}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
       onClick={() => {
@@ -57,7 +57,7 @@ const LiveViewerFloatingButton = ({ authAxios, onClick, isActive, devices = [] }
         </div>
 
         {/* Expanded content - hidden on mobile */}
-        <div className={`overflow-hidden transition-all duration-300 hidden sm:block ${isExpanded ? 'w-48 opacity-100' : 'w-0 opacity-0'}`}>
+        <div className={`overflow-hidden transition-all duration-300 hidden sm:block ${isExpanded ? 'w-44 opacity-100' : 'w-0 opacity-0'}`}>
           <div className="p-3 whitespace-nowrap">
             <div className="font-bold text-sm mb-1 flex items-center gap-2">
               <Eye className="w-4 h-4" />

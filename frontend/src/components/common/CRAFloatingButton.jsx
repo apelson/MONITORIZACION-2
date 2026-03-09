@@ -33,7 +33,7 @@ const CRAFloatingButton = ({ authAxios, onClick, isActive }) => {
 
   if (loading) {
     return (
-      <div className="fixed right-0 top-1/3 z-50">
+      <div className="fixed right-0 z-50" style={{ top: '200px' }}>
         <div className="bg-gray-200 text-gray-500 p-2 sm:p-3 rounded-l-xl shadow-lg animate-pulse">
           <Shield className="w-5 h-5 sm:w-6 sm:h-6" />
         </div>
@@ -43,7 +43,8 @@ const CRAFloatingButton = ({ authAxios, onClick, isActive }) => {
 
   return (
     <div 
-      className={`fixed right-0 top-1/3 z-50 transition-all duration-300 ${isExpanded ? 'translate-x-0' : 'translate-x-0'}`}
+      className="fixed right-0 z-50 transition-all duration-300"
+      style={{ top: '200px' }}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >
@@ -79,7 +80,7 @@ const CRAFloatingButton = ({ authAxios, onClick, isActive }) => {
         </div>
 
         {/* Expanded content - hidden on mobile */}
-        <div className={`overflow-hidden transition-all duration-300 hidden sm:block ${isExpanded ? 'w-48 opacity-100' : 'w-0 opacity-0'}`}>
+        <div className={`overflow-hidden transition-all duration-300 hidden sm:block ${isExpanded ? 'w-44 opacity-100' : 'w-0 opacity-0'}`}>
           <div className="p-3 whitespace-nowrap">
             <div className="font-bold text-sm mb-1">Panel CRA</div>
             

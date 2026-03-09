@@ -53,7 +53,7 @@ const NOCCompetitivoFloatingButton = ({ authAxios, onClick, isActive }) => {
 
   if (loading) {
     return (
-      <div className="fixed right-0 z-50" style={{ top: 'calc(33% + 200px)' }}>
+      <div className="fixed right-0 z-50" style={{ top: '360px' }}>
         <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-2 sm:p-3 rounded-l-xl shadow-lg animate-pulse">
           <Trophy className="w-5 h-5 sm:w-6 sm:h-6" />
         </div>
@@ -65,7 +65,7 @@ const NOCCompetitivoFloatingButton = ({ authAxios, onClick, isActive }) => {
     <>
       <div 
         className="fixed right-0 z-50 transition-all duration-300"
-        style={{ top: 'calc(33% + 200px)' }}
+        style={{ top: '360px' }}
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
         data-testid="noc-competitivo-btn"
@@ -91,7 +91,7 @@ const NOCCompetitivoFloatingButton = ({ authAxios, onClick, isActive }) => {
           </div>
 
           {/* Expanded content */}
-          <div className={`overflow-hidden transition-all duration-300 hidden sm:block ${isExpanded ? 'w-52 opacity-100' : 'w-0 opacity-0'}`}>
+          <div className={`overflow-hidden transition-all duration-300 hidden sm:block ${isExpanded ? 'w-44 opacity-100' : 'w-0 opacity-0'}`}>
             <div className="p-3 whitespace-nowrap">
               <div className="font-bold text-sm mb-1 flex items-center gap-2">
                 <Crown className="w-4 h-4 text-yellow-200" />
