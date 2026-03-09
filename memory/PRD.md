@@ -13,135 +13,110 @@ Sistema de monitorización de red profesional para Siempria. Incluye NOC de cont
    - Efectos de brillo dorado para el líder
    - Corona animada con partículas Sparkles
    - Bloques 3D con sombras y profundidad
-   - Hover effects con scale transform
 
 2. **🎨 Diseño Glassmorphism**
    - Fondos con backdrop-blur-md
-   - Bordes translúcidos (border-white/10)
-   - Cards de ranking con hover effects
-   - Scrollbar personalizado
+   - Bordes translúcidos
+   - Cards con hover effects
 
 3. **🌈 Fondo Animado**
-   - Orbes de gradiente animados (púrpura, cyan, ámbar)
+   - Orbes de gradiente animados
    - Patrón de cuadrícula sutil
-   - Color base #0a0a1a (casi negro)
 
 4. **⏰ Reloj en Tiempo Real**
-   - Formato HH:MM:SS con actualización cada segundo
-   - Fecha completa (día de la semana, número, mes)
-   - Font tabular-nums para números fijos
+   - Formato HH:MM:SS actualizado cada segundo
+   - Fecha completa (día, número, mes)
 
-5. **🏝️ Panel de Islas Canarias**
-   - 7 islas con badges de colores distintivos
-   - TF (violeta), GC (verde), LZ (azul), FV (ámbar)
-   - LP (cyan), LG (rosa), EH (naranja)
+5. **🏝️ Panel de Islas con Siluetas PNG**
+   - 5 islas con siluetas reales (TF, GC, LZ, FV, LP)
+   - 2 islas con badges (LG, EH - no tienen PNG)
+   - Efecto glow según actividad
    - Corona para isla líder
 
-6. **📊 Ranking con Tabs**
-   - Tab Marcas: ranking completo de marcas
-   - Tab Centros: ranking por centro/isla
-   - Barras de progreso animadas
-   - Badges con contadores
+6. **🎊 Efectos de Confeti**
+   - Librería canvas-confetti instalada
+   - Botón manual para lanzar confeti
+   - Confeti automático cuando hay récord (+10%)
+   - Partículas doradas, naranjas, rojas, púrpuras, cyan
 
 ### ✅ COMPLETADO - Alineación de Botones Flotantes
 
-#### Problema Resuelto:
-Los 3 botones flotantes (CRA, LiveViewer, NOC Competitivo) tenían posiciones inconsistentes usando `calc()` que causaban desalineación visual.
+- **CRAFloatingButton**: `top: 200px`
+- **LiveViewerFloatingButton**: `top: 280px`
+- **NOCCompetitivoFloatingButton**: `top: 360px`
+- **Ancho expandido unificado**: `w-44` para todos
+- **Espaciado uniforme**: 80px entre botones
+- **Testing**: 23/23 tests pasados ✅
 
-#### Solución Aplicada:
-- **CRAFloatingButton**: `top: 200px` (era `top-1/3`)
-- **LiveViewerFloatingButton**: `top: 280px` (era `calc(33% + 100px)`)
-- **NOCCompetitivoFloatingButton**: `top: 360px` (era `calc(33% + 200px)`)
-- **Ancho expandido unificado**: `w-44` para todos (antes NOC tenía `w-52`)
-- **Espaciado uniforme**: 80px entre cada botón
+### ✅ VERIFICADO - Logos en Brand/Center Manager
 
-#### Testing:
-- 23/23 tests pasados ✅
-- Alineación verificada: todos en x=1864
+Los logos de todas las marcas (AUDI, VOLKSWAGEN, SKODA, HONDA, DUCATI, DAOCASION) se muestran correctamente:
+- Base de datos tiene campo `logo` con URLs válidas
+- Frontend usa `brand.logo` correctamente
+- Backend API devuelve todos los campos
 
-## Archivos Principales Actualizados:
+## Archivos Modificados:
 ```
 /app/frontend/src/components/
 ├── panels/
-│   └── NOCCompetitivo.jsx (REDISEÑO COMPLETO)
+│   └── NOCCompetitivo.jsx (REDISEÑO + SILUETAS + CONFETI)
 └── common/
     ├── CRAFloatingButton.jsx (ALINEACIÓN)
     ├── LiveViewerFloatingButton.jsx (ALINEACIÓN)
     └── NOCCompetitivoFloatingButton.jsx (ALINEACIÓN)
 ```
 
-## Session - 07-08 Mar 2026 (Previous)
-
-### ✅ COMPLETADO - Sistema de Conteo de Visitas
-
-#### Funcionalidades:
-1. **🗺️ Mapa Interactivo Leaflet/OpenStreetMap**
-2. **📊 NOC de Conteo en Tiempo Real** (solo ENTRADAS)
-3. **📈 Sistema Histórico Completo**
-4. **🏆 Ranking de Marcas** (AUDI, VOLKSWAGEN, SKODA, HONDA, DUCATI, DAOCASION)
-5. **⚙️ Panel de Configuración de Cámaras**
-6. **🏷️ CRUD de Marcas/Centros con Upload de Logos**
-
-### API Endpoints:
+## Dependencias Añadidas:
 ```
-# Tiempo Real
-GET  /api/brand-statistics/realtime
-POST /api/brand-statistics/realtime/refresh
-
-# Histórico
-GET  /api/brand-statistics/history/daily
-GET  /api/brand-statistics/history/weekly
-GET  /api/brand-statistics/history/by-island
-
-# Configuración
-GET    /api/brand-statistics/cameras-config
-POST   /api/brand-statistics/cameras-config
-DELETE /api/brand-statistics/cameras-config/{id}
-
-# Marcas/Centros
-GET  /api/brand-statistics/brands
-POST /api/brand-statistics/brands
-PUT  /api/brand-statistics/brands/{id}
-DELETE /api/brand-statistics/brands/{id}
-GET  /api/brand-statistics/centers
-POST /api/brand-statistics/centers
-
-# Exportación
-GET  /api/brand-statistics/export/csv
+canvas-confetti: ^1.9.4
 ```
 
-## Pending Issues
+## Previous Sessions (07-08 Mar 2026)
 
-### P1 - Logos en Brand/Center Manager
-- **Problema**: Logos de marcas antiguas (AUDI, VW, etc.) no aparecen en el gestor
-- **Causa probable**: Inconsistencia entre campos `logo` y `logo_url` en la DB
-- **Acción**: Investigar API `/api/brand-statistics/brands` y sincronizar campos
+### Sistema de Conteo de Visitas
+- Mapa Interactivo Leaflet/OpenStreetMap
+- NOC de Conteo en Tiempo Real (solo ENTRADAS)
+- Sistema Histórico Completo
+- Ranking de Marcas
+- Panel de Configuración de Cámaras
+- CRUD de Marcas/Centros con Upload de Logos
+
+### API Endpoints
+```
+GET/POST /api/brand-statistics/brands
+GET/POST /api/brand-statistics/centers
+GET /api/brand-statistics/realtime
+GET /api/brand-statistics/ranking
+GET /api/brand-statistics/ranking-by-center
+GET /api/brand-statistics/history/by-island
+GET /api/brand-statistics/cameras-config
+POST /api/upload
+```
+
+## Pending Issues (Específicos del servidor de producción 192.168.1.76)
 
 ### P2 - Cámara Fantasma
-- **Problema**: "AUDI Tenerife - Entrada" aparece en listas pero fue eliminada
-- **Acción**: Buscar en colección `devices` y eliminar entrada
+- **Issue**: "AUDI Tenerife - Entrada" aparece en listas pero fue eliminada
+- **Estado**: No reproducible en preview (no existe en DB local)
+- **Acción**: Usuario debe buscar en `db.devices` de su servidor
 
 ### P2 - Datos del Mapa
-- **Problema**: Conteos del mapa no coinciden con otros paneles NOC
-- **Acción**: Revisar agregación en endpoint y `LeafletCanaryMap.jsx`
+- **Issue**: Conteos del mapa no coinciden con otros paneles
+- **Estado**: Mapa funciona correctamente en preview
+- **Causa probable**: Dispositivos sin isla asignada en servidor de producción
 
-## Upcoming Tasks
-
-### P1 - Implementar Subida de Archivos para Logos
-- Actualmente solo permite URL
-- Crear endpoint POST /api/upload
-- Modificar BrandCenterManager.jsx
+## Future Tasks
 
 ### P2 - Permisos Granulares de Usuario
 - Filtrar datos según permisos del usuario
-- Extender modelo de usuario
+- Extender modelo de usuario con `allowed_brands` y `allowed_centers`
 
 ## Credentials
 - Admin: admin / admin123
 - Mobotix: admin / Spw6009 @ 212.64.162.40:40002
 
 ## Database Collections
-- `brands` - Configuración de marcas
+- `brands` - Configuración de marcas (con campo `logo`)
 - `centers` - Centros por isla
 - `brand_cameras_config` - Configuración de cámaras
 - `brand_hourly_statistics` - Estadísticas por hora
@@ -149,7 +124,7 @@ GET  /api/brand-statistics/export/csv
 - `brand_weekly_statistics` - Estadísticas semanales
 
 ## Tech Stack
-- Frontend: React + TailwindCSS + Shadcn/UI
+- Frontend: React + TailwindCSS + Shadcn/UI + canvas-confetti
 - Backend: FastAPI + MongoDB
 - Maps: Leaflet + OpenStreetMap
 - Charts: Recharts
