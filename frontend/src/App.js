@@ -46,6 +46,8 @@ import RealtimeCountingNOC from "@/components/panels/RealtimeCountingNOC";
 import HistoricalStatsPanel from "@/components/panels/HistoricalStatsPanel";
 import CameraConfigPanel from "@/components/panels/CameraConfigPanel";
 import BrandCenterManager from "@/components/panels/BrandCenterManager";
+import ReportExportPanel from "@/components/panels/ReportExportPanel";
+import UserPermissionsManager from "@/components/panels/UserPermissionsManager";
 import IncidentsPanel from "@/components/panels/IncidentsPanel";
 import AccessLogsPanel from "@/components/panels/AccessLogsPanel";
 import BackupPanel from "@/components/panels/BackupPanel";
@@ -3425,7 +3427,14 @@ const Dashboard = ({ onShowMobile }) => {
           <TabsContent value="statistics">
             <div className="space-y-6">
               {/* Brand Ranking Section */}
-              <BrandRankingPanel authAxios={authAxios} />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <BrandRankingPanel authAxios={authAxios} />
+                </div>
+                <div>
+                  <ReportExportPanel authAxios={authAxios} />
+                </div>
+              </div>
               
               {/* Camera Statistics Section */}
               <div className="border-t pt-6">
@@ -3520,7 +3529,14 @@ const Dashboard = ({ onShowMobile }) => {
           
           {!isOperator && <TabsContent value="live" className="h-[calc(100vh-200px)]"><LiveViewer authAxios={authAxios} devices={devices} organizations={organizations} groups={groups} /></TabsContent>}
           {isAdmin && <TabsContent value="infrastructure"><InfrastructurePanel authAxios={authAxios} /></TabsContent>}
-          {isAdmin && <TabsContent value="users"><UsersPanel users={users} authAxios={authAxios} onCreateUser={() => { setSelectedUser(null); setUserDialogOpen(true); }} onEditUser={(u) => { setSelectedUser(u); setUserDialogOpen(true); }} onDeleteUser={(u) => { setDeleteTarget({ type: "user", item: u }); setDeleteDialogOpen(true); }} onResetPassword={handleOpenPasswordDialog} onUserUpdate={fetchAll} /></TabsContent>}
+          {isAdmin && <TabsContent value="users">
+            <div className="space-y-6">
+              <UsersPanel users={users} authAxios={authAxios} onCreateUser={() => { setSelectedUser(null); setUserDialogOpen(true); }} onEditUser={(u) => { setSelectedUser(u); setUserDialogOpen(true); }} onDeleteUser={(u) => { setDeleteTarget({ type: "user", item: u }); setDeleteDialogOpen(true); }} onResetPassword={handleOpenPasswordDialog} onUserUpdate={fetchAll} />
+              <div className="border-t pt-6">
+                <UserPermissionsManager authAxios={authAxios} />
+              </div>
+            </div>
+          </TabsContent>}
           {isAdmin && <TabsContent value="logs"><AccessLogsPanel authAxios={authAxios} /></TabsContent>}
           {(isAdmin || isTechnician) && <TabsContent value="incidents"><IncidentsPanel devices={devices} authAxios={authAxios} /></TabsContent>}
           {isAdmin && <TabsContent value="settings">

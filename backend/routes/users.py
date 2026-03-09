@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import uuid
 
 from config import users_collection
-from models import UserCreate, UserUpdate, AdminSetPassword
+from models import UserCreate, UserUpdate, AdminSetPassword, UserPermissionsUpdate
 from services.auth_service import get_password_hash, get_current_user, require_role
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -28,6 +28,8 @@ async def create_user(user_data: UserCreate, current_user: dict = Depends(requir
         "full_name": user_data.full_name or "",
         "is_active": True,
         "group_ids": user_data.group_ids or [],
+        "allowed_brands": user_data.allowed_brands or [],
+        "allowed_centers": user_data.allowed_centers or [],
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await users_collection.insert_one(user)
@@ -42,6 +44,43 @@ async def update_user(user_id: str, user_data: UserUpdate, current_user: dict = 
         raise HTTPException(status_code=400, detail="No hay datos para actualizar")
     await users_collection.update_one({"id": user_id}, {"$set": update_data})
     return {"message": "Usuario actualizado"}
+
+@router.put("/{user_id}/permissions")
+async def update_user_permissions(
+    user_id: str, 
+    permissions: UserPermissionsUpdate, 
+    current_user: dict = Depends(require_role(["admin"]))
+):
+    """Update user's brand/center permissions"""
+    user = await users_collection.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    update_data = {}
+    if permissions.allowed_brands is not None:
+        update_data["allowed_brands"] = permissions.allowed_brands
+    if permissions.allowed_centers is not None:
+        update_data["allowed_centers"] = permissions.allowed_centers
+    
+    if update_data:
+        await users_collection.update_one({"id": user_id}, {"$set": update_data})
+    
+    return {"message": "Permisos actualizados", "permissions": update_data}
+
+@router.get("/{user_id}/permissions")
+async def get_user_permissions(user_id: str, current_user: dict = Depends(get_current_user)):
+    """Get user's brand/center permissions"""
+    if current_user.get("id") != user_id and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="No autorizado")
+    
+    user = await users_collection.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    return {
+        "allowed_brands": user.get("allowed_brands", []),
+        "allowed_centers": user.get("allowed_centers", [])
+    }
 
 @router.delete("/{user_id}")
 async def delete_user(user_id: str, current_user: dict = Depends(require_role(["admin"]))):

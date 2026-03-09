@@ -13,6 +13,9 @@ class UserCreate(BaseModel):
     role: str = "viewer"
     full_name: Optional[str] = ""
     group_ids: Optional[List[str]] = []
+    # Permisos granulares para NOC Competitivo
+    allowed_brands: Optional[List[str]] = []  # Lista de brand IDs permitidos, vacío = todos
+    allowed_centers: Optional[List[str]] = []  # Lista de center IDs permitidos, vacío = todos
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
@@ -20,6 +23,13 @@ class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     is_active: Optional[bool] = None
     group_ids: Optional[List[str]] = None
+    allowed_brands: Optional[List[str]] = None
+    allowed_centers: Optional[List[str]] = None
+
+class UserPermissionsUpdate(BaseModel):
+    """Model for updating user permissions only"""
+    allowed_brands: Optional[List[str]] = None
+    allowed_centers: Optional[List[str]] = None
 
 class UserLogin(BaseModel):
     username: str

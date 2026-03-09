@@ -5,127 +5,115 @@ Sistema de monitorización de red profesional para Siempria. Incluye NOC de cont
 
 ## Latest Session - 09 Mar 2026
 
-### ✅ COMPLETADO - Rediseño Premium NOC Competitivo
+### ✅ COMPLETADO - NOC Competitivo Premium (Pantalla 55" Fija)
 
-#### Funcionalidades Implementadas:
+- Diseño optimizado SIN SCROLL (1920x1080)
+- Podio 3D compacto con corona dorada
+- Siluetas PNG de 5 islas canarias
+- Efectos de confeti con canvas-confetti
+- Reloj en tiempo real, ranking de marcas/centros
+- Auto-refresh 30s
 
-1. **🏆 Podio 3D Premium**
-   - Efectos de brillo dorado para el líder
-   - Corona animada con partículas Sparkles
-   - Bloques 3D con sombras y profundidad
+### ✅ COMPLETADO - Permisos Granulares de Usuario
 
-2. **🎨 Diseño Glassmorphism**
-   - Fondos con backdrop-blur-md
-   - Bordes translúcidos
-   - Cards con hover effects
+**Backend:**
+- Modelo `UserPermissionsUpdate` en `/app/backend/models/__init__.py`
+- Campos `allowed_brands` y `allowed_centers` en usuarios
+- Endpoints:
+  - `PUT /api/users/{id}/permissions` - Actualizar permisos
+  - `GET /api/users/{id}/permissions` - Obtener permisos
 
-3. **🌈 Fondo Animado**
-   - Orbes de gradiente animados
-   - Patrón de cuadrícula sutil
+**Frontend:**
+- Componente `UserPermissionsManager.jsx`
+- Integrado en pestaña "Users"
+- Lista de usuarios a la izquierda
+- Editor de permisos a la derecha con checkboxes
+- Secciones colapsables: Marcas Permitidas / Centros Permitidos
+- Botones: "Seleccionar todas", "Limpiar (acceso total)", "Guardar"
 
-4. **⏰ Reloj en Tiempo Real**
-   - Formato HH:MM:SS actualizado cada segundo
-   - Fecha completa (día, número, mes)
+### ✅ COMPLETADO - Exportación PDF con Comparativas
 
-5. **🏝️ Panel de Islas con Siluetas PNG**
-   - 5 islas con siluetas reales (TF, GC, LZ, FV, LP)
-   - 2 islas con badges (LG, EH - no tienen PNG)
-   - Efecto glow según actividad
-   - Corona para isla líder
+**Backend:**
+- Ruta `/app/backend/routes/pdf_export.py`
+- Endpoints:
+  - `GET /api/brand-statistics/export/pdf?period=day|week|month`
+  - `GET /api/brand-statistics/export/json?period=day|week|month`
+- Genera PDF con ReportLab:
+  - Resumen general (actual vs anterior)
+  - Ranking completo con variación %
+  - Indicadores de crecimiento (↑↓)
+  - Top performers
 
-6. **🎊 Efectos de Confeti**
-   - Librería canvas-confetti instalada
-   - Botón manual para lanzar confeti
-   - Confeti automático cuando hay récord (+10%)
-   - Partículas doradas, naranjas, rojas, púrpuras, cyan
+**Frontend:**
+- Componente `ReportExportPanel.jsx`
+- Integrado en pestaña "Statistics" (junto a BrandRankingPanel)
+- Selector de período: Día, Semana, Mes
+- Vista previa con datos del API
+- Botón "Descargar Informe PDF"
 
-### ✅ COMPLETADO - Alineación de Botones Flotantes
-
-- **CRAFloatingButton**: `top: 200px`
-- **LiveViewerFloatingButton**: `top: 280px`
-- **NOCCompetitivoFloatingButton**: `top: 360px`
-- **Ancho expandido unificado**: `w-44` para todos
-- **Espaciado uniforme**: 80px entre botones
-- **Testing**: 23/23 tests pasados ✅
-
-### ✅ VERIFICADO - Logos en Brand/Center Manager
-
-Los logos de todas las marcas (AUDI, VOLKSWAGEN, SKODA, HONDA, DUCATI, DAOCASION) se muestran correctamente:
-- Base de datos tiene campo `logo` con URLs válidas
-- Frontend usa `brand.logo` correctamente
-- Backend API devuelve todos los campos
-
-## Archivos Modificados:
+## Archivos Creados/Modificados:
 ```
-/app/frontend/src/components/
-├── panels/
-│   └── NOCCompetitivo.jsx (REDISEÑO + SILUETAS + CONFETI)
-└── common/
-    ├── CRAFloatingButton.jsx (ALINEACIÓN)
-    ├── LiveViewerFloatingButton.jsx (ALINEACIÓN)
-    └── NOCCompetitivoFloatingButton.jsx (ALINEACIÓN)
+/app/backend/
+├── models/__init__.py (UserPermissionsUpdate añadido)
+├── routes/
+│   ├── users.py (endpoints de permisos)
+│   └── pdf_export.py (NUEVO - exportación PDF)
+└── server.py (registro de pdf_export_router)
+
+/app/frontend/src/components/panels/
+├── NOCCompetitivo.jsx (optimizado para 55" sin scroll)
+├── UserPermissionsManager.jsx (NUEVO)
+└── ReportExportPanel.jsx (NUEVO)
+
+/app/frontend/src/App.js (imports y integración)
 ```
 
 ## Dependencias Añadidas:
-```
-canvas-confetti: ^1.9.4
-```
+- `canvas-confetti: ^1.9.4` (frontend)
+- `reportlab: 4.4.9` (backend - ya instalado)
 
-## Previous Sessions (07-08 Mar 2026)
+## API Endpoints
 
-### Sistema de Conteo de Visitas
-- Mapa Interactivo Leaflet/OpenStreetMap
-- NOC de Conteo en Tiempo Real (solo ENTRADAS)
-- Sistema Histórico Completo
-- Ranking de Marcas
-- Panel de Configuración de Cámaras
-- CRUD de Marcas/Centros con Upload de Logos
-
-### API Endpoints
+### Permisos de Usuario
 ```
-GET/POST /api/brand-statistics/brands
-GET/POST /api/brand-statistics/centers
-GET /api/brand-statistics/realtime
-GET /api/brand-statistics/ranking
-GET /api/brand-statistics/ranking-by-center
-GET /api/brand-statistics/history/by-island
-GET /api/brand-statistics/cameras-config
-POST /api/upload
+PUT  /api/users/{user_id}/permissions
+     Body: { "allowed_brands": ["audi", "vw"], "allowed_centers": ["tenerife"] }
+     
+GET  /api/users/{user_id}/permissions
+     Response: { "allowed_brands": [], "allowed_centers": [] }
 ```
 
-## Pending Issues (Específicos del servidor de producción 192.168.1.76)
+### Exportación PDF
+```
+GET  /api/brand-statistics/export/pdf?period=day|week|month
+     Response: application/pdf (descarga directa)
 
-### P2 - Cámara Fantasma
-- **Issue**: "AUDI Tenerife - Entrada" aparece en listas pero fue eliminada
-- **Estado**: No reproducible en preview (no existe en DB local)
-- **Acción**: Usuario debe buscar en `db.devices` de su servidor
+GET  /api/brand-statistics/export/json?period=day|week|month
+     Response: { "period", "ranges", "summary", "ranking" }
+```
+
+## Pending Issues
+
+### P2 - Cámara Fantasma (192.168.1.76)
+- "AUDI Tenerife - Entrada" en servidor de producción
+- Buscar en `db.devices`
 
 ### P2 - Datos del Mapa
-- **Issue**: Conteos del mapa no coinciden con otros paneles
-- **Estado**: Mapa funciona correctamente en preview
-- **Causa probable**: Dispositivos sin isla asignada en servidor de producción
+- Verificar asignación de `island` en dispositivos de producción
 
 ## Future Tasks
 
-### P2 - Permisos Granulares de Usuario
-- Filtrar datos según permisos del usuario
-- Extender modelo de usuario con `allowed_brands` y `allowed_centers`
+### P3 - Filtrado por Permisos en Endpoints
+- Actualmente los permisos se guardan pero no filtran datos
+- Implementar middleware para filtrar ranking según `allowed_brands`
 
 ## Credentials
 - Admin: admin / admin123
 - Mobotix: admin / Spw6009 @ 212.64.162.40:40002
 
-## Database Collections
-- `brands` - Configuración de marcas (con campo `logo`)
-- `centers` - Centros por isla
-- `brand_cameras_config` - Configuración de cámaras
-- `brand_hourly_statistics` - Estadísticas por hora
-- `brand_daily_statistics` - Estadísticas diarias
-- `brand_weekly_statistics` - Estadísticas semanales
-
 ## Tech Stack
 - Frontend: React + TailwindCSS + Shadcn/UI + canvas-confetti
-- Backend: FastAPI + MongoDB
+- Backend: FastAPI + MongoDB + ReportLab
 - Maps: Leaflet + OpenStreetMap
 - Charts: Recharts
 - Icons: Lucide React

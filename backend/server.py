@@ -409,6 +409,10 @@ api_router.include_router(fail2ban_router)
 # Include brand statistics routes
 api_router.include_router(brand_statistics_router)
 
+# Include PDF export routes
+from routes.pdf_export import router as pdf_export_router
+api_router.include_router(pdf_export_router)
+
 # ============ DOWNLOAD ENDPOINTS FOR PRODUCTION UPDATE ============
 
 @api_router.get("/dl/noc")
