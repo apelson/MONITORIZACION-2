@@ -2,26 +2,68 @@
  * NOCCompetitivo - Premium Real-time Competitive Leaderboard Dashboard
  * Redesign with glassmorphism, fluid animations, 3D podium effects
  * Optimized for large displays (55"+) in client offices
+ * Features: Island silhouettes + Confetti celebrations for records
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Trophy, Medal, TrendingUp, RefreshCw, X, Flame, Crown, Star,
-  MapPin, Users, Clock, Map, Store, Sparkles, Zap, Award
+  MapPin, Users, Clock, Map, Store, Sparkles, Zap, Award, PartyPopper
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import confetti from 'canvas-confetti';
 
-// Island configuration with colors
+// Island configuration with colors and PNG silhouettes
 const ISLANDS = [
-  { id: 'tenerife', name: 'Tenerife', shortName: 'TF', color: '#8B5CF6', gradient: 'from-violet-500 to-purple-600' },
-  { id: 'gran-canaria', name: 'Gran Canaria', shortName: 'GC', color: '#10B981', gradient: 'from-emerald-500 to-green-600' },
-  { id: 'lanzarote', name: 'Lanzarote', shortName: 'LZ', color: '#3B82F6', gradient: 'from-blue-500 to-indigo-600' },
-  { id: 'fuerteventura', name: 'Fuerteventura', shortName: 'FV', color: '#F59E0B', gradient: 'from-amber-500 to-orange-600' },
-  { id: 'la-palma', name: 'La Palma', shortName: 'LP', color: '#06B6D4', gradient: 'from-cyan-500 to-teal-600' },
-  { id: 'la-gomera', name: 'La Gomera', shortName: 'LG', color: '#EC4899', gradient: 'from-pink-500 to-rose-600' },
-  { id: 'el-hierro', name: 'El Hierro', shortName: 'EH', color: '#F97316', gradient: 'from-orange-500 to-red-600' }
+  { id: 'tenerife', name: 'Tenerife', shortName: 'TF', color: '#8B5CF6', gradient: 'from-violet-500 to-purple-600', png: '/islands/tenerife.png' },
+  { id: 'gran-canaria', name: 'Gran Canaria', shortName: 'GC', color: '#10B981', gradient: 'from-emerald-500 to-green-600', png: '/islands/grancanaria.png' },
+  { id: 'lanzarote', name: 'Lanzarote', shortName: 'LZ', color: '#3B82F6', gradient: 'from-blue-500 to-indigo-600', png: '/islands/lanzarote.png' },
+  { id: 'fuerteventura', name: 'Fuerteventura', shortName: 'FV', color: '#F59E0B', gradient: 'from-amber-500 to-orange-600', png: '/islands/fuerteventura.png' },
+  { id: 'la-palma', name: 'La Palma', shortName: 'LP', color: '#06B6D4', gradient: 'from-cyan-500 to-teal-600', png: '/islands/lapalma.png' },
+  { id: 'la-gomera', name: 'La Gomera', shortName: 'LG', color: '#EC4899', gradient: 'from-pink-500 to-rose-600', png: null },
+  { id: 'el-hierro', name: 'El Hierro', shortName: 'EH', color: '#F97316', gradient: 'from-orange-500 to-red-600', png: null }
 ];
+
+// Confetti celebration function
+const triggerConfetti = (intensity = 'medium') => {
+  const configs = {
+    light: { particleCount: 50, spread: 60 },
+    medium: { particleCount: 100, spread: 80 },
+    heavy: { particleCount: 200, spread: 120 }
+  };
+  
+  const config = configs[intensity] || configs.medium;
+  
+  // Fire from both sides
+  confetti({
+    particleCount: config.particleCount,
+    spread: config.spread,
+    origin: { x: 0.1, y: 0.6 },
+    colors: ['#FFD700', '#FFA500', '#FF6347', '#9370DB', '#00CED1']
+  });
+  
+  confetti({
+    particleCount: config.particleCount,
+    spread: config.spread,
+    origin: { x: 0.9, y: 0.6 },
+    colors: ['#FFD700', '#FFA500', '#FF6347', '#9370DB', '#00CED1']
+  });
+  
+  // Gold star burst from center for heavy
+  if (intensity === 'heavy') {
+    setTimeout(() => {
+      confetti({
+        particleCount: 50,
+        spread: 360,
+        startVelocity: 30,
+        origin: { x: 0.5, y: 0.4 },
+        colors: ['#FFD700', '#FFDF00', '#FFC700'],
+        shapes: ['star']
+      });
+    }, 300);
+  }
+};
 
 // Animated counter with easing
 const AnimatedNumber = ({ value, duration = 1200, className = '' }) => {
@@ -35,7 +77,7 @@ const AnimatedNumber = ({ value, duration = 1200, className = '' }) => {
     const animate = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 4); // Quartic ease-out
+      const eased = 1 - Math.pow(1 - progress, 4);
       const current = Math.round(startRef.current + (value - startRef.current) * eased);
       
       setDisplayValue(current);
@@ -73,7 +115,7 @@ const LiveClock = () => {
 };
 
 // Premium 3D Podium with glow effects
-const PremiumPodium = ({ ranking }) => {
+const PremiumPodium = ({ ranking, onNewRecord }) => {
   const positions = [
     { rank: 2, data: ranking[1], height: 140, offset: 0 },
     { rank: 1, data: ranking[0], height: 180, offset: -20 },
@@ -294,7 +336,7 @@ const GlassRankingRow = ({ rank, brand, visits, maxVisits, isWinner }) => {
   );
 };
 
-// Premium island card with glassmorphism
+// Premium island card with PNG silhouette
 const PremiumIslandCard = ({ island, data, maxVisits, isLeader }) => {
   const percentage = maxVisits > 0 ? (data.total / maxVisits) * 100 : 0;
   const hasVisits = data.total > 0;
@@ -312,34 +354,86 @@ const PremiumIslandCard = ({ island, data, maxVisits, isLeader }) => {
         <Crown className="absolute -top-3 -right-3 w-7 h-7 text-yellow-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
       )}
       
-      {/* Island icon */}
-      <div className={cn(
-        "w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white mb-3 transition-transform group-hover:scale-110",
-        `bg-gradient-to-br ${island.gradient}`
-      )}>
-        {island.shortName}
-      </div>
-      
-      {/* Island info */}
-      <h3 className="font-bold text-white text-sm mb-1">{island.name}</h3>
-      
-      {/* Visits */}
-      <div className={cn(
-        "text-3xl font-black tabular-nums mb-2",
-        isLeader ? "text-yellow-400" : "text-white"
-      )}>
-        <AnimatedNumber value={data.total || 0} />
+      {/* Island silhouette or badge */}
+      <div className="flex items-start gap-3 mb-3">
+        {island.png ? (
+          <div className="relative w-16 h-16 flex-shrink-0">
+            <img 
+              src={island.png}
+              alt={island.name}
+              className={cn(
+                "w-full h-full object-contain transition-all duration-500 group-hover:scale-110",
+                hasVisits ? "opacity-90" : "opacity-30 grayscale"
+              )}
+              style={{
+                filter: hasVisits 
+                  ? `drop-shadow(0 0 8px ${island.color}80) brightness(1.1)` 
+                  : 'brightness(0.5) grayscale(1)'
+              }}
+            />
+            {/* Color overlay on hover */}
+            <div 
+              className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-opacity duration-300 mix-blend-overlay"
+              style={{ backgroundColor: island.color }}
+            />
+          </div>
+        ) : (
+          <div className={cn(
+            "w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black text-white flex-shrink-0 transition-transform group-hover:scale-110",
+            `bg-gradient-to-br ${island.gradient}`,
+            !hasVisits && "opacity-50"
+          )}>
+            {island.shortName}
+          </div>
+        )}
+        
+        {/* Island info */}
+        <div className="flex-1 min-w-0">
+          <h3 className="font-bold text-white text-sm truncate">{island.name}</h3>
+          <div className={cn(
+            "text-3xl font-black tabular-nums mt-1",
+            isLeader ? "text-yellow-400" : "text-white"
+          )}>
+            <AnimatedNumber value={data.total || 0} />
+          </div>
+        </div>
       </div>
       
       {/* Progress bar */}
-      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
         <div 
-          className={cn(
-            "h-full rounded-full transition-all duration-700",
-            `bg-gradient-to-r ${island.gradient}`
-          )}
-          style={{ width: `${percentage}%` }}
+          className="h-full rounded-full transition-all duration-700"
+          style={{ 
+            width: `${percentage}%`,
+            background: `linear-gradient(90deg, ${island.color}, ${island.color}cc)`
+          }}
         />
+      </div>
+    </div>
+  );
+};
+
+// Record celebration component
+const RecordCelebration = ({ brand, newRecord, onClose }) => {
+  useEffect(() => {
+    if (newRecord) {
+      triggerConfetti('heavy');
+    }
+  }, [newRecord]);
+  
+  if (!newRecord) return null;
+  
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="bg-gradient-to-br from-yellow-500/20 via-amber-500/20 to-orange-500/20 backdrop-blur-xl rounded-3xl p-8 border border-yellow-500/30 max-w-md text-center animate-in zoom-in duration-500">
+        <PartyPopper className="w-16 h-16 text-yellow-400 mx-auto mb-4 animate-bounce" />
+        <h2 className="text-3xl font-black text-white mb-2">¡NUEVO RÉCORD!</h2>
+        <p className="text-xl text-yellow-400 font-bold mb-4">{brand}</p>
+        <p className="text-5xl font-black text-white mb-2">{newRecord.toLocaleString('es-ES')}</p>
+        <p className="text-white/60 mb-6">visitas en un día</p>
+        <Button onClick={onClose} className="bg-gradient-to-r from-yellow-500 to-amber-500 text-black font-bold">
+          ¡Celebrar!
+        </Button>
       </div>
     </div>
   );
@@ -355,7 +449,9 @@ const NOCCompetitivo = ({ authAxios, isFullscreen = false, onClose }) => {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [refreshInterval] = useState(30);
   const [activeTab, setActiveTab] = useState('brands');
+  const [recordCelebration, setRecordCelebration] = useState(null);
   const intervalRef = useRef(null);
+  const previousTotalRef = useRef(0);
   
   // Fetch data
   const fetchData = useCallback(async () => {
@@ -380,6 +476,19 @@ const NOCCompetitivo = ({ authAxios, isFullscreen = false, onClose }) => {
       const sortedCenterRanking = (centerRankingRes.data.ranking || [])
         .filter(c => c.total_visits > 0)
         .sort((a, b) => (b.total_visits || 0) - (a.total_visits || 0));
+      
+      // Check for new record (leader exceeds previous by significant amount)
+      if (sortedRanking.length > 0) {
+        const currentLeaderVisits = sortedRanking[0].total_visits || 0;
+        if (previousTotalRef.current > 0 && currentLeaderVisits > previousTotalRef.current * 1.1) {
+          // 10% increase triggers celebration
+          setRecordCelebration({
+            brand: sortedRanking[0].brand_name,
+            visits: currentLeaderVisits
+          });
+        }
+        previousTotalRef.current = currentLeaderVisits;
+      }
       
       setRanking(sortedRanking);
       setCenterRanking(sortedCenterRanking);
@@ -412,11 +521,25 @@ const NOCCompetitivo = ({ authAxios, isFullscreen = false, onClose }) => {
   const leaderIsland = Object.entries(islandStats)
     .sort((a, b) => (b[1].total || 0) - (a[1].total || 0))[0];
   
+  // Manual confetti trigger for demo
+  const handleManualCelebration = () => {
+    triggerConfetti('heavy');
+  };
+  
   return (
     <div className={cn(
       "relative overflow-hidden",
       isFullscreen ? "fixed inset-0 z-50" : "rounded-2xl"
     )}>
+      {/* Record celebration modal */}
+      {recordCelebration && (
+        <RecordCelebration 
+          brand={recordCelebration.brand}
+          newRecord={recordCelebration.visits}
+          onClose={() => setRecordCelebration(null)}
+        />
+      )}
+      
       {/* Animated background */}
       <div className="absolute inset-0 bg-[#0a0a1a]">
         {/* Gradient orbs */}
@@ -475,6 +598,17 @@ const NOCCompetitivo = ({ authAxios, isFullscreen = false, onClose }) => {
                   </div>
                 </div>
               </div>
+              
+              {/* Celebration button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleManualCelebration}
+                className="rounded-xl h-10 px-3 bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20 text-yellow-400"
+                title="Lanzar confeti"
+              >
+                <PartyPopper className="w-4 h-4" />
+              </Button>
               
               {/* Auto-refresh toggle */}
               <Button
@@ -614,8 +748,8 @@ const NOCCompetitivo = ({ authAxios, isFullscreen = false, onClose }) => {
               <h2 className="text-sm font-bold text-white/70 uppercase tracking-wider">Islas Canarias</h2>
             </div>
             
-            {/* Island grid */}
-            <div className="grid grid-cols-2 gap-4 flex-1 content-start">
+            {/* Island grid - 2 columns for better silhouette display */}
+            <div className="grid grid-cols-2 gap-4 flex-1 content-start overflow-y-auto custom-scrollbar pr-2">
               {ISLANDS.map(island => {
                 const data = islandStats[island.id] || { total: 0, brands: {} };
                 const isLeader = leaderIsland && leaderIsland[0] === island.id && data.total > 0;
