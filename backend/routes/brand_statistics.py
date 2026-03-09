@@ -4,6 +4,7 @@ Processes camera counting data and associates with vehicle brands:
 AUDI, VOLKSWAGEN, SKODA, HONDA, DUCATI, DAOCASION
 
 Only ENTRIES (visits) are tracked - exits are ignored.
+Supports permission-based filtering per user.
 """
 from fastapi import APIRouter, HTTPException, Depends, Query, Body
 from fastapi.responses import StreamingResponse
@@ -13,7 +14,7 @@ import uuid
 import csv
 import io
 
-from config import db, devices_collection, logger
+from config import db, devices_collection, logger, users_collection
 from services.auth_service import get_current_user
 
 router = APIRouter(prefix="/brand-statistics", tags=["brand-statistics"])
@@ -25,6 +26,51 @@ brand_hourly_collection = db["brand_hourly_statistics"]
 brand_weekly_collection = db["brand_weekly_statistics"]
 brands_collection = db["brands"]
 centers_collection = db["centers"]
+
+# Helper function to get user permissions and filter data
+async def get_user_permissions(user: dict) -> dict:
+    """Get user's allowed_brands and allowed_centers from database"""
+    # Admin has access to everything
+    if user.get("role") == "admin":
+        return {"allowed_brands": [], "allowed_centers": [], "is_admin": True}
+    
+    # Fetch fresh user data from DB to get permissions
+    user_data = await users_collection.find_one({"id": user.get("id")})
+    if not user_data:
+        return {"allowed_brands": [], "allowed_centers": [], "is_admin": False}
+    
+    return {
+        "allowed_brands": user_data.get("allowed_brands", []),
+        "allowed_centers": user_data.get("allowed_centers", []),
+        "is_admin": False
+    }
+
+def filter_ranking_by_permissions(ranking: list, permissions: dict) -> list:
+    """Filter ranking results based on user permissions"""
+    # If admin or no restrictions, return all
+    if permissions.get("is_admin") or (not permissions.get("allowed_brands") and not permissions.get("allowed_centers")):
+        return ranking
+    
+    filtered = []
+    for item in ranking:
+        # Check brand permission
+        brand_allowed = True
+        if permissions.get("allowed_brands"):
+            brand_id = item.get("brand_id", "")
+            brand_allowed = brand_id in permissions["allowed_brands"]
+        
+        # Check center/island permission
+        center_allowed = True
+        if permissions.get("allowed_centers"):
+            island = item.get("island", "")
+            center_id = item.get("center_id", "")
+            center_allowed = island in permissions["allowed_centers"] or center_id in permissions["allowed_centers"]
+        
+        # Include if both permissions pass (or if no restriction for that type)
+        if brand_allowed and center_allowed:
+            filtered.append(item)
+    
+    return filtered
 
 # Default vehicle brands (used to seed the database)
 DEFAULT_BRANDS = [
@@ -254,7 +300,11 @@ async def get_brand_ranking(
     """
     Get brand visit ranking, optionally filtered by island.
     Returns aggregated visit counts per brand sorted by total visits.
+    Results are filtered by user permissions (allowed_brands, allowed_centers).
     """
+    # Get user permissions
+    permissions = await get_user_permissions(current_user)
+    
     # Calculate date range
     now = datetime.now(timezone.utc)
     if period == "day":
@@ -324,13 +374,17 @@ async def get_brand_ranking(
             for b in VEHICLE_BRANDS
         ]
     
+    # Apply permission-based filtering
+    ranking = filter_ranking_by_permissions(ranking, permissions)
+    
     return {
         "ranking": ranking,
         "period": period,
         "island": island,
         "start_date": start_date.isoformat(),
         "end_date": now.isoformat(),
-        "total_brands": len(ranking)
+        "total_brands": len(ranking),
+        "filtered_by_permissions": not permissions.get("is_admin") and (bool(permissions.get("allowed_brands")) or bool(permissions.get("allowed_centers")))
     }
 
 
@@ -342,7 +396,11 @@ async def get_ranking_by_center(
     """
     Get center visit ranking for competitive dashboard.
     Returns aggregated visit counts per center (brand + island combination) sorted by total visits.
+    Results are filtered by user permissions.
     """
+    # Get user permissions
+    permissions = await get_user_permissions(current_user)
+    
     # Calculate date range
     now = datetime.now(timezone.utc)
     if period == "day":
@@ -424,12 +482,16 @@ async def get_ranking_by_center(
                     "total_visits": 0
                 })
     
+    # Apply permission-based filtering
+    ranking = filter_ranking_by_permissions(ranking, permissions)
+    
     return {
         "ranking": ranking,
         "period": period,
         "start_date": start_date.isoformat(),
         "end_date": now.isoformat(),
-        "total_centers": len(ranking)
+        "total_centers": len(ranking),
+        "filtered_by_permissions": not permissions.get("is_admin") and (bool(permissions.get("allowed_brands")) or bool(permissions.get("allowed_centers")))
     }
 
 

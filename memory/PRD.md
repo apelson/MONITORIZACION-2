@@ -3,117 +3,83 @@
 ## Original Problem Statement
 Sistema de monitorización de red profesional para Siempria. Incluye NOC de conteo de visitas por marca de vehículos con cámaras Mobotix.
 
-## Latest Session - 09 Mar 2026
+## Session 09 Mar 2026 - COMPLETADO
 
-### ✅ COMPLETADO - NOC Competitivo Premium (Pantalla 55" Fija)
-
+### ✅ NOC Competitivo Premium (Pantalla 55" Fija)
 - Diseño optimizado SIN SCROLL (1920x1080)
-- Podio 3D compacto con corona dorada
-- Siluetas PNG de 5 islas canarias
-- Efectos de confeti con canvas-confetti
+- Podio 3D con corona dorada + siluetas PNG de islas
+- Efectos de confeti (canvas-confetti)
 - Reloj en tiempo real, ranking de marcas/centros
-- Auto-refresh 30s
 
-### ✅ COMPLETADO - Permisos Granulares de Usuario
+### ✅ Permisos Granulares de Usuario
+- Campos `allowed_brands` y `allowed_centers` en modelo de usuario
+- Endpoints `GET/PUT /api/users/{id}/permissions`
+- Panel de gestión en pestaña Users
+- **Filtrado REAL activo en endpoints de ranking**
 
-**Backend:**
-- Modelo `UserPermissionsUpdate` en `/app/backend/models/__init__.py`
-- Campos `allowed_brands` y `allowed_centers` en usuarios
-- Endpoints:
-  - `PUT /api/users/{id}/permissions` - Actualizar permisos
-  - `GET /api/users/{id}/permissions` - Obtener permisos
+### ✅ Exportación PDF con Comparativas
+- Endpoint `GET /api/brand-statistics/export/pdf?period=day|week|month`
+- PDF con ranking, variaciones %, top performers
+- Panel en pestaña Statistics
 
-**Frontend:**
-- Componente `UserPermissionsManager.jsx`
-- Integrado en pestaña "Users"
-- Lista de usuarios a la izquierda
-- Editor de permisos a la derecha con checkboxes
-- Secciones colapsables: Marcas Permitidas / Centros Permitidos
-- Botones: "Seleccionar todas", "Limpiar (acceso total)", "Guardar"
+### ✅ Botones Flotantes Alineados
+- CRA: top 200px
+- LiveViewer: top 280px  
+- NOC Competitivo: top 360px
 
-### ✅ COMPLETADO - Exportación PDF con Comparativas
-
-**Backend:**
-- Ruta `/app/backend/routes/pdf_export.py`
-- Endpoints:
-  - `GET /api/brand-statistics/export/pdf?period=day|week|month`
-  - `GET /api/brand-statistics/export/json?period=day|week|month`
-- Genera PDF con ReportLab:
-  - Resumen general (actual vs anterior)
-  - Ranking completo con variación %
-  - Indicadores de crecimiento (↑↓)
-  - Top performers
-
-**Frontend:**
-- Componente `ReportExportPanel.jsx`
-- Integrado en pestaña "Statistics" (junto a BrandRankingPanel)
-- Selector de período: Día, Semana, Mes
-- Vista previa con datos del API
-- Botón "Descargar Informe PDF"
-
-## Archivos Creados/Modificados:
+## Archivos Creados/Modificados
 ```
 /app/backend/
-├── models/__init__.py (UserPermissionsUpdate añadido)
+├── models/__init__.py (UserPermissionsUpdate)
 ├── routes/
+│   ├── brand_statistics.py (filtrado por permisos)
 │   ├── users.py (endpoints de permisos)
-│   └── pdf_export.py (NUEVO - exportación PDF)
-└── server.py (registro de pdf_export_router)
+│   └── pdf_export.py (NUEVO)
+└── server.py (registro pdf_export_router)
 
-/app/frontend/src/components/panels/
-├── NOCCompetitivo.jsx (optimizado para 55" sin scroll)
-├── UserPermissionsManager.jsx (NUEVO)
-└── ReportExportPanel.jsx (NUEVO)
-
-/app/frontend/src/App.js (imports y integración)
+/app/frontend/src/
+├── App.js (imports)
+└── components/panels/
+    ├── NOCCompetitivo.jsx (rediseño)
+    ├── UserPermissionsManager.jsx (NUEVO)
+    └── ReportExportPanel.jsx (NUEVO)
 ```
-
-## Dependencias Añadidas:
-- `canvas-confetti: ^1.9.4` (frontend)
-- `reportlab: 4.4.9` (backend - ya instalado)
 
 ## API Endpoints
 
-### Permisos de Usuario
+### Permisos
 ```
-PUT  /api/users/{user_id}/permissions
-     Body: { "allowed_brands": ["audi", "vw"], "allowed_centers": ["tenerife"] }
-     
-GET  /api/users/{user_id}/permissions
-     Response: { "allowed_brands": [], "allowed_centers": [] }
+PUT  /api/users/{id}/permissions
+GET  /api/users/{id}/permissions
+```
+
+### Ranking (con filtrado por permisos)
+```
+GET  /api/brand-statistics/ranking?period=day|week|month
+     Response incluye: "filtered_by_permissions": true/false
+
+GET  /api/brand-statistics/ranking-by-center?period=day
+     Response incluye: "filtered_by_permissions": true/false
 ```
 
 ### Exportación PDF
 ```
 GET  /api/brand-statistics/export/pdf?period=day|week|month
-     Response: application/pdf (descarga directa)
-
 GET  /api/brand-statistics/export/json?period=day|week|month
-     Response: { "period", "ranges", "summary", "ranking" }
 ```
 
-## Pending Issues
+## Dependencias
+- canvas-confetti: ^1.9.4 (frontend)
+- reportlab: 4.4.9 (backend)
 
-### P2 - Cámara Fantasma (192.168.1.76)
-- "AUDI Tenerife - Entrada" en servidor de producción
-- Buscar en `db.devices`
-
-### P2 - Datos del Mapa
-- Verificar asignación de `island` en dispositivos de producción
-
-## Future Tasks
-
-### P3 - Filtrado por Permisos en Endpoints
-- Actualmente los permisos se guardan pero no filtran datos
-- Implementar middleware para filtrar ranking según `allowed_brands`
+## Pending Issues (Servidor 192.168.1.76)
+- P2: Cámara fantasma "AUDI Tenerife - Entrada"
+- P2: Datos del mapa con island asignada
 
 ## Credentials
 - Admin: admin / admin123
-- Mobotix: admin / Spw6009 @ 212.64.162.40:40002
+- Mobotix: admin / Spw6009
 
 ## Tech Stack
 - Frontend: React + TailwindCSS + Shadcn/UI + canvas-confetti
 - Backend: FastAPI + MongoDB + ReportLab
-- Maps: Leaflet + OpenStreetMap
-- Charts: Recharts
-- Icons: Lucide React
