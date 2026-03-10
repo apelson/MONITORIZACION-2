@@ -3,7 +3,7 @@
 ## Original Problem Statement
 Sistema de monitorización de red profesional para Siempria. Incluye NOC de conteo de visitas por marca de vehículos con cámaras Mobotix.
 
-## Session 10 Mar 2026 - Blindaje de Aplicación
+## Session 10 Mar 2026 - Blindaje de Aplicación y Fixes
 
 ### ✅ Eliminación de Branding Externo (P0)
 - Todas las referencias a `customer-assets.emergentagent.com` eliminadas del código fuente
@@ -26,6 +26,25 @@ Sistema de monitorización de red profesional para Siempria. Incluye NOC de cont
 - Corregido bug en `RolesManager.jsx`: enviaba `role_id` en vez de `role`
 - PUT `/api/users/{id}` ahora recibe correctamente `{ "role": "manager" }`
 
+### ✅ Dashboard de Seguridad (P2)
+- Endpoints ya funcionan correctamente:
+  - GET `/api/security/blocked-ips` - IPs temporalmente bloqueadas
+  - GET `/api/security/blacklist` - Lista negra permanente
+  - GET `/api/security/events` - Eventos de seguridad
+  - POST `/api/security/blacklist` - Añadir IP a lista negra
+  - DELETE `/api/security/blacklist/{ip}` - Quitar de lista negra
+  - POST `/api/security/unblock-ip` - Desbloquear IP temporal
+
+### ✅ Mapa Interactivo - Fix IDs de Islas
+- Corregido inconsistencia de IDs de islas (guiones vs guiones bajos)
+- IDs ahora consistentes: `tenerife`, `gran-canaria`, `lanzarote`, etc.
+- Función `getIslandFromGroup` normaliza IDs antiguos automáticamente
+
+### ✅ Cron Job para Estadísticas
+- Ya implementado: Scheduler ejecuta cada 5 minutos
+- Guarda snapshots en `brand_hourly_collection`, `brand_daily_collection`, `brand_weekly_collection`
+- Log visible: "[SCHEDULER] Brand statistics snapshot stored"
+
 ## Session 09 Mar 2026 - Funcionalidades Premium
 
 ### ✅ NOC Competitivo Premium (Pantalla 55" Fija)
@@ -46,18 +65,8 @@ Sistema de monitorización de red profesional para Siempria. Incluye NOC de cont
 
 ## Pending Issues
 
-### P0 (Críticos)
-- ✅ Eliminación branding emergentagent - COMPLETADO
-- ✅ NOCCompetitivo.jsx syntax error - COMPLETADO (ya estaba arreglado)
-- ✅ User role management error 400 - COMPLETADO
-
 ### P2 (Menor Prioridad)
-- Dashboard de seguridad: endpoints `/blacklist` y `/events` dan 404
-  - Frontend busca `/api/security/blacklist` y `/api/security/events`
-  - Backend tiene `/api/security/blocked-ips` y `/api/logs`
-  - Requiere decisión: ¿conectar a existentes o crear nuevos?
-- Mapa interactivo no muestra conteo de dispositivos por isla
-- Cron job para `/store-snapshot` cada hora
+- Mapa interactivo necesita que grupos/dispositivos tengan isla asignada para mostrar conteo
 - UI para permisos granulares (asignar marcas/centros)
 - Centros sin `brand_id` en base de datos
 - Verificar exportación PDF

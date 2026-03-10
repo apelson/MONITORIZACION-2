@@ -139,7 +139,8 @@ const getIslandFromGroup = (device, groups) => {
   if (!device.group_id || !groups) return null;
   const group = groups.find(g => g.id === device.group_id || g._id === device.group_id);
   if (group && group.island) {
-    return group.island;
+    // Normalize island ID: convert underscores to hyphens for consistency
+    return group.island.replace(/_/g, '-');
   }
   return null;
 };

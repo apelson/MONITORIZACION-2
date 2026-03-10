@@ -1174,14 +1174,13 @@ const GroupFormDialog = ({ open, onOpenChange, group, organizations, onSave }) =
   // Canary Islands list
   const islands = [
     { id: "", name: "-- Sin especificar --" },
-    { id: "tenerife", name: "🏝️ Tenerife" },
-    { id: "gran_canaria", name: "🏝️ Gran Canaria" },
-    { id: "lanzarote", name: "🏝️ Lanzarote" },
-    { id: "fuerteventura", name: "🏝️ Fuerteventura" },
-    { id: "la_palma", name: "🏝️ La Palma" },
-    { id: "la_gomera", name: "🏝️ La Gomera" },
-    { id: "el_hierro", name: "🏝️ El Hierro" },
-    { id: "la_graciosa", name: "🏝️ La Graciosa" }
+    { id: "tenerife", name: "Tenerife" },
+    { id: "gran-canaria", name: "Gran Canaria" },
+    { id: "lanzarote", name: "Lanzarote" },
+    { id: "fuerteventura", name: "Fuerteventura" },
+    { id: "la-palma", name: "La Palma" },
+    { id: "la-gomera", name: "La Gomera" },
+    { id: "el-hierro", name: "El Hierro" }
   ];
 
   useEffect(() => {
