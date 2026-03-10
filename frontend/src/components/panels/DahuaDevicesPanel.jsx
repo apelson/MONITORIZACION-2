@@ -40,7 +40,7 @@ import {
 import { cn } from '@/lib/utils';
 
 // Dahua official logo - uploaded by user
-const DAHUA_LOGO = "https://customer-assets.emergentagent.com/job_9daa6c94-1292-4e32-a6ac-374cc483718a/artifacts/er710utf_dahua-technology-logo.png";
+const DAHUA_LOGO = "/assets/logos/dahua-logo.png";
 
 const DahuaDevicesPanel = ({ authAxios, groups = [], organizations = [] }) => {
   const [devices, setDevices] = useState([]);

@@ -11,7 +11,7 @@ import os
 import uuid
 from datetime import datetime
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://siempria-noc-refresh.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://noc-hardening.preview.emergentagent.com')
 
 class TestAuth:
     """Authentication fixture setup"""

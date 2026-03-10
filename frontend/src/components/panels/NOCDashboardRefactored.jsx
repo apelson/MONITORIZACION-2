@@ -834,7 +834,7 @@ const NOCDashboardRefactored = ({
           <span className="text-slate-400 text-[11px]">Desarrollado por</span>
           <div className="flex items-center gap-1.5">
             <img 
-              src="https://customer-assets.emergentagent.com/job_85fd93bb-2f59-4657-a05b-6d77d63ce6f3/artifacts/hxvdkbmv_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png" 
+              src="/assets/logos/siempria-logo.png" 
               alt="SIEMPRIA" 
               className="h-6 w-auto"
               onError={(e) => { e.target.style.display = 'none'; }}

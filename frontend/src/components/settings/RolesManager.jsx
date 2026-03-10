@@ -196,7 +196,7 @@ const RolesManager = ({ authAxios, users = [], onUserUpdate }) => {
   // Assign role to user
   const assignRoleToUser = async (userId, roleId) => {
     try {
-      await authAxios.put(`/users/${userId}`, { role_id: roleId });
+      await authAxios.put(`/users/${userId}`, { role: roleId });
       toast.success('Rol asignado correctamente');
       if (onUserUpdate) onUserUpdate();
     } catch (error) {
@@ -227,7 +227,7 @@ const RolesManager = ({ authAxios, users = [], onUserUpdate }) => {
         <div className="relative">
           <div className="w-20 h-20 rounded-full border-4 border-cyan-500/20 border-t-cyan-500 animate-spin" />
           <img 
-            src="https://customer-assets.emergentagent.com/job_051d11b5-64eb-4eef-a44f-e7e0e5b16da5/artifacts/03lnmzfi_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png" 
+            src="/assets/logos/siempria-logo.png" 
             alt="Siempria" 
             className="absolute inset-0 m-auto w-10 h-10 object-contain"
           />

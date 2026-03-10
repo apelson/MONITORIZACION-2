@@ -4,7 +4,7 @@
  */
 import { useState, useEffect } from 'react';
 
-const LOGO_URL = "https://customer-assets.emergentagent.com/job_051d11b5-64eb-4eef-a44f-e7e0e5b16da5/artifacts/03lnmzfi_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png";
+const LOGO_URL = "/assets/logos/siempria-logo.png";
 
 const SectionLoader = ({ isLoading, delay = 2000, message = "Cargando..." }) => {
   const [showLoader, setShowLoader] = useState(false);

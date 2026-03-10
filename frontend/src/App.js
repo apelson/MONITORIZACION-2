@@ -1873,7 +1873,7 @@ const LoadingSkeleton = ({ message = "Cargando datos..." }) => (
       <div className="relative">
         <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" />
         <img 
-          src="https://customer-assets.emergentagent.com/job_051d11b5-64eb-4eef-a44f-e7e0e5b16da5/artifacts/03lnmzfi_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png" 
+          src="/assets/logos/siempria-logo.png" 
           alt="Siempria" 
           className="w-32 h-32 object-contain animate-pulse relative z-10"
         />
@@ -1911,7 +1911,7 @@ const SectionLoading = ({ message = "Cargando..." }) => (
     <div className="relative">
       <div className="w-16 h-16 rounded-full border-4 border-cyan-500/20 border-t-cyan-500 animate-spin" />
       <img 
-        src="https://customer-assets.emergentagent.com/job_051d11b5-64eb-4eef-a44f-e7e0e5b16da5/artifacts/03lnmzfi_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png" 
+        src="/assets/logos/siempria-logo.png" 
         alt="Siempria" 
         className="absolute inset-0 m-auto w-8 h-8 object-contain"
       />

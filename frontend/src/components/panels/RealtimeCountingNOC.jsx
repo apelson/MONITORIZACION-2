@@ -15,13 +15,13 @@ import { toast } from 'sonner';
 
 // Brand logos mapping
 const BRAND_LOGOS = {
-  audi: "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/g8sy2ozg_Logo_audi.jpg",
-  volkswagen: "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/d772iqi2_Volkswagen_logo_2019.svg.png",
-  skoda: "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/vbhseao1_%C5%A0koda_nieuw.png",
-  honda: "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/syfdh3vw_Honda_Logo.svg.png",
-  ducati: "https://customer-assets.emergentagent.com/job_a598a541-5b4a-4010-9cfe-1cebc43c189a/artifacts/380b1h0d_Ducati_red_logo.PNG",
-  daocasion: "https://customer-assets.emergentagent.com/job_56a630f4-4ecb-45b7-b12a-65eeb5453053/artifacts/58znr83b_dag_ocasion_color.png",
-  "ocasion-domingo-alonso": "https://customer-assets.emergentagent.com/job_56a630f4-4ecb-45b7-b12a-65eeb5453053/artifacts/2sliyeer_dag_ocasion_color.png"
+  audi: "/assets/brands/audi.jpg",
+  volkswagen: "/assets/brands/volkswagen.png",
+  skoda: "/assets/brands/skoda.png",
+  honda: "/assets/brands/honda.png",
+  ducati: "/assets/brands/ducati.png",
+  daocasion: "/assets/brands/daocasion.png",
+  "ocasion-domingo-alonso": "/assets/brands/daocasion.png"
 };
 
 const BRAND_COLORS = {

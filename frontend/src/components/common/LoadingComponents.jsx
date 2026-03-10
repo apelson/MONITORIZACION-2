@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 
-const LOGO_URL = "https://customer-assets.emergentagent.com/job_equip-tracker-39/artifacts/796492pi_version%20autorizada%202.png";
+const LOGO_URL = "/assets/logos/siempria-autorizada.png";
 
 // Full page loading screen
 export const LoadingScreen = () => {

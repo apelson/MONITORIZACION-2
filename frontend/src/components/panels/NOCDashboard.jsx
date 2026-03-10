@@ -45,7 +45,7 @@ import MiniECG from '@/components/common/MiniECG';
 import { IslandSilhouette, ISLAND_ID_MAP } from '@/components/common/CanaryIslandsSilhouettes';
 
 // Logo Siempria (hexágono azul)
-const LOGO_URL = "https://customer-assets.emergentagent.com/job_bd3cf608-7344-4385-a96f-f4dc04839f9f/artifacts/t15tym24_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png";
+const LOGO_URL = "/assets/logos/siempria-noc-logo.png";
 
 // Widget layout for customizable dashboard
 const INITIAL_LAYOUT = [

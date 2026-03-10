@@ -18,7 +18,7 @@ import { LanguageSelector } from '@/components/LanguageSelector';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
-const SYMBOL_URL = "https://customer-assets.emergentagent.com/job_a94233fe-5bf2-40c3-a397-62d7837aec7e/artifacts/e9dyv3py_278325658_4943266082409281_2320348341249708641_n-removebg-preview.png";
+const SYMBOL_URL = "/assets/logos/siempria-symbol.png";
 const MOBOTIX_LOGO_URL = "https://www.mobotix.com/sites/default/files/2019-10/MOBOTIX-Logo.svg";
 
 const LoginPage = ({ login }) => {

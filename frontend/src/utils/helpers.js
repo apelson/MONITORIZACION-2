@@ -22,8 +22,8 @@ import { API_URL, API as API_PATH } from '../config';
 export const BACKEND_URL = API_URL;
 export const API = API_PATH;
 
-export const LOGO_URL = "https://customer-assets.emergentagent.com/job_equip-tracker-39/artifacts/796492pi_version%20autorizada%202.png";
-export const LOGO_HORIZONTAL_URL = "https://customer-assets.emergentagent.com/job_monitorsys-2/artifacts/qs1jn738_logo%20principal.png";
+export const LOGO_URL = "/assets/logos/siempria-autorizada.png";
+export const LOGO_HORIZONTAL_URL = "/assets/logos/siempria-horizontal.png";
 export const MOBOTIX_LOGO_URL = "https://www.mobotix.com/sites/default/files/2019-10/MOBOTIX-Logo.svg";
 export const DEVICES_PER_PAGE = 24;
 
