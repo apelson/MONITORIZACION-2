@@ -1226,6 +1226,15 @@ async def download_update_package_public():
         return FileResponse(file_path, filename="siempria_update.tar.gz", media_type='application/gzip')
     raise HTTPException(status_code=404, detail="Update package not found")
 
+@app.get("/api/download-conteo-update")
+async def download_conteo_update():
+    """Download conteo frontend update package"""
+    file_path = "/app/backend/static_files/conteo-frontend-update.tar.gz"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="conteo-frontend-update.tar.gz", media_type='application/gzip')
+    raise HTTPException(status_code=404, detail="Conteo update not found")
+
+
 # Endpoint para descargar NOCDashboard corregido
 @api_router.get("/download-noc")
 async def download_noc_corrected():
