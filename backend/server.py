@@ -89,3 +89,8 @@ async def download_frontend():
 async def download_script():
     return FileResponse("/app/deploy_conteo_v8.sh",
                        filename="deploy_conteo_v8.sh", media_type="text/plain")
+
+@app.get("/api/deploy/backup-script")
+async def download_backup_script():
+    return FileResponse("/app/backup_siempria_completo.sh",
+                       filename="backup_siempria_completo.sh", media_type="text/plain")
