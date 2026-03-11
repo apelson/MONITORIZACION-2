@@ -23,7 +23,7 @@ const ALL_BRANDS = [
 ];
 const ALL_ISLANDS = [
   { id: 'tenerife', name: 'Tenerife', short: 'TF', color: '#8B5CF6' },
-  { id: 'gran-canaria', name: 'Gran Canaria', short: 'GC', color: '#10B981' },
+  { id: 'gran-canaria', name: 'Gran Canaria', short: 'GC', color: '#5B8DB8' },
   { id: 'lanzarote', name: 'Lanzarote', short: 'LZ', color: '#3B82F6' },
   { id: 'fuerteventura', name: 'Fuerteventura', short: 'FV', color: '#F59E0B' },
   { id: 'la-palma', name: 'La Palma', short: 'LP', color: '#06B6D4' },
@@ -365,7 +365,7 @@ function Dashboard({ token, user, onLogout }) {
           <span>Desarrollado por</span>
           <img src="/siempria-logo.png" alt="Siempria" className="footer-siempria-logo" />
           <span className="footer-siempria">Siempria</span>
-          <span style={{ margin: '0 0.25rem', color: '#D1D5DB' }}>|</span>
+          <span style={{ margin: '0 0.25rem', color: '#CBD2DB' }}>|</span>
           <span>Tecnologia Mobotix</span>
         </div>
       </footer>
@@ -381,21 +381,21 @@ function RealtimeView({ data }) {
     <div className="view-wrap" data-testid="realtime-view">
       <div className="kpi-grid">
         <div className="kpi-card accent-primary">
-          <div className="kpi-icon" style={{ background: '#D1FAE5', color: '#059669' }}><Users size={22} /></div>
+          <div className="kpi-icon" style={{ background: '#E8F1F8', color: '#4A7CA7' }}><Users size={22} /></div>
           <div className="kpi-data">
             <span className="kpi-val mono"><AnimNum value={totals.entries || 0} /></span>
             <span className="kpi-label">Visitas Hoy</span>
           </div>
         </div>
         <div className="kpi-card accent-info">
-          <div className="kpi-icon" style={{ background: '#DBEAFE', color: '#2563EB' }}><Camera size={22} /></div>
+          <div className="kpi-icon" style={{ background: '#E8EEF5', color: '#5B7FAD' }}><Camera size={22} /></div>
           <div className="kpi-data">
             <span className="kpi-val">{cameras_online}/{cameras_total}</span>
             <span className="kpi-label">Camaras Online</span>
           </div>
         </div>
         <div className="kpi-card accent-warning">
-          <div className="kpi-icon" style={{ background: '#FEF3C7', color: '#D97706' }}><Trophy size={22} /></div>
+          <div className="kpi-icon" style={{ background: '#FDF5E6', color: '#C49030' }}><Trophy size={22} /></div>
           <div className="kpi-data">
             <span className="kpi-val">{ranking.length}</span>
             <span className="kpi-label">Marcas Activas</span>
@@ -456,7 +456,7 @@ function BrandView({ data }) {
           {ranking.length === 0 && <EmptyState text="Sin datos de camaras" />}
           {ranking.map((item, i) => {
             const val = item.total_visits || item.entries || 0;
-            const color = BRAND_COLORS[item.brand_id] || item.brand_color || '#10B981';
+            const color = BRAND_COLORS[item.brand_id] || item.brand_color || '#5B8DB8';
             return (
               <div key={item.brand_id} className="brand-row" data-testid={`brand-row-${item.brand_id}`}>
                 <div className="brand-row-left">
@@ -704,7 +704,7 @@ function UsersView({ data, api, onRefresh, currentUser }) {
             return (
               <div key={u.id} className={`user-card ${!isActive ? 'dimmed' : ''}`} data-testid={`user-card-${u.username}`}>
                 <div className="user-card-top">
-                  <div className="user-card-avatar" style={{ background: u.role === 'admin' ? 'linear-gradient(135deg,#F59E0B,#D97706)' : 'linear-gradient(135deg,#10B981,#059669)' }}>
+                  <div className="user-card-avatar" style={{ background: u.role === 'admin' ? 'linear-gradient(135deg,#E8A83E,#C49030)' : 'linear-gradient(135deg,#5B8DB8,#4A7CA7)' }}>
                     {(u.full_name || u.username)[0].toUpperCase()}
                   </div>
                   <div className="user-card-info">
@@ -716,7 +716,7 @@ function UsersView({ data, api, onRefresh, currentUser }) {
                     {u.id !== currentUser?.id && (
                       <>
                         <button className="tbl-btn" onClick={() => handleToggle(u)} data-testid={`toggle-user-${u.username}`}>
-                          {isActive ? <ToggleRight size={14} style={{ color: '#10B981' }} /> : <ToggleLeft size={14} style={{ color: '#EF4444' }} />}
+                          {isActive ? <ToggleRight size={14} style={{ color: '#5B8DB8' }} /> : <ToggleLeft size={14} style={{ color: '#D4574E' }} />}
                         </button>
                         <button className="tbl-btn danger" onClick={() => handleDelete(u.id, u.username)} data-testid={`delete-user-${u.username}`}><Trash2 size={13} /></button>
                       </>
@@ -774,10 +774,10 @@ function NOCView({ data, embedded, onClose, onRefresh, loading, autoRefresh, set
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <h2 className="card-title" style={{ margin: 0 }}><MapPin size={18} /> Islas Canarias</h2>
             <IslandCards islandStats={islandStats} maxI={maxI} leaderI={leaderI} light />
-            <div className="card" style={{ background: '#D1FAE5', textAlign: 'center', padding: '1rem', border: '1px solid #A7F3D0' }}>
-              <span className="noc-sum-label" style={{ color: '#065F46' }}>Total Archipielago</span>
-              <span className="noc-sum-val mono" style={{ color: '#059669' }}><AnimNum value={totalVisits} /></span>
-              <span className="noc-sum-sub" style={{ color: '#065F46' }}>visitas hoy</span>
+            <div className="card" style={{ background: '#E8F1F8', textAlign: 'center', padding: '1rem', border: '1px solid #B8D4E8' }}>
+              <span className="noc-sum-label" style={{ color: '#3A6A94' }}>Total Archipielago</span>
+              <span className="noc-sum-val mono" style={{ color: '#4A7CA7' }}><AnimNum value={totalVisits} /></span>
+              <span className="noc-sum-sub" style={{ color: '#3A6A94' }}>visitas hoy</span>
             </div>
           </div>
         </div>
@@ -881,7 +881,7 @@ function Podium({ ranking, dark }) {
             <div className={`podium-pillar p-${r}`} style={{ height: h[r] }}>
               <span className="podium-num">{r}&#186;</span>
             </div>
-            <p className="podium-label" style={!dark ? { color: '#111827' } : undefined}>{item.brand_name}</p>
+            <p className="podium-label" style={!dark ? { color: '#1A2332' } : undefined}>{item.brand_name}</p>
             <p className={`podium-count c-${r} mono`}><AnimNum value={item.entries || 0} /></p>
           </div>
         );
@@ -900,11 +900,11 @@ function RankingRows({ ranking, maxV, light }) {
         <div key={item.brand_id} className={`noc-rank-row ${i === 0 ? 'leader' : ''}`} data-testid={`noc-rank-${item.brand_id}`}>
           <span className={`noc-rk-pos p-${i + 1}`}>{i + 1}</span>
           <div className="noc-rk-logo"><BrandLogo brandId={item.brand_id} size={28} /></div>
-          <span className="noc-rk-name" style={light ? { color: '#111827' } : undefined}>{item.brand_name}</span>
-          <div className="noc-rk-bar-bg" style={light ? { background: '#E5E7EB' } : undefined}>
-            <div className="noc-rk-bar" style={{ width: `${((item.entries || 0) / maxV) * 100}%`, background: i === 0 ? '#F59E0B' : '#10B981' }} />
+          <span className="noc-rk-name" style={light ? { color: '#1A2332' } : undefined}>{item.brand_name}</span>
+          <div className="noc-rk-bar-bg" style={light ? { background: '#E2E6EC' } : undefined}>
+            <div className="noc-rk-bar" style={{ width: `${((item.entries || 0) / maxV) * 100}%`, background: i === 0 ? '#E8A83E' : '#5B8DB8' }} />
           </div>
-          <span className={`noc-rk-val mono ${i === 0 ? 'gold' : ''}`} style={light ? { color: i === 0 ? '#D97706' : '#111827' } : undefined}>
+          <span className={`noc-rk-val mono ${i === 0 ? 'gold' : ''}`} style={light ? { color: i === 0 ? '#C49030' : '#1A2332' } : undefined}>
             <AnimNum value={item.entries || 0} />
           </span>
         </div>
@@ -923,7 +923,7 @@ function IslandCards({ islandStats, maxI, leaderI, light }) {
           <div
             key={island.id}
             className={`noc-island ${isLdr ? 'island-leader' : ''} ${stats.total === 0 ? 'island-zero' : ''}`}
-            style={light ? { background: '#F9FAFB', border: '1px solid #E5E7EB' } : undefined}
+            style={light ? { background: '#F5F7FA', border: '1px solid #E2E6EC' } : undefined}
             data-testid={`island-${island.id}`}
           >
             {isLdr && <Crown size={14} className="island-crown-ico" />}
@@ -932,12 +932,12 @@ function IslandCards({ islandStats, maxI, leaderI, light }) {
               <div className="island-badge" style={{ background: island.color }}>{island.short}</div>
             </div>
             <div className="island-data">
-              <span className="island-name" style={light ? { color: '#111827' } : undefined}>{island.name}</span>
-              <span className={`island-total mono ${isLdr ? 'gold' : ''}`} style={light ? { color: '#111827' } : undefined}>
+              <span className="island-name" style={light ? { color: '#1A2332' } : undefined}>{island.name}</span>
+              <span className={`island-total mono ${isLdr ? 'gold' : ''}`} style={light ? { color: '#1A2332' } : undefined}>
                 <AnimNum value={stats.total || 0} />
               </span>
             </div>
-            <div className="island-bar-bg" style={light ? { background: '#E5E7EB' } : undefined}>
+            <div className="island-bar-bg" style={light ? { background: '#E2E6EC' } : undefined}>
               <div className="island-bar" style={{ width: `${maxI > 0 ? (stats.total / maxI) * 100 : 0}%`, background: island.color }} />
             </div>
           </div>
