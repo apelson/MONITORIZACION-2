@@ -18,7 +18,7 @@ cp "$FRONTEND_DIR/App.js" /var/www/siempria-monitor/backups/$(date +%Y%m%d)/
 mkdir -p "$FRONTEND_DIR/components/panels"
 
 # 3. Descargar archivos desde el preview
-BASE_URL="https://visit-counter-5.preview.emergentagent.com"
+BASE_URL="https://conteo-preview-2.preview.emergentagent.com"
 
 echo "⬇️ Descargando componentes..."
 
