@@ -7,7 +7,7 @@ import {
   Maximize2, Check, Download, ToggleLeft, ToggleRight, UserPlus, UserCog, Key
 } from 'lucide-react';
 
-const API = '/api';
+const API = import.meta.env.VITE_API_URL || '/api';
 
 // Brand logos from CDN
 const BRAND_LOGOS = {
@@ -46,7 +46,7 @@ function LoginPage({ onLogin }) {
       <div className="corner-deco tl"/><div className="corner-deco tr"/><div className="corner-deco bl"/><div className="corner-deco br"/>
       <div className="login-container">
         <div className="login-logos">
-          <img src="/dag-logo.png" alt="Domingo Alonso Group" className="login-dag-logo" />
+          <img src="/dag-logo.svg" alt="Domingo Alonso Group" className="login-dag-logo" />
           <div className="login-divider" />
           <div className="login-logo-box" style={{ borderColor: `${accent}30` }}>
             <img src="/siempria-logo.png" alt="Siempria" className="login-logo-img" />
@@ -149,7 +149,7 @@ function Dashboard({ token, user, onLogout }) {
     <div className="dashboard" data-testid="dashboard">
       <header className="dash-header">
         <div className="dash-header-left">
-          <img src="/dag-logo.png" alt="DAG" className="header-dag-logo" />
+          <img src="/dag-logo.svg" alt="DAG" className="header-dag-logo" />
           <div className="header-sep" />
           <img src="/siempria-logo.png" alt="Siempria" className="header-logo-img" />
           <div><h1 className="header-title">CONTEO DE VISITAS</h1><span className="header-sub">Tiempo Real</span></div>
@@ -429,7 +429,7 @@ function NOCCompetitivo({ data, embedded, onClose, onRefresh, loading, autoRefre
       <div className="noc-content">
         <header className="noc-header">
           <div className="noc-header-left">
-            <img src="/dag-logo.png" alt="Domingo Alonso Group" className="noc-dag-logo" />
+            <img src="/dag-logo.svg" alt="Domingo Alonso Group" className="noc-dag-logo" />
             <div className="noc-header-sep"/>
             <div className="noc-trophy-wrap"><Trophy size={20} color="#fff"/></div>
             <div><h1 className="noc-title">NOC Competitivo <Flame size={16} className="noc-flame"/></h1><p className="noc-subtitle">Ranking en tiempo real</p></div>
@@ -499,7 +499,7 @@ function NOCCompetitivo({ data, embedded, onClose, onRefresh, loading, autoRefre
           </div>
         </div>
         <footer className="noc-footer">
-          <div className="noc-footer-left"><img src="/dag-logo.png" alt="" className="noc-footer-dag"/></div>
+          <div className="noc-footer-left"><img src="/dag-logo.svg" alt="" className="noc-footer-dag"/></div>
           <div className="noc-footer-right"><span>Powered by</span><img src="/siempria-logo.png" alt="" className="noc-footer-logo"/><span className="noc-footer-brand">Siempria</span></div>
         </footer>
       </div>
