@@ -248,3 +248,62 @@ async def list_centers(current_user: dict = Depends(get_current_user)):
     """Get all centers"""
     centers = await get_centers()
     return {"centers": centers}
+
+
+
+@router.get("/by-island")
+async def get_ranking_by_island(current_user: dict = Depends(get_current_user)):
+    """Get statistics grouped by island"""
+    centers = await get_centers()
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    pipeline = [
+        {"$match": {"date": today}},
+        {"$group": {
+            "_id": "$island",
+            "total": {"$sum": "$visits"}
+        }},
+        {"$project": {"island": "$_id", "total": 1, "_id": 0}},
+        {"$sort": {"total": -1}}
+    ]
+
+    results = await brand_daily_collection.aggregate(pipeline).to_list(50)
+
+    islands = {}
+    for r in results:
+        island_id = r.get("island", "")
+        island_info = next((c for c in centers if c.get("island") == island_id or c.get("id") == island_id), None)
+        islands[island_id] = {
+            "total": r.get("total", 0),
+            "name": island_info["name"] if island_info else island_id.replace("-", " ").title()
+        }
+
+    return {"islands": islands, "date": today}
+
+
+@router.post("/refresh-realtime")
+async def refresh_realtime(current_user: dict = Depends(get_current_user)):
+    """Force refresh real-time data from cameras and store in daily stats"""
+    try:
+        data = await fetch_all_cameras_counting()
+        brands = await get_brands()
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+        for cam_id, cam_data in data.get("cameras", {}).items():
+            bid = cam_data.get("brand_id")
+            island = cam_data.get("island", "")
+            if bid:
+                await brand_daily_collection.update_one(
+                    {"brand_id": bid, "island": island, "date": today, "camera_id": cam_id},
+                    {"$set": {
+                        "visits": cam_data.get("entries", 0),
+                        "exits": cam_data.get("exits", 0),
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }},
+                    upsert=True
+                )
+
+        return {"message": "Datos actualizados", "cameras_processed": len(data.get("cameras", {}))}
+    except Exception as e:
+        logger.error(f"Refresh error: {e}")
+        return {"message": "Error actualizando", "error": str(e)}

@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import {
   LogIn, Lock, User, Eye, EyeOff, LogOut, RefreshCw, Users, BarChart3,
-  Camera, Settings, TrendingUp, TrendingDown, Clock, Shield, Activity,
-  ChevronUp, ChevronDown, Wifi, WifiOff, AlertCircle, MapPin, Hash
+  Camera, TrendingDown, Clock, Shield, Activity, Wifi, WifiOff, AlertCircle,
+  MapPin, Plus, Trash2, Edit3, Save, X, Trophy, Crown, Flame, Award,
+  Monitor, Maximize2, ChevronDown, Server, Check, Download, ToggleLeft, ToggleRight
 } from 'lucide-react';
 
 const API = '/api';
 
-// ==================== LOGIN PAGE ====================
+// ========================= LOGIN =========================
 function LoginPage({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -32,57 +33,46 @@ function LoginPage({ onLogin }) {
       onLogin(res.data);
     } catch (err) {
       setError(err.response?.data?.detail || 'Error de conexion');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
-  const accentColor = `hsl(${195 + Math.sin(phase) * 8}, 100%, ${52 + Math.sin(phase * 1.5) * 6}%)`;
+  const accent = `hsl(${195 + Math.sin(phase) * 8}, 100%, ${52 + Math.sin(phase * 1.5) * 6}%)`;
 
   return (
     <div className="login-page" data-testid="login-page">
-      {/* Background effects */}
       <div className="login-bg">
         <div className="login-grid" />
-        <div className="login-glow" style={{ background: `radial-gradient(ellipse at center, ${accentColor}12 0%, transparent 65%)` }} />
-        <div className="login-conic" style={{ background: `conic-gradient(from ${phase * 57}deg, transparent, ${accentColor}20, transparent, ${accentColor}10, transparent)` }} />
-        {[...Array(20)].map((_, i) => (
+        <div className="login-glow" style={{ background: `radial-gradient(ellipse at center, ${accent}12 0%, transparent 65%)` }} />
+        {[...Array(16)].map((_, i) => (
           <div key={i} className="particle" style={{
-            left: `${(i * 5.3) % 100}%`, top: `${(i * 7.1) % 100}%`,
-            animationDelay: `${i * 0.3}s`, animationDuration: `${12 + (i % 5) * 3}s`,
+            left: `${(i * 6.3) % 100}%`, top: `${(i * 7.9) % 100}%`,
+            animationDelay: `${i * 0.4}s`, animationDuration: `${10 + (i % 4) * 4}s`,
             width: `${1.5 + (i % 3)}px`, height: `${1.5 + (i % 3)}px`,
           }} />
         ))}
       </div>
-      {/* Corner decorations */}
       <div className="corner-deco tl" /><div className="corner-deco tr" />
       <div className="corner-deco bl" /><div className="corner-deco br" />
 
       <div className="login-container">
-        {/* Logo */}
         <div className="login-logo-wrap">
-          <div className="login-logo-glow" style={{ borderColor: `${accentColor}40`, boxShadow: `0 0 30px ${accentColor}20` }} />
-          <div className="login-logo-box" style={{ borderColor: `${accentColor}30` }}>
+          <div className="login-logo-glow" style={{ borderColor: `${accent}40`, boxShadow: `0 0 30px ${accent}20` }} />
+          <div className="login-logo-box" style={{ borderColor: `${accent}30` }}>
             <img src="/siempria-logo.png" alt="Siempria" className="login-logo-img" />
           </div>
         </div>
 
         <h1 className="login-title" data-testid="login-title">SIEMPRIA CONTEO</h1>
         <p className="login-subtitle">Sistema de Conteo de Visitas en Tiempo Real</p>
-        <div className="login-badge">
-          <Shield size={11} />
-          <span>Conexion Segura</span>
-        </div>
+        <div className="login-badge"><Shield size={11} /><span>Conexion Segura</span></div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="login-form" data-testid="login-form">
           <div className="login-form-header">
-            <div className="login-form-icon" style={{ background: `linear-gradient(135deg, ${accentColor}, hsl(210, 80%, 45%))` }}>
+            <div className="login-form-icon" style={{ background: `linear-gradient(135deg, ${accent}, hsl(210,80%,45%))` }}>
               <Lock size={16} color="#fff" />
             </div>
             <span>Iniciar Sesion</span>
           </div>
-
           <div className="field">
             <label>Usuario</label>
             <div className="input-wrap">
@@ -92,7 +82,6 @@ function LoginPage({ onLogin }) {
                 placeholder="Introduce tu usuario" autoComplete="username" />
             </div>
           </div>
-
           <div className="field">
             <label>Contrasena</label>
             <div className="input-wrap">
@@ -105,86 +94,119 @@ function LoginPage({ onLogin }) {
               </button>
             </div>
           </div>
-
-          {error && (
-            <div className="login-error" data-testid="login-error">
-              <AlertCircle size={14} /><span>{error}</span>
-            </div>
-          )}
-
+          {error && <div className="login-error" data-testid="login-error"><AlertCircle size={14} /><span>{error}</span></div>}
           <button data-testid="login-submit" type="submit" className="login-btn" disabled={loading}
-            style={{ background: `linear-gradient(135deg, ${accentColor}, hsl(210, 80%, 45%))` }}>
+            style={{ background: `linear-gradient(135deg, ${accent}, hsl(210,80%,45%))` }}>
             {loading ? <RefreshCw size={18} className="spin" /> : <><LogIn size={18} /><span>Acceder</span></>}
           </button>
         </form>
 
-        {/* Features */}
         <div className="login-features">
           <div className="feature"><Activity size={14} /><span>Tiempo Real</span></div>
-          <div className="feature"><BarChart3 size={14} /><span>Rankings</span></div>
+          <div className="feature"><Trophy size={14} /><span>Competitivo</span></div>
           <div className="feature"><Camera size={14} /><span>Mobotix</span></div>
         </div>
-
         <div className="login-footer">
-          <p>&copy; {new Date().getFullYear()} Siempria</p>
-          <p>Distribuidor Autorizado Mobotix</p>
+          <p>&copy; {new Date().getFullYear()} Siempria - Distribuidor Autorizado Mobotix</p>
         </div>
       </div>
     </div>
   );
 }
 
-// ==================== DASHBOARD ====================
+// ========================= ANIMATED NUMBER =========================
+function AnimNum({ value, className = '' }) {
+  const [display, setDisplay] = useState(0);
+  const startRef = useRef(0);
+  useEffect(() => {
+    startRef.current = display;
+    const t0 = Date.now();
+    const anim = () => {
+      const p = Math.min((Date.now() - t0) / 800, 1);
+      setDisplay(Math.round(startRef.current + (value - startRef.current) * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) requestAnimationFrame(anim);
+    };
+    requestAnimationFrame(anim);
+  }, [value]);
+  return <span className={className}>{display.toLocaleString('es-ES')}</span>;
+}
+
+// ========================= LIVE CLOCK =========================
+function LiveClock({ compact = false }) {
+  const [time, setTime] = useState(new Date());
+  useEffect(() => { const t = setInterval(() => setTime(new Date()), 1000); return () => clearInterval(t); }, []);
+  if (compact) return (
+    <div className="header-status">
+      <Clock size={13} />
+      <span>{time.toLocaleTimeString('es-ES')}</span>
+    </div>
+  );
+  return (
+    <div className="noc-clock">
+      <div className="noc-clock-time">{time.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
+      <div className="noc-clock-date">{time.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}</div>
+    </div>
+  );
+}
+
+// ========================= DASHBOARD =========================
 function Dashboard({ token, user, onLogout }) {
   const [view, setView] = useState('realtime');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [nocFullscreen, setNocFullscreen] = useState(false);
   const timerRef = useRef(null);
 
-  const api = useCallback((url) => axios.get(`${API}${url}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  }), [token]);
+  const api = useCallback((method, url, body) => {
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    if (method === 'get') return axios.get(`${API}${url}`, config);
+    if (method === 'post') return axios.post(`${API}${url}`, body, config);
+    if (method === 'put') return axios.put(`${API}${url}`, body, config);
+    if (method === 'delete') return axios.delete(`${API}${url}`, config);
+  }, [token]);
 
   const fetchData = useCallback(async () => {
     try {
-      if (view === 'realtime') {
-        const res = await api('/ranking/realtime');
+      if (view === 'realtime' || view === 'noc') {
+        const res = await api('get', '/ranking/realtime');
         setData(res.data);
       } else if (view === 'by-brand') {
-        const res = await api('/ranking/by-brand?period=day');
+        const res = await api('get', '/ranking/by-brand?period=day');
         setData(res.data);
       } else if (view === 'by-center') {
-        const res = await api('/ranking/by-center?period=day');
+        const res = await api('get', '/ranking/by-center?period=day');
         setData(res.data);
       } else if (view === 'cameras') {
-        const res = await api('/cameras');
+        const res = await api('get', '/cameras');
         setData(res.data);
       }
       setLastUpdate(new Date());
     } catch (err) {
-      console.error('Fetch error:', err);
       if (err.response?.status === 401) onLogout();
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }, [view, api, onLogout]);
 
-  useEffect(() => {
-    setLoading(true);
-    fetchData();
-  }, [view, fetchData]);
+  useEffect(() => { setLoading(true); fetchData(); }, [view, fetchData]);
 
   useEffect(() => {
-    if (autoRefresh && (view === 'realtime' || view === 'by-brand' || view === 'by-center')) {
+    if (autoRefresh && view !== 'cameras') {
       timerRef.current = setInterval(fetchData, 30000);
       return () => clearInterval(timerRef.current);
     }
   }, [autoRefresh, view, fetchData]);
 
+  // NOC fullscreen
+  if (nocFullscreen) {
+    return <NOCCompetitivo data={data} onClose={() => setNocFullscreen(false)}
+      onRefresh={fetchData} loading={loading} autoRefresh={autoRefresh}
+      setAutoRefresh={setAutoRefresh} api={api} />;
+  }
+
   const navItems = [
     { id: 'realtime', label: 'Tiempo Real', icon: Activity },
+    { id: 'noc', label: 'NOC Competitivo', icon: Trophy },
     { id: 'by-brand', label: 'Por Marca', icon: BarChart3 },
     { id: 'by-center', label: 'Por Centro', icon: MapPin },
     { id: 'cameras', label: 'Camaras', icon: Camera },
@@ -192,7 +214,6 @@ function Dashboard({ token, user, onLogout }) {
 
   return (
     <div className="dashboard" data-testid="dashboard">
-      {/* Header */}
       <header className="dash-header" data-testid="dashboard-header">
         <div className="dash-header-left">
           <img src="/siempria-logo.png" alt="Siempria" className="header-logo-img" />
@@ -202,33 +223,29 @@ function Dashboard({ token, user, onLogout }) {
           </div>
         </div>
         <div className="dash-header-center">
-          {lastUpdate && (
-            <div className="header-status">
-              <Clock size={13} />
-              <span>{lastUpdate.toLocaleTimeString('es-ES')}</span>
-            </div>
-          )}
+          <LiveClock compact />
           <button className="header-refresh" onClick={() => { setLoading(true); fetchData(); }}
-            data-testid="refresh-btn" title="Actualizar">
-            <RefreshCw size={14} className={loading ? 'spin' : ''} />
-          </button>
+            data-testid="refresh-btn"><RefreshCw size={14} className={loading ? 'spin' : ''} /></button>
           <button className={`header-auto ${autoRefresh ? 'active' : ''}`}
-            onClick={() => setAutoRefresh(!autoRefresh)} title={autoRefresh ? 'Auto-refresh ON' : 'Auto-refresh OFF'}>
+            onClick={() => setAutoRefresh(!autoRefresh)}>
             {autoRefresh ? <Wifi size={14} /> : <WifiOff size={14} />}
           </button>
+          {view === 'noc' && (
+            <button className="header-auto active" onClick={() => setNocFullscreen(true)}
+              title="Pantalla completa" data-testid="noc-fullscreen-btn">
+              <Maximize2 size={14} />
+            </button>
+          )}
         </div>
         <div className="dash-header-right">
           <div className="header-user">
             <div className="user-avatar">{(user?.full_name || user?.username || 'U')[0].toUpperCase()}</div>
             <span className="user-name">{user?.full_name || user?.username}</span>
           </div>
-          <button className="logout-btn" onClick={onLogout} data-testid="logout-btn" title="Cerrar sesion">
-            <LogOut size={16} />
-          </button>
+          <button className="logout-btn" onClick={onLogout} data-testid="logout-btn"><LogOut size={16} /></button>
         </div>
       </header>
 
-      {/* Navigation */}
       <nav className="dash-nav" data-testid="dashboard-nav">
         {navItems.map(item => (
           <button key={item.id} className={`nav-item ${view === item.id ? 'active' : ''}`}
@@ -238,19 +255,17 @@ function Dashboard({ token, user, onLogout }) {
         ))}
       </nav>
 
-      {/* Content */}
       <main className="dash-content">
         {loading && !data ? (
-          <div className="loading-state">
-            <RefreshCw size={32} className="spin" />
-            <p>Cargando datos...</p>
-          </div>
+          <div className="loading-state"><RefreshCw size={32} className="spin" /><p>Cargando datos...</p></div>
         ) : (
           <>
             {view === 'realtime' && <RealtimeView data={data} />}
+            {view === 'noc' && <NOCCompetitivo data={data} embedded onRefresh={fetchData}
+              loading={loading} autoRefresh={autoRefresh} setAutoRefresh={setAutoRefresh} api={api} />}
             {view === 'by-brand' && <BrandRankingView data={data} />}
             {view === 'by-center' && <CenterRankingView data={data} />}
-            {view === 'cameras' && <CamerasView data={data} token={token} onRefresh={fetchData} />}
+            {view === 'cameras' && <CamerasView data={data} api={api} onRefresh={fetchData} isAdmin={user?.role === 'admin'} />}
           </>
         )}
       </main>
@@ -258,21 +273,18 @@ function Dashboard({ token, user, onLogout }) {
   );
 }
 
-// ==================== REALTIME VIEW ====================
+// ========================= REALTIME VIEW =========================
 function RealtimeView({ data }) {
   if (!data) return <EmptyState text="Sin datos en tiempo real" />;
   const { ranking = [], totals = {}, cameras_total = 0, cameras_online = 0 } = data;
 
   return (
     <div className="view-container" data-testid="realtime-view">
-      {/* Stats bar */}
       <div className="stats-bar">
         <StatCard label="Visitas Hoy" value={totals.entries || 0} icon={Users} color="#00AEEF" />
-        <StatCard label="Salidas" value={totals.exits || 0} icon={TrendingDown} color="#f59e0b" />
+        <StatCard label="Salidas Hoy" value={totals.exits || 0} icon={TrendingDown} color="#f59e0b" />
         <StatCard label="Camaras Online" value={`${cameras_online}/${cameras_total}`} icon={Camera} color="#22c55e" />
       </div>
-
-      {/* Ranking */}
       <div className="section-card">
         <h2 className="section-title"><BarChart3 size={18} /> Ranking por Marca - Hoy</h2>
         <div className="ranking-list">
@@ -283,36 +295,26 @@ function RealtimeView({ data }) {
           ))}
         </div>
       </div>
-
-      {/* Camera details */}
       {ranking.some(r => r.cameras?.length > 0) && (
         <div className="section-card">
           <h2 className="section-title"><Camera size={18} /> Detalle por Camara</h2>
           <div className="camera-detail-grid">
-            {ranking.flatMap(brand =>
-              (brand.cameras || []).map(cam => (
-                <div key={cam.camera_id} className="camera-detail-card" data-testid={`camera-${cam.camera_id}`}>
-                  <div className="cam-header">
-                    <span className={`cam-status ${cam.status}`}>
-                      {cam.status === 'online' ? <Wifi size={10} /> : <WifiOff size={10} />}
-                    </span>
-                    <span className="cam-name">{cam.camera_name}</span>
-                  </div>
-                  <div className="cam-brand" style={{ color: brand.brand_color }}>{brand.brand_name}</div>
-                  <div className="cam-stats">
-                    <div className="cam-stat">
-                      <span className="cam-stat-val">{cam.entries}</span>
-                      <span className="cam-stat-label">Entradas</span>
-                    </div>
-                    <div className="cam-stat">
-                      <span className="cam-stat-val">{cam.exits}</span>
-                      <span className="cam-stat-label">Salidas</span>
-                    </div>
-                  </div>
-                  {cam.island && <div className="cam-island"><MapPin size={10} /> {cam.island.replace(/-/g, ' ')}</div>}
+            {ranking.flatMap(brand => (brand.cameras || []).map(cam => (
+              <div key={cam.camera_id} className="camera-detail-card">
+                <div className="cam-header">
+                  <span className={`cam-status ${cam.status}`}>
+                    {cam.status === 'online' ? <Wifi size={10} /> : <WifiOff size={10} />}
+                  </span>
+                  <span className="cam-name">{cam.camera_name}</span>
                 </div>
-              ))
-            )}
+                <div className="cam-brand" style={{ color: brand.brand_color }}>{brand.brand_name}</div>
+                <div className="cam-stats">
+                  <div className="cam-stat"><span className="cam-stat-val">{cam.entries}</span><span className="cam-stat-label">Entradas</span></div>
+                  <div className="cam-stat"><span className="cam-stat-val">{cam.exits}</span><span className="cam-stat-label">Salidas</span></div>
+                </div>
+                {cam.island && <div className="cam-island"><MapPin size={10} /> {cam.island.replace(/-/g, ' ')}</div>}
+              </div>
+            )))}
           </div>
         </div>
       )}
@@ -320,12 +322,11 @@ function RealtimeView({ data }) {
   );
 }
 
-// ==================== BRAND RANKING VIEW ====================
+// ========================= BRAND RANKING VIEW =========================
 function BrandRankingView({ data }) {
   if (!data) return <EmptyState text="Sin datos" />;
   const { ranking = [] } = data;
   const maxVal = Math.max(...ranking.map(r => r.total_visits), 1);
-
   return (
     <div className="view-container" data-testid="brand-ranking-view">
       <div className="section-card">
@@ -333,16 +334,13 @@ function BrandRankingView({ data }) {
         <div className="ranking-list">
           {ranking.length === 0 && <EmptyState text="No hay datos" />}
           {ranking.map((item, idx) => (
-            <div key={item.brand_id} className="ranking-row" data-testid={`brand-rank-${item.brand_id}`}>
+            <div key={item.brand_id} className="ranking-row">
               <div className="rank-pos">#{idx + 1}</div>
               <div className="rank-color" style={{ background: item.brand_color }} />
               <div className="rank-info">
                 <span className="rank-name">{item.brand_name}</span>
                 <div className="rank-bar-wrap">
-                  <div className="rank-bar" style={{
-                    width: `${(item.total_visits / maxVal) * 100}%`,
-                    background: item.brand_color
-                  }} />
+                  <div className="rank-bar" style={{ width: `${(item.total_visits / maxVal) * 100}%`, background: item.brand_color }} />
                 </div>
               </div>
               <div className="rank-value">{item.total_visits.toLocaleString()}</div>
@@ -354,11 +352,10 @@ function BrandRankingView({ data }) {
   );
 }
 
-// ==================== CENTER RANKING VIEW ====================
+// ========================= CENTER RANKING VIEW =========================
 function CenterRankingView({ data }) {
   if (!data) return <EmptyState text="Sin datos" />;
   const { ranking = [] } = data;
-
   return (
     <div className="view-container" data-testid="center-ranking-view">
       <div className="section-card">
@@ -375,38 +372,191 @@ function CenterRankingView({ data }) {
   );
 }
 
-// ==================== CAMERAS CONFIG VIEW ====================
-function CamerasView({ data, token, onRefresh }) {
-  if (!data) return <EmptyState text="Cargando camaras..." />;
+// ========================= CAMERAS VIEW =========================
+function CamerasView({ data, api, onRefresh, isAdmin }) {
+  const [showForm, setShowForm] = useState(false);
+  const [editCam, setEditCam] = useState(null);
+  const [migrating, setMigrating] = useState(false);
+  const [migResult, setMigResult] = useState(null);
+  const [form, setForm] = useState({ camera_id: '', camera_name: '', brand_id: '', island: '', ip: '', port: 443, username: '', password: '', enabled: true });
+
+  const brands = [
+    { id: 'audi', name: 'AUDI' }, { id: 'volkswagen', name: 'VOLKSWAGEN' },
+    { id: 'skoda', name: 'SKODA' }, { id: 'honda', name: 'HONDA' },
+    { id: 'ducati', name: 'DUCATI' }, { id: 'daocasion', name: 'DAOCASION' },
+  ];
+  const islands = [
+    { id: 'tenerife', name: 'Tenerife' }, { id: 'gran-canaria', name: 'Gran Canaria' },
+    { id: 'lanzarote', name: 'Lanzarote' }, { id: 'fuerteventura', name: 'Fuerteventura' },
+    { id: 'la-palma', name: 'La Palma' },
+  ];
+
+  const openAdd = () => {
+    setForm({ camera_id: '', camera_name: '', brand_id: '', island: '', ip: '', port: 443, username: '', password: '', enabled: true });
+    setEditCam(null);
+    setShowForm(true);
+  };
+
+  const openEdit = (cam) => {
+    setForm({ ...cam, port: cam.port || 443 });
+    setEditCam(cam.camera_id);
+    setShowForm(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      if (editCam) {
+        await api('put', `/cameras/${editCam}`, form);
+      } else {
+        await api('post', '/cameras', form);
+      }
+      setShowForm(false);
+      onRefresh();
+    } catch (err) { alert(err.response?.data?.detail || 'Error guardando'); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm(`Eliminar camara ${id}?`)) return;
+    try {
+      await api('delete', `/cameras/${id}`);
+      onRefresh();
+    } catch (err) { alert(err.response?.data?.detail || 'Error eliminando'); }
+  };
+
+  const handleMigrate = async () => {
+    setMigrating(true);
+    setMigResult(null);
+    try {
+      const res = await api('post', '/cameras/migrate-from-main');
+      setMigResult(res.data);
+      onRefresh();
+    } catch (err) {
+      setMigResult({ error: err.response?.data?.detail || 'Error en migracion' });
+    } finally { setMigrating(false); }
+  };
+
+  if (!data) return <EmptyState text="Cargando..." />;
   const { cameras = [] } = data;
 
   return (
     <div className="view-container" data-testid="cameras-view">
+      {/* Actions bar */}
+      {isAdmin && (
+        <div className="cameras-actions">
+          <button className="btn-primary" onClick={openAdd} data-testid="add-camera-btn">
+            <Plus size={16} /><span>Anadir Camara</span>
+          </button>
+          <button className="btn-secondary" onClick={handleMigrate} disabled={migrating} data-testid="migrate-cameras-btn">
+            {migrating ? <RefreshCw size={16} className="spin" /> : <Download size={16} />}
+            <span>{migrating ? 'Migrando...' : 'Importar de Plataforma Principal'}</span>
+          </button>
+        </div>
+      )}
+
+      {migResult && (
+        <div className={`migrate-result ${migResult.error ? 'error' : 'success'}`}>
+          {migResult.error ? (
+            <><AlertCircle size={16} /><span>{migResult.error}</span></>
+          ) : (
+            <><Check size={16} /><span>{migResult.message}</span></>
+          )}
+          <button onClick={() => setMigResult(null)}><X size={14} /></button>
+        </div>
+      )}
+
+      {/* Form modal */}
+      {showForm && (
+        <div className="modal-overlay" onClick={() => setShowForm(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} data-testid="camera-form">
+            <div className="modal-header">
+              <h3>{editCam ? 'Editar Camara' : 'Nueva Camara'}</h3>
+              <button onClick={() => setShowForm(false)}><X size={18} /></button>
+            </div>
+            <div className="modal-body">
+              <div className="form-grid">
+                <div className="field">
+                  <label>ID Camara *</label>
+                  <input value={form.camera_id} onChange={e => setForm({ ...form, camera_id: e.target.value })}
+                    placeholder="ej: audi-tf-001" disabled={!!editCam} data-testid="form-camera-id" />
+                </div>
+                <div className="field">
+                  <label>Nombre *</label>
+                  <input value={form.camera_name} onChange={e => setForm({ ...form, camera_name: e.target.value })}
+                    placeholder="ej: AUDI Tenerife Entrada" data-testid="form-camera-name" />
+                </div>
+                <div className="field">
+                  <label>Marca *</label>
+                  <select value={form.brand_id} onChange={e => setForm({ ...form, brand_id: e.target.value })} data-testid="form-brand">
+                    <option value="">Seleccionar...</option>
+                    {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
+                </div>
+                <div className="field">
+                  <label>Isla *</label>
+                  <select value={form.island} onChange={e => setForm({ ...form, island: e.target.value })} data-testid="form-island">
+                    <option value="">Seleccionar...</option>
+                    {islands.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+                  </select>
+                </div>
+                <div className="field">
+                  <label>IP *</label>
+                  <input value={form.ip} onChange={e => setForm({ ...form, ip: e.target.value })}
+                    placeholder="ej: 192.168.1.100" data-testid="form-ip" />
+                </div>
+                <div className="field">
+                  <label>Puerto</label>
+                  <input type="number" value={form.port} onChange={e => setForm({ ...form, port: parseInt(e.target.value) || 443 })}
+                    data-testid="form-port" />
+                </div>
+                <div className="field">
+                  <label>Usuario *</label>
+                  <input value={form.username} onChange={e => setForm({ ...form, username: e.target.value })}
+                    placeholder="admin" data-testid="form-username" />
+                </div>
+                <div className="field">
+                  <label>Password *</label>
+                  <input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })}
+                    placeholder="****" data-testid="form-password" />
+                </div>
+              </div>
+              <div className="form-toggle">
+                <label>Estado:</label>
+                <button className={`toggle-btn ${form.enabled ? 'on' : 'off'}`}
+                  onClick={() => setForm({ ...form, enabled: !form.enabled })}>
+                  {form.enabled ? <><ToggleRight size={20} /> Activa</> : <><ToggleLeft size={20} /> Inactiva</>}
+                </button>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-ghost" onClick={() => setShowForm(false)}>Cancelar</button>
+              <button className="btn-primary" onClick={handleSave} data-testid="form-save-btn">
+                <Save size={16} /><span>Guardar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Table */}
       <div className="section-card">
         <div className="section-header-row">
           <h2 className="section-title"><Camera size={18} /> Configuracion de Camaras</h2>
           <span className="badge">{cameras.length} configuradas</span>
         </div>
-
         {cameras.length === 0 ? (
-          <EmptyState text="No hay camaras configuradas" />
+          <EmptyState text="No hay camaras configuradas. Usa 'Importar' o 'Anadir' para empezar." />
         ) : (
           <div className="cameras-table-wrap">
             <table className="cameras-table" data-testid="cameras-table">
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Nombre</th>
-                  <th>Marca</th>
-                  <th>Isla</th>
-                  <th>IP</th>
-                  <th>Puerto</th>
-                  <th>Estado</th>
+                  <th>ID</th><th>Nombre</th><th>Marca</th><th>Isla</th><th>IP</th><th>Puerto</th><th>Estado</th>
+                  {isAdmin && <th>Acciones</th>}
                 </tr>
               </thead>
               <tbody>
                 {cameras.map(cam => (
-                  <tr key={cam.camera_id} data-testid={`cam-row-${cam.camera_id}`}>
+                  <tr key={cam.camera_id}>
                     <td className="mono">{cam.camera_id}</td>
                     <td>{cam.camera_name}</td>
                     <td><span className="brand-tag">{cam.brand_id}</span></td>
@@ -414,9 +564,15 @@ function CamerasView({ data, token, onRefresh }) {
                     <td className="mono">{cam.ip}</td>
                     <td className="mono">{cam.port}</td>
                     <td>
-                      <span className={`status-dot ${cam.enabled ? 'online' : 'offline'}`} />
-                      {cam.enabled ? 'Activa' : 'Inactiva'}
+                      <span className={`status-dot ${cam.enabled !== false ? 'online' : 'offline'}`} />
+                      {cam.enabled !== false ? 'Activa' : 'Inactiva'}
                     </td>
+                    {isAdmin && (
+                      <td className="actions-cell">
+                        <button className="icon-btn" onClick={() => openEdit(cam)} title="Editar"><Edit3 size={14} /></button>
+                        <button className="icon-btn danger" onClick={() => handleDelete(cam.camera_id)} title="Eliminar"><Trash2 size={14} /></button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -428,13 +584,199 @@ function CamerasView({ data, token, onRefresh }) {
   );
 }
 
-// ==================== SHARED COMPONENTS ====================
+// ========================= NOC COMPETITIVO =========================
+const ISLANDS_CONFIG = [
+  { id: 'tenerife', name: 'Tenerife', short: 'TF', color: '#8B5CF6' },
+  { id: 'gran-canaria', name: 'Gran Canaria', short: 'GC', color: '#10B981' },
+  { id: 'lanzarote', name: 'Lanzarote', short: 'LZ', color: '#3B82F6' },
+  { id: 'fuerteventura', name: 'Fuerteventura', short: 'FV', color: '#F59E0B' },
+  { id: 'la-palma', name: 'La Palma', short: 'LP', color: '#06B6D4' },
+];
+
+function NOCCompetitivo({ data, embedded = false, onClose, onRefresh, loading, autoRefresh, setAutoRefresh, api }) {
+  const [islandStats, setIslandStats] = useState({});
+  const [tab, setTab] = useState('brands');
+
+  useEffect(() => {
+    if (!api) return;
+    api('get', '/ranking/by-island').then(res => {
+      setIslandStats(res.data.islands || {});
+    }).catch(() => {});
+  }, [data, api]);
+
+  const ranking = (data?.ranking || []).sort((a, b) => (b.entries || 0) - (a.entries || 0));
+  const totalVisits = ranking.reduce((s, i) => s + (i.entries || 0), 0);
+  const maxVisits = ranking[0]?.entries || 1;
+  const maxIsland = Math.max(...Object.values(islandStats).map(i => i.total || 0), 1);
+  const leaderIsland = Object.entries(islandStats).sort((a, b) => (b[1].total || 0) - (a[1].total || 0))[0];
+
+  const wrapClass = embedded ? 'noc-embedded' : 'noc-fullscreen';
+
+  return (
+    <div className={wrapClass} data-testid="noc-competitivo">
+      {/* BG effects */}
+      <div className="noc-bg">
+        <div className="noc-orb noc-orb-1" />
+        <div className="noc-orb noc-orb-2" />
+        <div className="noc-orb noc-orb-3" />
+        <div className="noc-bg-grid" />
+      </div>
+
+      <div className="noc-content">
+        {/* Header */}
+        <header className="noc-header">
+          <div className="noc-header-left">
+            <div className="noc-trophy-wrap">
+              <Trophy size={22} color="#fff" />
+            </div>
+            <div>
+              <h1 className="noc-title">NOC Competitivo <Flame size={18} className="noc-flame" /></h1>
+              <p className="noc-subtitle">Ranking en tiempo real</p>
+            </div>
+          </div>
+          <LiveClock />
+          <div className="noc-header-right">
+            <div className="noc-total-box">
+              <Users size={16} className="noc-total-icon" />
+              <div>
+                <span className="noc-total-label">TOTAL</span>
+                <span className="noc-total-value"><AnimNum value={totalVisits} /></span>
+              </div>
+            </div>
+            <button className={`noc-btn ${autoRefresh ? 'active' : ''}`} onClick={() => setAutoRefresh(!autoRefresh)}>
+              <RefreshCw size={14} className={loading ? 'spin' : ''} />
+              <span>{autoRefresh ? '30s' : 'Off'}</span>
+            </button>
+            {onClose && <button className="noc-btn-close" onClick={onClose}><X size={18} /></button>}
+          </div>
+        </header>
+
+        {/* Main grid */}
+        <div className="noc-main">
+          {/* Left: Podium + Ranking */}
+          <div className="noc-left">
+            {/* Podium */}
+            <div className="noc-section noc-podium-section">
+              <div className="noc-section-header"><Award size={16} className="noc-icon-gold" /> Podio de Honor</div>
+              <div className="noc-podium">
+                {[1, 0, 2].map(idx => {
+                  const item = ranking[idx];
+                  if (!item) return <div key={idx} className="podium-slot empty" />;
+                  const rank = idx + 1;
+                  const heights = { 1: 130, 2: 100, 3: 80 };
+                  const order = idx === 0 ? 2 : idx === 1 ? 1 : 3;
+                  return (
+                    <div key={idx} className={`podium-slot rank-${rank}`} style={{ order }}>
+                      {rank === 1 && <Crown size={24} className="podium-crown" />}
+                      <div className="podium-brand-icon" style={{ background: item.brand_color }}>
+                        {item.brand_name?.charAt(0)}
+                      </div>
+                      <div className={`podium-bar podium-bar-${rank}`} style={{ height: heights[rank] }}>
+                        <span className="podium-rank">{rank}&#186;</span>
+                      </div>
+                      <p className="podium-name">{item.brand_name}</p>
+                      <p className={`podium-visits visits-${rank}`}><AnimNum value={item.entries || 0} /></p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Full ranking */}
+            <div className="noc-section noc-ranking-section">
+              <div className="noc-tabs">
+                <button className={`noc-tab ${tab === 'brands' ? 'active' : ''}`} onClick={() => setTab('brands')}>
+                  <BarChart3 size={14} /> Marcas
+                </button>
+                <button className={`noc-tab ${tab === 'centers' ? 'active' : ''}`} onClick={() => setTab('centers')}>
+                  <MapPin size={14} /> Centros
+                </button>
+              </div>
+              <div className="noc-ranking-list">
+                {ranking.slice(0, 8).map((item, i) => {
+                  const pct = maxVisits > 0 ? ((item.entries || 0) / maxVisits) * 100 : 0;
+                  return (
+                    <div key={item.brand_id} className={`noc-rank-row ${i === 0 ? 'leader' : ''}`}>
+                      <span className={`noc-rank-pos pos-${i + 1}`}>{i + 1}</span>
+                      <div className="noc-rank-dot" style={{ background: item.brand_color }} />
+                      <span className="noc-rank-name">{item.brand_name}</span>
+                      <div className="noc-rank-bar-wrap">
+                        <div className="noc-rank-bar" style={{ width: `${pct}%`, background: i === 0 ? '#fbbf24' : '#38bdf8' }} />
+                      </div>
+                      <span className={`noc-rank-val ${i === 0 ? 'gold' : ''}`}><AnimNum value={item.entries || 0} /></span>
+                    </div>
+                  );
+                })}
+                {ranking.length === 0 && <div className="noc-empty"><Trophy size={32} /><p>Esperando datos...</p></div>}
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Islands */}
+          <div className="noc-right">
+            <div className="noc-section-header"><MapPin size={16} className="noc-icon-purple" /> Islas Canarias</div>
+            <div className="noc-islands-grid">
+              {ISLANDS_CONFIG.map(island => {
+                const stats = islandStats[island.id] || { total: 0 };
+                const isLeader = leaderIsland && leaderIsland[0] === island.id && stats.total > 0;
+                const pct = maxIsland > 0 ? (stats.total / maxIsland) * 100 : 0;
+                return (
+                  <div key={island.id} className={`noc-island-card ${isLeader ? 'leader' : ''} ${stats.total === 0 ? 'inactive' : ''}`}>
+                    {isLeader && <Crown size={14} className="island-crown" />}
+                    <div className="island-icon" style={{ background: island.color }}>{island.short}</div>
+                    <div className="island-info">
+                      <span className="island-name">{island.name}</span>
+                      <span className={`island-count ${isLeader ? 'gold' : ''}`}><AnimNum value={stats.total || 0} /></span>
+                    </div>
+                    <div className="island-bar-wrap">
+                      <div className="island-bar" style={{ width: `${pct}%`, background: island.color }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Total summary */}
+            <div className="noc-section noc-total-section">
+              <div className="noc-total-summary">
+                <span className="noc-total-summary-label">Total Archipielago</span>
+                <span className="noc-total-summary-val"><AnimNum value={totalVisits} /></span>
+                <span className="noc-total-summary-sub">visitas hoy</span>
+              </div>
+              {leaderIsland && leaderIsland[1]?.total > 0 && (
+                <div className="noc-leader-row">
+                  <Crown size={14} className="noc-icon-gold" />
+                  <span className="noc-leader-label">Lider:</span>
+                  <span className="noc-leader-name">{ISLANDS_CONFIG.find(i => i.id === leaderIsland[0])?.name || leaderIsland[0]}</span>
+                  <span className="noc-leader-badge">{leaderIsland[1].total}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="noc-footer">
+          <div className="noc-footer-left">
+            <Clock size={12} />
+            {data?.last_update && <span>Actualizado: {new Date(data.last_update).toLocaleTimeString('es-ES')}</span>}
+          </div>
+          <div className="noc-footer-right">
+            <span>Desarrollado por</span>
+            <img src="/siempria-logo.png" alt="" className="noc-footer-logo" />
+            <span className="noc-footer-brand">Siempria</span>
+          </div>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+// ========================= SHARED =========================
 function StatCard({ label, value, icon: Icon, color }) {
   return (
-    <div className="stat-card" data-testid={`stat-${label.toLowerCase().replace(/\s/g, '-')}`}>
-      <div className="stat-icon" style={{ color, background: `${color}15` }}>
-        <Icon size={20} />
-      </div>
+    <div className="stat-card">
+      <div className="stat-icon" style={{ color, background: `${color}15` }}><Icon size={20} /></div>
       <div className="stat-info">
         <span className="stat-value">{typeof value === 'number' ? value.toLocaleString() : value}</span>
         <span className="stat-label">{label}</span>
@@ -444,44 +786,28 @@ function StatCard({ label, value, icon: Icon, color }) {
 }
 
 function RankingItem({ item, rank, valueKey, labelKey, colorKey }) {
-  const val = item[valueKey] || 0;
   return (
-    <div className="ranking-item" data-testid={`ranking-item-${rank}`}>
+    <div className="ranking-item">
       <div className={`rank-position ${rank <= 3 ? `top-${rank}` : ''}`}>{rank}</div>
       <div className="rank-color-dot" style={{ background: item[colorKey] || '#666' }} />
       <div className="rank-label">{item[labelKey]}</div>
-      <div className="rank-count mono">{val.toLocaleString()}</div>
+      <div className="rank-count mono">{(item[valueKey] || 0).toLocaleString()}</div>
     </div>
   );
 }
 
 function EmptyState({ text }) {
-  return (
-    <div className="empty-state" data-testid="empty-state">
-      <BarChart3 size={36} />
-      <p>{text}</p>
-    </div>
-  );
+  return <div className="empty-state"><BarChart3 size={36} /><p>{text}</p></div>;
 }
 
-// ==================== MAIN APP ====================
+// ========================= APP =========================
 export default function App() {
   const [auth, setAuth] = useState(() => {
-    const saved = localStorage.getItem('conteo_auth');
-    return saved ? JSON.parse(saved) : null;
+    const s = localStorage.getItem('conteo_auth');
+    return s ? JSON.parse(s) : null;
   });
-
-  const handleLogin = (data) => {
-    const authData = { token: data.token, user: data.user };
-    localStorage.setItem('conteo_auth', JSON.stringify(authData));
-    setAuth(authData);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('conteo_auth');
-    setAuth(null);
-  };
-
+  const handleLogin = (d) => { const a = { token: d.token, user: d.user }; localStorage.setItem('conteo_auth', JSON.stringify(a)); setAuth(a); };
+  const handleLogout = () => { localStorage.removeItem('conteo_auth'); setAuth(null); };
   if (!auth) return <LoginPage onLogin={handleLogin} />;
   return <Dashboard token={auth.token} user={auth.user} onLogout={handleLogout} />;
 }

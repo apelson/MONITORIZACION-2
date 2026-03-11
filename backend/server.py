@@ -1235,6 +1235,15 @@ async def download_conteo_update():
     raise HTTPException(status_code=404, detail="Conteo update not found")
 
 
+@app.get("/api/download-conteo-backend")
+async def download_conteo_backend():
+    """Download conteo backend update package"""
+    file_path = "/app/backend/static_files/conteo-backend-update.tar.gz"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="conteo-backend-update.tar.gz", media_type='application/gzip')
+    raise HTTPException(status_code=404, detail="Conteo backend update not found")
+
+
 # Endpoint para descargar NOCDashboard corregido
 @api_router.get("/download-noc")
 async def download_noc_corrected():
