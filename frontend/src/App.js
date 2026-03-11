@@ -1308,7 +1308,7 @@ function NOCHistorico({ trendsData, historicalData, ranking }) {
         {/* Hourly chart — today vs yesterday */}
         <div className="noc-panel noc-hist-chart-panel">
           <div className="noc-panel-title"><TrendingUp size={16} style={{ color: '#5B8DB8' }} /> FLUJO HORARIO — HOY vs AYER</div>
-          <div style={{ width: '100%', height: 220 }}>
+          <div style={{ width: '100%', height: 220, minWidth: 200 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartHourly} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
                 <defs>
@@ -1335,7 +1335,7 @@ function NOCHistorico({ trendsData, historicalData, ranking }) {
         {/* Daily chart — from stored data */}
         <div className="noc-panel noc-hist-chart-panel">
           <div className="noc-panel-title"><BarChart3 size={16} style={{ color: '#E8A83E' }} /> VISITAS POR DIA — SEMANA</div>
-          <div style={{ width: '100%', height: 220 }}>
+          <div style={{ width: '100%', height: 220, minWidth: 200 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dailySeries} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -1352,7 +1352,7 @@ function NOCHistorico({ trendsData, historicalData, ranking }) {
         {brandKeys.length > 0 && (
           <div className="noc-panel noc-hist-chart-panel noc-hist-chart-wide">
             <div className="noc-panel-title"><Flame size={16} style={{ color: '#ef4444' }} /> COMPARATIVA POR MARCA</div>
-            <div style={{ width: '100%', height: 220 }}>
+            <div style={{ width: '100%', height: 220, minWidth: 200 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
