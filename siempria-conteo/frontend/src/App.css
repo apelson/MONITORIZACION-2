@@ -265,6 +265,18 @@ body { background: var(--bg-base); color: var(--text-1); }
 .empty-box svg { opacity: 0.2; }
 .loading-box { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 300px; color: var(--text-3); }
 
+/* Brand logos (real PNGs) */
+.brand-logo-img { border-radius: 6px; object-fit: contain; flex-shrink: 0; background: #fff; padding: 2px; }
+.noc-rk-logo { flex-shrink: 0; }
+.noc-rk-logo .brand-logo-img { border-radius: 4px; background: rgba(255,255,255,0.9); padding: 1px; }
+.login-dag-logo { max-width: 280px; max-height: 60px; object-fit: contain; margin-bottom: 0.5rem; }
+.header-dag-logo { height: 32px; object-fit: contain; }
+.noc-dag-logo { height: 30px; object-fit: contain; }
+.login-footer-logo { width: 20px; height: 20px; object-fit: contain; }
+.footer-siempria-logo { width: 18px; height: 18px; object-fit: contain; }
+.noc-foot-logo { width: 16px; height: 16px; object-fit: contain; }
+.island-silhouette { flex-shrink: 0; }
+
 /* ═══════════════════════════ NOC COMPETITIVO ═══════════════════════════ */
 .noc-full { position: fixed; inset: 0; z-index: 200; overflow: hidden; }
 .noc-embed { position: relative; border-radius: var(--r-xl); overflow: hidden; min-height: 600px; }
@@ -317,6 +329,7 @@ body { background: var(--bg-base); color: var(--text-1); }
 .podium-crown { color: var(--gold); margin-bottom: 2px; animation: crown-bob 2s ease-in-out infinite; }
 @keyframes crown-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 .podium-logo { margin-bottom: 6px; }
+.podium-logo .brand-logo-img { background: rgba(255,255,255,0.9); border-radius: 8px; padding: 3px; }
 .podium-pillar { width: 100%; border-radius: 10px 10px 0 0; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; }
 .podium-pillar.p-1 { background: linear-gradient(to top, #f59e0b, var(--gold)); box-shadow: 0 0 25px rgba(251,191,36,0.25); }
 .podium-pillar.p-2 { background: linear-gradient(to top, #9ca3af, var(--silver)); }
