@@ -1,86 +1,184 @@
 {
-  "identity": {
-    "persona": "E1 - The Anti-AI Designer",
-    "archetype": "The Performance Pro (Elite Athleticism & Precision)",
-    "tone": "Tactical, High-Fidelity, Command-Center"
+  "project_name": "Domingo Alonso Group - Visit Counter",
+  "design_philosophy": {
+    "theme": "dark",
+    "style": "premium_corporate_automotive",
+    "emotional_tone": "precision_luxury_authority",
+    "core_principles": [
+      "No gradients for backgrounds (use solid rich black #050505)",
+      "High contrast typography (White on Black)",
+      "Data density with breathing room",
+      "Brand colors are functional, not decorative",
+      "Sharp edges and technical precision"
+    ]
   },
   "typography": {
-    "primary": "Inter",
-    "mono": "JetBrains Mono",
-    "rules": {
-      "headings": "Inter (Weight 600/700) or JetBrains Mono (for data values)",
-      "body": "Inter (Weight 400/500)",
-      "labels": "JetBrains Mono (Uppercase, tracking-wider, text-xs)",
-      "anti_pattern": "Do not use Inter for everything. Use Mono for all numbers, IDs, and status labels."
+    "font_family": {
+      "headings": "Barlow Condensed, sans-serif",
+      "body": "Manrope, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "weights": {
+      "light": 300,
+      "regular": 400,
+      "medium": 500,
+      "bold": 700,
+      "black": 900
+    },
+    "scale": {
+      "h1": "text-5xl font-black tracking-tight uppercase",
+      "h2": "text-3xl font-bold tracking-tight uppercase",
+      "h3": "text-xl font-semibold tracking-wide uppercase",
+      "body": "text-base font-normal leading-relaxed text-gray-400",
+      "label": "text-xs font-bold tracking-widest uppercase text-gray-500",
+      "data_large": "text-6xl font-black tracking-tighter tabular-nums",
+      "data_medium": "text-4xl font-bold tracking-tight tabular-nums"
     }
   },
   "colors": {
     "background": {
-      "app": "#020617",
-      "header": "#0f172a",
-      "card": "#1e293b"
+      "app": "#050505",
+      "surface": "#121212",
+      "card": "#171717",
+      "overlay": "rgba(0,0,0,0.8)"
     },
-    "brand": {
-      "primary": "#00AEEF",
-      "primary_hover": "#0090c7",
-      "accent": "#38bdf8"
-    },
-    "status": {
-      "online": "#22c55e",
-      "online_glow": "0 0 10px rgba(34, 197, 94, 0.4)",
-      "offline": "#ef4444",
-      "offline_glow": "0 0 10px rgba(239, 68, 68, 0.4)",
-      "warning": "#f59e0b"
+    "text": {
+      "primary": "#F5F5F5",
+      "secondary": "#A3A3A3",
+      "tertiary": "#525252",
+      "inverse": "#000000"
     },
     "border": {
-      "subtle": "rgba(255, 255, 255, 0.08)",
-      "active": "rgba(0, 174, 239, 0.3)"
-    }
-  },
-  "layout": {
-    "header": {
-      "height": "h-16 (64px)",
-      "padding": "px-6",
-      "structure": "Flexbox: Logo (Left) | Status HUD (Center-Left) | Actions (Right) | User (Far Right)",
-      "z_index": "z-50",
-      "position": "sticky top-0"
+      "default": "#262626",
+      "active": "#404040",
+      "focus": "#E5E5E5"
     },
-    "spacing": {
-      "container_padding": "p-6 md:p-8",
-      "gap_standard": "gap-4",
-      "gap_wide": "gap-8"
-    }
-  },
-  "components": {
-    "Header": {
-      "path": "/app/frontend/src/components/Header.js",
-      "instructions": "Rebuild the header using a 'Command Center' aesthetic. Abandon the old blue gradient. Use a dark Slate-900/950 background with a subtle bottom border. Separate the 'Status' into a distinct HUD element.",
-      "features": [
-        "Logo: Text 'Network Monitor' in JetBrains Mono, bold, white.",
-        "Status HUD: A pill-shaped container (bg-slate-800/50) displaying Online/Offline counts with glowing dots.",
-        "Actions: Group 'Export', 'Verify', 'Add' into a toolbar. 'Add' is the primary action (Cyan). Others are ghost/outline.",
-        "User Menu: Avatar with status indicator. Dropdown for profile/settings.",
-        "Language/Sound: Icon-only toggles with tooltips."
-      ]
+    "brand": {
+      "primary": "#E5E5E5", 
+      "audi": "#BB0A1E",
+      "volkswagen": "#001E50",
+      "skoda": "#4BA82E",
+      "honda": "#CC0000",
+      "ducati": "#D40000",
+      "daocasion": "#FF6B00",
+      "siempria": "#00AEEF"
     },
-    "StatusBadge": {
-      "style": "Pill shape, JetBrains Mono, glowing dot indicator.",
-      "variants": ["online", "offline", "checking"]
+    "status": {
+      "success": "#10B981",
+      "warning": "#F59E0B",
+      "error": "#EF4444",
+      "info": "#3B82F6"
     }
   },
   "visual_enhancers": {
-    "glassmorphism": "Use backdrop-blur-md with bg-slate-950/80 for the sticky header.",
-    "borders": "Use 1px borders with low opacity (white/10) to define sections.",
-    "shadows": "Use colored shadows (glows) for status indicators, not generic black shadows.",
-    "gradients": "Avoid large gradients. Use subtle radial gradients for 'active' states or backgrounds."
+    "borders": "1px solid #262626",
+    "radius": {
+      "sm": "2px",
+      "md": "4px",
+      "lg": "8px",
+      "full": "9999px"
+    },
+    "shadows": {
+      "card": "0 1px 2px rgba(0,0,0,0.5)",
+      "glow": "0 0 20px rgba(255,255,255,0.05)"
+    },
+    "glassmorphism": {
+      "header": "backdrop-blur-md bg-black/80 border-b border-white/10"
+    },
+    "textures": "Use subtle noise overlay on surfaces if possible (optional)"
+  },
+  "layouts": {
+    "login": {
+      "structure": "split_screen",
+      "left_panel": {
+        "width": "w-full md:w-1/2 lg:w-2/5",
+        "content": "branding_and_form",
+        "alignment": "flex flex-col justify-center px-12 py-12 bg-black"
+      },
+      "right_panel": {
+        "width": "hidden md:block md:w-1/2 lg:w-3/5",
+        "content": "image_background",
+        "style": "bg-cover bg-center grayscale brightness-50 contrast-125"
+      }
+    },
+    "dashboard": {
+      "structure": "bento_grid",
+      "gap": "gap-6",
+      "padding": "p-6 md:p-8"
+    },
+    "noc": {
+      "structure": "full_screen_grid",
+      "header": "fixed top-0 w-full z-50",
+      "columns": "grid-cols-12 gap-4 h-screen pt-20 pb-4 px-4"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-white text-black hover:bg-gray-200 font-bold uppercase tracking-wider text-xs px-6 py-3 rounded-sm transition-all",
+      "secondary": "border border-gray-700 text-white hover:border-white hover:text-white font-bold uppercase tracking-wider text-xs px-6 py-3 rounded-sm transition-all",
+      "ghost": "text-gray-400 hover:text-white font-medium uppercase text-xs px-4 py-2 transition-colors"
+    },
+    "inputs": {
+      "default": "bg-neutral-900 border border-neutral-800 text-white focus:border-white focus:ring-0 placeholder-neutral-600 rounded-sm px-4 py-3 font-medium transition-colors"
+    },
+    "cards": {
+      "base": "bg-card border border-border rounded-md overflow-hidden relative group",
+      "hover_effect": "hover:border-neutral-700 transition-colors duration-300"
+    },
+    "tables": {
+      "header": "text-xs font-bold uppercase tracking-widest text-neutral-500 border-b border-neutral-800 pb-3",
+      "row": "border-b border-neutral-900 hover:bg-neutral-900/50 transition-colors",
+      "cell": "py-4 text-sm font-medium text-neutral-300"
+    }
   },
   "assets": {
-    "user_avatar": "https://images.unsplash.com/photo-1674572392130-1d36223d9673?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTN8MHwxfHNlYXJjaHwyfHxwcm9mZXNzaW9uYWwlMjBtYW4lMjBwb3J0cmFpdCUyMGRhcmslMjBiYWNrZ3JvdW5kfGVufDB8fHx8MTc2OTk0NDAxOHww&ixlib=rb-4.1.0&q=85",
-    "icons": "Use Lucide React icons (already installed). Recommended: Activity, Server, ShieldCheck, Plus, Download, Bell, Globe, Volume2."
+    "images": {
+      "login_bg": "https://images.unsplash.com/photo-1647649641463-724358c4387e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHw0fHxtb2Rlcm4lMjBsdXh1cnklMjBjYXIlMjBzaG93cm9vbSUyMGRhcmslMjBhcmNoaXRlY3R1cmFsJTIwaW50ZXJpb3J8ZW58MHx8fHwxNzczMjQxNjc4fDA&ixlib=rb-4.1.0&q=85",
+      "dag_logo": "/dag-logo.png",
+      "siempria_logo": "/siempria-logo.png",
+      "brands": {
+        "audi": "/assets/brands/audi.jpg",
+        "volkswagen": "/assets/brands/volkswagen.png",
+        "skoda": "/assets/brands/skoda.png",
+        "honda": "/assets/brands/honda.png",
+        "ducati": "/assets/brands/ducati.png",
+        "daocasion": "/assets/brands/daocasion.png"
+      },
+      "islands": {
+        "tenerife": "/islands/tenerife.png",
+        "gran_canaria": "/islands/grancanaria.png",
+        "lanzarote": "/islands/lanzarote.png",
+        "fuerteventura": "/islands/fuerteventura.png",
+        "la_palma": "/islands/lapalma.png"
+      }
+    }
   },
-  "universal_guidelines": {
-    "do_not_use": ["Gradients for text", "Rounded-full buttons for main actions (use rounded-md)", "Default blue links"],
-    "accessibility": "Ensure text contrast is > 4.5:1. Use aria-labels for icon-only buttons.",
-    "testing": "All interactive elements must have data-testid attributes (e.g., 'header-export-btn')."
-  }
+  "instructions_to_main_agent": [
+    "REFACTOR: Modify /app/frontend/src/App.js to implement the new design. Use the component structure defined in layouts.",
+    "STYLE: Replace the contents of /app/frontend/src/ConteoApp.css with a cleaner, Tailwind-based approach or minimal custom CSS for animations only.",
+    "FONTS: Add <link> tags for 'Barlow Condensed' and 'Manrope' in public/index.html or import them in CSS.",
+    "LOGIN: Implement the split-screen login page with the provided image URL.",
+    "NOC: Create a 'Mission Control' style view. Use the podium logic but style it with gradients (e.g., gold gradient for 1st place) and reflections.",
+    "DASHBOARD: Use a Bento Grid layout (CSS Grid) for the main dashboard view.",
+    "COMPONENTS: Use Shadcn UI components where possible, but override styles to match the 'Premium Corporate' theme (sharp corners, dark backgrounds).",
+    "DATA-TESTID: Ensure every interactive element has a data-testid attribute.",
+    "LOGOS: Ensure all logo paths are correct and images are displayed with 'object-contain'.",
+    "FOOTER: Ensure the 'Desarrollado por Siempria' footer is present on all screens (except maybe full-screen NOC if space is tight, but client requested it)."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy",
+    "Use glass-morphism effects with backdrop filters (12-24px blur)",
+    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
+    "You MUST NOT center align the app container, ie do not add .App { text-align: center; } in the css file. This disrupts the human natural reading flow of text",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯📚🎭🎬🎪🎉🎊🎁🎀🎂🍰🎈🎨🎰💰💵💳🏦💎🪙💸🤑📊📈📉💹🔢🏆🥇 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Main agent relies on these image URLs. Missing categories (especially sponsor logos) = main agent will use placeholder text which is FORBIDDEN",
+    "Use sonner for toasts"
+  ]
 }
