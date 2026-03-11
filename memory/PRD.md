@@ -36,7 +36,7 @@ GET|POST /api/users | PUT|DELETE /api/users/{id} | GET /api/health
 
 ## Deployment (v3)
 ```bash
-API="https://conteo-preview.preview.emergentagent.com"
+API="https://conteo-preview-1.preview.emergentagent.com"
 curl -o /tmp/conteo-backend-v3.tar.gz "$API/api/deploy/backend"
 curl -o /tmp/conteo-frontend-v3.tar.gz "$API/api/deploy/frontend"
 cd /opt/siempria-conteo
