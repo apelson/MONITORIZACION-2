@@ -1170,23 +1170,34 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
 
 /* ── NOC Sub-Components ── */
 function Podium({ ranking, dark }) {
+  const medals = [
+    { accent: '#E8A83E', bg: 'rgba(232,168,62,0.08)', border: 'rgba(232,168,62,0.25)', label: '1er' },
+    { accent: '#94A3B8', bg: 'rgba(148,163,184,0.06)', border: 'rgba(148,163,184,0.18)', label: '2do' },
+    { accent: '#CD7F32', bg: 'rgba(205,127,50,0.06)', border: 'rgba(205,127,50,0.18)', label: '3er' },
+  ];
+  const top3 = ranking.slice(0, 3);
+  if (top3.length === 0) return <div className="noc-empty"><Trophy size={32} /><p>Esperando datos...</p></div>;
+
   return (
-    <div className="noc-podium">
-      {[1, 0, 2].map(idx => {
-        const item = ranking[idx];
-        if (!item) return <div key={idx} className="podium-slot empty" />;
-        const r = idx + 1;
-        const h = { 1: 140, 2: 105, 3: 80 };
-        const ord = idx === 0 ? 2 : idx === 1 ? 1 : 3;
+    <div className="podium-cards">
+      {top3.map((item, i) => {
+        const m = medals[i];
         return (
-          <div key={idx} className={`podium-slot r-${r}`} style={{ order: ord }} data-testid={`podium-rank-${r}`}>
-            {r === 1 && <Crown size={24} className="podium-crown" />}
-            <div className="podium-logo"><BrandLogo brandId={item.brand_id} size={r === 1 ? 52 : 38} /></div>
-            <div className={`podium-pillar p-${r}`} style={{ height: h[r] }}>
-              <span className="podium-num">{r}&#186;</span>
+          <div key={item.brand_id} className={`podium-card ${i === 0 ? 'podium-leader' : ''}`}
+            style={{ background: m.bg, borderColor: m.border }}
+            data-testid={`podium-rank-${i + 1}`}>
+            <div className="podium-card-accent" style={{ background: m.accent }} />
+            <div className="podium-card-rank" style={{ color: m.accent }}>{m.label}</div>
+            <div className="podium-card-logo">
+              <BrandLogo brandId={item.brand_id} size={i === 0 ? 44 : 36} />
             </div>
-            <p className="podium-label" style={!dark ? { color: '#1A2332' } : undefined}>{item.brand_name}</p>
-            <p className={`podium-count c-${r} mono`}><AnimNum value={item.entries || 0} /></p>
+            <div className="podium-card-info">
+              <span className="podium-card-name" style={!dark ? { color: '#1A2332' } : undefined}>{item.brand_name}</span>
+              <span className="podium-card-count mono" style={{ color: m.accent }}>
+                <AnimNum value={item.entries || 0} />
+                <span className="podium-card-unit">visitas</span>
+              </span>
+            </div>
           </div>
         );
       })}
