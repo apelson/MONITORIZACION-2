@@ -44,6 +44,40 @@ body { font-family: var(--font-b); background: var(--bg); color: var(--text-1); 
 .spin { animation: spin 1s linear infinite; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes staggerIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+
+/* ═══════════════ TREND BADGES ═══════════════ */
+.trend-badge {
+  display: inline-flex; align-items: center; gap: 2px;
+  font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700;
+  padding: 1px 6px; border-radius: 4px; letter-spacing: 0.02em;
+}
+.trend-badge.up { color: #22c55e; background: rgba(34,197,94,0.12); }
+.trend-badge.down { color: #ef4444; background: rgba(239,68,68,0.12); }
+.trend-badge.neutral { color: #64748B; background: rgba(100,116,139,0.1); }
+
+/* ═══════════════ SPARKLINE ═══════════════ */
+.mini-sparkline { display: inline-block; vertical-align: middle; opacity: 0.8; }
+
+/* ═══════════════ NOC ANIMATIONS ═══════════════ */
+.noc-left-area { animation: fadeIn 0.5s ease both; }
+.noc-right-area { animation: fadeIn 0.5s ease 0.15s both; }
+.noc-hist-kpi { animation: fadeIn 0.4s ease both; }
+.noc-hist-kpi:nth-child(2) { animation-delay: 0.08s; }
+.noc-hist-kpi:nth-child(3) { animation-delay: 0.16s; }
+.noc-hist-kpi:nth-child(4) { animation-delay: 0.24s; }
+.noc-hist-chart-panel { animation: slideUp 0.5s ease both; }
+.noc-hist-chart-panel:nth-child(2) { animation-delay: 0.12s; }
+.noc-hist-chart-panel:nth-child(3) { animation-delay: 0.24s; }
+.podium-card { animation: staggerIn 0.35s ease both; }
+.podium-card:nth-child(2) { animation-delay: 0.08s; }
+.podium-card:nth-child(3) { animation-delay: 0.16s; }
+.ranking-row { animation: staggerIn 0.3s ease both; }
+.ranking-row:nth-child(2) { animation-delay: 0.04s; }
+.ranking-row:nth-child(3) { animation-delay: 0.08s; }
+.ranking-row:nth-child(4) { animation-delay: 0.12s; }
+.ranking-row:nth-child(5) { animation-delay: 0.16s; }
+.ranking-row:nth-child(6) { animation-delay: 0.20s; }
 
 /* ═══════════════ LOGIN ═══════════════ */
 .login-page {

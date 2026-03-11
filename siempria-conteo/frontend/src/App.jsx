@@ -5,7 +5,7 @@ import {
   Camera, Clock, Shield, Activity, Wifi, WifiOff, AlertCircle,
   MapPin, Plus, Trash2, Edit3, Save, X, Trophy, Crown, Flame, Award,
   Maximize2, Check, Download, ToggleLeft, ToggleRight, UserPlus, UserCog, Key, ChevronDown,
-  TrendingUp, Menu
+  TrendingUp, TrendingDown, Menu, ArrowUpRight, ArrowDownRight, Minus, Zap, Database
 } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import './App.css';
@@ -13,6 +13,139 @@ import './App.css';
 const API = import.meta.env.VITE_API_URL
   ? import.meta.env.VITE_API_URL
   : '/api';
+
+/* ═══════════════ ECG HEARTBEAT COMPONENT ═══════════════ */
+function EcgMonitor({ camerasOnline, camerasTotal }) {
+  const canvasRef = useRef(null);
+  const dataRef = useRef([]);
+  const offsetRef = useRef(0);
+
+  useEffect(() => {
+    dataRef.current.push(camerasOnline);
+    if (dataRef.current.length > 60) dataRef.current.shift();
+  }, [camerasOnline]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animId;
+
+    const draw = () => {
+      const w = canvas.width = canvas.offsetWidth * 2;
+      const h = canvas.height = canvas.offsetHeight * 2;
+      ctx.clearRect(0, 0, w, h);
+
+      const pts = dataRef.current;
+      const max = Math.max(camerasTotal || 1, ...pts, 1);
+      offsetRef.current = (offsetRef.current + 1) % 20;
+
+      // Grid lines
+      ctx.strokeStyle = 'rgba(91,141,184,0.08)';
+      ctx.lineWidth = 1;
+      for (let y = 0; y < h; y += 24) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+      for (let x = -offsetRef.current; x < w; x += 24) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      }
+
+      if (pts.length < 2) { animId = requestAnimationFrame(draw); return; }
+
+      // ECG line
+      const stepX = w / (pts.length - 1);
+      ctx.beginPath();
+      ctx.strokeStyle = camerasOnline >= camerasTotal ? '#22c55e' : camerasOnline > 0 ? '#f59e0b' : '#ef4444';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = ctx.strokeStyle;
+      ctx.shadowBlur = 8;
+      ctx.lineJoin = 'round';
+
+      pts.forEach((val, i) => {
+        const x = i * stepX;
+        const baseY = h - (val / max) * (h * 0.7) - h * 0.1;
+        // Add ECG-like spike effect at data transitions
+        let y = baseY;
+        if (i > 0 && pts[i] !== pts[i - 1]) {
+          const diff = pts[i] - pts[i - 1];
+          y = baseY - diff * 4;
+        }
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Glow dot at the end
+      const lastX = (pts.length - 1) * stepX;
+      const lastY = h - (pts[pts.length - 1] / max) * (h * 0.7) - h * 0.1;
+      ctx.beginPath();
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.shadowBlur = 16;
+      ctx.arc(lastX, lastY, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      animId = requestAnimationFrame(draw);
+    };
+
+    draw();
+    return () => cancelAnimationFrame(animId);
+  }, [camerasOnline, camerasTotal]);
+
+  return <canvas ref={canvasRef} className="ecg-canvas" />;
+}
+
+function SystemHealthWidget({ camerasOnline, camerasTotal }) {
+  const pct = camerasTotal > 0 ? Math.round((camerasOnline / camerasTotal) * 100) : 0;
+  const statusColor = pct >= 90 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
+  const statusLabel = pct >= 90 ? 'OPERATIVO' : pct >= 50 ? 'PARCIAL' : 'CRITICO';
+  const r = 28;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (pct / 100) * circ;
+
+  return (
+    <div className="noc-health-widget" data-testid="system-health-widget">
+      <div className="health-header">
+        <Activity size={14} style={{ color: statusColor }} />
+        <span className="health-title">ESTADO DEL SISTEMA</span>
+        <span className="health-pulse" style={{ background: statusColor }} />
+      </div>
+      <div className="health-body">
+        <div className="health-gauge">
+          <svg width="68" height="68" viewBox="0 0 68 68">
+            <circle cx="34" cy="34" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
+            <circle cx="34" cy="34" r={r} fill="none" stroke={statusColor} strokeWidth="5"
+              strokeDasharray={circ} strokeDashoffset={offset}
+              strokeLinecap="round" transform="rotate(-90 34 34)"
+              style={{ transition: 'stroke-dashoffset 1s ease' }} />
+            <text x="34" y="31" textAnchor="middle" fill="#fff" fontSize="16" fontWeight="700" fontFamily="JetBrains Mono, monospace">{pct}%</text>
+            <text x="34" y="44" textAnchor="middle" fill={statusColor} fontSize="7" fontWeight="600" letterSpacing="0.5">{statusLabel}</text>
+          </svg>
+        </div>
+        <div className="health-info">
+          <div className="health-row">
+            <Camera size={12} />
+            <span className="health-label">Camaras</span>
+            <span className="health-val mono">{camerasOnline}<span style={{opacity:0.4}}>/{camerasTotal}</span></span>
+          </div>
+          <div className="health-row">
+            <Wifi size={12} style={{ color: '#22c55e' }} />
+            <span className="health-label">Online</span>
+            <span className="health-val mono" style={{ color: '#22c55e' }}>{camerasOnline}</span>
+          </div>
+          <div className="health-row">
+            <WifiOff size={12} style={{ color: '#ef4444' }} />
+            <span className="health-label">Offline</span>
+            <span className="health-val mono" style={{ color: camerasTotal - camerasOnline > 0 ? '#ef4444' : 'rgba(255,255,255,0.3)' }}>{camerasTotal - camerasOnline}</span>
+          </div>
+        </div>
+      </div>
+      <div className="health-ecg">
+        <EcgMonitor camerasOnline={camerasOnline} camerasTotal={camerasTotal} />
+      </div>
+    </div>
+  );
+}
 
 /* ═══════════════ BRAND CONFIG ═══════════════ */
 const ALL_BRANDS = [
@@ -31,6 +164,39 @@ const ALL_ISLANDS = [
   { id: 'la-palma', name: 'La Palma', short: 'LP', color: '#06B6D4' },
 ];
 const BRAND_COLORS = Object.fromEntries(ALL_BRANDS.map(b => [b.id, b.color]));
+
+/* ═══════════════ TREND & SPARKLINE COMPONENTS ═══════════════ */
+function TrendBadge({ current, previous }) {
+  if (!previous || previous === 0) return null;
+  const pct = Math.round(((current - previous) / previous) * 100);
+  if (pct === 0) return <span className="trend-badge neutral"><Minus size={10} /> 0%</span>;
+  const up = pct > 0;
+  return (
+    <span className={`trend-badge ${up ? 'up' : 'down'}`}>
+      {up ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
+      {up ? '+' : ''}{pct}%
+    </span>
+  );
+}
+
+function MiniSparkline({ data = [], width = 60, height = 20, color = '#5B8DB8' }) {
+  if (data.length < 2) return null;
+  const max = Math.max(...data, 1);
+  const min = Math.min(...data, 0);
+  const range = max - min || 1;
+  const points = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * width;
+    const y = height - ((v - min) / range) * (height - 2) - 1;
+    return `${x},${y}`;
+  }).join(' ');
+  return (
+    <svg width={width} height={height} className="mini-sparkline">
+      <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" />
+      <circle cx={(data.length - 1) / (data.length - 1) * width} cy={height - ((data[data.length - 1] - min) / range) * (height - 2) - 1}
+        r="2" fill={color} />
+    </svg>
+  );
+}
 
 function BrandLogo({ brandId, size = 24 }) {
   const brand = ALL_BRANDS.find(b => b.id === brandId);
@@ -899,12 +1065,27 @@ function UsersView({ data, api, onRefresh, currentUser }) {
 /* ═══════════════ NOC COMPETITIVE — PREMIUM 55" ═══════════════ */
 function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefresh, loading, autoRefresh, setAutoRefresh, api }) {
   const islandStats = parentIslandData || {};
+  const camerasTotal = data?.cameras_total || 0;
+  const camerasOnline = data?.cameras_online || 0;
+  const [nocTab, setNocTab] = useState('ranking');
+  const [trendsData, setTrendsData] = useState(null);
+  const [historicalData, setHistoricalData] = useState(null);
 
   const ranking = (data?.ranking || []).sort((a, b) => (b.entries || 0) - (a.entries || 0));
   const totalVisits = ranking.reduce((s, i) => s + (i.entries || 0), 0);
   const maxV = ranking[0]?.entries || 1;
   const maxI = Math.max(...Object.values(islandStats).map(i => i.total || 0), 1);
   const leaderI = Object.entries(islandStats).sort((a, b) => (b[1].total || 0) - (a[1].total || 0))[0];
+
+  // Fetch trends + historical data when switching to historical tab
+  useEffect(() => {
+    if (nocTab === 'historico' && !trendsData) {
+      api('get', '/ranking/trends').then(res => setTrendsData(res)).catch(() => {});
+    }
+    if (nocTab === 'historico' && !historicalData) {
+      api('get', '/ranking/historical?days=7').then(res => setHistoricalData(res)).catch(() => {});
+    }
+  }, [nocTab, trendsData, historicalData, api]);
 
   // Build dealership (camera) ranking from brand data
   const dealerships = ranking.flatMap(brand =>
@@ -968,6 +1149,14 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
           </div>
           <LiveClock />
           <div className="noc-header-right">
+            <div className="noc-tab-toggle" data-testid="noc-tab-toggle">
+              <button className={`noc-tab-btn ${nocTab === 'ranking' ? 'active' : ''}`} onClick={() => setNocTab('ranking')} data-testid="noc-tab-ranking">
+                <Trophy size={13} /> Ranking
+              </button>
+              <button className={`noc-tab-btn ${nocTab === 'historico' ? 'active' : ''}`} onClick={() => setNocTab('historico')} data-testid="noc-tab-historico">
+                <TrendingUp size={13} /> Historico
+              </button>
+            </div>
             <div className="noc-total-box">
               <span className="noc-total-label">TOTAL VISITAS HOY</span>
               <span className="noc-total-num mono"><AnimNum value={totalVisits} /></span>
@@ -980,47 +1169,45 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
           </div>
         </header>
 
-        {/* Main Content - Podium top + 3 columns below */}
+        {/* Main Content */}
         <div className="noc-body-55">
-          {/* Row 1: Podium spanning full width */}
-          <div className="noc-podium-row">
-            <div className="noc-panel">
-              <div className="noc-panel-title"><Award size={16} className="gold-icon" /> PODIO DE HONOR</div>
-              <Podium ranking={ranking} dark />
-            </div>
-          </div>
-
-          {/* Row 2: 3 columns */}
-          <div className="noc-columns-row">
-            {/* Col 1: Full Ranking */}
-            <div className="noc-col">
-              <div className="noc-panel" style={{ flex: 1 }}>
-                <div className="noc-panel-title"><BarChart3 size={16} /> RANKING EN VIVO</div>
-                <RankingRows ranking={ranking} maxV={maxV} />
-              </div>
-            </div>
-
-            {/* Col 2: Dealerships */}
-            <div className="noc-col">
-              {dealerships.length > 0 && (
-                <div className="noc-panel" style={{ flex: 1 }}>
-                  <div className="noc-panel-title"><Camera size={16} /> CONCESIONARIOS</div>
-                  <DealershipRows dealerships={dealerships} />
+          {nocTab === 'ranking' ? (
+            <>
+              {/* Left area: Podium on top, then Ranking + Concesionarios side by side */}
+              <div className="noc-left-area">
+                <div className="noc-panel noc-podium-panel">
+                  <div className="noc-panel-title"><Award size={16} className="gold-icon" /> PODIO DE HONOR</div>
+                  <Podium ranking={ranking} dark />
                 </div>
-              )}
-            </div>
-
-            {/* Col 3: Islands */}
-            <div className="noc-col">
-              <div className="noc-panel-title"><MapPin size={16} className="purple-icon" /> ISLAS CANARIAS</div>
-              <IslandCards islandStats={islandStats} maxI={maxI} leaderI={leaderI} />
-              <div className="noc-summary-panel">
-                <span className="noc-sum-label">TOTAL ARCHIPIELAGO</span>
-                <span className="noc-sum-val mono"><AnimNum value={totalVisits} /></span>
-                <span className="noc-sum-sub">visitas hoy</span>
+                <div className="noc-left-cols">
+                  <div className="noc-panel" style={{ flex: 1 }}>
+                    <div className="noc-panel-title"><BarChart3 size={16} /> RANKING EN VIVO</div>
+                    <RankingRows ranking={ranking} maxV={maxV} />
+                  </div>
+                  {dealerships.length > 0 && (
+                    <div className="noc-panel" style={{ flex: 1 }}>
+                      <div className="noc-panel-title"><Camera size={16} /> CONCESIONARIOS</div>
+                      <DealershipRows dealerships={dealerships} />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
+
+              {/* Right area: Islands + System Health */}
+              <div className="noc-right-area">
+                <div className="noc-panel-title"><MapPin size={16} className="purple-icon" /> ISLAS CANARIAS</div>
+                <IslandCards islandStats={islandStats} maxI={maxI} leaderI={leaderI} />
+                <SystemHealthWidget camerasOnline={camerasOnline} camerasTotal={camerasTotal} />
+                <div className="noc-summary-panel">
+                  <span className="noc-sum-label">TOTAL ARCHIPIELAGO</span>
+                  <span className="noc-sum-val mono"><AnimNum value={totalVisits} /></span>
+                  <span className="noc-sum-sub">visitas hoy</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <NOCHistorico trendsData={trendsData} historicalData={historicalData} ranking={ranking} />
+          )}
         </div>
 
         {/* Footer */}
@@ -1041,25 +1228,197 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
   );
 }
 
+/* ── NOC Historical View ── */
+function NOCHistorico({ trendsData, historicalData, ranking }) {
+  const currentHour = new Date().getHours();
+  const { hourly_today = [], daily_week = [], brand_hourly = {} } = trendsData || {};
+
+  const totalToday = historicalData?.today_total || hourly_today.reduce((s, h) => s + h.entries, 0);
+  const peakHour = hourly_today.reduce((max, h) => h.entries > (max?.entries || 0) ? h : max, hourly_today[0]);
+  const avgHourly = currentHour > 0 ? Math.round(totalToday / currentHour) : 0;
+  const chartHourly = (historicalData?.today_hourly?.length > 0 ? historicalData.today_hourly : hourly_today).filter(h => h.hour <= currentHour);
+  const brandKeys = Object.keys(brand_hourly);
+
+  // Historical comparison data
+  const yesterdayTotal = historicalData?.yesterday_total || 0;
+  const trendPct = historicalData?.trend_pct || 0;
+  const readingsStored = historicalData?.readings_stored || 0;
+  const dailySeries = historicalData?.daily_series || daily_week;
+
+  const DarkTooltip = ({ active, payload, label }) => {
+    if (!active || !payload?.length) return null;
+    return (
+      <div style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px' }}>
+        <p style={{ color: '#94A3B8', fontSize: '0.72rem', marginBottom: 2 }}>{label}</p>
+        {payload.map((p, i) => (
+          <p key={i} style={{ color: p.color || '#E2E8F0', fontSize: '0.82rem', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>
+            {p.name ? `${p.name}: ` : ''}{p.value.toLocaleString('es-ES')} visitas
+          </p>
+        ))}
+      </div>
+    );
+  };
+
+  if (!trendsData) return (
+    <div className="noc-historico-loading">
+      <RefreshCw size={24} className="spin" style={{ color: '#5B8DB8' }} />
+      <p style={{ color: '#94A3B8', marginTop: '0.75rem' }}>Cargando datos historicos...</p>
+    </div>
+  );
+
+  return (
+    <div className="noc-historico" data-testid="noc-historico">
+      {/* KPI Row */}
+      <div className="noc-hist-kpis">
+        <div className="noc-hist-kpi">
+          <Users size={16} style={{ color: '#5B8DB8' }} />
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span className="noc-hist-kpi-val mono"><AnimNum value={totalToday} /></span>
+              <TrendBadge current={totalToday} previous={yesterdayTotal} />
+            </div>
+            <span className="noc-hist-kpi-label">Total hoy</span>
+          </div>
+        </div>
+        <div className="noc-hist-kpi">
+          <TrendingUp size={16} style={{ color: '#E8A83E' }} />
+          <div>
+            <span className="noc-hist-kpi-val mono">{peakHour ? `${peakHour.hour}:00` : '--'}</span>
+            <span className="noc-hist-kpi-label">Hora pico ({peakHour?.entries || 0})</span>
+          </div>
+        </div>
+        <div className="noc-hist-kpi">
+          <Activity size={16} style={{ color: '#8B5CF6' }} />
+          <div>
+            <span className="noc-hist-kpi-val mono"><AnimNum value={avgHourly} /></span>
+            <span className="noc-hist-kpi-label">Media/hora</span>
+          </div>
+        </div>
+        <div className="noc-hist-kpi">
+          <Database size={16} style={{ color: '#22c55e' }} />
+          <div>
+            <span className="noc-hist-kpi-val mono">{readingsStored.toLocaleString('es-ES')}</span>
+            <span className="noc-hist-kpi-label">Lecturas almacenadas</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Charts Grid */}
+      <div className="noc-hist-charts">
+        {/* Hourly chart — today vs yesterday */}
+        <div className="noc-panel noc-hist-chart-panel">
+          <div className="noc-panel-title"><TrendingUp size={16} style={{ color: '#5B8DB8' }} /> FLUJO HORARIO — HOY vs AYER</div>
+          <div style={{ width: '100%', height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartHourly} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="nocGradBlue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#5B8DB8" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#5B8DB8" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                <Tooltip content={<DarkTooltip />} />
+                {(historicalData?.yesterday_hourly || []).length > 0 && (
+                  <Area type="monotone" data={historicalData.yesterday_hourly} dataKey="entries" name="Ayer"
+                    stroke="#64748B" strokeWidth={1.5} strokeDasharray="4 4" fill="none" dot={false} />
+                )}
+                <Area type="monotone" dataKey="entries" name="Hoy" stroke="#5B8DB8" strokeWidth={2.5} fill="url(#nocGradBlue)" dot={false}
+                  activeDot={{ r: 4, fill: '#5B8DB8', stroke: '#0F172A', strokeWidth: 2 }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Daily chart — from stored data */}
+        <div className="noc-panel noc-hist-chart-panel">
+          <div className="noc-panel-title"><BarChart3 size={16} style={{ color: '#E8A83E' }} /> VISITAS POR DIA — SEMANA</div>
+          <div style={{ width: '100%', height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dailySeries} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#64748B', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                <Tooltip content={<DarkTooltip />} />
+                <Bar dataKey="entries" name="Visitas" fill="#E8A83E" radius={[4, 4, 0, 0]} maxBarSize={40} fillOpacity={0.85} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Brand comparison chart */}
+        {brandKeys.length > 0 && (
+          <div className="noc-panel noc-hist-chart-panel noc-hist-chart-wide">
+            <div className="noc-panel-title"><Flame size={16} style={{ color: '#ef4444' }} /> COMPARATIVA POR MARCA</div>
+            <div style={{ width: '100%', height: 220 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false}
+                    data={hourly_today.filter(h => h.hour <= currentHour)} />
+                  <YAxis tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<DarkTooltip />} />
+                  {brandKeys.map(bid => {
+                    const brand = ALL_BRANDS.find(b => b.id === bid);
+                    const bData = (brand_hourly[bid] || []).filter(h => h.hour <= currentHour);
+                    return (
+                      <Line key={bid} data={bData} dataKey="entries" name={brand?.name || bid}
+                        stroke={BRAND_COLORS[bid] || '#5B8DB8'} strokeWidth={2.5} dot={false} />
+                    );
+                  })}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="noc-hist-legend">
+              {brandKeys.map(bid => {
+                const brand = ALL_BRANDS.find(b => b.id === bid);
+                return (
+                  <span key={bid} className="noc-hist-legend-item">
+                    <span className="noc-hist-legend-dot" style={{ background: BRAND_COLORS[bid] || '#5B8DB8' }} />
+                    {brand?.name || bid}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ── NOC Sub-Components ── */
 function Podium({ ranking, dark }) {
+  const medals = [
+    { accent: '#E8A83E', bg: 'rgba(232,168,62,0.08)', border: 'rgba(232,168,62,0.25)', label: '1er' },
+    { accent: '#94A3B8', bg: 'rgba(148,163,184,0.06)', border: 'rgba(148,163,184,0.18)', label: '2do' },
+    { accent: '#CD7F32', bg: 'rgba(205,127,50,0.06)', border: 'rgba(205,127,50,0.18)', label: '3er' },
+  ];
+  const top3 = ranking.slice(0, 3);
+  if (top3.length === 0) return <div className="noc-empty"><Trophy size={32} /><p>Esperando datos...</p></div>;
+
   return (
-    <div className="noc-podium">
-      {[1, 0, 2].map(idx => {
-        const item = ranking[idx];
-        if (!item) return <div key={idx} className="podium-slot empty" />;
-        const r = idx + 1;
-        const h = { 1: 140, 2: 105, 3: 80 };
-        const ord = idx === 0 ? 2 : idx === 1 ? 1 : 3;
+    <div className="podium-cards">
+      {top3.map((item, i) => {
+        const m = medals[i];
         return (
-          <div key={idx} className={`podium-slot r-${r}`} style={{ order: ord }} data-testid={`podium-rank-${r}`}>
-            {r === 1 && <Crown size={24} className="podium-crown" />}
-            <div className="podium-logo"><BrandLogo brandId={item.brand_id} size={r === 1 ? 52 : 38} /></div>
-            <div className={`podium-pillar p-${r}`} style={{ height: h[r] }}>
-              <span className="podium-num">{r}&#186;</span>
+          <div key={item.brand_id} className={`podium-card ${i === 0 ? 'podium-leader' : ''}`}
+            style={{ background: m.bg, borderColor: m.border }}
+            data-testid={`podium-rank-${i + 1}`}>
+            <div className="podium-card-accent" style={{ background: m.accent }} />
+            <div className="podium-card-rank" style={{ color: m.accent }}>{m.label}</div>
+            <div className="podium-card-logo">
+              <BrandLogo brandId={item.brand_id} size={i === 0 ? 44 : 36} />
             </div>
-            <p className="podium-label" style={!dark ? { color: '#1A2332' } : undefined}>{item.brand_name}</p>
-            <p className={`podium-count c-${r} mono`}><AnimNum value={item.entries || 0} /></p>
+            <div className="podium-card-info">
+              <span className="podium-card-name" style={!dark ? { color: '#1A2332' } : undefined}>{item.brand_name}</span>
+              <span className="podium-card-count mono" style={{ color: m.accent }}>
+                <AnimNum value={item.entries || 0} />
+                <span className="podium-card-unit">visitas</span>
+              </span>
+            </div>
           </div>
         );
       })}

@@ -8,7 +8,8 @@ from datetime import datetime, timezone, timedelta
 
 from config import (
     cameras_config_collection, brand_daily_collection,
-    brand_hourly_collection, brands_collection, centers_collection, logger
+    brand_hourly_collection, brands_collection, centers_collection,
+    camera_readings_collection, hourly_snapshots_collection, logger
 )
 from services.auth_service import get_current_user
 from services.mobotix_service import fetch_all_cameras_counting, fetch_all_cameras_trends
@@ -289,3 +290,116 @@ async def list_brands(current_user: dict = Depends(get_current_user)):
 async def list_centers(current_user: dict = Depends(get_current_user)):
     centers = await get_centers()
     return {"centers": centers}
+
+
+
+@router.get("/historical")
+async def get_historical(
+    days: int = Query(default=7, ge=1, le=90),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get historical data from stored snapshots"""
+    try:
+        now = datetime.now(timezone.utc)
+        start_date = (now - timedelta(days=days)).strftime("%Y-%m-%d")
+        today = now.strftime("%Y-%m-%d")
+        yesterday = (now - timedelta(days=1)).strftime("%Y-%m-%d")
+
+        # Get hourly snapshots for the period
+        snapshots = await hourly_snapshots_collection.find(
+            {"date": {"$gte": start_date}},
+            {"_id": 0}
+        ).sort([("date", 1), ("hour", 1)]).to_list(5000)
+
+        # Aggregate daily totals
+        daily_totals = {}
+        brand_daily = {}
+        for snap in snapshots:
+            d = snap["date"]
+            entries = snap.get("total_entries", 0)
+            if d not in daily_totals:
+                daily_totals[d] = 0
+            daily_totals[d] = max(daily_totals[d], entries)
+
+            for bid, bdata in snap.get("brands", {}).items():
+                if bid not in brand_daily:
+                    brand_daily[bid] = {}
+                if d not in brand_daily[bid]:
+                    brand_daily[bid][d] = 0
+                brand_daily[bid][d] = max(brand_daily[bid][d], bdata.get("entries", 0))
+
+        # Today's hourly breakdown
+        today_hourly = [s for s in snapshots if s["date"] == today]
+        yesterday_hourly = [s for s in snapshots if s["date"] == yesterday]
+
+        # Calculate yesterday's total for comparison
+        yesterday_total = daily_totals.get(yesterday, 0)
+        today_total = daily_totals.get(today, 0)
+
+        # Build daily series
+        daily_series = []
+        cursor = now - timedelta(days=days)
+        while cursor.strftime("%Y-%m-%d") <= today:
+            d = cursor.strftime("%Y-%m-%d")
+            day_name = cursor.strftime("%a")
+            daily_series.append({
+                "date": d,
+                "day": day_name,
+                "entries": daily_totals.get(d, 0)
+            })
+            cursor += timedelta(days=1)
+
+        # Brand daily series
+        brand_series = {}
+        for bid, days_data in brand_daily.items():
+            brand_series[bid] = [
+                {"date": d, "entries": days_data.get(d, 0)}
+                for d in sorted(days_data.keys())
+            ]
+
+        # Stats count
+        readings_count = await camera_readings_collection.count_documents(
+            {"date": {"$gte": start_date}}
+        )
+
+        return {
+            "period_days": days,
+            "today_total": today_total,
+            "yesterday_total": yesterday_total,
+            "trend_pct": round(((today_total - yesterday_total) / max(yesterday_total, 1)) * 100, 1) if yesterday_total > 0 else 0,
+            "daily_series": daily_series,
+            "today_hourly": [{"hour": s["hour"], "label": f"{s['hour']:02d}:00", "entries": s.get("total_entries", 0)} for s in today_hourly],
+            "yesterday_hourly": [{"hour": s["hour"], "label": f"{s['hour']:02d}:00", "entries": s.get("total_entries", 0)} for s in yesterday_hourly],
+            "brand_daily": brand_series,
+            "readings_stored": readings_count,
+            "last_snapshot": snapshots[-1].get("last_updated") if snapshots else None
+        }
+    except Exception as e:
+        logger.error(f"Error getting historical: {e}")
+        return {"error": str(e), "daily_series": [], "today_hourly": [], "yesterday_hourly": []}
+
+
+@router.get("/collector-status")
+async def collector_status(current_user: dict = Depends(get_current_user)):
+    """Check data collector status"""
+    try:
+        now = datetime.now(timezone.utc)
+        today = now.strftime("%Y-%m-%d")
+
+        total_readings = await camera_readings_collection.count_documents({})
+        today_readings = await camera_readings_collection.count_documents({"date": today})
+        last_reading = await camera_readings_collection.find_one(
+            {}, {"_id": 0, "timestamp": 1}, sort=[("timestamp", -1)]
+        )
+        total_snapshots = await hourly_snapshots_collection.count_documents({})
+
+        return {
+            "active": True,
+            "total_readings": total_readings,
+            "today_readings": today_readings,
+            "total_snapshots": total_snapshots,
+            "last_reading": last_reading.get("timestamp") if last_reading else None,
+            "interval_seconds": 300
+        }
+    except Exception as e:
+        return {"active": False, "error": str(e)}

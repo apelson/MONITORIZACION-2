@@ -8,17 +8,21 @@ from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import os
 import logging
+import asyncio
 
 from config import CORS_ORIGINS, users_collection, logger
 from services.auth_service import get_password_hash
+from services.data_collector import data_collector_loop
 from routes.auth import router as auth_router
 from routes.ranking import router as ranking_router
 from routes.cameras import router as cameras_router
 from routes.users import router as users_router
 
+collector_task = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global collector_task
     # Startup: create admin user if not exists
     admin = await users_collection.find_one({"username": "admin"})
     if not admin:
@@ -33,8 +37,12 @@ async def lifespan(app: FastAPI):
             "created_at": "2024-01-01T00:00:00Z"
         })
         logger.info("Admin user created")
+    # Start data collector background task
+    collector_task = asyncio.create_task(data_collector_loop())
     logger.info("Siempria Conteo backend started")
     yield
+    if collector_task:
+        collector_task.cancel()
     logger.info("Siempria Conteo backend stopped")
 
 

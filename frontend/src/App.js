@@ -5,7 +5,7 @@ import {
   Camera, Clock, Shield, Activity, Wifi, WifiOff, AlertCircle,
   MapPin, Plus, Trash2, Edit3, Save, X, Trophy, Crown, Flame, Award,
   Maximize2, Check, Download, ToggleLeft, ToggleRight, UserPlus, UserCog, Key, ChevronDown,
-  TrendingUp, Menu
+  TrendingUp, TrendingDown, Menu, ArrowUpRight, ArrowDownRight, Minus, Zap, Database
 } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import './ConteoApp.css';
@@ -164,6 +164,39 @@ const ALL_ISLANDS = [
   { id: 'la-palma', name: 'La Palma', short: 'LP', color: '#06B6D4' },
 ];
 const BRAND_COLORS = Object.fromEntries(ALL_BRANDS.map(b => [b.id, b.color]));
+
+/* ═══════════════ TREND & SPARKLINE COMPONENTS ═══════════════ */
+function TrendBadge({ current, previous }) {
+  if (!previous || previous === 0) return null;
+  const pct = Math.round(((current - previous) / previous) * 100);
+  if (pct === 0) return <span className="trend-badge neutral"><Minus size={10} /> 0%</span>;
+  const up = pct > 0;
+  return (
+    <span className={`trend-badge ${up ? 'up' : 'down'}`}>
+      {up ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
+      {up ? '+' : ''}{pct}%
+    </span>
+  );
+}
+
+function MiniSparkline({ data = [], width = 60, height = 20, color = '#5B8DB8' }) {
+  if (data.length < 2) return null;
+  const max = Math.max(...data, 1);
+  const min = Math.min(...data, 0);
+  const range = max - min || 1;
+  const points = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * width;
+    const y = height - ((v - min) / range) * (height - 2) - 1;
+    return `${x},${y}`;
+  }).join(' ');
+  return (
+    <svg width={width} height={height} className="mini-sparkline">
+      <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" />
+      <circle cx={(data.length - 1) / (data.length - 1) * width} cy={height - ((data[data.length - 1] - min) / range) * (height - 2) - 1}
+        r="2" fill={color} />
+    </svg>
+  );
+}
 
 function BrandLogo({ brandId, size = 24 }) {
   const brand = ALL_BRANDS.find(b => b.id === brandId);
@@ -1036,6 +1069,7 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
   const camerasOnline = data?.cameras_online || 0;
   const [nocTab, setNocTab] = useState('ranking');
   const [trendsData, setTrendsData] = useState(null);
+  const [historicalData, setHistoricalData] = useState(null);
 
   const ranking = (data?.ranking || []).sort((a, b) => (b.entries || 0) - (a.entries || 0));
   const totalVisits = ranking.reduce((s, i) => s + (i.entries || 0), 0);
@@ -1043,12 +1077,15 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
   const maxI = Math.max(...Object.values(islandStats).map(i => i.total || 0), 1);
   const leaderI = Object.entries(islandStats).sort((a, b) => (b[1].total || 0) - (a[1].total || 0))[0];
 
-  // Fetch trends data when switching to historical tab
+  // Fetch trends + historical data when switching to historical tab
   useEffect(() => {
     if (nocTab === 'historico' && !trendsData) {
       api('get', '/ranking/trends').then(res => setTrendsData(res)).catch(() => {});
     }
-  }, [nocTab, trendsData, api]);
+    if (nocTab === 'historico' && !historicalData) {
+      api('get', '/ranking/historical?days=7').then(res => setHistoricalData(res)).catch(() => {});
+    }
+  }, [nocTab, trendsData, historicalData, api]);
 
   // Build dealership (camera) ranking from brand data
   const dealerships = ranking.flatMap(brand =>
@@ -1169,7 +1206,7 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
               </div>
             </>
           ) : (
-            <NOCHistorico trendsData={trendsData} ranking={ranking} />
+            <NOCHistorico trendsData={trendsData} historicalData={historicalData} ranking={ranking} />
           )}
         </div>
 
@@ -1192,22 +1229,32 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
 }
 
 /* ── NOC Historical View ── */
-function NOCHistorico({ trendsData, ranking }) {
+function NOCHistorico({ trendsData, historicalData, ranking }) {
   const currentHour = new Date().getHours();
   const { hourly_today = [], daily_week = [], brand_hourly = {} } = trendsData || {};
 
-  const totalToday = hourly_today.reduce((s, h) => s + h.entries, 0);
+  const totalToday = historicalData?.today_total || hourly_today.reduce((s, h) => s + h.entries, 0);
   const peakHour = hourly_today.reduce((max, h) => h.entries > (max?.entries || 0) ? h : max, hourly_today[0]);
   const avgHourly = currentHour > 0 ? Math.round(totalToday / currentHour) : 0;
-  const chartHourly = hourly_today.filter(h => h.hour <= currentHour);
+  const chartHourly = (historicalData?.today_hourly?.length > 0 ? historicalData.today_hourly : hourly_today).filter(h => h.hour <= currentHour);
   const brandKeys = Object.keys(brand_hourly);
+
+  // Historical comparison data
+  const yesterdayTotal = historicalData?.yesterday_total || 0;
+  const trendPct = historicalData?.trend_pct || 0;
+  const readingsStored = historicalData?.readings_stored || 0;
+  const dailySeries = historicalData?.daily_series || daily_week;
 
   const DarkTooltip = ({ active, payload, label }) => {
     if (!active || !payload?.length) return null;
     return (
       <div style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px' }}>
         <p style={{ color: '#94A3B8', fontSize: '0.72rem', marginBottom: 2 }}>{label}</p>
-        <p style={{ color: '#E2E8F0', fontSize: '0.9rem', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>{payload[0].value.toLocaleString('es-ES')} visitas</p>
+        {payload.map((p, i) => (
+          <p key={i} style={{ color: p.color || '#E2E8F0', fontSize: '0.82rem', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>
+            {p.name ? `${p.name}: ` : ''}{p.value.toLocaleString('es-ES')} visitas
+          </p>
+        ))}
       </div>
     );
   };
@@ -1226,7 +1273,10 @@ function NOCHistorico({ trendsData, ranking }) {
         <div className="noc-hist-kpi">
           <Users size={16} style={{ color: '#5B8DB8' }} />
           <div>
-            <span className="noc-hist-kpi-val mono"><AnimNum value={totalToday} /></span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span className="noc-hist-kpi-val mono"><AnimNum value={totalToday} /></span>
+              <TrendBadge current={totalToday} previous={yesterdayTotal} />
+            </div>
             <span className="noc-hist-kpi-label">Total hoy</span>
           </div>
         </div>
@@ -1245,19 +1295,19 @@ function NOCHistorico({ trendsData, ranking }) {
           </div>
         </div>
         <div className="noc-hist-kpi">
-          <Camera size={16} style={{ color: '#22c55e' }} />
+          <Database size={16} style={{ color: '#22c55e' }} />
           <div>
-            <span className="noc-hist-kpi-val mono">{ranking.length}</span>
-            <span className="noc-hist-kpi-label">Marcas activas</span>
+            <span className="noc-hist-kpi-val mono">{readingsStored.toLocaleString('es-ES')}</span>
+            <span className="noc-hist-kpi-label">Lecturas almacenadas</span>
           </div>
         </div>
       </div>
 
       {/* Charts Grid */}
       <div className="noc-hist-charts">
-        {/* Hourly chart */}
+        {/* Hourly chart — today vs yesterday */}
         <div className="noc-panel noc-hist-chart-panel">
-          <div className="noc-panel-title"><TrendingUp size={16} style={{ color: '#5B8DB8' }} /> FLUJO DE VISITAS POR HORA</div>
+          <div className="noc-panel-title"><TrendingUp size={16} style={{ color: '#5B8DB8' }} /> FLUJO HORARIO — HOY vs AYER</div>
           <div style={{ width: '100%', height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartHourly} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
@@ -1271,24 +1321,28 @@ function NOCHistorico({ trendsData, ranking }) {
                 <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
                 <Tooltip content={<DarkTooltip />} />
-                <Area type="monotone" dataKey="entries" stroke="#5B8DB8" strokeWidth={2.5} fill="url(#nocGradBlue)" dot={false}
+                {(historicalData?.yesterday_hourly || []).length > 0 && (
+                  <Area type="monotone" data={historicalData.yesterday_hourly} dataKey="entries" name="Ayer"
+                    stroke="#64748B" strokeWidth={1.5} strokeDasharray="4 4" fill="none" dot={false} />
+                )}
+                <Area type="monotone" dataKey="entries" name="Hoy" stroke="#5B8DB8" strokeWidth={2.5} fill="url(#nocGradBlue)" dot={false}
                   activeDot={{ r: 4, fill: '#5B8DB8', stroke: '#0F172A', strokeWidth: 2 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Daily chart */}
+        {/* Daily chart — from stored data */}
         <div className="noc-panel noc-hist-chart-panel">
           <div className="noc-panel-title"><BarChart3 size={16} style={{ color: '#E8A83E' }} /> VISITAS POR DIA — SEMANA</div>
           <div style={{ width: '100%', height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={daily_week} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
+              <BarChart data={dailySeries} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                 <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#64748B', fontWeight: 600 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
                 <Tooltip content={<DarkTooltip />} />
-                <Bar dataKey="entries" fill="#E8A83E" radius={[4, 4, 0, 0]} maxBarSize={40} fillOpacity={0.85} />
+                <Bar dataKey="entries" name="Visitas" fill="#E8A83E" radius={[4, 4, 0, 0]} maxBarSize={40} fillOpacity={0.85} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -1305,7 +1359,7 @@ function NOCHistorico({ trendsData, ranking }) {
                   <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false}
                     data={hourly_today.filter(h => h.hour <= currentHour)} />
                   <YAxis tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: '0.78rem' }} />
+                  <Tooltip content={<DarkTooltip />} />
                   {brandKeys.map(bid => {
                     const brand = ALL_BRANDS.find(b => b.id === bid);
                     const bData = (brand_hourly[bid] || []).filter(h => h.hour <= currentHour);
