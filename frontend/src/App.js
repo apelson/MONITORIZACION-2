@@ -980,28 +980,19 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
           </div>
         </header>
 
-        {/* Main Content - Podium top + 3 columns below */}
+        {/* Main Content - Left (Podium + Ranking/Dealers) | Right (Islands) */}
         <div className="noc-body-55">
-          {/* Row 1: Podium spanning full width */}
-          <div className="noc-podium-row">
-            <div className="noc-panel">
+          {/* Left area: Podium on top, then Ranking + Concesionarios side by side */}
+          <div className="noc-left-area">
+            <div className="noc-panel noc-podium-panel">
               <div className="noc-panel-title"><Award size={16} className="gold-icon" /> PODIO DE HONOR</div>
               <Podium ranking={ranking} dark />
             </div>
-          </div>
-
-          {/* Row 2: 3 columns */}
-          <div className="noc-columns-row">
-            {/* Col 1: Full Ranking */}
-            <div className="noc-col">
+            <div className="noc-left-cols">
               <div className="noc-panel" style={{ flex: 1 }}>
                 <div className="noc-panel-title"><BarChart3 size={16} /> RANKING EN VIVO</div>
                 <RankingRows ranking={ranking} maxV={maxV} />
               </div>
-            </div>
-
-            {/* Col 2: Dealerships */}
-            <div className="noc-col">
               {dealerships.length > 0 && (
                 <div className="noc-panel" style={{ flex: 1 }}>
                   <div className="noc-panel-title"><Camera size={16} /> CONCESIONARIOS</div>
@@ -1009,16 +1000,16 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Col 3: Islands */}
-            <div className="noc-col">
-              <div className="noc-panel-title"><MapPin size={16} className="purple-icon" /> ISLAS CANARIAS</div>
-              <IslandCards islandStats={islandStats} maxI={maxI} leaderI={leaderI} />
-              <div className="noc-summary-panel">
-                <span className="noc-sum-label">TOTAL ARCHIPIELAGO</span>
-                <span className="noc-sum-val mono"><AnimNum value={totalVisits} /></span>
-                <span className="noc-sum-sub">visitas hoy</span>
-              </div>
+          {/* Right area: Islands full height */}
+          <div className="noc-right-area">
+            <div className="noc-panel-title"><MapPin size={16} className="purple-icon" /> ISLAS CANARIAS</div>
+            <IslandCards islandStats={islandStats} maxI={maxI} leaderI={leaderI} />
+            <div className="noc-summary-panel">
+              <span className="noc-sum-label">TOTAL ARCHIPIELAGO</span>
+              <span className="noc-sum-val mono"><AnimNum value={totalVisits} /></span>
+              <span className="noc-sum-sub">visitas hoy</span>
             </div>
           </div>
         </div>

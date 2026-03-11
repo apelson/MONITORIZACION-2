@@ -320,31 +320,38 @@ body { font-family: var(--font-b); background: var(--bg); color: var(--text-1); 
 }
 .noc-close-btn:hover { background: rgba(212,87,78,0.15); color: #D4574E; border-color: rgba(212,87,78,0.3); }
 
-/* NOC body - Podium top + 3 columns below */
+/* NOC body - Left (Podium + Ranking/Dealers) | Right (Islands) */
 .noc-body-55 {
-  flex: 1; display: flex; flex-direction: column; gap: 1rem;
+  flex: 1; display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem;
   min-height: 0; overflow: hidden;
 }
-.noc-podium-row {
-  flex-shrink: 0;
+.noc-left-area {
+  display: flex; flex-direction: column; gap: 1rem; min-height: 0; overflow: hidden;
 }
-.noc-podium-row .noc-panel {
-  padding: 0.75rem 1.5rem;
+.noc-podium-panel {
+  flex-shrink: 0; padding: 0.75rem 1.25rem;
 }
-.noc-podium-row .noc-podium {
-  gap: 3rem; padding: 0.25rem 0;
+.noc-podium-panel .noc-podium {
+  gap: 2.5rem; padding: 0.25rem 0;
 }
-.noc-podium-row .podium-pillar.p-1 { height: 80px !important; }
-.noc-podium-row .podium-pillar.p-2 { height: 60px !important; }
-.noc-podium-row .podium-pillar.p-3 { height: 45px !important; }
-.noc-podium-row .podium-logo { width: 44px; height: 44px; }
-.noc-podium-row .podium-slot { min-width: 80px; gap: 0.3rem; }
-.noc-podium-row .podium-label { font-size: 0.78rem; }
-.noc-podium-row .podium-count { font-size: 1rem !important; }
-.noc-columns-row {
-  flex: 1; display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 1.5rem;
-  min-height: 0; overflow: hidden;
+.noc-podium-panel .podium-pillar.p-1 { height: 80px !important; }
+.noc-podium-panel .podium-pillar.p-2 { height: 60px !important; }
+.noc-podium-panel .podium-pillar.p-3 { height: 45px !important; }
+.noc-podium-panel .podium-logo { width: 44px; height: 44px; }
+.noc-podium-panel .podium-slot { min-width: 80px; gap: 0.3rem; }
+.noc-podium-panel .podium-label { font-size: 0.78rem; }
+.noc-podium-panel .podium-count { font-size: 1rem !important; }
+.noc-left-cols {
+  flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; min-height: 0; overflow: hidden;
 }
+.noc-left-cols .noc-panel { overflow-y: auto; }
+.noc-left-cols .noc-panel::-webkit-scrollbar { width: 4px; }
+.noc-left-cols .noc-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+.noc-right-area {
+  display: flex; flex-direction: column; gap: 0.75rem; min-height: 0; overflow-y: auto;
+}
+.noc-right-area::-webkit-scrollbar { width: 4px; }
+.noc-right-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
 .noc-col { display: flex; flex-direction: column; gap: 1rem; min-height: 0; overflow-y: auto; }
 .noc-col::-webkit-scrollbar { width: 4px; }
 .noc-col::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
@@ -764,8 +771,10 @@ body { font-family: var(--font-b); background: var(--bg); color: var(--text-1); 
   .noc-total-box { padding: 0.4rem 0.75rem; }
   .noc-total-label { font-size: 0.5rem; }
   .noc-total-num { font-size: 1.3rem; }
-  .noc-body-55 { gap: 0.75rem; overflow: visible; }
-  .noc-columns-row { grid-template-columns: 1fr; gap: 1rem; overflow: visible; }
+  .noc-body-55 { grid-template-columns: 1fr; gap: 0.75rem; overflow: visible; }
+  .noc-left-cols { grid-template-columns: 1fr; }
+  .noc-left-area { overflow: visible; }
+  .noc-right-area { overflow: visible; }
   .noc-col { overflow: visible; }
   .noc-panel { padding: 0.85rem; }
   .noc-panel-title { font-size: 0.75rem; margin-bottom: 0.6rem; }
@@ -800,7 +809,7 @@ body { font-family: var(--font-b); background: var(--bg); color: var(--text-1); 
 @media (min-width: 769px) and (max-width: 1024px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .trends-kpi-grid { grid-template-columns: repeat(3, 1fr); }
-  .noc-columns-row { grid-template-columns: 1fr 1fr; }
+  .noc-left-cols { grid-template-columns: 1fr 1fr; }
   .cam-grid { grid-template-columns: repeat(2, 1fr); }
   .users-grid { grid-template-columns: repeat(2, 1fr); }
 }
@@ -827,7 +836,8 @@ body { font-family: var(--font-b); background: var(--bg); color: var(--text-1); 
   .noc-panel-title { font-size: 0.95rem; }
   .noc-inner { padding: 2rem 3rem; }
   .noc-body-55 { gap: 1.5rem; }
-  .noc-columns-row { gap: 2rem; }
+  .noc-left-cols { gap: 1.5rem; }
+  .noc-body-55 { grid-template-columns: 1fr 380px; }
 }
 
 @media (min-width: 2560px) {
