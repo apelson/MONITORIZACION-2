@@ -66,6 +66,7 @@ async def update_camera(
     username: str = Body(None),
     password: str = Body(None),
     enabled: bool = Body(None),
+    heatmap_profile: str = Body(None),
     current_user: dict = Depends(get_current_user)
 ):
     """Update a camera configuration"""
@@ -78,7 +79,8 @@ async def update_camera(
 
     update = {"updated_at": datetime.now(timezone.utc).isoformat(), "updated_by": current_user.get("username")}
     for field, val in [("camera_name", camera_name), ("brand_id", brand_id), ("island", island),
-                       ("ip", ip), ("port", port), ("username", username), ("password", password), ("enabled", enabled)]:
+                       ("ip", ip), ("port", port), ("username", username), ("password", password),
+                       ("enabled", enabled), ("heatmap_profile", heatmap_profile)]:
         if val is not None:
             update[field] = val
 

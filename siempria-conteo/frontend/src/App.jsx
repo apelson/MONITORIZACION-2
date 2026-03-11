@@ -439,6 +439,13 @@ function Dashboard({ token, user, onLogout }) {
       else if (view === 'by-brand') res = await api('get', '/ranking/by-brand?period=day');
       else if (view === 'by-center') res = await api('get', '/ranking/by-center?period=day');
       else if (view === 'cameras') res = await api('get', '/cameras');
+      else if (view === 'heatmap') {
+        const [camerasRes, historyRes] = await Promise.all([
+          api('get', '/heatmap/cameras'),
+          api('get', '/heatmap/history?limit=50')
+        ]);
+        res = { cameras: camerasRes.cameras || [], heatmaps: historyRes.heatmaps || [], total: historyRes.total || 0 };
+      }
       else if (view === 'users') res = await api('get', '/users');
       if (res) setData(res.data);
     } catch (err) {
@@ -450,7 +457,7 @@ function Dashboard({ token, user, onLogout }) {
 
   useEffect(() => { setLoading(true); setData(null); fetchData(); }, [view, fetchData]);
   useEffect(() => {
-    if (autoRefresh && !['cameras', 'users'].includes(view)) {
+    if (autoRefresh && !['cameras', 'users', 'heatmap'].includes(view)) {
       timerRef.current = setInterval(fetchData, 30000);
       return () => clearInterval(timerRef.current);
     }
@@ -469,6 +476,7 @@ function Dashboard({ token, user, onLogout }) {
     { id: 'realtime', label: 'Tiempo Real', icon: Activity },
     { id: 'noc', label: 'NOC Competitivo', icon: Trophy },
     { id: 'trends', label: 'Tendencias', icon: TrendingUp },
+    { id: 'heatmap', label: 'Mapa de Calor', icon: Flame },
     { id: 'by-brand', label: 'Por Marca', icon: BarChart3 },
     { id: 'by-center', label: 'Por Centro', icon: MapPin },
     { id: 'cameras', label: 'Camaras', icon: Camera },
@@ -536,6 +544,7 @@ function Dashboard({ token, user, onLogout }) {
             <NOCView data={data} islandData={islandData} embedded onRefresh={fetchData} loading={loading} autoRefresh={autoRefresh} setAutoRefresh={setAutoRefresh} api={api} />
           )}
           {view === 'trends' && <TrendsView data={data} />}
+          {view === 'heatmap' && <HeatmapView data={data} api={api} onRefresh={fetchData} />}
           {view === 'by-brand' && <BrandView data={data} />}
           {view === 'by-center' && <CenterView data={data} />}
           {view === 'cameras' && <CamerasView data={data} api={api} onRefresh={fetchData} isAdmin={user?.role === 'admin'} />}
@@ -1070,6 +1079,16 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
   const [nocTab, setNocTab] = useState('ranking');
   const [trendsData, setTrendsData] = useState(null);
   const [historicalData, setHistoricalData] = useState(null);
+  const [autoRotate, setAutoRotate] = useState(false);
+
+  // Auto-rotate between tabs every 30s
+  useEffect(() => {
+    if (!autoRotate) return;
+    const interval = setInterval(() => {
+      setNocTab(prev => prev === 'ranking' ? 'historico' : 'ranking');
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [autoRotate]);
 
   const ranking = (data?.ranking || []).sort((a, b) => (b.entries || 0) - (a.entries || 0));
   const totalVisits = ranking.reduce((s, i) => s + (i.entries || 0), 0);
@@ -1157,6 +1176,10 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
                 <TrendingUp size={13} /> Historico
               </button>
             </div>
+            <button className={`noc-ctrl-btn ${autoRotate ? 'active' : ''}`} onClick={() => setAutoRotate(!autoRotate)} data-testid="noc-auto-rotate" title="Auto-rotacion 30s">
+              <Zap size={14} />
+              <span>{autoRotate ? 'Auto' : 'Manual'}</span>
+            </button>
             <div className="noc-total-box">
               <span className="noc-total-label">TOTAL VISITAS HOY</span>
               <span className="noc-total-num mono"><AnimNum value={totalVisits} /></span>
@@ -1223,6 +1246,160 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
             <span>Tecnologia Mobotix</span>
           </div>
         </footer>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════ HEATMAP VIEW ═══════════════ */
+function HeatmapView({ data, api, onRefresh }) {
+  const [cameras, setCameras] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [selectedCam, setSelectedCam] = useState('');
+  const [rangeType, setRangeType] = useState('yesterday');
+  const [customDate, setCustomDate] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [viewingHeatmap, setViewingHeatmap] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
+  // Fetch cameras and history on mount
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [camRes, histRes] = await Promise.all([
+          api('get', '/heatmap/cameras'),
+          api('get', '/heatmap/history?limit=50')
+        ]);
+        const cams = camRes.data?.cameras || [];
+        setCameras(cams);
+        setHistory(histRes.data?.heatmaps || []);
+        if (cams.length > 0) setSelectedCam(cams[0].camera_id);
+        if (histRes.data?.heatmaps?.length > 0) setViewingHeatmap(histRes.data.heatmaps[0].heatmap_id);
+      } catch (err) { /* ignore */ }
+      setLoading(false);
+    };
+    load();
+  }, [api]);
+
+  const ranges = [
+    { id: 'today', label: 'Hoy' },
+    { id: 'yesterday', label: 'Ayer' },
+    { id: 'week', label: 'Esta Semana' },
+    { id: 'month', label: 'Este Mes' },
+    { id: 'custom', label: 'Fecha Especifica' },
+  ];
+
+  const generateHeatmap = async () => {
+    if (!selectedCam) return;
+    setGenerating(true);
+    try {
+      let url = `/heatmap/generate?camera_id=${selectedCam}&range_type=${rangeType}`;
+      if (rangeType === 'custom' && customDate) url += `&custom_date=${customDate}`;
+      const res = await api('post', url);
+      setHistory(prev => [res.data, ...prev]);
+      setViewingHeatmap(res.data.heatmap_id);
+    } catch (err) {
+      alert('Error generando heatmap: ' + (err.response?.data?.detail || err.message));
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const deleteHeatmap = async (id) => {
+    try {
+      await api('delete', `/heatmap/${id}`);
+      setHistory(prev => prev.filter(h => h.heatmap_id !== id));
+      if (viewingHeatmap === id) setViewingHeatmap(null);
+    } catch (err) { /* ignore */ }
+  };
+
+  const getToken = () => {
+    try { const a = JSON.parse(localStorage.getItem('conteo_auth')); return a?.token || ''; } catch { return ''; }
+  };
+
+  if (loading) return (
+    <div className="empty-state">
+      <RefreshCw size={32} className="spin" style={{ color: '#5B8DB8' }} />
+      <p style={{ marginTop: 12 }}>Cargando camaras...</p>
+    </div>
+  );
+
+  if (cameras.length === 0) return (
+    <div className="empty-state" data-testid="heatmap-no-cameras">
+      <Flame size={48} style={{ color: '#64748B', marginBottom: 16 }} />
+      <h3>Sin camaras con Heatmap</h3>
+      <p>Configura el perfil de heatmap (heatmap_profile) en las camaras para activar esta funcion.</p>
+    </div>
+  );
+
+  return (
+    <div className="heatmap-view" data-testid="heatmap-view">
+      {/* Controls */}
+      <div className="heatmap-controls">
+        <div className="heatmap-ctrl-group">
+          <label className="heatmap-label">Camara</label>
+          <select className="heatmap-select" value={selectedCam} onChange={e => setSelectedCam(e.target.value)} data-testid="heatmap-camera-select">
+            {cameras.map(c => <option key={c.camera_id} value={c.camera_id}>{c.camera_name} ({c.island})</option>)}
+          </select>
+        </div>
+        <div className="heatmap-ctrl-group">
+          <label className="heatmap-label">Periodo</label>
+          <div className="heatmap-range-btns">
+            {ranges.map(r => (
+              <button key={r.id} className={`hm-range-btn ${rangeType === r.id ? 'active' : ''}`}
+                onClick={() => setRangeType(r.id)} data-testid={`heatmap-range-${r.id}`}>{r.label}</button>
+            ))}
+          </div>
+        </div>
+        {rangeType === 'custom' && (
+          <div className="heatmap-ctrl-group">
+            <label className="heatmap-label">Fecha</label>
+            <input type="date" className="heatmap-date" value={customDate} onChange={e => setCustomDate(e.target.value)} data-testid="heatmap-custom-date" />
+          </div>
+        )}
+        <button className="heatmap-gen-btn" onClick={generateHeatmap} disabled={generating} data-testid="heatmap-generate-btn">
+          {generating ? <><RefreshCw size={14} className="spin" /> Generando...</> : <><Flame size={14} /> Generar Heatmap</>}
+        </button>
+      </div>
+
+      <div className="heatmap-layout">
+        {/* Viewer */}
+        <div className="heatmap-viewer" data-testid="heatmap-viewer">
+          {viewingHeatmap ? (
+            <img src={`${API_BASE}/heatmap/image/${viewingHeatmap}?token=${getToken()}`}
+              alt="Heatmap" className="heatmap-image" data-testid="heatmap-image" />
+          ) : (
+            <div className="heatmap-placeholder">
+              <Flame size={56} />
+              <p>Selecciona un heatmap del historial o genera uno nuevo</p>
+            </div>
+          )}
+        </div>
+
+        {/* History */}
+        <div className="heatmap-history" data-testid="heatmap-history">
+          <div className="heatmap-hist-title">
+            <Database size={14} /> Historial ({history.length})
+          </div>
+          <div className="heatmap-hist-list">
+            {history.map(hm => (
+              <div key={hm.heatmap_id}
+                className={`heatmap-hist-card ${viewingHeatmap === hm.heatmap_id ? 'active' : ''}`}
+                onClick={() => setViewingHeatmap(hm.heatmap_id)}>
+                <div className="hm-hist-info">
+                  <span className="hm-hist-cam">{hm.camera_name || hm.camera_id}</span>
+                  <span className="hm-hist-range">{hm.range_type} {hm.custom_range ? `(${hm.custom_range})` : ''}</span>
+                  <span className="hm-hist-date">{new Date(hm.generated_at).toLocaleString('es-ES')}</span>
+                </div>
+                <button className="hm-hist-del" onClick={e => { e.stopPropagation(); deleteHeatmap(hm.heatmap_id); }} title="Eliminar">
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+            {history.length === 0 && <p className="hm-hist-empty">Sin heatmaps almacenados</p>}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1308,7 +1485,7 @@ function NOCHistorico({ trendsData, historicalData, ranking }) {
         {/* Hourly chart — today vs yesterday */}
         <div className="noc-panel noc-hist-chart-panel">
           <div className="noc-panel-title"><TrendingUp size={16} style={{ color: '#5B8DB8' }} /> FLUJO HORARIO — HOY vs AYER</div>
-          <div style={{ width: '100%', height: 220 }}>
+          <div style={{ width: '100%', height: 220, minWidth: 200 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartHourly} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
                 <defs>
@@ -1335,7 +1512,7 @@ function NOCHistorico({ trendsData, historicalData, ranking }) {
         {/* Daily chart — from stored data */}
         <div className="noc-panel noc-hist-chart-panel">
           <div className="noc-panel-title"><BarChart3 size={16} style={{ color: '#E8A83E' }} /> VISITAS POR DIA — SEMANA</div>
-          <div style={{ width: '100%', height: 220 }}>
+          <div style={{ width: '100%', height: 220, minWidth: 200 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dailySeries} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -1352,7 +1529,7 @@ function NOCHistorico({ trendsData, historicalData, ranking }) {
         {brandKeys.length > 0 && (
           <div className="noc-panel noc-hist-chart-panel noc-hist-chart-wide">
             <div className="noc-panel-title"><Flame size={16} style={{ color: '#ef4444' }} /> COMPARATIVA POR MARCA</div>
-            <div style={{ width: '100%', height: 220 }}>
+            <div style={{ width: '100%', height: 220, minWidth: 200 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
