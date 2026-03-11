@@ -1070,6 +1070,16 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
   const [nocTab, setNocTab] = useState('ranking');
   const [trendsData, setTrendsData] = useState(null);
   const [historicalData, setHistoricalData] = useState(null);
+  const [autoRotate, setAutoRotate] = useState(false);
+
+  // Auto-rotate between tabs every 30s
+  useEffect(() => {
+    if (!autoRotate) return;
+    const interval = setInterval(() => {
+      setNocTab(prev => prev === 'ranking' ? 'historico' : 'ranking');
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [autoRotate]);
 
   const ranking = (data?.ranking || []).sort((a, b) => (b.entries || 0) - (a.entries || 0));
   const totalVisits = ranking.reduce((s, i) => s + (i.entries || 0), 0);
@@ -1157,6 +1167,10 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
                 <TrendingUp size={13} /> Historico
               </button>
             </div>
+            <button className={`noc-ctrl-btn ${autoRotate ? 'active' : ''}`} onClick={() => setAutoRotate(!autoRotate)} data-testid="noc-auto-rotate" title="Auto-rotacion 30s">
+              <Zap size={14} />
+              <span>{autoRotate ? 'Auto' : 'Manual'}</span>
+            </button>
             <div className="noc-total-box">
               <span className="noc-total-label">TOTAL VISITAS HOY</span>
               <span className="noc-total-num mono"><AnimNum value={totalVisits} /></span>

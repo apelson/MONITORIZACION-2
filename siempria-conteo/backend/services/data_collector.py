@@ -109,8 +109,4 @@ async def data_collector_loop():
 
     while True:
         await collect_snapshot()
-        # Cleanup once a day (at ~3am)
-        now = datetime.now(timezone.utc)
-        if now.hour == 3 and now.minute < 6:
-            await cleanup_old_readings()
         await asyncio.sleep(COLLECTION_INTERVAL)
