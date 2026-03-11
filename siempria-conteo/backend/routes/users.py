@@ -17,6 +17,10 @@ async def get_users(current_user: dict = Depends(get_current_user)):
     if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Solo admin puede ver usuarios")
     users = await users_collection.find({}, {"_id": 0, "password_hash": 0}).to_list(100)
+    # Ensure is_active defaults to True for users without the field
+    for u in users:
+        if "is_active" not in u:
+            u["is_active"] = True
     return {"users": users, "total": len(users)}
 
 

@@ -77,13 +77,13 @@ from fastapi.responses import FileResponse
 
 @app.get("/api/deploy/backend")
 async def download_backend():
-    return FileResponse("/app/backend/static_files/deploy/conteo-backend-v2.tar.gz",
-                       filename="conteo-backend-v2.tar.gz", media_type="application/gzip")
+    return FileResponse("/app/backend/static_files/deploy/conteo-backend-v3.tar.gz",
+                       filename="conteo-backend-v3.tar.gz", media_type="application/gzip")
 
 @app.get("/api/deploy/frontend")
 async def download_frontend():
-    return FileResponse("/app/backend/static_files/deploy/conteo-frontend-v2.tar.gz",
-                       filename="conteo-frontend-v2.tar.gz", media_type="application/gzip")
+    return FileResponse("/app/backend/static_files/deploy/conteo-frontend-v3.tar.gz",
+                       filename="conteo-frontend-v3.tar.gz", media_type="application/gzip")
 
 @app.get("/api/deploy/script")
 async def download_script():

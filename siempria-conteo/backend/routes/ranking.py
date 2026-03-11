@@ -152,7 +152,8 @@ async def get_ranking_by_brand(
 
         ranking = sorted(
             [{"brand_id": b["brand_id"], "brand_name": b["brand_name"],
-              "brand_color": b["brand_color"], "total_visits": b["entries"]}
+              "brand_color": b["brand_color"], "total_visits": int(b.get("entries", 0) or 0),
+              "entries": int(b.get("entries", 0) or 0)}
              for b in brand_totals.values()],
             key=lambda x: x["total_visits"], reverse=True
         )
