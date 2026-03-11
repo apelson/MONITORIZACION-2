@@ -1,5 +1,6 @@
 """
 Ranking routes for Siempria Conteo
+Uses real-time camera data for all ranking views
 """
 from fastapi import APIRouter, Depends, Query
 from typing import Optional
@@ -14,14 +15,13 @@ from services.mobotix_service import fetch_all_cameras_counting
 
 router = APIRouter(prefix="/ranking", tags=["ranking"])
 
-# Default brands
 DEFAULT_BRANDS = [
-    {"id": "audi", "name": "AUDI", "color": "#BB0A1E", "logo": "/assets/brands/audi.jpg"},
-    {"id": "volkswagen", "name": "VOLKSWAGEN", "color": "#001E50", "logo": "/assets/brands/volkswagen.png"},
-    {"id": "skoda", "name": "SKODA", "color": "#4BA82E", "logo": "/assets/brands/skoda.png"},
-    {"id": "honda", "name": "HONDA", "color": "#CC0000", "logo": "/assets/brands/honda.png"},
-    {"id": "ducati", "name": "DUCATI", "color": "#D40000", "logo": "/assets/brands/ducati.png"},
-    {"id": "daocasion", "name": "DAOCASION", "color": "#FF6B00", "logo": "/assets/brands/daocasion.png"},
+    {"id": "audi", "name": "AUDI", "color": "#BB0A1E"},
+    {"id": "volkswagen", "name": "VOLKSWAGEN", "color": "#001E50"},
+    {"id": "skoda", "name": "SKODA", "color": "#4BA82E"},
+    {"id": "honda", "name": "HONDA", "color": "#CC0000"},
+    {"id": "ducati", "name": "DUCATI", "color": "#D40000"},
+    {"id": "daocasion", "name": "DAOCASION", "color": "#FF6B00"},
 ]
 
 DEFAULT_CENTERS = [
@@ -51,40 +51,67 @@ async def get_centers():
     return centers
 
 
+async def get_realtime_data():
+    """Shared function to get realtime camera data aggregated"""
+    data = await fetch_all_cameras_counting()
+    brands = await get_brands()
+    centers = await get_centers()
+
+    brand_totals = {}
+    center_totals = {}
+
+    for cam_id, cam_data in data.get("cameras", {}).items():
+        bid = cam_data.get("brand_id")
+        island = cam_data.get("island", "")
+        entries = cam_data.get("entries", 0)
+
+        if bid:
+            if bid not in brand_totals:
+                brand_info = next((b for b in brands if b["id"] == bid), {})
+                brand_totals[bid] = {
+                    "brand_id": bid,
+                    "brand_name": brand_info.get("name", bid),
+                    "brand_color": brand_info.get("color", "#666"),
+                    "entries": 0,
+                    "exits": 0,
+                    "cameras": []
+                }
+            brand_totals[bid]["entries"] += entries
+            brand_totals[bid]["exits"] += cam_data.get("exits", 0)
+            brand_totals[bid]["cameras"].append({
+                "camera_id": cam_id,
+                "camera_name": cam_data.get("camera_name", ""),
+                "entries": entries,
+                "exits": cam_data.get("exits", 0),
+                "status": cam_data.get("status", "offline"),
+                "island": island
+            })
+
+            # Center totals (brand + island combo)
+            center_key = f"{bid}_{island}"
+            if center_key not in center_totals:
+                island_info = next((c for c in centers if c.get("island") == island or c.get("id") == island), None)
+                brand_info = next((b for b in brands if b["id"] == bid), {})
+                center_totals[center_key] = {
+                    "center_id": center_key,
+                    "center_name": f"{brand_info.get('name', bid)} - {island_info['name'] if island_info else island.replace('-', ' ').title()}",
+                    "brand_id": bid,
+                    "brand_name": brand_info.get("name", bid),
+                    "brand_color": brand_info.get("color", "#666"),
+                    "island": island,
+                    "island_name": island_info["name"] if island_info else island.replace("-", " ").title(),
+                    "total_visits": 0
+                }
+            center_totals[center_key]["total_visits"] += entries
+
+    return data, brand_totals, center_totals
+
+
 @router.get("/realtime")
 async def get_realtime(current_user: dict = Depends(get_current_user)):
     """Get real-time counting data from all cameras"""
     try:
-        data = await fetch_all_cameras_counting()
-        brands = await get_brands()
-
-        # Aggregate by brand
-        brand_totals = {}
-        for cam_id, cam_data in data.get("cameras", {}).items():
-            bid = cam_data.get("brand_id")
-            if bid:
-                if bid not in brand_totals:
-                    brand_info = next((b for b in brands if b["id"] == bid), {})
-                    brand_totals[bid] = {
-                        "brand_id": bid,
-                        "brand_name": brand_info.get("name", bid),
-                        "brand_color": brand_info.get("color", "#666"),
-                        "brand_logo": brand_info.get("logo", ""),
-                        "entries": 0,
-                        "exits": 0,
-                        "cameras": []
-                    }
-                brand_totals[bid]["entries"] += cam_data.get("entries", 0)
-                brand_totals[bid]["exits"] += cam_data.get("exits", 0)
-                brand_totals[bid]["cameras"].append({
-                    "camera_id": cam_id,
-                    "camera_name": cam_data.get("camera_name", ""),
-                    "entries": cam_data.get("entries", 0),
-                    "exits": cam_data.get("exits", 0),
-                    "status": cam_data.get("status", "offline"),
-                    "island": cam_data.get("island", "")
-                })
-
+        data, brand_totals, _ = await get_realtime_data()
         ranking = sorted(brand_totals.values(), key=lambda x: x["entries"], reverse=True)
 
         return {
@@ -97,55 +124,11 @@ async def get_realtime(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         logger.error(f"Error getting realtime: {e}")
         return {
-            "ranking": [],
-            "totals": {"entries": 0, "exits": 0},
-            "cameras_total": 0,
-            "cameras_online": 0,
+            "ranking": [], "totals": {"entries": 0, "exits": 0},
+            "cameras_total": 0, "cameras_online": 0,
             "last_update": datetime.now(timezone.utc).isoformat(),
             "error": str(e)
         }
-
-
-@router.get("/by-center")
-async def get_ranking_by_center(
-    period: str = Query("day"),
-    current_user: dict = Depends(get_current_user)
-):
-    """Get ranking aggregated by center (brand + island)"""
-    brands = await get_brands()
-    centers = await get_centers()
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-    pipeline = [
-        {"$match": {"date": today}},
-        {"$group": {
-            "_id": {"brand_id": "$brand_id", "island": "$island"},
-            "total_visits": {"$sum": "$visits"}
-        }},
-        {"$project": {"brand_id": "$_id.brand_id", "island": "$_id.island", "total_visits": 1, "_id": 0}},
-        {"$sort": {"total_visits": -1}}
-    ]
-
-    results = await brand_daily_collection.aggregate(pipeline).to_list(100)
-
-    ranking = []
-    for r in results:
-        brand_info = next((b for b in brands if b["id"] == r["brand_id"]), None)
-        island_info = next((c for c in centers if c.get("island") == r["island"]), None)
-        if brand_info:
-            ranking.append({
-                "center_id": f"{r['brand_id']}_{r['island']}",
-                "center_name": f"{brand_info['name']} - {island_info['name'] if island_info else r['island'].replace('-', ' ').title()}",
-                "brand_id": r["brand_id"],
-                "brand_name": brand_info["name"],
-                "brand_color": brand_info["color"],
-                "brand_logo": brand_info.get("logo", ""),
-                "island": r["island"],
-                "island_name": island_info["name"] if island_info else r["island"].replace("-", " ").title(),
-                "total_visits": r["total_visits"]
-            })
-
-    return {"ranking": ranking, "period": period, "total_centers": len(ranking)}
 
 
 @router.get("/by-brand")
@@ -154,156 +137,97 @@ async def get_ranking_by_brand(
     island: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get ranking by brand"""
-    brands = await get_brands()
-    now = datetime.now(timezone.utc)
+    """Get ranking by brand - uses realtime data"""
+    try:
+        data, brand_totals, _ = await get_realtime_data()
 
-    if period == "day":
-        start_date = now.strftime("%Y-%m-%d")
-    elif period == "week":
-        start_date = (now - timedelta(days=7)).strftime("%Y-%m-%d")
-    elif period == "month":
-        start_date = (now - timedelta(days=30)).strftime("%Y-%m-%d")
-    else:
-        start_date = now.strftime("%Y-%m-%d")
+        # Filter by island if specified
+        if island:
+            filtered = {}
+            for bid, bdata in brand_totals.items():
+                island_entries = sum(c["entries"] for c in bdata["cameras"] if c.get("island") == island)
+                if island_entries > 0:
+                    filtered[bid] = {**bdata, "entries": island_entries}
+            brand_totals = filtered
 
-    query = {"date": {"$gte": start_date}}
-    if island:
-        query["island"] = island
+        ranking = sorted(
+            [{"brand_id": b["brand_id"], "brand_name": b["brand_name"],
+              "brand_color": b["brand_color"], "total_visits": b["entries"]}
+             for b in brand_totals.values()],
+            key=lambda x: x["total_visits"], reverse=True
+        )
 
-    pipeline = [
-        {"$match": query},
-        {"$group": {
-            "_id": "$brand_id",
-            "total_visits": {"$sum": "$visits"}
-        }},
-        {"$project": {"brand_id": "$_id", "total_visits": 1, "_id": 0}},
-        {"$sort": {"total_visits": -1}}
-    ]
+        return {"ranking": ranking, "period": period, "island": island, "total_brands": len(ranking)}
+    except Exception as e:
+        logger.error(f"Error in by-brand: {e}")
+        return {"ranking": [], "period": period, "island": island, "total_brands": 0, "error": str(e)}
 
-    results = await brand_daily_collection.aggregate(pipeline).to_list(100)
 
-    ranking = []
-    for r in results:
-        brand_info = next((b for b in brands if b["id"] == r["brand_id"]), None)
-        if brand_info:
-            ranking.append({
-                **r,
-                "brand_name": brand_info["name"],
-                "brand_color": brand_info["color"],
-                "brand_logo": brand_info.get("logo", "")
-            })
+@router.get("/by-center")
+async def get_ranking_by_center(
+    period: str = Query("day"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get ranking by center - uses realtime data"""
+    try:
+        _, _, center_totals = await get_realtime_data()
+        ranking = sorted(center_totals.values(), key=lambda x: x["total_visits"], reverse=True)
+        return {"ranking": ranking, "period": period, "total_centers": len(ranking)}
+    except Exception as e:
+        logger.error(f"Error in by-center: {e}")
+        return {"ranking": [], "period": period, "total_centers": 0, "error": str(e)}
 
-    if not ranking:
-        ranking = [{
-            "brand_id": b["id"],
-            "brand_name": b["name"],
-            "brand_color": b["color"],
-            "brand_logo": b.get("logo", ""),
-            "total_visits": 0
-        } for b in brands]
 
-    return {"ranking": ranking, "period": period, "island": island, "total_brands": len(ranking)}
+@router.get("/by-island")
+async def get_ranking_by_island(current_user: dict = Depends(get_current_user)):
+    """Get statistics grouped by island - uses realtime data"""
+    try:
+        data, _, _ = await get_realtime_data()
+        centers = await get_centers()
+        islands = {}
+
+        for cam_id, cam_data in data.get("cameras", {}).items():
+            island = cam_data.get("island", "")
+            if island:
+                if island not in islands:
+                    island_info = next((c for c in centers if c.get("island") == island or c.get("id") == island), None)
+                    islands[island] = {
+                        "total": 0,
+                        "name": island_info["name"] if island_info else island.replace("-", " ").title()
+                    }
+                islands[island]["total"] += cam_data.get("entries", 0)
+
+        return {"islands": islands, "date": datetime.now(timezone.utc).strftime("%Y-%m-%d")}
+    except Exception as e:
+        logger.error(f"Error in by-island: {e}")
+        return {"islands": {}, "error": str(e)}
 
 
 @router.get("/summary")
 async def get_summary(current_user: dict = Depends(get_current_user)):
     """Get overall statistics summary"""
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
+    try:
+        data, brand_totals, _ = await get_realtime_data()
+        total_entries = sum(b["entries"] for b in brand_totals.values())
+        cameras = await cameras_config_collection.find({"enabled": True}, {"_id": 0}).to_list(100)
 
-    today_pipeline = [
-        {"$match": {"date": today}},
-        {"$group": {"_id": None, "total": {"$sum": "$visits"}}}
-    ]
-    today_result = await brand_daily_collection.aggregate(today_pipeline).to_list(1)
-    today_visits = today_result[0]["total"] if today_result else 0
-
-    week_pipeline = [
-        {"$match": {"date": {"$gte": week_ago}}},
-        {"$group": {"_id": None, "total": {"$sum": "$visits"}}}
-    ]
-    week_result = await brand_daily_collection.aggregate(week_pipeline).to_list(1)
-    week_visits = week_result[0]["total"] if week_result else 0
-
-    cameras = await cameras_config_collection.find({"enabled": True}, {"_id": 0}).to_list(100)
-
-    return {
-        "today_visits": today_visits,
-        "week_visits": week_visits,
-        "cameras_configured": len(cameras),
-        "last_updated": datetime.now(timezone.utc).isoformat()
-    }
+        return {
+            "today_visits": total_entries,
+            "cameras_configured": len(cameras),
+            "cameras_online": sum(1 for c in data.get("cameras", {}).values() if c.get("status") == "online"),
+            "last_updated": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        return {"today_visits": 0, "cameras_configured": 0, "cameras_online": 0, "error": str(e)}
 
 
 @router.get("/brands")
 async def list_brands(current_user: dict = Depends(get_current_user)):
-    """Get all brands"""
     brands = await get_brands()
     return {"brands": brands}
 
 
 @router.get("/centers")
 async def list_centers(current_user: dict = Depends(get_current_user)):
-    """Get all centers"""
     centers = await get_centers()
     return {"centers": centers}
-
-
-
-@router.get("/by-island")
-async def get_ranking_by_island(current_user: dict = Depends(get_current_user)):
-    """Get statistics grouped by island"""
-    centers = await get_centers()
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-    pipeline = [
-        {"$match": {"date": today}},
-        {"$group": {
-            "_id": "$island",
-            "total": {"$sum": "$visits"}
-        }},
-        {"$project": {"island": "$_id", "total": 1, "_id": 0}},
-        {"$sort": {"total": -1}}
-    ]
-
-    results = await brand_daily_collection.aggregate(pipeline).to_list(50)
-
-    islands = {}
-    for r in results:
-        island_id = r.get("island", "")
-        island_info = next((c for c in centers if c.get("island") == island_id or c.get("id") == island_id), None)
-        islands[island_id] = {
-            "total": r.get("total", 0),
-            "name": island_info["name"] if island_info else island_id.replace("-", " ").title()
-        }
-
-    return {"islands": islands, "date": today}
-
-
-@router.post("/refresh-realtime")
-async def refresh_realtime(current_user: dict = Depends(get_current_user)):
-    """Force refresh real-time data from cameras and store in daily stats"""
-    try:
-        data = await fetch_all_cameras_counting()
-        brands = await get_brands()
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-        for cam_id, cam_data in data.get("cameras", {}).items():
-            bid = cam_data.get("brand_id")
-            island = cam_data.get("island", "")
-            if bid:
-                await brand_daily_collection.update_one(
-                    {"brand_id": bid, "island": island, "date": today, "camera_id": cam_id},
-                    {"$set": {
-                        "visits": cam_data.get("entries", 0),
-                        "exits": cam_data.get("exits", 0),
-                        "updated_at": datetime.now(timezone.utc).isoformat()
-                    }},
-                    upsert=True
-                )
-
-        return {"message": "Datos actualizados", "cameras_processed": len(data.get("cameras", {}))}
-    except Exception as e:
-        logger.error(f"Refresh error: {e}")
-        return {"message": "Error actualizando", "error": str(e)}
