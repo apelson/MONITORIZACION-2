@@ -16,7 +16,7 @@ const API = process.env.REACT_APP_BACKEND_URL
 
 /* ═══════════════ BRAND CONFIG ═══════════════ */
 const ALL_BRANDS = [
-  { id: 'audi', name: 'AUDI', color: '#BB0A1E', logo: '/assets/brands/audi.jpg' },
+  { id: 'audi', name: 'AUDI', color: '#BB0A1E', logo: '/assets/brands/audi.png' },
   { id: 'volkswagen', name: 'VOLKSWAGEN', color: '#001E50', logo: '/assets/brands/volkswagen.png' },
   { id: 'skoda', name: 'SKODA', color: '#4BA82E', logo: '/assets/brands/skoda.png' },
   { id: 'honda', name: 'HONDA', color: '#CC0000', logo: '/assets/brands/honda.png' },
@@ -38,7 +38,7 @@ function BrandLogo({ brandId, size = 24 }) {
   return (
     <img
       src={brand.logo} alt={brand.name} className="brand-logo-img"
-      style={{ width: size, height: size, borderRadius: 6, objectFit: 'cover', background: '#fff' }}
+      style={{ width: size, height: size, borderRadius: size > 30 ? 10 : 6, objectFit: 'contain', background: '#fff', padding: size > 30 ? 3 : 2 }}
       onError={e => { e.target.style.display = 'none'; }}
     />
   );

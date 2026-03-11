@@ -234,7 +234,7 @@ body { font-family: var(--font-b); background: var(--bg); color: var(--text-1); 
 .rank-pos.medal-2 { background: #F1F5F9; color: #475569; }
 .rank-pos.medal-3 { background: #FFF7ED; color: #9A3412; }
 .rank-logo { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.brand-logo-img { border-radius: 6px; object-fit: cover; background: #fff; }
+.brand-logo-img { object-fit: contain; background: #fff; image-rendering: -webkit-optimize-contrast; }
 .rank-name { flex: 1; font-weight: 600; font-size: 0.88rem; color: var(--text-1); }
 .rank-val { font-family: var(--font-h); font-size: 1.1rem; font-weight: 900; color: var(--text-1); min-width: 60px; text-align: right; }
 .rank-label { font-size: 0.68rem; color: var(--text-3); }

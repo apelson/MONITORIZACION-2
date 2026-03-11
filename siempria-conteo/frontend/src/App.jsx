@@ -14,7 +14,7 @@ const API = import.meta.env.VITE_API_URL
 
 /* ═══════════════ REAL BRAND LOGOS (from main platform) ═══════════════ */
 const BRAND_LOGOS = {
-  audi: '/assets/brands/audi.jpg',
+  audi: '/assets/brands/audi.png',
   volkswagen: '/assets/brands/volkswagen.png',
   skoda: '/assets/brands/skoda.png',
   honda: '/assets/brands/honda.png',
