@@ -30,12 +30,12 @@ mkdir -p "$BACKUP_ROOT"/{monitor,conteo,databases}
 echo "[1/4] Backup de siempria-monitor (codigo)..."
 if [ -d "$MONITOR_DIR" ]; then
     tar czf "$BACKUP_ROOT/monitor/siempria-monitor-code.tar.gz" \
-        -C /opt siempria-monitor \
         --exclude='node_modules' \
         --exclude='venv' \
         --exclude='__pycache__' \
         --exclude='.git' \
-        --exclude='*.log'
+        --exclude='*.log' \
+        -C /opt siempria-monitor
     SIZE=$(du -sh "$BACKUP_ROOT/monitor/siempria-monitor-code.tar.gz" | cut -f1)
     echo "   siempria-monitor: $SIZE"
 else
@@ -48,13 +48,13 @@ fi
 echo "[2/4] Backup de siempria-conteo (codigo)..."
 if [ -d "$CONTEO_DIR" ]; then
     tar czf "$BACKUP_ROOT/conteo/siempria-conteo-code.tar.gz" \
-        -C /opt siempria-conteo \
         --exclude='node_modules' \
         --exclude='venv' \
         --exclude='__pycache__' \
         --exclude='.git' \
         --exclude='*.log' \
-        --exclude='backups'
+        --exclude='backups' \
+        -C /opt siempria-conteo
     SIZE=$(du -sh "$BACKUP_ROOT/conteo/siempria-conteo-code.tar.gz" | cut -f1)
     echo "   siempria-conteo: $SIZE"
 else
