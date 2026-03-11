@@ -14,6 +14,139 @@ const API = process.env.REACT_APP_BACKEND_URL
   ? `${process.env.REACT_APP_BACKEND_URL}/api`
   : '/api';
 
+/* ═══════════════ ECG HEARTBEAT COMPONENT ═══════════════ */
+function EcgMonitor({ camerasOnline, camerasTotal }) {
+  const canvasRef = useRef(null);
+  const dataRef = useRef([]);
+  const offsetRef = useRef(0);
+
+  useEffect(() => {
+    dataRef.current.push(camerasOnline);
+    if (dataRef.current.length > 60) dataRef.current.shift();
+  }, [camerasOnline]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animId;
+
+    const draw = () => {
+      const w = canvas.width = canvas.offsetWidth * 2;
+      const h = canvas.height = canvas.offsetHeight * 2;
+      ctx.clearRect(0, 0, w, h);
+
+      const pts = dataRef.current;
+      const max = Math.max(camerasTotal || 1, ...pts, 1);
+      offsetRef.current = (offsetRef.current + 1) % 20;
+
+      // Grid lines
+      ctx.strokeStyle = 'rgba(91,141,184,0.08)';
+      ctx.lineWidth = 1;
+      for (let y = 0; y < h; y += 24) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+      for (let x = -offsetRef.current; x < w; x += 24) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      }
+
+      if (pts.length < 2) { animId = requestAnimationFrame(draw); return; }
+
+      // ECG line
+      const stepX = w / (pts.length - 1);
+      ctx.beginPath();
+      ctx.strokeStyle = camerasOnline >= camerasTotal ? '#22c55e' : camerasOnline > 0 ? '#f59e0b' : '#ef4444';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = ctx.strokeStyle;
+      ctx.shadowBlur = 8;
+      ctx.lineJoin = 'round';
+
+      pts.forEach((val, i) => {
+        const x = i * stepX;
+        const baseY = h - (val / max) * (h * 0.7) - h * 0.1;
+        // Add ECG-like spike effect at data transitions
+        let y = baseY;
+        if (i > 0 && pts[i] !== pts[i - 1]) {
+          const diff = pts[i] - pts[i - 1];
+          y = baseY - diff * 4;
+        }
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Glow dot at the end
+      const lastX = (pts.length - 1) * stepX;
+      const lastY = h - (pts[pts.length - 1] / max) * (h * 0.7) - h * 0.1;
+      ctx.beginPath();
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.shadowBlur = 16;
+      ctx.arc(lastX, lastY, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      animId = requestAnimationFrame(draw);
+    };
+
+    draw();
+    return () => cancelAnimationFrame(animId);
+  }, [camerasOnline, camerasTotal]);
+
+  return <canvas ref={canvasRef} className="ecg-canvas" />;
+}
+
+function SystemHealthWidget({ camerasOnline, camerasTotal }) {
+  const pct = camerasTotal > 0 ? Math.round((camerasOnline / camerasTotal) * 100) : 0;
+  const statusColor = pct >= 90 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
+  const statusLabel = pct >= 90 ? 'OPERATIVO' : pct >= 50 ? 'PARCIAL' : 'CRITICO';
+  const r = 28;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (pct / 100) * circ;
+
+  return (
+    <div className="noc-health-widget" data-testid="system-health-widget">
+      <div className="health-header">
+        <Activity size={14} style={{ color: statusColor }} />
+        <span className="health-title">ESTADO DEL SISTEMA</span>
+        <span className="health-pulse" style={{ background: statusColor }} />
+      </div>
+      <div className="health-body">
+        <div className="health-gauge">
+          <svg width="68" height="68" viewBox="0 0 68 68">
+            <circle cx="34" cy="34" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
+            <circle cx="34" cy="34" r={r} fill="none" stroke={statusColor} strokeWidth="5"
+              strokeDasharray={circ} strokeDashoffset={offset}
+              strokeLinecap="round" transform="rotate(-90 34 34)"
+              style={{ transition: 'stroke-dashoffset 1s ease' }} />
+            <text x="34" y="31" textAnchor="middle" fill="#fff" fontSize="16" fontWeight="700" fontFamily="JetBrains Mono, monospace">{pct}%</text>
+            <text x="34" y="44" textAnchor="middle" fill={statusColor} fontSize="7" fontWeight="600" letterSpacing="0.5">{statusLabel}</text>
+          </svg>
+        </div>
+        <div className="health-info">
+          <div className="health-row">
+            <Camera size={12} />
+            <span className="health-label">Camaras</span>
+            <span className="health-val mono">{camerasOnline}<span style={{opacity:0.4}}>/{camerasTotal}</span></span>
+          </div>
+          <div className="health-row">
+            <Wifi size={12} style={{ color: '#22c55e' }} />
+            <span className="health-label">Online</span>
+            <span className="health-val mono" style={{ color: '#22c55e' }}>{camerasOnline}</span>
+          </div>
+          <div className="health-row">
+            <WifiOff size={12} style={{ color: '#ef4444' }} />
+            <span className="health-label">Offline</span>
+            <span className="health-val mono" style={{ color: camerasTotal - camerasOnline > 0 ? '#ef4444' : 'rgba(255,255,255,0.3)' }}>{camerasTotal - camerasOnline}</span>
+          </div>
+        </div>
+      </div>
+      <div className="health-ecg">
+        <EcgMonitor camerasOnline={camerasOnline} camerasTotal={camerasTotal} />
+      </div>
+    </div>
+  );
+}
+
 /* ═══════════════ BRAND CONFIG ═══════════════ */
 const ALL_BRANDS = [
   { id: 'audi', name: 'AUDI', color: '#BB0A1E', logo: '/assets/brands/audi.png' },
@@ -899,6 +1032,8 @@ function UsersView({ data, api, onRefresh, currentUser }) {
 /* ═══════════════ NOC COMPETITIVE — PREMIUM 55" ═══════════════ */
 function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefresh, loading, autoRefresh, setAutoRefresh, api }) {
   const islandStats = parentIslandData || {};
+  const camerasTotal = data?.cameras_total || 0;
+  const camerasOnline = data?.cameras_online || 0;
 
   const ranking = (data?.ranking || []).sort((a, b) => (b.entries || 0) - (a.entries || 0));
   const totalVisits = ranking.reduce((s, i) => s + (i.entries || 0), 0);
@@ -1002,10 +1137,11 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
             </div>
           </div>
 
-          {/* Right area: Islands full height */}
+          {/* Right area: Islands + System Health */}
           <div className="noc-right-area">
             <div className="noc-panel-title"><MapPin size={16} className="purple-icon" /> ISLAS CANARIAS</div>
             <IslandCards islandStats={islandStats} maxI={maxI} leaderI={leaderI} />
+            <SystemHealthWidget camerasOnline={camerasOnline} camerasTotal={camerasTotal} />
             <div className="noc-summary-panel">
               <span className="noc-sum-label">TOTAL ARCHIPIELAGO</span>
               <span className="noc-sum-val mono"><AnimNum value={totalVisits} /></span>
