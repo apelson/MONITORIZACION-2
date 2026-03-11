@@ -25,7 +25,9 @@ brand_hourly_collection = db["brand_hourly_statistics"]
 brands_collection = db["brands"]
 centers_collection = db["centers"]
 
-# Auth
+# Main platform DB (for migration)
+MAIN_PLATFORM_MONGO_URL = os.environ.get("MAIN_PLATFORM_MONGO_URL", MONGO_URL)
+MAIN_PLATFORM_DB_NAME = os.environ.get("MAIN_PLATFORM_DB_NAME", "siempria_monitor")
 SECRET_KEY = os.environ.get("SECRET_KEY", "siempria-conteo-secret-key-2024")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
