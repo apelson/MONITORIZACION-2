@@ -64,7 +64,7 @@ app.include_router(users_router, prefix="/api")
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "service": "siempria-conteo", "version": "1.0.0"}
+    return {"status": "ok", "service": "siempria-conteo", "version": "7.0.0"}
 
 
 # Serve static frontend files
