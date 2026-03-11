@@ -107,16 +107,46 @@ async def get_realtime_data():
     return data, brand_totals, center_totals
 
 
+def filter_by_permissions(brand_totals, center_totals, user):
+    """Filter data based on user's allowed_brands and allowed_islands"""
+    ab = user.get("allowed_brands") or []
+    ai = user.get("allowed_islands") or []
+    # Admin or empty lists = see everything
+    if user.get("role") == "admin" and not ab and not ai:
+        return brand_totals, center_totals
+    filtered_brands = {}
+    for bid, bdata in brand_totals.items():
+        if ab and bid not in ab:
+            continue
+        if ai:
+            filtered_cams = [c for c in bdata.get("cameras", []) if c.get("island") in ai]
+            if not filtered_cams and bdata.get("cameras"):
+                continue
+            entries = sum(c.get("entries", 0) for c in filtered_cams) if filtered_cams else bdata["entries"]
+            filtered_brands[bid] = {**bdata, "entries": entries, "cameras": filtered_cams}
+        else:
+            filtered_brands[bid] = bdata
+    filtered_centers = {}
+    for cid, cdata in center_totals.items():
+        if ab and cdata.get("brand_id") not in ab:
+            continue
+        if ai and cdata.get("island") not in ai:
+            continue
+        filtered_centers[cid] = cdata
+    return filtered_brands, filtered_centers
+
+
 @router.get("/realtime")
 async def get_realtime(current_user: dict = Depends(get_current_user)):
     """Get real-time counting data from all cameras"""
     try:
-        data, brand_totals, _ = await get_realtime_data()
+        data, brand_totals, center_totals = await get_realtime_data()
+        brand_totals, _ = filter_by_permissions(brand_totals, center_totals, current_user)
         ranking = sorted(brand_totals.values(), key=lambda x: x["entries"], reverse=True)
 
         return {
             "ranking": ranking,
-            "totals": data.get("totals", {"entries": 0, "exits": 0}),
+            "totals": {"entries": sum(b["entries"] for b in brand_totals.values())},
             "cameras_total": len(data.get("cameras", {})),
             "cameras_online": sum(1 for c in data.get("cameras", {}).values() if c.get("status") == "online"),
             "last_update": datetime.now(timezone.utc).isoformat()
@@ -124,7 +154,7 @@ async def get_realtime(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         logger.error(f"Error getting realtime: {e}")
         return {
-            "ranking": [], "totals": {"entries": 0, "exits": 0},
+            "ranking": [], "totals": {"entries": 0},
             "cameras_total": 0, "cameras_online": 0,
             "last_update": datetime.now(timezone.utc).isoformat(),
             "error": str(e)
@@ -139,9 +169,9 @@ async def get_ranking_by_brand(
 ):
     """Get ranking by brand - uses realtime data"""
     try:
-        data, brand_totals, _ = await get_realtime_data()
+        data, brand_totals, center_totals = await get_realtime_data()
+        brand_totals, _ = filter_by_permissions(brand_totals, center_totals, current_user)
 
-        # Filter by island if specified
         if island:
             filtered = {}
             for bid, bdata in brand_totals.items():
@@ -171,7 +201,8 @@ async def get_ranking_by_center(
 ):
     """Get ranking by center - uses realtime data"""
     try:
-        _, _, center_totals = await get_realtime_data()
+        _, brand_totals, center_totals = await get_realtime_data()
+        _, center_totals = filter_by_permissions(brand_totals, center_totals, current_user)
         ranking = sorted(center_totals.values(), key=lambda x: x["total_visits"], reverse=True)
         return {"ranking": ranking, "period": period, "total_centers": len(ranking)}
     except Exception as e:
@@ -185,18 +216,28 @@ async def get_ranking_by_island(current_user: dict = Depends(get_current_user)):
     try:
         data, _, _ = await get_realtime_data()
         centers = await get_centers()
+        ab = current_user.get("allowed_brands") or []
+        ai = current_user.get("allowed_islands") or []
+        is_admin_all = current_user.get("role") == "admin" and not ab and not ai
         islands = {}
 
         for cam_id, cam_data in data.get("cameras", {}).items():
             island = cam_data.get("island", "")
-            if island:
-                if island not in islands:
-                    island_info = next((c for c in centers if c.get("island") == island or c.get("id") == island), None)
-                    islands[island] = {
-                        "total": 0,
-                        "name": island_info["name"] if island_info else island.replace("-", " ").title()
-                    }
-                islands[island]["total"] += cam_data.get("entries", 0)
+            bid = cam_data.get("brand_id", "")
+            if not island:
+                continue
+            if not is_admin_all:
+                if ab and bid not in ab:
+                    continue
+                if ai and island not in ai:
+                    continue
+            if island not in islands:
+                island_info = next((c for c in centers if c.get("island") == island or c.get("id") == island), None)
+                islands[island] = {
+                    "total": 0,
+                    "name": island_info["name"] if island_info else island.replace("-", " ").title()
+                }
+            islands[island]["total"] += cam_data.get("entries", 0)
 
         return {"islands": islands, "date": datetime.now(timezone.utc).strftime("%Y-%m-%d")}
     except Exception as e:

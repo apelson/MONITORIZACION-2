@@ -33,7 +33,9 @@ async def login(username: str = Body(...), password: str = Body(...)):
             "id": user["id"],
             "username": user["username"],
             "role": user.get("role", "viewer"),
-            "full_name": user.get("full_name", user["username"])
+            "full_name": user.get("full_name", user["username"]),
+            "allowed_brands": user.get("allowed_brands", []),
+            "allowed_islands": user.get("allowed_islands", [])
         }
     }
 

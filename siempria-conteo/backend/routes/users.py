@@ -3,6 +3,7 @@ User management routes for Siempria Conteo
 """
 from fastapi import APIRouter, HTTPException, Depends, Body
 from datetime import datetime, timezone
+from typing import Optional, List
 import uuid
 
 from config import users_collection, logger
@@ -17,10 +18,13 @@ async def get_users(current_user: dict = Depends(get_current_user)):
     if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Solo admin puede ver usuarios")
     users = await users_collection.find({}, {"_id": 0, "password_hash": 0}).to_list(100)
-    # Ensure is_active defaults to True for users without the field
     for u in users:
         if "is_active" not in u:
             u["is_active"] = True
+        if "allowed_brands" not in u:
+            u["allowed_brands"] = []
+        if "allowed_islands" not in u:
+            u["allowed_islands"] = []
     return {"users": users, "total": len(users)}
 
 
@@ -30,6 +34,8 @@ async def create_user(
     password: str = Body(...),
     role: str = Body(default="viewer"),
     full_name: str = Body(default=""),
+    allowed_brands: Optional[List[str]] = Body(default=[]),
+    allowed_islands: Optional[List[str]] = Body(default=[]),
     current_user: dict = Depends(get_current_user)
 ):
     """Create a new user (admin only)"""
@@ -47,6 +53,8 @@ async def create_user(
         "role": role,
         "full_name": full_name or username,
         "is_active": True,
+        "allowed_brands": allowed_brands or [],
+        "allowed_islands": allowed_islands or [],
         "created_at": datetime.now(timezone.utc).isoformat(),
         "created_by": current_user.get("username")
     }
@@ -57,10 +65,12 @@ async def create_user(
 @router.put("/{user_id}")
 async def update_user(
     user_id: str,
-    full_name: str = Body(None),
-    role: str = Body(None),
-    is_active: bool = Body(None),
-    password: str = Body(None),
+    full_name: Optional[str] = Body(None),
+    role: Optional[str] = Body(None),
+    is_active: Optional[bool] = Body(None),
+    password: Optional[str] = Body(None),
+    allowed_brands: Optional[List[str]] = Body(None),
+    allowed_islands: Optional[List[str]] = Body(None),
     current_user: dict = Depends(get_current_user)
 ):
     """Update a user (admin only)"""
@@ -80,6 +90,10 @@ async def update_user(
         update["is_active"] = is_active
     if password:
         update["password_hash"] = get_password_hash(password)
+    if allowed_brands is not None:
+        update["allowed_brands"] = allowed_brands
+    if allowed_islands is not None:
+        update["allowed_islands"] = allowed_islands
 
     await users_collection.update_one({"id": user_id}, {"$set": update})
     return {"message": "Usuario actualizado"}
