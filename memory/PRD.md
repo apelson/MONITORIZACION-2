@@ -4,20 +4,21 @@
 Sistema de conteo de visitas en tiempo real para Domingo Alonso Group. Aplicacion independiente en `conteo.siempriapp.com` que monitoriza camaras Mobotix en concesionarios (Audi, VW, Skoda, Honda, Ducati, DAOcasion) en Islas Canarias.
 
 ## Architecture
-- React (CRA) + FastAPI + MongoDB (`siempria_conteo`)
+- React (Vite) + FastAPI + MongoDB (`siempria_conteo`)
 - Backend: `/app/siempria-conteo/backend/` (routes, services, config)
-- Frontend: `App.js` + `ConteoApp.css`
+- Frontend: `App.jsx` + `App.css` (Vite build)
+- Preview: React CRA wrapper at `/app/frontend/src/App.js` + `/app/frontend/src/ConteoApp.css`
 
 ## What's Been Implemented
 
-### v8 - 11 Mar 2026 (Tendencias + Responsive + DealershipRows)
-- **Dashboard de Tendencias**: Nuevo tab "Tendencias" con graficos Recharts
+### v8 - 11 Mar 2026 (Tendencias + Responsive + DealershipRows + Deploy)
+- **Dashboard de Tendencias**: Tab "Tendencias" con graficos Recharts
   - Area chart: flujo de visitas por hora (hoy)
   - Bar chart: visitas por dia (esta semana)
   - Line chart: comparativa por marca
   - KPIs: total hoy, hora pico, media/hora
   - Filtro por marca
-- **DealershipRows**: Componente de ranking de concesionarios creado (faltaba)
+- **DealershipRows**: Componente de ranking de concesionarios
   - Visible en NOC embedded y fullscreen
   - Lista top 10 concesionarios con barra de progreso
 - **Mobile Responsive**: Rediseno completo para moviles
@@ -27,6 +28,8 @@ Sistema de conteo de visitas en tiempo real para Domingo Alonso Group. Aplicacio
   - Login responsive
   - Tablas con scroll horizontal
 - **Backend**: Endpoint /api/ranking/trends con datos hourly/daily/brand_hourly
+- **Paquete de Despliegue v8**: backend_v8.zip, frontend_v8.zip, deploy_conteo_v8.sh
+  - Disponible via endpoints: /api/deploy/[backend, frontend, script]
 - **Fix**: React Hooks violation en TrendsView (useState/useMemo antes de early return)
 
 ### v7 - 11 Mar 2026 (Cambio esquema color + Logo grande)
@@ -38,7 +41,6 @@ Sistema de conteo de visitas en tiempo real para Domingo Alonso Group. Aplicacio
 - Permisos por usuario: `allowed_brands`, `allowed_islands` con chip selectors
 - Filtrado backend: `filter_by_permissions` en ranking.py
 - NOC 3 columnas optimizado para 55"
-- Testing: 100% (iteration_28)
 
 ### v5 - 11 Mar 2026 (Rediseno Premium)
 - Tema corporativo "Eco-Tech Precision"
@@ -52,6 +54,7 @@ Sistema de conteo de visitas en tiempo real para Domingo Alonso Group. Aplicacio
 - GET|POST /api/cameras | PUT|DELETE /api/cameras/{id}
 - GET|POST /api/users | PUT|DELETE /api/users/{id}
 - POST /api/cameras/migrate-from-main
+- GET /api/deploy/[backend, frontend, script]
 
 ## DB Schema
 - `users`: {id, username, password_hash, role, full_name, is_active, allowed_brands[], allowed_islands[]}
@@ -60,19 +63,8 @@ Sistema de conteo de visitas en tiempo real para Domingo Alonso Group. Aplicacio
 ## Credentials
 - admin / Conteo2024!
 
-## Completed (This Session)
-1. Created DealershipRows component (was missing, caused React error)
-2. Added DealershipRows to fullscreen NOC view
-3. Built Trends/Tendencias dashboard with Recharts (hourly, daily, brand comparison)
-4. Full mobile responsive redesign with hamburger menu
-5. Backend /api/ranking/trends endpoint
-6. Testing: 100% pass (iteration_29)
-
 ## Next Tasks
-1. (P1) Limpiar codigo conteo del siempria-monitor principal
-2. (P1) Crear paquete de despliegue v8 para produccion (incluir recharts)
-
-## Backlog
-- Reportes automaticos email
-- Alertas Telegram
-- Refactoring: separar App.js en componentes menores
+1. (P1) Limpiar codigo conteo del siempria-monitor principal (pendiente aprobacion usuario)
+2. (P2) Reportes automaticos email
+3. (P2) Alertas Telegram
+4. Refactoring: separar App.jsx en componentes menores

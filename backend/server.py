@@ -72,20 +72,20 @@ async def health():
     return {"status": "ok", "service": "siempria-conteo", "version": "2.0.0"}
 
 
-# Temporary download endpoints for deployment
+# Download endpoints for deployment v8
 from fastapi.responses import FileResponse
 
 @app.get("/api/deploy/backend")
 async def download_backend():
-    return FileResponse("/app/backend/static_files/deploy/conteo-backend-v7.tar.gz",
-                       filename="conteo-backend-v7.tar.gz", media_type="application/gzip")
+    return FileResponse("/app/backend_v8.zip",
+                       filename="backend_v8.zip", media_type="application/zip")
 
 @app.get("/api/deploy/frontend")
 async def download_frontend():
-    return FileResponse("/app/backend/static_files/deploy/conteo-frontend-v7.tar.gz",
-                       filename="conteo-frontend-v7.tar.gz", media_type="application/gzip")
+    return FileResponse("/app/frontend_v8.zip",
+                       filename="frontend_v8.zip", media_type="application/zip")
 
 @app.get("/api/deploy/script")
 async def download_script():
-    return FileResponse("/app/backend/static_files/deploy/deploy_conteo_v7.sh",
-                       filename="deploy_conteo_v7.sh", media_type="text/plain")
+    return FileResponse("/app/deploy_conteo_v8.sh",
+                       filename="deploy_conteo_v8.sh", media_type="text/plain")
