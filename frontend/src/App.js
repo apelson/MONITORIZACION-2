@@ -241,6 +241,7 @@ function LoginPage({ onLogin }) {
 function Dashboard({ token, user, onLogout }) {
   const [view, setView] = useState('realtime');
   const [data, setData] = useState(null);
+  const [islandData, setIslandData] = useState({});
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [nocFs, setNocFs] = useState(false);
@@ -257,7 +258,14 @@ function Dashboard({ token, user, onLogout }) {
   const fetchData = useCallback(async () => {
     try {
       let res;
-      if (view === 'realtime' || view === 'noc') res = await api('get', '/ranking/realtime');
+      if (view === 'realtime' || view === 'noc') {
+        const [realtimeRes, islandRes] = await Promise.all([
+          api('get', '/ranking/realtime'),
+          api('get', '/ranking/by-island').catch(() => ({ data: { islands: {} } }))
+        ]);
+        res = realtimeRes;
+        setIslandData(islandRes.data.islands || {});
+      }
       else if (view === 'by-brand') res = await api('get', '/ranking/by-brand?period=day');
       else if (view === 'by-center') res = await api('get', '/ranking/by-center?period=day');
       else if (view === 'cameras') res = await api('get', '/cameras');
@@ -281,7 +289,7 @@ function Dashboard({ token, user, onLogout }) {
   if (nocFs) {
     return (
       <NOCView
-        data={data} onClose={() => setNocFs(false)} onRefresh={fetchData}
+        data={data} islandData={islandData} onClose={() => setNocFs(false)} onRefresh={fetchData}
         loading={loading} autoRefresh={autoRefresh} setAutoRefresh={setAutoRefresh} api={api}
       />
     );
@@ -350,7 +358,7 @@ function Dashboard({ token, user, onLogout }) {
         {loading && !data ? <LoadingState /> : <>
           {view === 'realtime' && <RealtimeView data={data} />}
           {view === 'noc' && (
-            <NOCView data={data} embedded onRefresh={fetchData} loading={loading} autoRefresh={autoRefresh} setAutoRefresh={setAutoRefresh} api={api} />
+            <NOCView data={data} islandData={islandData} embedded onRefresh={fetchData} loading={loading} autoRefresh={autoRefresh} setAutoRefresh={setAutoRefresh} api={api} />
           )}
           {view === 'by-brand' && <BrandView data={data} />}
           {view === 'by-center' && <CenterView data={data} />}
@@ -743,19 +751,23 @@ function UsersView({ data, api, onRefresh, currentUser }) {
 }
 
 /* ═══════════════ NOC COMPETITIVE — PREMIUM 55" ═══════════════ */
-function NOCView({ data, embedded, onClose, onRefresh, loading, autoRefresh, setAutoRefresh, api }) {
-  const [islandStats, setIslandStats] = useState({});
-
-  useEffect(() => {
-    if (!api) return;
-    api('get', '/ranking/by-island').then(r => setIslandStats(r.data.islands || {})).catch(() => {});
-  }, [data, api]);
+function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefresh, loading, autoRefresh, setAutoRefresh, api }) {
+  const islandStats = parentIslandData || {};
 
   const ranking = (data?.ranking || []).sort((a, b) => (b.entries || 0) - (a.entries || 0));
   const totalVisits = ranking.reduce((s, i) => s + (i.entries || 0), 0);
   const maxV = ranking[0]?.entries || 1;
   const maxI = Math.max(...Object.values(islandStats).map(i => i.total || 0), 1);
   const leaderI = Object.entries(islandStats).sort((a, b) => (b[1].total || 0) - (a[1].total || 0))[0];
+
+  // Build dealership (camera) ranking from brand data
+  const dealerships = ranking.flatMap(brand =>
+    (brand.cameras || []).map(cam => ({
+      ...cam,
+      brand_id: brand.brand_id,
+      brand_name: brand.brand_name,
+    }))
+  ).sort((a, b) => (b.entries || 0) - (a.entries || 0));
 
   if (embedded) {
     return (
@@ -766,6 +778,12 @@ function NOCView({ data, embedded, onClose, onRefresh, loading, autoRefresh, set
               <h2 className="card-title"><Award size={18} /> Podio de Honor</h2>
               <Podium ranking={ranking} />
             </div>
+            {dealerships.length > 0 && (
+              <div className="card">
+                <h2 className="card-title"><Camera size={18} /> Ranking Concesionarios</h2>
+                <DealershipRows dealerships={dealerships} light />
+              </div>
+            )}
             <div className="card">
               <h2 className="card-title"><BarChart3 size={18} /> Ranking Completo</h2>
               <RankingRows ranking={ranking} maxV={maxV} light />
