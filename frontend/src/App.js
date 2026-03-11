@@ -1,11 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import axios from 'axios';
 import {
   LogIn, Lock, User, Eye, EyeOff, LogOut, RefreshCw, Users, BarChart3,
   Camera, Clock, Shield, Activity, Wifi, WifiOff, AlertCircle,
   MapPin, Plus, Trash2, Edit3, Save, X, Trophy, Crown, Flame, Award,
-  Maximize2, Check, Download, ToggleLeft, ToggleRight, UserPlus, UserCog, Key, ChevronDown
+  Maximize2, Check, Download, ToggleLeft, ToggleRight, UserPlus, UserCog, Key, ChevronDown,
+  TrendingUp, Menu
 } from 'lucide-react';
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import './ConteoApp.css';
 
 const API = process.env.REACT_APP_BACKEND_URL
@@ -245,6 +247,7 @@ function Dashboard({ token, user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [nocFs, setNocFs] = useState(false);
+  const [mobileNav, setMobileNav] = useState(false);
   const timerRef = useRef(null);
 
   const api = useCallback((method, url, body) => {
@@ -266,6 +269,7 @@ function Dashboard({ token, user, onLogout }) {
         res = realtimeRes;
         setIslandData(islandRes.data.islands || {});
       }
+      else if (view === 'trends') res = await api('get', '/ranking/trends');
       else if (view === 'by-brand') res = await api('get', '/ranking/by-brand?period=day');
       else if (view === 'by-center') res = await api('get', '/ranking/by-center?period=day');
       else if (view === 'cameras') res = await api('get', '/cameras');
@@ -298,6 +302,7 @@ function Dashboard({ token, user, onLogout }) {
   const navItems = [
     { id: 'realtime', label: 'Tiempo Real', icon: Activity },
     { id: 'noc', label: 'NOC Competitivo', icon: Trophy },
+    { id: 'trends', label: 'Tendencias', icon: TrendingUp },
     { id: 'by-brand', label: 'Por Marca', icon: BarChart3 },
     { id: 'by-center', label: 'Por Centro', icon: MapPin },
     { id: 'cameras', label: 'Camaras', icon: Camera },
@@ -308,6 +313,9 @@ function Dashboard({ token, user, onLogout }) {
     <div className="app-shell" data-testid="dashboard">
       <header className="app-header">
         <div className="header-left">
+          <button className="header-menu-btn" onClick={() => setMobileNav(!mobileNav)} data-testid="mobile-menu-btn">
+            <Menu size={20} />
+          </button>
           <img src="/dag-logo.png" alt="Domingo Alonso Group" className="header-dag-logo" />
         </div>
         <div className="header-center-brand">
@@ -340,12 +348,12 @@ function Dashboard({ token, user, onLogout }) {
         </div>
       </header>
 
-      <nav className="app-nav">
+      <nav className={`app-nav ${mobileNav ? 'nav-open' : ''}`}>
         {navItems.map(item => (
           <button
             key={item.id}
             className={`app-nav-item ${view === item.id ? 'active' : ''}`}
-            onClick={() => setView(item.id)}
+            onClick={() => { setView(item.id); setMobileNav(false); }}
             data-testid={`nav-${item.id}`}
           >
             <item.icon size={16} />
@@ -353,6 +361,7 @@ function Dashboard({ token, user, onLogout }) {
           </button>
         ))}
       </nav>
+      {mobileNav && <div className="nav-overlay" onClick={() => setMobileNav(false)} />}
 
       <main className="app-content">
         {loading && !data ? <LoadingState /> : <>
@@ -360,6 +369,7 @@ function Dashboard({ token, user, onLogout }) {
           {view === 'noc' && (
             <NOCView data={data} islandData={islandData} embedded onRefresh={fetchData} loading={loading} autoRefresh={autoRefresh} setAutoRefresh={setAutoRefresh} api={api} />
           )}
+          {view === 'trends' && <TrendsView data={data} />}
           {view === 'by-brand' && <BrandView data={data} />}
           {view === 'by-center' && <CenterView data={data} />}
           {view === 'cameras' && <CamerasView data={data} api={api} onRefresh={fetchData} isAdmin={user?.role === 'admin'} />}
@@ -506,6 +516,142 @@ function CenterView({ data }) {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ═══════════════ TRENDS VIEW ═══════════════ */
+function TrendsView({ data }) {
+  const [selectedBrand, setSelectedBrand] = useState('all');
+  const currentHour = new Date().getHours();
+  
+  const { hourly_today = [], daily_week = [], brand_hourly = {} } = data || {};
+
+  const chartHourly = useMemo(() => {
+    if (selectedBrand === 'all') {
+      return hourly_today.filter(h => h.hour <= currentHour);
+    }
+    const bh = brand_hourly[selectedBrand] || [];
+    return bh.filter(h => h.hour <= currentHour);
+  }, [selectedBrand, hourly_today, brand_hourly, currentHour]);
+
+  if (!data) return <EmptyState text="Sin datos de tendencias" />;
+
+  const totalToday = hourly_today.reduce((s, h) => s + h.entries, 0);
+  const peakHour = hourly_today.reduce((max, h) => h.entries > (max?.entries || 0) ? h : max, hourly_today[0]);
+  const avgHourly = currentHour > 0 ? Math.round(totalToday / currentHour) : 0;
+
+  const brandKeys = Object.keys(brand_hourly);
+  const brandOptions = [{ id: 'all', name: 'Todas las marcas' }, ...ALL_BRANDS.filter(b => brandKeys.includes(b.id))];
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (!active || !payload?.length) return null;
+    return (
+      <div className="trend-tooltip">
+        <p className="trend-tooltip-label">{label}</p>
+        <p className="trend-tooltip-val">{payload[0].value.toLocaleString('es-ES')} visitas</p>
+      </div>
+    );
+  };
+
+  return (
+    <div className="view-wrap" data-testid="trends-view">
+      <div className="trends-kpi-grid">
+        <div className="trends-kpi">
+          <div className="trends-kpi-icon" style={{ background: '#E8F1F8', color: '#4A7CA7' }}><Users size={20} /></div>
+          <div className="trends-kpi-data">
+            <span className="trends-kpi-val mono"><AnimNum value={totalToday} /></span>
+            <span className="trends-kpi-label">Total hoy</span>
+          </div>
+        </div>
+        <div className="trends-kpi">
+          <div className="trends-kpi-icon" style={{ background: '#FEF3C7', color: '#92400E' }}><TrendingUp size={20} /></div>
+          <div className="trends-kpi-data">
+            <span className="trends-kpi-val mono">{peakHour ? `${peakHour.hour}:00` : '--'}</span>
+            <span className="trends-kpi-label">Hora pico ({peakHour?.entries || 0})</span>
+          </div>
+        </div>
+        <div className="trends-kpi">
+          <div className="trends-kpi-icon" style={{ background: '#EDE9FE', color: '#7C3AED' }}><Activity size={20} /></div>
+          <div className="trends-kpi-data">
+            <span className="trends-kpi-val mono"><AnimNum value={avgHourly} /></span>
+            <span className="trends-kpi-label">Media/hora</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="card trends-chart-card">
+        <div className="trends-chart-header">
+          <h2 className="card-title"><TrendingUp size={18} /> Flujo de Visitas por Hora — Hoy</h2>
+          <select
+            className="trends-brand-select"
+            value={selectedBrand}
+            onChange={e => setSelectedBrand(e.target.value)}
+            data-testid="trends-brand-filter"
+          >
+            {brandOptions.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+          </select>
+        </div>
+        <div className="trends-chart-wrap">
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart data={chartHourly} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <defs>
+                <linearGradient id="gradientBlue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#5B8DB8" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="#5B8DB8" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E6EC" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94A0B0' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: '#94A0B0' }} axisLine={false} tickLine={false} />
+              <Tooltip content={<CustomTooltip />} />
+              <Area type="monotone" dataKey="entries" stroke="#5B8DB8" strokeWidth={2.5} fill="url(#gradientBlue)" dot={false} activeDot={{ r: 5, fill: '#5B8DB8', stroke: '#fff', strokeWidth: 2 }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {daily_week.length > 0 && (
+        <div className="card trends-chart-card" style={{ marginTop: '1rem' }}>
+          <h2 className="card-title"><BarChart3 size={18} /> Visitas por Dia — Esta Semana</h2>
+          <div className="trends-chart-wrap">
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={daily_week} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E6EC" vertical={false} />
+                <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#94A0B0', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#94A0B0' }} axisLine={false} tickLine={false} />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="entries" fill="#5B8DB8" radius={[6, 6, 0, 0]} maxBarSize={48} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {brandKeys.length > 1 && (
+        <div className="card trends-chart-card" style={{ marginTop: '1rem' }}>
+          <h2 className="card-title"><Activity size={18} /> Comparativa por Marca — Hoy</h2>
+          <div className="trends-chart-wrap">
+            <ResponsiveContainer width="100%" height={280}>
+              <LineChart margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E6EC" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94A0B0' }} axisLine={false} tickLine={false}
+                  data={hourly_today.filter(h => h.hour <= currentHour)} />
+                <YAxis tick={{ fontSize: 11, fill: '#94A0B0' }} axisLine={false} tickLine={false} />
+                <Tooltip />
+                {brandKeys.map(bid => {
+                  const brand = ALL_BRANDS.find(b => b.id === bid);
+                  const bData = (brand_hourly[bid] || []).filter(h => h.hour <= currentHour);
+                  return (
+                    <Line key={bid} data={bData} dataKey="entries" name={brand?.name || bid}
+                      stroke={BRAND_COLORS[bid] || '#5B8DB8'} strokeWidth={2} dot={false} />
+                  );
+                })}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -844,12 +990,18 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
             </div>
           </div>
 
-          {/* Col 2: Full Ranking */}
+          {/* Col 2: Full Ranking + Dealerships */}
           <div className="noc-col">
             <div className="noc-panel" style={{ flex: 1 }}>
               <div className="noc-panel-title"><BarChart3 size={16} /> RANKING EN VIVO</div>
               <RankingRows ranking={ranking} maxV={maxV} />
             </div>
+            {dealerships.length > 0 && (
+              <div className="noc-panel">
+                <div className="noc-panel-title"><Camera size={16} /> CONCESIONARIOS</div>
+                <DealershipRows dealerships={dealerships} />
+              </div>
+            )}
           </div>
 
           {/* Col 3: Islands */}
@@ -961,6 +1113,34 @@ function IslandCards({ islandStats, maxI, leaderI, light }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+/* ═══════════════ DEALERSHIP ROWS ═══════════════ */
+function DealershipRows({ dealerships, light }) {
+  if (!dealerships || dealerships.length === 0) {
+    return <div className={`noc-empty ${light ? 'light' : ''}`}><Camera size={24} /><p>Sin datos de concesionarios</p></div>;
+  }
+  const maxD = dealerships[0]?.entries || 1;
+  return (
+    <div className="noc-dealer-rows" data-testid="dealership-ranking">
+      {dealerships.slice(0, 10).map((d, i) => (
+        <div key={d.camera_id} className={`noc-dealer-row ${i === 0 ? 'leader' : ''}`} data-testid={`dealer-row-${d.camera_id}`}>
+          <span className={`noc-dl-pos ${i < 3 ? `p-${i + 1}` : ''}`}>{i + 1}</span>
+          <div className="noc-dl-logo"><BrandLogo brandId={d.brand_id} size={22} /></div>
+          <div className="noc-dl-info">
+            <span className="noc-dl-name" style={light ? { color: '#1A2332' } : undefined}>{d.camera_name || d.camera_id}</span>
+            <span className="noc-dl-brand" style={light ? { color: '#94A0B0' } : undefined}>{d.brand_name}</span>
+          </div>
+          <div className="noc-dl-bar-bg" style={light ? { background: '#E2E6EC' } : undefined}>
+            <div className="noc-dl-bar" style={{ width: `${((d.entries || 0) / maxD) * 100}%`, background: BRAND_COLORS[d.brand_id] || '#5B8DB8' }} />
+          </div>
+          <span className={`noc-dl-val mono ${i === 0 ? 'gold' : ''}`} style={light ? { color: i === 0 ? '#C49030' : '#1A2332' } : undefined}>
+            <AnimNum value={d.entries || 0} />
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

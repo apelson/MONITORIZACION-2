@@ -11,7 +11,7 @@ from config import (
     brand_hourly_collection, brands_collection, centers_collection, logger
 )
 from services.auth_service import get_current_user
-from services.mobotix_service import fetch_all_cameras_counting
+from services.mobotix_service import fetch_all_cameras_counting, fetch_all_cameras_trends
 
 router = APIRouter(prefix="/ranking", tags=["ranking"])
 
@@ -243,6 +243,22 @@ async def get_ranking_by_island(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         logger.error(f"Error in by-island: {e}")
         return {"islands": {}, "error": str(e)}
+
+
+@router.get("/trends")
+async def get_trends(current_user: dict = Depends(get_current_user)):
+    """Get hourly/daily trend data for charts"""
+    try:
+        trends = await fetch_all_cameras_trends()
+        return {
+            "hourly_today": trends.get("hourly_today", []),
+            "daily_week": trends.get("daily_week", []),
+            "brand_hourly": trends.get("brand_hourly", {}),
+            "date": datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        }
+    except Exception as e:
+        logger.error(f"Error getting trends: {e}")
+        return {"hourly_today": [], "daily_week": [], "brand_hourly": {}, "error": str(e)}
 
 
 @router.get("/summary")
