@@ -10,18 +10,34 @@ Sistema de conteo de visitas en tiempo real para Domingo Alonso Group. Aplicacio
 
 ## What's Been Implemented
 
+### v8 - 11 Mar 2026 (Tendencias + Responsive + DealershipRows)
+- **Dashboard de Tendencias**: Nuevo tab "Tendencias" con graficos Recharts
+  - Area chart: flujo de visitas por hora (hoy)
+  - Bar chart: visitas por dia (esta semana)
+  - Line chart: comparativa por marca
+  - KPIs: total hoy, hora pico, media/hora
+  - Filtro por marca
+- **DealershipRows**: Componente de ranking de concesionarios creado (faltaba)
+  - Visible en NOC embedded y fullscreen
+  - Lista top 10 concesionarios con barra de progreso
+- **Mobile Responsive**: Rediseno completo para moviles
+  - Menu hamburguesa con nav desplegable lateral
+  - KPIs en columna unica, cards compactas
+  - NOC fullscreen adaptado a mobile
+  - Login responsive
+  - Tablas con scroll horizontal
+- **Backend**: Endpoint /api/ranking/trends con datos hourly/daily/brand_hourly
+- **Fix**: React Hooks violation en TrendsView (useState/useMemo antes de early return)
+
 ### v7 - 11 Mar 2026 (Cambio esquema color + Logo grande)
-- **Logo DAG nuevo** (version negra proporcionada por usuario): 160px login, 52px header, 56px NOC
-- **Esquema azul tenue**: Todo el verde reemplazado por azul pastel corporativo (#5B8DB8)
-- Login: fondo azul tenue, boton azul, badge azul
-- Header, KPIs, nav active, badges, pills — todo en azul
-- NOC fullscreen: acentos azules en lugar de verdes
+- Logo DAG (version negra): 160px login, 52px header, 56px NOC
+- Esquema azul tenue: #5B8DB8 como color primario
+- Login, Header, KPIs, nav, badges — todo en azul
 
 ### v6 - 11 Mar 2026 (Permisos + 55")
 - Permisos por usuario: `allowed_brands`, `allowed_islands` con chip selectors
 - Filtrado backend: `filter_by_permissions` en ranking.py
 - NOC 3 columnas optimizado para 55"
-- Edit button visible para todos los usuarios
 - Testing: 100% (iteration_28)
 
 ### v5 - 11 Mar 2026 (Rediseno Premium)
@@ -32,9 +48,10 @@ Sistema de conteo de visitas en tiempo real para Domingo Alonso Group. Aplicacio
 
 ## API Endpoints
 - POST /api/auth/login
-- GET /api/ranking/[realtime, by-brand, by-center, by-island]
+- GET /api/ranking/[realtime, by-brand, by-center, by-island, trends]
 - GET|POST /api/cameras | PUT|DELETE /api/cameras/{id}
 - GET|POST /api/users | PUT|DELETE /api/users/{id}
+- POST /api/cameras/migrate-from-main
 
 ## DB Schema
 - `users`: {id, username, password_hash, role, full_name, is_active, allowed_brands[], allowed_islands[]}
@@ -43,12 +60,19 @@ Sistema de conteo de visitas en tiempo real para Domingo Alonso Group. Aplicacio
 ## Credentials
 - admin / Conteo2024!
 
+## Completed (This Session)
+1. Created DealershipRows component (was missing, caused React error)
+2. Added DealershipRows to fullscreen NOC view
+3. Built Trends/Tendencias dashboard with Recharts (hourly, daily, brand comparison)
+4. Full mobile responsive redesign with hamburger menu
+5. Backend /api/ranking/trends endpoint
+6. Testing: 100% pass (iteration_29)
+
 ## Next Tasks
-1. (P0) Aprobacion usuario + despliegue produccion
-2. (P1) Verificar datos con camaras reales
-3. (P1) Limpiar codigo conteo del siempria-monitor
+1. (P1) Limpiar codigo conteo del siempria-monitor principal
+2. (P1) Crear paquete de despliegue v8 para produccion (incluir recharts)
 
 ## Backlog
-- Dashboard de tendencias
 - Reportes automaticos email
 - Alertas Telegram
+- Refactoring: separar App.js en componentes menores
