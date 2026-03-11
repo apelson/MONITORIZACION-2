@@ -13,7 +13,7 @@ cd /opt/siempria-monitor
 # ============================================
 echo "📥 Descargando archivos..."
 
-BASE_URL="https://noc-hardening.preview.emergentagent.com/api/download-file"
+BASE_URL="https://counting-hub.preview.emergentagent.com/api/download-file"
 
 # === FRONTEND ===
 

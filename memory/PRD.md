@@ -1,108 +1,73 @@
 # WatchTower by Siempria - PRD
 
 ## Original Problem Statement
-Sistema de monitorización de red profesional para Siempria. Incluye NOC de conteo de visitas por marca de vehículos con cámaras Mobotix.
+Sistema de monitorizacion de red profesional para Siempria. Incluye NOC de conteo de visitas por marca de vehiculos con camaras Mobotix. El proyecto ha evolucionado a separar la funcionalidad de conteo en una aplicacion independiente.
 
-## Session 10 Mar 2026 - Blindaje de Aplicación y Fixes
+## Architecture
+Two separate applications:
+1. **Main Platform** (`siempriapp.com`): Device management, monitoring, alerts
+   - Path: `/opt/siempria-monitor` (production) / `/app` (development)
+   - Stack: React (CRA) + FastAPI + MongoDB (`siempria_network_monitor`)
+   - Port: 8001
 
-### ✅ Eliminación de Branding Externo (P0)
-- Todas las referencias a `customer-assets.emergentagent.com` eliminadas del código fuente
-- Logos descargados y guardados localmente en `/frontend/public/assets/`
-  - `/assets/logos/siempria-logo.png`
-  - `/assets/logos/siempria-symbol.png`
-  - `/assets/logos/siempria-noc-logo.png`
-  - `/assets/logos/siempria-autorizada.png`
-  - `/assets/logos/siempria-horizontal.png`
-  - `/assets/logos/dahua-logo.png`
-  - `/assets/brands/audi.jpg`, `volkswagen.png`, `skoda.png`, `honda.png`, `ducati.png`, `daocasion.png`
-- Archivos actualizados:
-  - `RolesManager.jsx`, `LoginPage.jsx`, `NOCHeader.jsx`, `DahuaWidget.jsx`
-  - `NOCDashboard.jsx`, `DahuaDevicesPanel.jsx`, `NOCDashboardRefactored.jsx`
-  - `IncidentsPanel.jsx`, `InfrastructurePanel.jsx`, `StatisticsPanel.jsx`
-  - `CRADashboard.jsx`, `RealtimeCountingNOC.jsx`, `AccessLogsPanel.jsx`
-  - `SectionLoader.jsx`, `LoadingComponents.jsx`, `helpers.js`, `App.js`
+2. **Conteo Platform** (`conteo.siempriapp.com`): Real-time visit counting
+   - Path: `/opt/siempria-conteo` (production) / `/app/siempria-conteo` (development)
+   - Stack: React (Vite) + FastAPI + MongoDB (`siempria_conteo`)
+   - Port: 8002
 
-### ✅ Gestión de Roles de Usuario (P1)
-- Corregido bug en `RolesManager.jsx`: enviaba `role_id` en vez de `role`
-- PUT `/api/users/{id}` ahora recibe correctamente `{ "role": "manager" }`
+## What's Been Implemented
 
-### ✅ Dashboard de Seguridad (P2)
-- Endpoints ya funcionan correctamente:
-  - GET `/api/security/blocked-ips` - IPs temporalmente bloqueadas
-  - GET `/api/security/blacklist` - Lista negra permanente
-  - GET `/api/security/events` - Eventos de seguridad
-  - POST `/api/security/blacklist` - Añadir IP a lista negra
-  - DELETE `/api/security/blacklist/{ip}` - Quitar de lista negra
-  - POST `/api/security/unblock-ip` - Desbloquear IP temporal
+### Session 11 Mar 2026 - Conteo App Complete Build
+- **Backend completo**: FastAPI con auth JWT, ranking endpoints (realtime, by-brand, by-center, summary), cameras config, baselines reset
+- **Frontend profesional**: Login page rediseñado con estetica WatchTower, dashboard con 4 vistas (Tiempo Real, Por Marca, Por Centro, Camaras)
+- **Scripts de despliegue**: install.sh, deploy.sh, fix_nginx.sh, update_frontend.sh
+- **Configuracion servidor**: siempria-conteo.service (systemd), nginx-conteo.conf
+- **Instrucciones acceso local**: Guia completa para editar hosts en Windows
 
-### ✅ Mapa Interactivo - Fix IDs de Islas
-- Corregido inconsistencia de IDs de islas (guiones vs guiones bajos)
-- IDs ahora consistentes: `tenerife`, `gran-canaria`, `lanzarote`, etc.
-- Función `getIslandFromGroup` normaliza IDs antiguos automáticamente
+### Session 10 Mar 2026 - Blindaje de Aplicacion
+- Eliminacion de branding externo (emergentagent.com)
+- Gestion de roles de usuario fix
+- Dashboard de seguridad verificado
+- Mapa interactivo fix IDs de islas
+- Cron job para estadisticas
 
-### ✅ Cron Job para Estadísticas
-- Ya implementado: Scheduler ejecuta cada 5 minutos
-- Guarda snapshots en `brand_hourly_collection`, `brand_daily_collection`, `brand_weekly_collection`
-- Log visible: "[SCHEDULER] Brand statistics snapshot stored"
+### Session 09 Mar 2026 - Funcionalidades Premium
+- NOC Competitivo Premium (pantalla 55")
+- Permisos granulares de usuario
+- Exportacion PDF con comparativas
 
-## Session 09 Mar 2026 - Funcionalidades Premium
-
-### ✅ NOC Competitivo Premium (Pantalla 55" Fija)
-- Diseño optimizado SIN SCROLL (1920x1080)
-- Podio 3D con corona dorada + siluetas PNG de islas
-- Efectos de confeti (canvas-confetti)
-- Reloj en tiempo real, ranking de marcas/centros
-
-### ✅ Permisos Granulares de Usuario
-- Campos `allowed_brands` y `allowed_centers` en modelo de usuario
-- Endpoints `GET/PUT /api/users/{id}/permissions`
-- Panel de gestión en pestaña Users
-- Filtrado activo en endpoints de ranking
-
-### ✅ Exportación PDF con Comparativas
-- Endpoint `GET /api/brand-statistics/export/pdf?period=day|week|month`
-- PDF con ranking, variaciones %, top performers
-
-## Pending Issues
-
-### P2 (Menor Prioridad)
-- Mapa interactivo necesita que grupos/dispositivos tengan isla asignada para mostrar conteo
-- UI para permisos granulares (asignar marcas/centros)
-- Centros sin `brand_id` en base de datos
-- Verificar exportación PDF
-
-## Archivos de Referencia
+## API Endpoints - Conteo Platform
 ```
-/app/frontend/public/assets/     # Logos locales
-/app/frontend/src/
-├── components/
-│   ├── auth/LoginPage.jsx
-│   ├── common/SectionLoader.jsx, LoadingComponents.jsx
-│   ├── noc/NOCHeader.jsx, widgets/DahuaWidget.jsx
-│   ├── panels/NOCCompetitivo.jsx, NOCDashboard.jsx...
-│   └── settings/RolesManager.jsx
-├── utils/helpers.js
-└── App.js
-
-/app/backend/
-├── models/__init__.py (UserUpdate model)
-└── routes/users.py (PUT /users/{id})
+POST /api/auth/login              - Login
+POST /api/auth/create-user        - Create user
+GET  /api/ranking/realtime        - Real-time counting from cameras
+GET  /api/ranking/by-brand        - Ranking by brand
+GET  /api/ranking/by-center       - Ranking by center
+GET  /api/ranking/summary         - Statistics summary
+GET  /api/ranking/brands          - List brands
+GET  /api/ranking/centers         - List centers
+GET  /api/cameras                 - Camera configurations
+POST /api/cameras                 - Add/update camera
+DELETE /api/cameras/{id}          - Delete camera
+POST /api/cameras/reset-baselines - Reset daily baselines
+GET  /api/health                  - Health check
 ```
-
-## API Endpoints Principales
-```
-POST /api/auth/login
-GET  /api/users
-PUT  /api/users/{id}          # { role, email, full_name, ... }
-PUT  /api/users/{id}/permissions
-GET  /api/brand-statistics/ranking
-GET  /api/brand-statistics/export/pdf
-```
-
-## Tech Stack
-- Frontend: React + TailwindCSS + Shadcn/UI + canvas-confetti
-- Backend: FastAPI + MongoDB + ReportLab
-- Assets: Locales en /public/assets/
 
 ## Credentials
-- Admin: admin / admin123
+- Main Platform: admin / Spw@16071977
+- Conteo Platform: admin / Conteo2024!
+
+## Pending Issues
+- **P0**: Local network access fix (user must edit Windows hosts file)
+- **P1**: User verification of conteo app in production
+
+## Upcoming Tasks
+1. Deploy conteo app to production server using install.sh
+2. Verify all counting cameras work with new backend
+3. Clean main platform - remove redundant NOC/conteo code from siempria-monitor
+
+## Future/Backlog (P2-P3)
+- Automatic email reports
+- Intelligent alerts to Telegram
+- Trends dashboard with historical charts
+- `centers` collection cleanup in main DB

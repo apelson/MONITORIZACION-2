@@ -9,7 +9,7 @@ import requests
 import os
 
 # Get BASE_URL from environment
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://noc-hardening.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://counting-hub.preview.emergentagent.com').rstrip('/')
 
 print(f"Testing against: {BASE_URL}")
 

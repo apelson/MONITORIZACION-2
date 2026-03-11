@@ -1,0 +1,19 @@
+[Unit]
+Description=Siempria Conteo Backend
+After=network.target mongod.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/siempria-conteo/backend
+Environment="PATH=/opt/siempria-conteo/backend/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+Environment="MONGO_URL=mongodb://localhost:27017"
+Environment="DB_NAME=siempria_conteo"
+Environment="SECRET_KEY=siempria-conteo-secret-key-2024"
+Environment="CORS_ORIGINS=*"
+ExecStart=/opt/siempria-conteo/backend/venv/bin/uvicorn server:app --host 0.0.0.0 --port 8002
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
