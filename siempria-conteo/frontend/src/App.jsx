@@ -5,13 +5,14 @@ import {
   Camera, Clock, Shield, Activity, Wifi, WifiOff, AlertCircle,
   MapPin, Plus, Trash2, Edit3, Save, X, Trophy, Crown, Flame, Award,
   Maximize2, Check, Download, ToggleLeft, ToggleRight, UserPlus, UserCog, Key, ChevronDown,
-  TrendingUp, TrendingDown, Menu, ArrowUpRight, ArrowDownRight, Minus, Zap, Database
+  TrendingUp, TrendingDown, Menu, ArrowUpRight, ArrowDownRight, Minus, Zap, Database,
+  Presentation, Play, Pause, Filter, FileSpreadsheet, Target, ChevronRight, ChevronLeft
 } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import './App.css';
 
 const API = import.meta.env.VITE_API_URL
-  ? import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
   : '/api';
 
 /* ═══════════════ ECG HEARTBEAT COMPONENT ═══════════════ */
@@ -439,6 +440,14 @@ function Dashboard({ token, user, onLogout }) {
       else if (view === 'by-brand') res = await api('get', '/ranking/by-brand?period=day');
       else if (view === 'by-center') res = await api('get', '/ranking/by-center?period=day');
       else if (view === 'cameras') res = await api('get', '/cameras');
+      else if (view === 'executive' || view === 'presentation') {
+        const [execRes, compWeek, compMonth] = await Promise.all([
+          api('get', '/analytics/executive'),
+          api('get', '/analytics/comparison?period=week'),
+          api('get', '/analytics/comparison?period=month')
+        ]);
+        res = { ...execRes.data, comparison_week: compWeek.data, comparison_month: compMonth.data };
+      }
       else if (view === 'heatmap') {
         const [camerasRes, historyRes] = await Promise.all([
           api('get', '/heatmap/cameras'),
@@ -457,7 +466,7 @@ function Dashboard({ token, user, onLogout }) {
 
   useEffect(() => { setLoading(true); setData(null); fetchData(); }, [view, fetchData]);
   useEffect(() => {
-    if (autoRefresh && !['cameras', 'users', 'heatmap'].includes(view)) {
+    if (autoRefresh && !['cameras', 'users', 'heatmap', 'executive', 'presentation'].includes(view)) {
       timerRef.current = setInterval(fetchData, 30000);
       return () => clearInterval(timerRef.current);
     }
@@ -477,6 +486,8 @@ function Dashboard({ token, user, onLogout }) {
     { id: 'noc', label: 'NOC Competitivo', icon: Trophy },
     { id: 'trends', label: 'Tendencias', icon: TrendingUp },
     { id: 'heatmap', label: 'Mapa de Calor', icon: Flame },
+    { id: 'executive', label: 'Ejecutivo', icon: Zap },
+    { id: 'presentation', label: 'Presentacion', icon: Presentation },
     { id: 'by-brand', label: 'Por Marca', icon: BarChart3 },
     { id: 'by-center', label: 'Por Centro', icon: MapPin },
     { id: 'cameras', label: 'Camaras', icon: Camera },
@@ -545,6 +556,8 @@ function Dashboard({ token, user, onLogout }) {
           )}
           {view === 'trends' && <TrendsView data={data} />}
           {view === 'heatmap' && <HeatmapView data={data} api={api} onRefresh={fetchData} />}
+          {view === 'executive' && <ExecutiveView data={data} api={api} />}
+          {view === 'presentation' && <PresentationMode data={data} api={api} />}
           {view === 'by-brand' && <BrandView data={data} />}
           {view === 'by-center' && <CenterView data={data} />}
           {view === 'cameras' && <CamerasView data={data} api={api} onRefresh={fetchData} isAdmin={user?.role === 'admin'} />}
@@ -1251,6 +1264,565 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
   );
 }
 
+/* ═══════════════ EXECUTIVE DASHBOARD ═══════════════ */
+function ExecutiveView({ data, api }) {
+  const [goals, setGoals] = useState([]);
+  const [newGoal, setNewGoal] = useState({ brand_id: '', target_visits: '', label: '' });
+  const [editingGoal, setEditingGoal] = useState(null);
+  const [showGoalForm, setShowGoalForm] = useState(false);
+  const [exportRange, setExportRange] = useState({ from: '', to: '' });
+  const [exportBrand, setExportBrand] = useState('');
+  const [exportIsland, setExportIsland] = useState('');
+  const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api';
+
+  const {
+    today_total = 0, yesterday_total = 0, day_change_pct = 0,
+    month_total = 0, daily_avg = 0, cameras_total = 0, cameras_online = 0,
+    goals_progress = [], month = '',
+    comparison_week = {}, comparison_month = {}
+  } = data || {};
+
+  const refreshGoals = useCallback(async () => {
+    try {
+      const res = await api('get', `/goals?month=${month || new Date().toISOString().slice(0, 7)}`);
+      setGoals(res.data?.goals || []);
+    } catch {}
+  }, [api, month]);
+
+  useEffect(() => { refreshGoals(); }, [refreshGoals]);
+
+  const saveGoal = async () => {
+    if (!newGoal.brand_id || !newGoal.target_visits) return;
+    try {
+      await api('post', '/goals', {
+        brand_id: newGoal.brand_id,
+        month: month || new Date().toISOString().slice(0, 7),
+        target_visits: parseInt(newGoal.target_visits),
+        label: newGoal.label
+      });
+      setShowGoalForm(false);
+      setNewGoal({ brand_id: '', target_visits: '', label: '' });
+      refreshGoals();
+    } catch (err) { alert('Error: ' + (err.response?.data?.detail || err.message)); }
+  };
+
+  const updateGoal = async () => {
+    if (!editingGoal) return;
+    try {
+      await api('post', '/goals', {
+        brand_id: editingGoal.brand_id,
+        month: month || new Date().toISOString().slice(0, 7),
+        target_visits: parseInt(editingGoal.target_visits),
+        label: editingGoal.label || ''
+      });
+      setEditingGoal(null);
+      refreshGoals();
+    } catch (err) { alert('Error: ' + (err.response?.data?.detail || err.message)); }
+  };
+
+  const deleteGoal = async (goalId) => {
+    if (!window.confirm('Eliminar este objetivo?')) return;
+    try {
+      await api('delete', `/goals/${goalId}`);
+      refreshGoals();
+    } catch (err) { alert('Error: ' + (err.response?.data?.detail || err.message)); }
+  };
+
+  const getToken = () => {
+    try { const a = JSON.parse(localStorage.getItem('conteo_auth')); return a?.token || ''; } catch { return ''; }
+  };
+
+  const exportCSV = () => {
+    if (!exportRange.from || !exportRange.to) return alert('Selecciona fechas');
+    let url = `${API_BASE}/analytics/export?from_date=${exportRange.from}&to_date=${exportRange.to}&token=${getToken()}`;
+    if (exportBrand) url += `&brand_id=${exportBrand}`;
+    if (exportIsland) url += `&island=${exportIsland}`;
+    window.open(url);
+  };
+
+  return (
+    <div className="exec-view" data-testid="executive-view">
+      {/* KPI Cards Row */}
+      <div className="exec-kpis">
+        <div className="exec-kpi-card exec-kpi-primary" data-testid="exec-kpi-today">
+          <div className="exec-kpi-icon"><Users size={22} /></div>
+          <div className="exec-kpi-data">
+            <span className="exec-kpi-val mono"><AnimNum value={today_total} /></span>
+            <span className="exec-kpi-label">Visitas hoy</span>
+          </div>
+          <TrendBadge current={today_total} previous={yesterday_total} />
+        </div>
+        <div className="exec-kpi-card" data-testid="exec-kpi-yesterday">
+          <div className="exec-kpi-icon" style={{color:'#94A3B8'}}><Clock size={22} /></div>
+          <div className="exec-kpi-data">
+            <span className="exec-kpi-val mono"><AnimNum value={yesterday_total} /></span>
+            <span className="exec-kpi-label">Ayer</span>
+          </div>
+        </div>
+        <div className="exec-kpi-card" data-testid="exec-kpi-month">
+          <div className="exec-kpi-icon" style={{color:'#E8A83E'}}><TrendingUp size={22} /></div>
+          <div className="exec-kpi-data">
+            <span className="exec-kpi-val mono"><AnimNum value={month_total} /></span>
+            <span className="exec-kpi-label">Este mes</span>
+          </div>
+          <span className="exec-kpi-sub">{daily_avg}/dia</span>
+        </div>
+        <div className="exec-kpi-card" data-testid="exec-kpi-cameras">
+          <div className="exec-kpi-icon" style={{color:'#22c55e'}}><Camera size={22} /></div>
+          <div className="exec-kpi-data">
+            <span className="exec-kpi-val mono">{cameras_online}/{cameras_total}</span>
+            <span className="exec-kpi-label">Camaras online</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="exec-grid">
+        {/* Comparison Cards */}
+        <div className="exec-panel" data-testid="exec-comparison">
+          <div className="exec-panel-title"><BarChart3 size={16} /> COMPARATIVA</div>
+          <div className="exec-comp-cards">
+            <div className="exec-comp-card">
+              <span className="exec-comp-period">{comparison_week.label_current || 'Esta semana'}</span>
+              <span className="exec-comp-val mono"><AnimNum value={comparison_week.current_total || 0} /></span>
+              <div className="exec-comp-vs">
+                <span>vs {comparison_week.label_previous || 'anterior'}: {(comparison_week.previous_total || 0).toLocaleString('es-ES')}</span>
+                <TrendBadge current={comparison_week.current_total || 0} previous={comparison_week.previous_total || 0} />
+              </div>
+            </div>
+            <div className="exec-comp-card">
+              <span className="exec-comp-period">{comparison_month.label_current || 'Este mes'}</span>
+              <span className="exec-comp-val mono"><AnimNum value={comparison_month.current_total || 0} /></span>
+              <div className="exec-comp-vs">
+                <span>vs {comparison_month.label_previous || 'anterior'}: {(comparison_month.previous_total || 0).toLocaleString('es-ES')}</span>
+                <TrendBadge current={comparison_month.current_total || 0} previous={comparison_month.previous_total || 0} />
+              </div>
+            </div>
+          </div>
+          {(comparison_week.brand_comparison || []).length > 0 && (
+            <div className="exec-brand-comp">
+              <span className="exec-sub-title">Por marca (semana)</span>
+              {comparison_week.brand_comparison.map(bc => {
+                const brand = ALL_BRANDS.find(b => b.id === bc.brand_id);
+                return (
+                  <div key={bc.brand_id} className="exec-brand-row">
+                    <BrandLogo brandId={bc.brand_id} size={20} />
+                    <span className="exec-brand-name">{brand?.name || bc.brand_id}</span>
+                    <span className="mono" style={{fontSize:'0.82rem'}}>{bc.current.toLocaleString('es-ES')}</span>
+                    <TrendBadge current={bc.current} previous={bc.previous} />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Goals Progress with CRUD */}
+        <div className="exec-panel" data-testid="exec-goals">
+          <div className="exec-panel-title">
+            <Target size={16} style={{color:'#E8A83E'}} /> OBJETIVOS {month}
+            <button className="exec-add-btn" onClick={() => { setShowGoalForm(!showGoalForm); setEditingGoal(null); }} data-testid="exec-add-goal">
+              <Plus size={14} />
+            </button>
+          </div>
+          {showGoalForm && (
+            <div className="exec-goal-form" data-testid="goal-form">
+              <select value={newGoal.brand_id} onChange={e => setNewGoal({...newGoal, brand_id: e.target.value})} className="heatmap-select" data-testid="goal-brand-select">
+                <option value="">Marca...</option>
+                {ALL_BRANDS.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+              <input type="number" placeholder="Objetivo visitas" value={newGoal.target_visits}
+                onChange={e => setNewGoal({...newGoal, target_visits: e.target.value})} className="heatmap-date" data-testid="goal-target-input" />
+              <input type="text" placeholder="Etiqueta (opcional)" value={newGoal.label}
+                onChange={e => setNewGoal({...newGoal, label: e.target.value})} className="heatmap-date" data-testid="goal-label-input" />
+              <button onClick={saveGoal} className="heatmap-gen-btn" style={{padding:'0.4rem 0.8rem'}} data-testid="goal-save-btn"><Save size={14} /> Guardar</button>
+            </div>
+          )}
+          {goals_progress.length > 0 ? goals_progress.map(g => {
+            const brand = ALL_BRANDS.find(b => b.id === g.brand_id);
+            const color = g.pct >= 100 ? '#22c55e' : g.pct >= 60 ? '#E8A83E' : '#ef4444';
+            const goalDoc = goals.find(gl => gl.brand_id === g.brand_id);
+            const isEditing = editingGoal?.brand_id === g.brand_id;
+            return (
+              <div key={g.brand_id} className="exec-goal-row" data-testid={`goal-${g.brand_id}`}>
+                <div className="exec-goal-header">
+                  <BrandLogo brandId={g.brand_id} size={24} />
+                  <span className="exec-goal-brand">{brand?.name || g.brand_id}</span>
+                  <span className="exec-goal-pct mono" style={{color}}>{g.pct}%</span>
+                  <div className="exec-goal-actions">
+                    <button className="exec-goal-action-btn" onClick={() => setEditingGoal(isEditing ? null : { brand_id: g.brand_id, target_visits: g.target, label: g.label || '' })} data-testid={`goal-edit-${g.brand_id}`} title="Editar">
+                      <Edit3 size={12} />
+                    </button>
+                    {goalDoc && (
+                      <button className="exec-goal-action-btn del" onClick={() => deleteGoal(goalDoc.goal_id)} data-testid={`goal-delete-${g.brand_id}`} title="Eliminar">
+                        <Trash2 size={12} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {isEditing && (
+                  <div className="exec-goal-edit-form" data-testid={`goal-edit-form-${g.brand_id}`}>
+                    <input type="number" value={editingGoal.target_visits} onChange={e => setEditingGoal({...editingGoal, target_visits: e.target.value})} className="heatmap-date" placeholder="Nuevo objetivo" />
+                    <input type="text" value={editingGoal.label} onChange={e => setEditingGoal({...editingGoal, label: e.target.value})} className="heatmap-date" placeholder="Etiqueta" />
+                    <button onClick={updateGoal} className="heatmap-gen-btn" style={{padding:'0.3rem 0.6rem', fontSize:'0.72rem'}}><Check size={12} /> Aplicar</button>
+                  </div>
+                )}
+                <div className="exec-goal-bar-bg">
+                  <div className="exec-goal-bar" style={{width: `${Math.min(g.pct, 100)}%`, background: color}} />
+                  {g.projected_pct > 0 && g.projected_pct < 200 && (
+                    <div className="exec-goal-projected" style={{left: `${Math.min(g.projected_pct, 100)}%`}} title={`Proyeccion: ${g.projected_pct}%`} />
+                  )}
+                </div>
+                <div className="exec-goal-details">
+                  <span>{g.actual.toLocaleString('es-ES')} / {g.target.toLocaleString('es-ES')}</span>
+                  <span style={{color: g.projected_pct >= 100 ? '#22c55e' : '#E8A83E'}}>
+                    Proyeccion: {g.projected.toLocaleString('es-ES')} ({g.projected_pct}%)
+                  </span>
+                </div>
+              </div>
+            );
+          }) : <p className="hm-hist-empty">Sin objetivos definidos. Pulsa + para crear uno.</p>}
+        </div>
+
+        {/* Export Panel with Filters */}
+        <div className="exec-panel exec-export-panel" data-testid="exec-export">
+          <div className="exec-panel-title"><FileSpreadsheet size={16} /> EXPORTAR DATOS</div>
+          <div className="exec-export-form">
+            <div className="heatmap-ctrl-group">
+              <label className="heatmap-label">Desde</label>
+              <input type="date" className="heatmap-date" value={exportRange.from}
+                onChange={e => setExportRange({...exportRange, from: e.target.value})} data-testid="export-from" />
+            </div>
+            <div className="heatmap-ctrl-group">
+              <label className="heatmap-label">Hasta</label>
+              <input type="date" className="heatmap-date" value={exportRange.to}
+                onChange={e => setExportRange({...exportRange, to: e.target.value})} data-testid="export-to" />
+            </div>
+            <div className="heatmap-ctrl-group">
+              <label className="heatmap-label">Marca</label>
+              <select className="heatmap-select" value={exportBrand} onChange={e => setExportBrand(e.target.value)} data-testid="export-brand-filter">
+                <option value="">Todas</option>
+                {ALL_BRANDS.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </div>
+            <div className="heatmap-ctrl-group">
+              <label className="heatmap-label">Isla</label>
+              <select className="heatmap-select" value={exportIsland} onChange={e => setExportIsland(e.target.value)} data-testid="export-island-filter">
+                <option value="">Todas</option>
+                {ALL_ISLANDS.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+              </select>
+            </div>
+            <button className="heatmap-gen-btn" onClick={exportCSV} data-testid="export-btn">
+              <Download size={14} /> Descargar CSV
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════ PRESENTATION MODE ═══════════════ */
+function PresentationMode({ data, api }) {
+  const [slide, setSlide] = useState(0);
+  const [playing, setPlaying] = useState(true);
+  const [trendsData, setTrendsData] = useState(null);
+
+  const {
+    today_total = 0, yesterday_total = 0,
+    month_total = 0, daily_avg = 0, cameras_total = 0, cameras_online = 0,
+    goals_progress = [], month = '',
+    comparison_week = {}, comparison_month = {}
+  } = data || {};
+
+  useEffect(() => {
+    api('get', '/ranking/trends').then(res => setTrendsData(res.data)).catch(() => {});
+  }, [api]);
+
+  const totalSlides = 4;
+
+  useEffect(() => {
+    if (!playing) return;
+    const timer = setInterval(() => {
+      setSlide(prev => (prev + 1) % totalSlides);
+    }, 12000);
+    return () => clearInterval(timer);
+  }, [playing]);
+
+  const nextSlide = () => setSlide(prev => (prev + 1) % totalSlides);
+  const prevSlide = () => setSlide(prev => (prev - 1 + totalSlides) % totalSlides);
+
+  const slideNames = ['Resumen del Dia', 'Comparativa Temporal', 'Objetivos del Mes', 'Tendencias'];
+
+  const hourlyData = (trendsData?.hourly_today || []).filter(h => h.hour <= new Date().getHours());
+  const brandHourly = trendsData?.brand_hourly || {};
+  const brandKeys = Object.keys(brandHourly);
+
+  const DarkPresentTooltip = ({ active, payload, label }) => {
+    if (!active || !payload?.length) return null;
+    return (
+      <div style={{ background: 'rgba(10,15,30,0.95)', border: '1px solid rgba(91,141,184,0.3)', borderRadius: 10, padding: '10px 14px', backdropFilter: 'blur(10px)' }}>
+        <p style={{ color: '#7EB3D6', fontSize: '0.72rem', marginBottom: 3, fontWeight: 600 }}>{label}</p>
+        {payload.map((p, i) => (
+          <p key={i} style={{ color: p.color || '#E2E8F0', fontSize: '0.88rem', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>
+            {p.name ? `${p.name}: ` : ''}{p.value.toLocaleString('es-ES')}
+          </p>
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <div className="pres-mode" data-testid="presentation-mode">
+      <div className="pres-bg">
+        <div className="pres-orb po1" /><div className="pres-orb po2" /><div className="pres-orb po3" /><div className="pres-orb po4" />
+      </div>
+      <div className="pres-inner">
+        {/* Header */}
+        <header className="pres-header">
+          <div className="pres-header-left">
+            <img src="/dag-logo.png" alt="DAG" className="pres-logo" />
+            <div className="pres-sep" />
+            <div>
+              <h1 className="pres-title">Informe de Visitas</h1>
+              <p className="pres-sub">{new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+            </div>
+          </div>
+          <div className="pres-controls">
+            <button className="pres-ctrl-btn" onClick={prevSlide} data-testid="pres-prev"><ChevronLeft size={16} /></button>
+            <button className={`pres-ctrl-btn ${playing ? 'active' : ''}`} onClick={() => setPlaying(!playing)} data-testid="pres-play-pause">
+              {playing ? <Pause size={14} /> : <Play size={14} />}
+            </button>
+            <button className="pres-ctrl-btn" onClick={nextSlide} data-testid="pres-next"><ChevronRight size={16} /></button>
+            <span className="pres-slide-info mono">{slide + 1}/{totalSlides}</span>
+          </div>
+          <LiveClock />
+        </header>
+
+        {/* Slide Indicators */}
+        <div className="pres-indicators">
+          {slideNames.map((name, i) => (
+            <button key={i} className={`pres-dot ${slide === i ? 'active' : ''}`} onClick={() => setSlide(i)} data-testid={`pres-slide-${i}`}>
+              <span className="pres-dot-label">{name}</span>
+              <div className="pres-dot-bar"><div className="pres-dot-fill" style={{ width: slide === i && playing ? '100%' : slide === i ? '100%' : '0%', transition: slide === i && playing ? 'width 12s linear' : 'width 0.3s ease' }} /></div>
+            </button>
+          ))}
+        </div>
+
+        {/* Slide Content */}
+        <div className="pres-slide-container">
+          {/* Slide 0: Daily Summary */}
+          {slide === 0 && (
+            <div className="pres-slide pres-slide-summary" data-testid="pres-slide-summary">
+              <div className="pres-hero-kpi">
+                <div className="pres-hero-icon"><Users size={48} /></div>
+                <div className="pres-hero-num mono"><AnimNum value={today_total} /></div>
+                <div className="pres-hero-label">VISITAS HOY</div>
+                <TrendBadge current={today_total} previous={yesterday_total} />
+              </div>
+              <div className="pres-kpi-row">
+                <div className="pres-kpi-box">
+                  <Clock size={20} style={{color:'#94A3B8'}} />
+                  <span className="pres-kpi-num mono"><AnimNum value={yesterday_total} /></span>
+                  <span className="pres-kpi-txt">Ayer</span>
+                </div>
+                <div className="pres-kpi-box">
+                  <TrendingUp size={20} style={{color:'#E8A83E'}} />
+                  <span className="pres-kpi-num mono"><AnimNum value={month_total} /></span>
+                  <span className="pres-kpi-txt">Este mes</span>
+                </div>
+                <div className="pres-kpi-box">
+                  <Activity size={20} style={{color:'#8B5CF6'}} />
+                  <span className="pres-kpi-num mono"><AnimNum value={daily_avg} /></span>
+                  <span className="pres-kpi-txt">Media/dia</span>
+                </div>
+                <div className="pres-kpi-box">
+                  <Camera size={20} style={{color:'#22c55e'}} />
+                  <span className="pres-kpi-num mono">{cameras_online}/{cameras_total}</span>
+                  <span className="pres-kpi-txt">Camaras</span>
+                </div>
+              </div>
+              {hourlyData.length > 1 && (
+                <div className="pres-chart-area">
+                  <ResponsiveContainer width="100%" height={200}>
+                    <AreaChart data={hourlyData} margin={{top: 10, right: 20, left: -15, bottom: 0}}>
+                      <defs>
+                        <linearGradient id="presGrad1" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#5B8DB8" stopOpacity={0.4} />
+                          <stop offset="100%" stopColor="#5B8DB8" stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                      <XAxis dataKey="label" tick={{fontSize:11, fill:'#64748B'}} axisLine={false} tickLine={false} />
+                      <YAxis tick={{fontSize:11, fill:'#64748B'}} axisLine={false} tickLine={false} />
+                      <Tooltip content={<DarkPresentTooltip />} />
+                      <Area type="monotone" dataKey="entries" stroke="#5B8DB8" strokeWidth={3} fill="url(#presGrad1)" dot={false}
+                        activeDot={{r:5, fill:'#5B8DB8', stroke:'#0A0F1E', strokeWidth:2}} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Slide 1: Temporal Comparison */}
+          {slide === 1 && (
+            <div className="pres-slide pres-slide-comparison" data-testid="pres-slide-comparison">
+              <h2 className="pres-slide-title">Comparativa Temporal</h2>
+              <div className="pres-comp-grid">
+                <div className="pres-comp-block">
+                  <div className="pres-comp-header">SEMANAL</div>
+                  <div className="pres-comp-nums">
+                    <div className="pres-comp-main">
+                      <span className="pres-comp-big mono"><AnimNum value={comparison_week.current_total || 0} /></span>
+                      <span className="pres-comp-lbl">{comparison_week.label_current || 'Esta semana'}</span>
+                    </div>
+                    <div className="pres-comp-vs-block">
+                      <span className="pres-comp-vs-num mono">{(comparison_week.previous_total || 0).toLocaleString('es-ES')}</span>
+                      <span className="pres-comp-vs-lbl">{comparison_week.label_previous || 'Anterior'}</span>
+                    </div>
+                  </div>
+                  <div className="pres-comp-trend">
+                    <TrendBadge current={comparison_week.current_total || 0} previous={comparison_week.previous_total || 0} />
+                  </div>
+                </div>
+                <div className="pres-comp-block">
+                  <div className="pres-comp-header">MENSUAL</div>
+                  <div className="pres-comp-nums">
+                    <div className="pres-comp-main">
+                      <span className="pres-comp-big mono"><AnimNum value={comparison_month.current_total || 0} /></span>
+                      <span className="pres-comp-lbl">{comparison_month.label_current || 'Este mes'}</span>
+                    </div>
+                    <div className="pres-comp-vs-block">
+                      <span className="pres-comp-vs-num mono">{(comparison_month.previous_total || 0).toLocaleString('es-ES')}</span>
+                      <span className="pres-comp-vs-lbl">{comparison_month.label_previous || 'Anterior'}</span>
+                    </div>
+                  </div>
+                  <div className="pres-comp-trend">
+                    <TrendBadge current={comparison_month.current_total || 0} previous={comparison_month.previous_total || 0} />
+                  </div>
+                </div>
+              </div>
+              {(comparison_week.brand_comparison || []).length > 0 && (
+                <div className="pres-brand-table">
+                  <div className="pres-brand-table-header">
+                    <span>Marca</span><span>Actual</span><span>Anterior</span><span>Variacion</span>
+                  </div>
+                  {comparison_week.brand_comparison.slice(0, 6).map(bc => {
+                    const brand = ALL_BRANDS.find(b => b.id === bc.brand_id);
+                    return (
+                      <div key={bc.brand_id} className="pres-brand-table-row">
+                        <div className="pres-brand-cell"><BrandLogo brandId={bc.brand_id} size={22} /><span>{brand?.name || bc.brand_id}</span></div>
+                        <span className="mono">{bc.current.toLocaleString('es-ES')}</span>
+                        <span className="mono" style={{color:'#64748B'}}>{bc.previous.toLocaleString('es-ES')}</span>
+                        <TrendBadge current={bc.current} previous={bc.previous} />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Slide 2: Goals */}
+          {slide === 2 && (
+            <div className="pres-slide pres-slide-goals" data-testid="pres-slide-goals">
+              <h2 className="pres-slide-title">Objetivos del Mes — {month}</h2>
+              {goals_progress.length > 0 ? (
+                <div className="pres-goals-grid">
+                  {goals_progress.map(g => {
+                    const brand = ALL_BRANDS.find(b => b.id === g.brand_id);
+                    const color = g.pct >= 100 ? '#22c55e' : g.pct >= 60 ? '#E8A83E' : '#ef4444';
+                    return (
+                      <div key={g.brand_id} className="pres-goal-card" data-testid={`pres-goal-${g.brand_id}`}>
+                        <div className="pres-goal-top">
+                          <BrandLogo brandId={g.brand_id} size={32} />
+                          <span className="pres-goal-name">{brand?.name || g.brand_id}</span>
+                          <span className="pres-goal-pct mono" style={{color}}>{g.pct}%</span>
+                        </div>
+                        <div className="pres-goal-bar-outer">
+                          <div className="pres-goal-bar-fill" style={{width: `${Math.min(g.pct, 100)}%`, background: `linear-gradient(90deg, ${color}dd, ${color})`}} />
+                        </div>
+                        <div className="pres-goal-nums">
+                          <span><strong>{g.actual.toLocaleString('es-ES')}</strong> / {g.target.toLocaleString('es-ES')}</span>
+                          <span style={{color: g.projected_pct >= 100 ? '#22c55e' : '#E8A83E'}}>
+                            Proyeccion: {g.projected.toLocaleString('es-ES')}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="pres-empty">
+                  <Target size={48} style={{color:'#334155'}} />
+                  <p>Sin objetivos definidos para este mes</p>
+                  <p style={{fontSize:'0.82rem', color:'#475569'}}>Defina objetivos desde el panel Ejecutivo</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Slide 3: Trends */}
+          {slide === 3 && (
+            <div className="pres-slide pres-slide-trends" data-testid="pres-slide-trends">
+              <h2 className="pres-slide-title">Tendencias por Marca</h2>
+              {brandKeys.length > 0 && hourlyData.length > 1 ? (
+                <>
+                  <div className="pres-chart-large">
+                    <ResponsiveContainer width="100%" height={280}>
+                      <LineChart margin={{top: 10, right: 20, left: -15, bottom: 0}}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                        <XAxis dataKey="label" tick={{fontSize:11, fill:'#64748B'}} axisLine={false} tickLine={false}
+                          data={hourlyData} />
+                        <YAxis tick={{fontSize:11, fill:'#64748B'}} axisLine={false} tickLine={false} />
+                        <Tooltip content={<DarkPresentTooltip />} />
+                        {brandKeys.map(bid => {
+                          const bData = (brandHourly[bid] || []).filter(h => h.hour <= new Date().getHours());
+                          return (
+                            <Line key={bid} data={bData} dataKey="entries" name={ALL_BRANDS.find(b => b.id === bid)?.name || bid}
+                              stroke={BRAND_COLORS[bid] || '#5B8DB8'} strokeWidth={2.5} dot={false}
+                              activeDot={{r:4, strokeWidth:2}} />
+                          );
+                        })}
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="pres-legend">
+                    {brandKeys.map(bid => {
+                      const brand = ALL_BRANDS.find(b => b.id === bid);
+                      return (
+                        <span key={bid} className="pres-legend-item">
+                          <span className="pres-legend-dot" style={{background: BRAND_COLORS[bid] || '#5B8DB8'}} />
+                          {brand?.name || bid}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <div className="pres-empty">
+                  <TrendingUp size={48} style={{color:'#334155'}} />
+                  <p>Cargando datos de tendencias...</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <footer className="pres-footer">
+          <span>Domingo Alonso Group</span>
+          <div className="pres-footer-center">
+            <img src="/siempria-logo.png" alt="" className="pres-foot-logo" />
+            <span>Siempria</span>
+          </div>
+          <span className="pres-footer-conf">Confidencial — Solo uso interno</span>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
 /* ═══════════════ HEATMAP VIEW ═══════════════ */
 function HeatmapView({ data, api, onRefresh }) {
   const [cameras, setCameras] = useState([]);
@@ -1261,7 +1833,7 @@ function HeatmapView({ data, api, onRefresh }) {
   const [generating, setGenerating] = useState(false);
   const [viewingHeatmap, setViewingHeatmap] = useState(null);
   const [loading, setLoading] = useState(true);
-  const API_BASE = import.meta.env.VITE_API_URL || '/api';
+  const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api';
 
   // Fetch cameras and history on mount
   useEffect(() => {

@@ -90,18 +90,18 @@ from fastapi.responses import FileResponse
 
 @app.get("/api/deploy/backend")
 async def download_backend():
-    return FileResponse("/app/backend_v8.zip",
-                       filename="backend_v8.zip", media_type="application/zip")
+    return FileResponse("/app/backend_v9.zip",
+                       filename="backend_v9.zip", media_type="application/zip")
 
 @app.get("/api/deploy/frontend")
 async def download_frontend():
-    return FileResponse("/app/frontend_v8.zip",
-                       filename="frontend_v8.zip", media_type="application/zip")
+    return FileResponse("/app/frontend_v9.zip",
+                       filename="frontend_v9.zip", media_type="application/zip")
 
 @app.get("/api/deploy/script")
 async def download_script():
-    return FileResponse("/app/deploy_conteo_v8.sh",
-                       filename="deploy_conteo_v8.sh", media_type="text/plain")
+    return FileResponse("/app/deploy_conteo_v9.sh",
+                       filename="deploy_conteo_v9.sh", media_type="text/plain")
 
 @app.get("/api/deploy/backup-script")
 async def download_backup_script():
