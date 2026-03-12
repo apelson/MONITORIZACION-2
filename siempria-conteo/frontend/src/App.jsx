@@ -446,7 +446,7 @@ function Dashboard({ token, user, onLogout }) {
           api('get', '/analytics/comparison?period=week'),
           api('get', '/analytics/comparison?period=month')
         ]);
-        res = { ...execRes.data, comparison_week: compWeek.data, comparison_month: compMonth.data };
+        res = { data: { ...execRes.data, comparison_week: compWeek.data, comparison_month: compMonth.data } };
       }
       else if (view === 'heatmap') {
         const [camerasRes, historyRes] = await Promise.all([
