@@ -439,6 +439,14 @@ function Dashboard({ token, user, onLogout }) {
       else if (view === 'by-brand') res = await api('get', '/ranking/by-brand?period=day');
       else if (view === 'by-center') res = await api('get', '/ranking/by-center?period=day');
       else if (view === 'cameras') res = await api('get', '/cameras');
+      else if (view === 'executive') {
+        const [execRes, compWeek, compMonth] = await Promise.all([
+          api('get', '/analytics/executive'),
+          api('get', '/analytics/comparison?period=week'),
+          api('get', '/analytics/comparison?period=month')
+        ]);
+        res = { ...execRes.data, comparison_week: compWeek.data, comparison_month: compMonth.data };
+      }
       else if (view === 'heatmap') {
         const [camerasRes, historyRes] = await Promise.all([
           api('get', '/heatmap/cameras'),
@@ -457,7 +465,7 @@ function Dashboard({ token, user, onLogout }) {
 
   useEffect(() => { setLoading(true); setData(null); fetchData(); }, [view, fetchData]);
   useEffect(() => {
-    if (autoRefresh && !['cameras', 'users', 'heatmap'].includes(view)) {
+    if (autoRefresh && !['cameras', 'users', 'heatmap', 'executive'].includes(view)) {
       timerRef.current = setInterval(fetchData, 30000);
       return () => clearInterval(timerRef.current);
     }
@@ -477,6 +485,7 @@ function Dashboard({ token, user, onLogout }) {
     { id: 'noc', label: 'NOC Competitivo', icon: Trophy },
     { id: 'trends', label: 'Tendencias', icon: TrendingUp },
     { id: 'heatmap', label: 'Mapa de Calor', icon: Flame },
+    { id: 'executive', label: 'Ejecutivo', icon: Zap },
     { id: 'by-brand', label: 'Por Marca', icon: BarChart3 },
     { id: 'by-center', label: 'Por Centro', icon: MapPin },
     { id: 'cameras', label: 'Camaras', icon: Camera },
@@ -545,6 +554,7 @@ function Dashboard({ token, user, onLogout }) {
           )}
           {view === 'trends' && <TrendsView data={data} />}
           {view === 'heatmap' && <HeatmapView data={data} api={api} onRefresh={fetchData} />}
+          {view === 'executive' && <ExecutiveView data={data} api={api} />}
           {view === 'by-brand' && <BrandView data={data} />}
           {view === 'by-center' && <CenterView data={data} />}
           {view === 'cameras' && <CamerasView data={data} api={api} onRefresh={fetchData} isAdmin={user?.role === 'admin'} />}
@@ -1246,6 +1256,200 @@ function NOCView({ data, islandData: parentIslandData, embedded, onClose, onRefr
             <span>Tecnologia Mobotix</span>
           </div>
         </footer>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════ EXECUTIVE DASHBOARD ═══════════════ */
+function ExecutiveView({ data, api }) {
+  const [goals, setGoals] = useState([]);
+  const [newGoal, setNewGoal] = useState({ brand_id: '', target_visits: '', label: '' });
+  const [showGoalForm, setShowGoalForm] = useState(false);
+  const [exportRange, setExportRange] = useState({ from: '', to: '' });
+  const API_BASE = process.env.REACT_APP_BACKEND_URL ? `${process.env.REACT_APP_BACKEND_URL}/api` : '/api';
+
+  const {
+    today_total = 0, yesterday_total = 0, day_change_pct = 0,
+    month_total = 0, daily_avg = 0, cameras_total = 0, cameras_online = 0,
+    goals_progress = [], month = '',
+    comparison_week = {}, comparison_month = {}
+  } = data || {};
+
+  useEffect(() => {
+    api('get', `/goals?month=${month || new Date().toISOString().slice(0, 7)}`)
+      .then(res => setGoals(res.data?.goals || []))
+      .catch(() => {});
+  }, [api, month]);
+
+  const saveGoal = async () => {
+    if (!newGoal.brand_id || !newGoal.target_visits) return;
+    try {
+      await api('post', '/goals', {
+        brand_id: newGoal.brand_id,
+        month: month || new Date().toISOString().slice(0, 7),
+        target_visits: parseInt(newGoal.target_visits),
+        label: newGoal.label
+      });
+      setShowGoalForm(false);
+      setNewGoal({ brand_id: '', target_visits: '', label: '' });
+      const res = await api('get', `/goals?month=${month}`);
+      setGoals(res.data?.goals || []);
+      const execRes = await api('get', '/analytics/executive');
+      Object.assign(data, execRes.data);
+    } catch (err) { alert('Error: ' + (err.response?.data?.detail || err.message)); }
+  };
+
+  const getToken = () => {
+    try { const a = JSON.parse(localStorage.getItem('conteo_auth')); return a?.token || ''; } catch { return ''; }
+  };
+
+  const exportCSV = () => {
+    if (!exportRange.from || !exportRange.to) return alert('Selecciona fechas');
+    window.open(`${API_BASE}/analytics/export?from_date=${exportRange.from}&to_date=${exportRange.to}&token=${getToken()}`);
+  };
+
+  return (
+    <div className="exec-view" data-testid="executive-view">
+      {/* KPI Cards Row */}
+      <div className="exec-kpis">
+        <div className="exec-kpi-card exec-kpi-primary" data-testid="exec-kpi-today">
+          <div className="exec-kpi-icon"><Users size={22} /></div>
+          <div className="exec-kpi-data">
+            <span className="exec-kpi-val mono"><AnimNum value={today_total} /></span>
+            <span className="exec-kpi-label">Visitas hoy</span>
+          </div>
+          <TrendBadge current={today_total} previous={yesterday_total} />
+        </div>
+        <div className="exec-kpi-card" data-testid="exec-kpi-yesterday">
+          <div className="exec-kpi-icon" style={{color:'#94A3B8'}}><Clock size={22} /></div>
+          <div className="exec-kpi-data">
+            <span className="exec-kpi-val mono"><AnimNum value={yesterday_total} /></span>
+            <span className="exec-kpi-label">Ayer</span>
+          </div>
+        </div>
+        <div className="exec-kpi-card" data-testid="exec-kpi-month">
+          <div className="exec-kpi-icon" style={{color:'#E8A83E'}}><TrendingUp size={22} /></div>
+          <div className="exec-kpi-data">
+            <span className="exec-kpi-val mono"><AnimNum value={month_total} /></span>
+            <span className="exec-kpi-label">Este mes</span>
+          </div>
+          <span className="exec-kpi-sub">{daily_avg}/dia</span>
+        </div>
+        <div className="exec-kpi-card" data-testid="exec-kpi-cameras">
+          <div className="exec-kpi-icon" style={{color:'#22c55e'}}><Camera size={22} /></div>
+          <div className="exec-kpi-data">
+            <span className="exec-kpi-val mono">{cameras_online}/{cameras_total}</span>
+            <span className="exec-kpi-label">Camaras online</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="exec-grid">
+        {/* Comparison Cards */}
+        <div className="exec-panel" data-testid="exec-comparison">
+          <div className="exec-panel-title"><BarChart3 size={16} /> COMPARATIVA</div>
+          <div className="exec-comp-cards">
+            <div className="exec-comp-card">
+              <span className="exec-comp-period">{comparison_week.label_current || 'Esta semana'}</span>
+              <span className="exec-comp-val mono"><AnimNum value={comparison_week.current_total || 0} /></span>
+              <div className="exec-comp-vs">
+                <span>vs {comparison_week.label_previous || 'anterior'}: {(comparison_week.previous_total || 0).toLocaleString('es-ES')}</span>
+                <TrendBadge current={comparison_week.current_total || 0} previous={comparison_week.previous_total || 0} />
+              </div>
+            </div>
+            <div className="exec-comp-card">
+              <span className="exec-comp-period">{comparison_month.label_current || 'Este mes'}</span>
+              <span className="exec-comp-val mono"><AnimNum value={comparison_month.current_total || 0} /></span>
+              <div className="exec-comp-vs">
+                <span>vs {comparison_month.label_previous || 'anterior'}: {(comparison_month.previous_total || 0).toLocaleString('es-ES')}</span>
+                <TrendBadge current={comparison_month.current_total || 0} previous={comparison_month.previous_total || 0} />
+              </div>
+            </div>
+          </div>
+          {(comparison_week.brand_comparison || []).length > 0 && (
+            <div className="exec-brand-comp">
+              <span className="exec-sub-title">Por marca (semana)</span>
+              {comparison_week.brand_comparison.map(bc => {
+                const brand = ALL_BRANDS.find(b => b.id === bc.brand_id);
+                return (
+                  <div key={bc.brand_id} className="exec-brand-row">
+                    <BrandLogo brandId={bc.brand_id} size={20} />
+                    <span className="exec-brand-name">{brand?.name || bc.brand_id}</span>
+                    <span className="mono" style={{fontSize:'0.82rem'}}>{bc.current.toLocaleString('es-ES')}</span>
+                    <TrendBadge current={bc.current} previous={bc.previous} />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Goals Progress */}
+        <div className="exec-panel" data-testid="exec-goals">
+          <div className="exec-panel-title">
+            <Trophy size={16} style={{color:'#E8A83E'}} /> OBJETIVOS {month}
+            <button className="exec-add-btn" onClick={() => setShowGoalForm(!showGoalForm)} data-testid="exec-add-goal">
+              <Plus size={14} />
+            </button>
+          </div>
+          {showGoalForm && (
+            <div className="exec-goal-form">
+              <select value={newGoal.brand_id} onChange={e => setNewGoal({...newGoal, brand_id: e.target.value})} className="heatmap-select">
+                <option value="">Marca...</option>
+                {ALL_BRANDS.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+              <input type="number" placeholder="Objetivo visitas" value={newGoal.target_visits}
+                onChange={e => setNewGoal({...newGoal, target_visits: e.target.value})} className="heatmap-date" />
+              <button onClick={saveGoal} className="heatmap-gen-btn" style={{padding:'0.4rem 0.8rem'}}><Save size={14} /> Guardar</button>
+            </div>
+          )}
+          {goals_progress.length > 0 ? goals_progress.map(g => {
+            const brand = ALL_BRANDS.find(b => b.id === g.brand_id);
+            const color = g.pct >= 100 ? '#22c55e' : g.pct >= 60 ? '#E8A83E' : '#ef4444';
+            return (
+              <div key={g.brand_id} className="exec-goal-row" data-testid={`goal-${g.brand_id}`}>
+                <div className="exec-goal-header">
+                  <BrandLogo brandId={g.brand_id} size={24} />
+                  <span className="exec-goal-brand">{brand?.name || g.brand_id}</span>
+                  <span className="exec-goal-pct mono" style={{color}}>{g.pct}%</span>
+                </div>
+                <div className="exec-goal-bar-bg">
+                  <div className="exec-goal-bar" style={{width: `${Math.min(g.pct, 100)}%`, background: color}} />
+                  {g.projected_pct > 0 && g.projected_pct < 200 && (
+                    <div className="exec-goal-projected" style={{left: `${Math.min(g.projected_pct, 100)}%`}} title={`Proyeccion: ${g.projected_pct}%`} />
+                  )}
+                </div>
+                <div className="exec-goal-details">
+                  <span>{g.actual.toLocaleString('es-ES')} / {g.target.toLocaleString('es-ES')}</span>
+                  <span style={{color: g.projected_pct >= 100 ? '#22c55e' : '#E8A83E'}}>
+                    Proyeccion: {g.projected.toLocaleString('es-ES')} ({g.projected_pct}%)
+                  </span>
+                </div>
+              </div>
+            );
+          }) : <p className="hm-hist-empty">Sin objetivos definidos. Pulsa + para crear uno.</p>}
+        </div>
+
+        {/* Export Panel */}
+        <div className="exec-panel exec-export-panel" data-testid="exec-export">
+          <div className="exec-panel-title"><Download size={16} /> EXPORTAR DATOS</div>
+          <div className="exec-export-form">
+            <div className="heatmap-ctrl-group">
+              <label className="heatmap-label">Desde</label>
+              <input type="date" className="heatmap-date" value={exportRange.from}
+                onChange={e => setExportRange({...exportRange, from: e.target.value})} data-testid="export-from" />
+            </div>
+            <div className="heatmap-ctrl-group">
+              <label className="heatmap-label">Hasta</label>
+              <input type="date" className="heatmap-date" value={exportRange.to}
+                onChange={e => setExportRange({...exportRange, to: e.target.value})} data-testid="export-to" />
+            </div>
+            <button className="heatmap-gen-btn" onClick={exportCSV} data-testid="export-btn">
+              <Download size={14} /> Descargar CSV
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

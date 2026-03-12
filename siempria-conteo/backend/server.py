@@ -18,6 +18,8 @@ from routes.ranking import router as ranking_router
 from routes.cameras import router as cameras_router
 from routes.users import router as users_router
 from routes.heatmap import router as heatmap_router
+from routes.goals import router as goals_router
+from routes.analytics import router as analytics_router
 
 collector_task = None
 
@@ -70,6 +72,8 @@ app.include_router(ranking_router, prefix="/api")
 app.include_router(cameras_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
 app.include_router(heatmap_router, prefix="/api")
+app.include_router(goals_router, prefix="/api")
+app.include_router(analytics_router, prefix="/api")
 
 
 @app.get("/api/health")
