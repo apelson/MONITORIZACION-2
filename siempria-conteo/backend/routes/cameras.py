@@ -45,6 +45,7 @@ async def add_camera(
         "username": username,
         "password": password,
         "enabled": enabled,
+        "heatmap_profile": "default",
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "updated_by": current_user.get("username")
     }
@@ -78,6 +79,8 @@ async def update_camera(
         raise HTTPException(status_code=404, detail="Camara no encontrada")
 
     update = {"updated_at": datetime.now(timezone.utc).isoformat(), "updated_by": current_user.get("username")}
+    if not existing.get("heatmap_profile"):
+        update["heatmap_profile"] = "default"
     for field, val in [("camera_name", camera_name), ("brand_id", brand_id), ("island", island),
                        ("ip", ip), ("port", port), ("username", username), ("password", password),
                        ("enabled", enabled), ("heatmap_profile", heatmap_profile)]:
