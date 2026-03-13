@@ -7,7 +7,7 @@ import requests
 import os
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://conteo-bi.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://siempria-debug-rbac.preview.emergentagent.com').rstrip('/')
 
 class TestAuthentication:
     """Authentication endpoint tests"""

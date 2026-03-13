@@ -11,7 +11,7 @@ import os
 import uuid
 from datetime import datetime
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://conteo-bi.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://siempria-debug-rbac.preview.emergentagent.com')
 
 class TestAuth:
     """Authentication fixture setup"""
