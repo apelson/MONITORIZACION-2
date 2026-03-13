@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://conteo-analytics.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://conteo-bi.preview.emergentagent.com')
 
 class TestNOCCompetitivo:
     """Tests for NOC Competitivo ranking and realtime endpoints"""

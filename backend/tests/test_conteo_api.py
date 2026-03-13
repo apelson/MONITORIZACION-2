@@ -11,7 +11,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://conteo-analytics.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://conteo-bi.preview.emergentagent.com').rstrip('/')
 TEST_PREFIX = f"TEST_{uuid.uuid4().hex[:6]}_"
 
 

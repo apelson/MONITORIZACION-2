@@ -13,7 +13,7 @@ cd /opt/siempria-monitor
 # ============================================
 echo "📥 Descargando archivos..."
 
-BASE_URL="https://conteo-analytics.preview.emergentagent.com/api/download-file"
+BASE_URL="https://conteo-bi.preview.emergentagent.com/api/download-file"
 
 # === FRONTEND ===
 
