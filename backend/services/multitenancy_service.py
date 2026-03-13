@@ -20,7 +20,7 @@ except ImportError:
 
 async def _get_role_access(user: dict) -> dict:
     """Get the role's access config (group_access, organization_access) from roles collection."""
-    if not roles_collection:
+    if roles_collection is None:
         return {}
     role_id = user.get("role_id") or user.get("role", "")
     if not role_id:
