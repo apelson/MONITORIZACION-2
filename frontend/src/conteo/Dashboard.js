@@ -168,7 +168,7 @@ export function Dashboard({ token, user, onLogout }) {
           {view === 'trends' && <TrendsView data={data} />}
           {view === 'heatmap' && <HeatmapView data={data} api={api} onRefresh={fetchData} />}
           {view === 'executive' && <ExecutiveView data={data} api={api} />}
-          {view === 'presentation' && <PresentationMode data={data} api={api} />}
+          {view === 'presentation' && <PresentationMode data={data} api={api} onExit={() => setView('executive')} />}
           {view === 'by-brand' && <BrandView data={data} />}
           {view === 'by-center' && <CenterView data={data} />}
           {view === 'cameras' && <CamerasView data={data} api={api} onRefresh={fetchData} isAdmin={user?.role === 'admin'} />}

@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Users, Clock, Camera, TrendingUp, Activity, Target,
-  ChevronRight, ChevronLeft, Play, Pause
+  ChevronRight, ChevronLeft, Play, Pause, X
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { AnimNum, BrandLogo, TrendBadge, LiveClock } from '../shared';
 import { ALL_BRANDS, BRAND_COLORS } from '../constants';
 
-export function PresentationMode({ data, api }) {
+export function PresentationMode({ data, api, onExit }) {
   const [slide, setSlide] = useState(0);
   const [playing, setPlaying] = useState(true);
   const [trendsData, setTrendsData] = useState(null);
@@ -35,6 +35,12 @@ export function PresentationMode({ data, api }) {
 
   const nextSlide = () => setSlide(prev => (prev + 1) % totalSlides);
   const prevSlide = () => setSlide(prev => (prev - 1 + totalSlides) % totalSlides);
+
+  useEffect(() => {
+    const handleKey = (e) => { if (e.key === 'Escape' && onExit) onExit(); };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onExit]);
 
   const slideNames = ['Resumen del Dia', 'Comparativa Temporal', 'Objetivos del Mes', 'Tendencias'];
 
@@ -80,6 +86,11 @@ export function PresentationMode({ data, api }) {
             <span className="pres-slide-info mono">{slide + 1}/{totalSlides}</span>
           </div>
           <LiveClock />
+          {onExit && (
+            <button className="pres-ctrl-btn" onClick={onExit} data-testid="pres-exit" title="Salir (ESC)">
+              <X size={16} />
+            </button>
+          )}
         </header>
 
         <div className="pres-indicators">
