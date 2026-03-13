@@ -78,7 +78,7 @@ async def get_single_dahua_device(
         raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
     
     # Multi-tenancy check: verify user has access to this device's organization
-    if should_filter_by_tenant(current_user):
+    if await should_filter_by_tenant(current_user):
         user_org_ids = await get_user_organization_ids(current_user)
         device_org_id = device.get("organization_id")
         if device_org_id and device_org_id not in user_org_ids:
@@ -98,7 +98,7 @@ async def create_new_dahua_device(
 ):
     """Create a new Dahua P2P device"""
     # Multi-tenancy check: tenant_admin can only create in their orgs
-    if should_filter_by_tenant(current_user) and data.organization_id:
+    if await should_filter_by_tenant(current_user) and data.organization_id:
         user_org_ids = await get_user_organization_ids(current_user)
         if data.organization_id not in user_org_ids:
             raise HTTPException(status_code=403, detail="No puedes crear dispositivos en esta organización")
@@ -123,7 +123,7 @@ async def update_existing_dahua_device(
         raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
     
     # Multi-tenancy check
-    if should_filter_by_tenant(current_user):
+    if await should_filter_by_tenant(current_user):
         user_org_ids = await get_user_organization_ids(current_user)
         if device.get("organization_id") and device["organization_id"] not in user_org_ids:
             raise HTTPException(status_code=403, detail="No tienes acceso a este dispositivo")

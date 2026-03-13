@@ -54,7 +54,7 @@ async def create_organization(data: OrganizationCreate, current_user: dict = Dep
 @router.put("/organizations/{org_id}")
 async def update_organization(org_id: str, data: OrganizationUpdate, current_user: dict = Depends(require_role(["admin", "manager", "tenant_admin"]))):
     # Multi-tenancy: tenant_admin can only update their own organizations
-    if should_filter_by_tenant(current_user):
+    if await should_filter_by_tenant(current_user):
         org_filter = await build_organization_filter(current_user)
         org = await organizations_collection.find_one({"id": org_id, **org_filter})
         if not org:
@@ -161,7 +161,7 @@ async def create_group(data: GroupCreate, current_user: dict = Depends(require_r
         raise HTTPException(status_code=400, detail="La organización no existe")
     
     # Multi-tenancy: tenant_admin can only create groups in their organizations
-    if should_filter_by_tenant(current_user):
+    if await should_filter_by_tenant(current_user):
         org_filter = await build_organization_filter(current_user)
         org = await organizations_collection.find_one({"id": data.organization_id, **org_filter})
         if not org:
@@ -183,7 +183,7 @@ async def create_group(data: GroupCreate, current_user: dict = Depends(require_r
 @router.put("/groups/{group_id}")
 async def update_group(group_id: str, data: GroupUpdate, current_user: dict = Depends(require_role(["admin", "manager", "tenant_admin"]))):
     # Multi-tenancy: verify access to this group
-    if should_filter_by_tenant(current_user):
+    if await should_filter_by_tenant(current_user):
         group_filter = await build_group_filter(current_user)
         group = await groups_collection.find_one({"id": group_id, **group_filter})
         if not group:
@@ -202,7 +202,7 @@ async def update_group(group_id: str, data: GroupUpdate, current_user: dict = De
 @router.delete("/groups/{group_id}")
 async def delete_group(group_id: str, current_user: dict = Depends(require_role(["admin", "tenant_admin"]))):
     # Multi-tenancy: verify access to delete this group
-    if should_filter_by_tenant(current_user):
+    if await should_filter_by_tenant(current_user):
         group_filter = await build_group_filter(current_user)
         group = await groups_collection.find_one({"id": group_id, **group_filter})
         if not group:

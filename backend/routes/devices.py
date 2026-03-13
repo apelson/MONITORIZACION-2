@@ -71,7 +71,7 @@ def get_client_ip(request: Request) -> str:
 async def get_device_stats(current_user: dict = Depends(get_current_user)):
     """Fast endpoint for header stats - uses cache for admin, filtered for others"""
     # For non-admin users, we need to filter
-    if should_filter_by_tenant(current_user):
+    if await should_filter_by_tenant(current_user):
         device_filter = await build_device_filter(current_user)
         
         # If user has no access to any groups
@@ -221,7 +221,7 @@ async def get_devices(
         group_ids = [g["id"] for g in await groups_collection.find({"organization_id": organization_id}, {"id": 1}).to_list(length=None)]
         if group_ids:
             # Intersect with user's accessible groups if filtered
-            if should_filter_by_tenant(current_user):
+            if await should_filter_by_tenant(current_user):
                 user_group_ids = await get_user_group_ids(current_user)
                 group_ids = [gid for gid in group_ids if gid in user_group_ids]
             if group_ids:
@@ -299,7 +299,7 @@ async def get_cameras(current_user: dict = Depends(get_current_user)):
 @router.post("/devices")
 async def create_device(data: DeviceCreate, request: Request, current_user: dict = Depends(require_role(["admin", "manager", "tenant_admin"]))):
     # Multi-tenancy: verify tenant_admin has access to the group
-    if should_filter_by_tenant(current_user) and data.group_id:
+    if await should_filter_by_tenant(current_user) and data.group_id:
         user_group_ids = await get_user_group_ids(current_user)
         if user_group_ids and data.group_id not in user_group_ids:
             raise HTTPException(status_code=403, detail="No tienes acceso a este grupo")
@@ -370,7 +370,7 @@ async def update_device(device_id: str, data: DeviceUpdate, request: Request, cu
         raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
     
     # Multi-tenancy: verify user has access to this device
-    if should_filter_by_tenant(current_user):
+    if await should_filter_by_tenant(current_user):
         user_group_ids = await get_user_group_ids(current_user)
         if user_group_ids and device.get("group_id") not in user_group_ids:
             raise HTTPException(status_code=403, detail="No tienes acceso a este dispositivo")
@@ -418,7 +418,7 @@ async def delete_device(device_id: str, request: Request, current_user: dict = D
         raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
     
     # Multi-tenancy: verify user has access to delete this device
-    if should_filter_by_tenant(current_user):
+    if await should_filter_by_tenant(current_user):
         user_group_ids = await get_user_group_ids(current_user)
         if user_group_ids and device.get("group_id") not in user_group_ids:
             raise HTTPException(status_code=403, detail="No tienes acceso a eliminar este dispositivo")

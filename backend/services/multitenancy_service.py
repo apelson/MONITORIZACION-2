@@ -17,11 +17,30 @@ try:
 except ImportError:
     pass
 
+# Try to import roles_collection for role-based access
+roles_collection = None
+try:
+    from config import roles_collection
+except ImportError:
+    pass
+
+
+async def _get_role_access(user: dict) -> dict:
+    """Get the role's access config (group_access, organization_access) from roles collection."""
+    if not roles_collection:
+        return {}
+    role_id = user.get("role_id") or user.get("role", "")
+    if not role_id:
+        return {}
+    role = await roles_collection.find_one({"id": role_id}, {"_id": 0, "group_access": 1, "organization_access": 1})
+    return role or {}
+
 
 async def get_user_organization_ids(user: dict) -> List[str]:
     """
     Get the list of organization IDs that a user has access to.
     - admin: all organizations (returns empty list to indicate "all")
+    - roles with organization_access "all": same as admin
     - tenant_admin: only their assigned organization_ids
     - others: based on their organization_ids or group memberships
     """
@@ -29,6 +48,11 @@ async def get_user_organization_ids(user: dict) -> List[str]:
     
     # Admin sees everything - return empty list as a signal to not filter
     if role == "admin":
+        return []
+    
+    # Check if user's role has organization_access "all"
+    role_access = await _get_role_access(user)
+    if role_access.get("organization_access") == "all":
         return []
     
     # tenant_admin sees only their assigned organizations
@@ -62,6 +86,11 @@ async def get_user_group_ids(user: dict) -> List[str]:
     if role == "admin":
         return []
     
+    # Check if user's role has group_access "all"
+    role_access = await _get_role_access(user)
+    if role_access.get("group_access") == "all":
+        return []
+    
     # tenant_admin: get all groups from their organizations
     if role == "tenant_admin":
         org_ids = user.get("organization_ids", [])
@@ -77,12 +106,20 @@ async def get_user_group_ids(user: dict) -> List[str]:
     return user.get("group_ids", [])
 
 
-def should_filter_by_tenant(user: dict) -> bool:
+async def should_filter_by_tenant(user: dict) -> bool:
     """
     Determine if data should be filtered for this user.
-    Returns False for admin (sees all), True for everyone else.
+    Returns False for admin or roles with 'all' access, True for others.
     """
-    return user.get("role") != "admin"
+    if user.get("role") == "admin":
+        return False
+    
+    # Check if the user's role has group_access "all"
+    role_access = await _get_role_access(user)
+    if role_access.get("group_access") == "all" and role_access.get("organization_access") == "all":
+        return False
+    
+    return True
 
 
 async def build_organization_filter(user: dict) -> Dict[str, Any]:
@@ -90,7 +127,7 @@ async def build_organization_filter(user: dict) -> Dict[str, Any]:
     Build a MongoDB filter for organizations based on user access.
     Returns {} for admin (no filter), or {"id": {"$in": [...]}} for others.
     """
-    if not should_filter_by_tenant(user):
+    if not await should_filter_by_tenant(user):
         return {}
     
     org_ids = await get_user_organization_ids(user)
@@ -105,7 +142,7 @@ async def build_group_filter(user: dict) -> Dict[str, Any]:
     """
     Build a MongoDB filter for groups based on user access.
     """
-    if not should_filter_by_tenant(user):
+    if not await should_filter_by_tenant(user):
         return {}
     
     org_ids = await get_user_organization_ids(user)
@@ -122,7 +159,7 @@ async def build_device_filter(user: dict, extra_filter: dict = None) -> Dict[str
     """
     base_filter = extra_filter.copy() if extra_filter else {}
     
-    if not should_filter_by_tenant(user):
+    if not await should_filter_by_tenant(user):
         return base_filter
     
     # Get group IDs the user can access
@@ -143,7 +180,7 @@ async def build_alert_filter(user: dict, extra_filter: dict = None) -> Dict[str,
     """
     base_filter = extra_filter.copy() if extra_filter else {}
     
-    if not should_filter_by_tenant(user):
+    if not await should_filter_by_tenant(user):
         return base_filter
     
     # Get device IDs the user can access
@@ -175,7 +212,7 @@ async def build_dahua_device_filter(user: dict, extra_filter: dict = None) -> Di
     """
     base_filter = extra_filter.copy() if extra_filter else {}
     
-    if not should_filter_by_tenant(user):
+    if not await should_filter_by_tenant(user):
         return base_filter
     
     org_ids = await get_user_organization_ids(user)
@@ -192,7 +229,7 @@ async def filter_response_list(items: List[dict], user: dict, id_field: str = "o
     Filter a list of items based on user access.
     Useful for filtering response data that's already been fetched.
     """
-    if not should_filter_by_tenant(user):
+    if not await should_filter_by_tenant(user):
         return items
     
     org_ids = await get_user_organization_ids(user)
@@ -206,7 +243,7 @@ async def get_tenant_stats_for_user(user: dict) -> Dict[str, int]:
     """
     Get device/organization/group counts for a user's tenant.
     """
-    if not should_filter_by_tenant(user):
+    if not await should_filter_by_tenant(user):
         # Admin - get all stats
         total_devices = await devices_collection.count_documents({})
         online_devices = await devices_collection.count_documents({"status": "online"})
