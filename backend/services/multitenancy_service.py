@@ -7,20 +7,13 @@ This is for the MAIN platform (not SaaS), where:
 """
 from typing import Optional, List, Dict, Any
 from config import (
-    organizations_collection, groups_collection, devices_collection
+    organizations_collection, groups_collection, devices_collection, roles_collection
 )
 
 # Try to import dahua_devices_collection safely
 dahua_devices_collection = None
 try:
     from services.dahua_service import dahua_devices_collection
-except ImportError:
-    pass
-
-# Try to import roles_collection for role-based access
-roles_collection = None
-try:
-    from config import roles_collection
 except ImportError:
     pass
 
@@ -114,9 +107,9 @@ async def should_filter_by_tenant(user: dict) -> bool:
     if user.get("role") == "admin":
         return False
     
-    # Check if the user's role has group_access "all"
+    # Check if the user's role has group_access or organization_access "all"
     role_access = await _get_role_access(user)
-    if role_access.get("group_access") == "all" and role_access.get("organization_access") == "all":
+    if role_access.get("group_access") == "all" or role_access.get("organization_access") == "all":
         return False
     
     return True
