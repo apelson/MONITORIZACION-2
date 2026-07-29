@@ -26,6 +26,7 @@ brands_collection = db["brands"]
 centers_collection = db["centers"]
 camera_readings_collection = db["camera_readings"]
 hourly_snapshots_collection = db["hourly_snapshots"]
+access_logs_collection = db["access_logs"]
 
 # Main platform DB (for migration)
 MAIN_PLATFORM_MONGO_URL = os.environ.get("MAIN_PLATFORM_MONGO_URL", MONGO_URL)

@@ -6,7 +6,8 @@ import {
   MapPin, Plus, Trash2, Edit3, Save, X, Trophy, Crown, Flame, Award,
   Maximize2, Check, Download, ToggleLeft, ToggleRight, UserPlus, UserCog, Key, ChevronDown,
   TrendingUp, TrendingDown, Menu, ArrowUpRight, ArrowDownRight, Minus, Zap, Database,
-  Presentation, Play, Pause, Filter, FileSpreadsheet, Target, ChevronRight, ChevronLeft
+  Presentation, Play, Pause, Filter, FileSpreadsheet, Target, ChevronRight, ChevronLeft,
+  ClipboardList
 } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import './App.css';
@@ -415,6 +416,7 @@ function Dashboard({ token, user, onLogout }) {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [nocFs, setNocFs] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
+  const [showChangePw, setShowChangePw] = useState(false);
   const timerRef = useRef(null);
 
   const api = useCallback((method, url, body) => {
@@ -456,6 +458,7 @@ function Dashboard({ token, user, onLogout }) {
         res = { cameras: camerasRes.cameras || [], heatmaps: historyRes.heatmaps || [], total: historyRes.total || 0 };
       }
       else if (view === 'users') res = await api('get', '/users');
+      else if (view === 'access-logs') { setLoading(false); return; }
       if (res) setData(res.data);
     } catch (err) {
       if (err.response?.status === 401) onLogout();
@@ -492,6 +495,7 @@ function Dashboard({ token, user, onLogout }) {
     { id: 'by-center', label: 'Por Centro', icon: MapPin },
     { id: 'cameras', label: 'Camaras', icon: Camera },
     ...(user?.role === 'admin' ? [{ id: 'users', label: 'Usuarios', icon: UserCog }] : []),
+    ...(user?.role === 'admin' ? [{ id: 'access-logs', label: 'Logs de Acceso', icon: ClipboardList }] : []),
   ];
 
   return (
@@ -523,6 +527,9 @@ function Dashboard({ token, user, onLogout }) {
             </button>
           )}
           <div className="header-sep" />
+          <button className="header-icon-btn" onClick={() => setShowChangePw(true)} data-testid="change-password-btn" title="Cambiar contrasena">
+            <Key size={14} />
+          </button>
           <div className="header-user">
             <div className="header-avatar">{(user?.full_name || user?.username || 'U')[0].toUpperCase()}</div>
             <span className="header-username">{user?.full_name || user?.username}</span>
@@ -562,8 +569,11 @@ function Dashboard({ token, user, onLogout }) {
           {view === 'by-center' && <CenterView data={data} />}
           {view === 'cameras' && <CamerasView data={data} api={api} onRefresh={fetchData} isAdmin={user?.role === 'admin'} />}
           {view === 'users' && <UsersView data={data} api={api} onRefresh={fetchData} currentUser={user} />}
+          {view === 'access-logs' && <AccessLogsView api={api} />}
         </>}
       </main>
+
+      {showChangePw && <ChangePasswordModal onClose={() => setShowChangePw(false)} api={api} />}
 
       <footer className="app-footer" data-testid="app-footer">
         <span className="footer-dag">Domingo Alonso Group</span>
@@ -2296,6 +2306,162 @@ function FormSelect({ label, value, onChange, options, testId }) {
         <option value="">Seleccionar...</option>
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
+    </div>
+  );
+}
+
+/* ═══════════════ CHANGE PASSWORD MODAL ═══════════════ */
+function ChangePasswordModal({ onClose, api }) {
+  const [currentPw, setCurrentPw] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    setError(''); setSuccess('');
+    if (!currentPw || !newPw) { setError('Completa todos los campos'); return; }
+    if (newPw.length < 4) { setError('La nueva contrasena debe tener al menos 4 caracteres'); return; }
+    if (newPw !== confirmPw) { setError('Las contrasenas no coinciden'); return; }
+    setLoading(true);
+    try {
+      const res = await api('post', '/auth/change-password', { current_password: currentPw, new_password: newPw });
+      setSuccess(res.data.message || 'Contrasena actualizada');
+      setTimeout(() => onClose(), 1500);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Error al cambiar contrasena');
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <Modal title="Cambiar Contrasena" onClose={onClose}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div className="form-field">
+          <label>Contrasena actual</label>
+          <div className="login-input-wrap">
+            <Lock size={16} />
+            <input data-testid="change-pw-current" type={showCurrent ? 'text' : 'password'} value={currentPw} onChange={e => { setCurrentPw(e.target.value); setError(''); }} placeholder="Contrasena actual" />
+            <button type="button" className="login-pw-toggle" onClick={() => setShowCurrent(!showCurrent)}>{showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}</button>
+          </div>
+        </div>
+        <div className="form-field">
+          <label>Nueva contrasena</label>
+          <div className="login-input-wrap">
+            <Key size={16} />
+            <input data-testid="change-pw-new" type={showNew ? 'text' : 'password'} value={newPw} onChange={e => { setNewPw(e.target.value); setError(''); }} placeholder="Nueva contrasena" />
+            <button type="button" className="login-pw-toggle" onClick={() => setShowNew(!showNew)}>{showNew ? <EyeOff size={15} /> : <Eye size={15} />}</button>
+          </div>
+        </div>
+        <div className="form-field">
+          <label>Confirmar nueva contrasena</label>
+          <div className="login-input-wrap">
+            <Key size={16} />
+            <input data-testid="change-pw-confirm" type={showNew ? 'text' : 'password'} value={confirmPw} onChange={e => { setConfirmPw(e.target.value); setError(''); }} placeholder="Repetir contrasena" />
+          </div>
+        </div>
+        {error && <div className="login-error"><AlertCircle size={14} /><span>{error}</span></div>}
+        {success && <div style={{ color: '#22c55e', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Check size={14} /><span>{success}</span></div>}
+        <div className="modal-btns">
+          <button className="btn-ghost" onClick={onClose}>Cancelar</button>
+          <button className="btn-primary" onClick={handleSubmit} disabled={loading} data-testid="change-pw-submit">
+            {loading ? <RefreshCw size={16} className="spin" /> : <><Key size={16} /> Cambiar</>}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+/* ═══════════════ ACCESS LOGS VIEW ═══════════════ */
+function AccessLogsView({ api }) {
+  const [logs, setLogs] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [filterUser, setFilterUser] = useState('');
+  const pageSize = 25;
+
+  const fetchLogs = useCallback(async () => {
+    setLoading(true);
+    try {
+      let url = `/users/access-logs?limit=${pageSize}&skip=${page * pageSize}`;
+      if (filterUser) url += `&username=${filterUser}`;
+      const res = await api('get', url);
+      setLogs(res.data.logs || []);
+      setTotal(res.data.total || 0);
+    } catch (err) {
+      console.error('Error fetching logs:', err);
+    } finally { setLoading(false); }
+  }, [api, page, filterUser]);
+
+  useEffect(() => { fetchLogs(); }, [fetchLogs]);
+
+  const totalPages = Math.ceil(total / pageSize);
+
+  const formatDate = (iso) => {
+    if (!iso) return '-';
+    const d = new Date(iso);
+    return d.toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  };
+
+  return (
+    <div className="view-wrap" data-testid="access-logs-view">
+      <div className="card">
+        <div className="card-header-row">
+          <h2 className="card-title"><ClipboardList size={18} /> Logs de Acceso</h2>
+          <span className="count-badge">{total}</span>
+        </div>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap' }}>
+          <div className="login-input-wrap" style={{ maxWidth: 240, flex: 1 }}>
+            <Filter size={14} />
+            <input data-testid="logs-filter-user" type="text" value={filterUser} onChange={e => { setFilterUser(e.target.value); setPage(0); }} placeholder="Filtrar por usuario..." style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%' }} />
+            {filterUser && <button style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2 }} onClick={() => { setFilterUser(''); setPage(0); }}><X size={14} /></button>}
+          </div>
+          <button className="btn-outline" onClick={fetchLogs} data-testid="logs-refresh-btn" style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}>
+            <RefreshCw size={14} className={loading ? 'spin' : ''} /> Actualizar
+          </button>
+        </div>
+        {loading && logs.length === 0 ? <LoadingState /> : logs.length === 0 ? <EmptyState text="No hay registros de acceso" /> : (
+          <div className="table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Nombre</th>
+                  <th>Rol</th>
+                  <th>IP</th>
+                  <th>Fecha / Hora</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((log, i) => (
+                  <tr key={log.id || i} data-testid={`log-row-${i}`}>
+                    <td className="mono">@{log.username}</td>
+                    <td>{log.full_name || log.username}</td>
+                    <td><span className={`tag tag-${log.role || 'viewer'}`}>{log.role === 'admin' ? 'Admin' : log.role === 'operator' ? 'Operador' : 'Viewer'}</span></td>
+                    <td className="mono" style={{ fontSize: '0.78rem' }}>{log.ip_address || '-'}</td>
+                    <td style={{ fontSize: '0.82rem' }}>{formatDate(log.login_time)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem', alignItems: 'center' }}>
+            <button className="btn-ghost" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} data-testid="logs-prev-page">
+              <ChevronLeft size={16} /> Anterior
+            </button>
+            <span style={{ fontSize: '0.82rem', color: '#94A0B0' }}>Pagina {page + 1} de {totalPages}</span>
+            <button className="btn-ghost" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1} data-testid="logs-next-page">
+              Siguiente <ChevronRight size={16} />
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

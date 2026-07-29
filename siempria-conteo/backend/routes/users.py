@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from typing import Optional, List
 import uuid
 
-from config import users_collection, logger
+from config import users_collection, access_logs_collection, logger
 from services.auth_service import get_current_user, get_password_hash
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -112,3 +112,23 @@ async def delete_user(user_id: str, current_user: dict = Depends(get_current_use
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return {"message": "Usuario eliminado"}
+
+
+@router.get("/access-logs")
+async def get_access_logs(
+    limit: int = 100,
+    skip: int = 0,
+    username: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get access logs (admin only)"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Solo admin puede ver logs de acceso")
+
+    query = {}
+    if username:
+        query["username"] = username
+
+    total = await access_logs_collection.count_documents(query)
+    logs = await access_logs_collection.find(query, {"_id": 0}).sort("login_time", -1).skip(skip).limit(limit).to_list(limit)
+    return {"logs": logs, "total": total, "limit": limit, "skip": skip}
