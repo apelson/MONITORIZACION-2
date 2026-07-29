@@ -1,9 +1,12 @@
-# Test Credentials - Siempria
+# Test Credentials — Siempria Conteo
 
-## siempria-conteo
-- **Admin (producción)**: `admin` / `Spw@1644`
-- **Admin (seed default)**: `admin` / `Conteo2024!`
-- **Cliente**: `Israel` (contraseña gestionada por el usuario)
+## Admin
+- **URL**: https://conteo.siempriapp.com
+- **Username**: admin
+- **Password**: Spw@1644
+- **Role**: admin (acceso completo)
 
-## siempria-monitor
-- No gestionado en esta sesión
+## Viewer (ejemplo)
+- **Username**: Israel
+- **Password**: (gestionado por el usuario)
+- **Role**: viewer
