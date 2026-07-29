@@ -1,64 +1,47 @@
 # Siempria Conteo - PRD
 
 ## Problema Original
-Sistema de conteo de visitas para concesionarios del Domingo Alonso Group en Canarias. Utiliza cámaras Mobotix para contar personas y muestra rankings en tiempo real por marca, centro e isla.
+Sistema de conteo de visitas para concesionarios del Domingo Alonso Group en Canarias. Cámaras Mobotix, rankings en tiempo real, dashboard ejecutivo.
 
 ## Arquitectura
 - **Backend**: FastAPI (puerto 8002) con MongoDB (`siempria_conteo`)
 - **Frontend**: React + Vite
-- **Ubicación producción**: `/opt/siempria-conteo/`
+- **Ubicación**: `/opt/siempria-conteo/`
 - **Dominio**: `conteo.siempriapp.com`
 
 ## Funcionalidades Implementadas
 
 ### v1-v8 (Pre-existente)
-- Login/autenticación JWT independiente
-- Dashboard tiempo real con ranking por marca
-- NOC Competitivo (pantalla 55")
-- Tendencias horarias y diarias
-- Mapa de calor (heatmap Mobotix)
-- Vista ejecutiva con KPIs y exportación CSV
-- Modo presentación
-- Gestión de cámaras (CRUD)
-- Gestión de usuarios (CRUD, roles admin/viewer/operator)
-- Sistema de objetivos por marca
+- Login JWT, Dashboard tiempo real, NOC Competitivo, Tendencias, Heatmap Mobotix
+- Vista ejecutiva con KPIs y CSV, Modo presentación, CRUD Cámaras/Usuarios/Objetivos
 
-### v9 (Sesión anterior)
-- Fix bug trailing spaces en login/creación de usuarios
-- Campo email en gestión de usuarios
-- Flujo "Olvidé mi contraseña" (backend + frontend)
-- Cache 60s en endpoints `/ranking/*` (de 100s a <1s)
-- Ocultar menú "Cámaras" a usuarios no-admin
+### v9
+- Fix trailing spaces login, Email en usuarios, Forgot password, Cache ranking 60s, Ocultar Cámaras a no-admin
 
-### v10 (Sesión actual - 29/07/2026)
-- **Botón "Cambiar Contraseña"** en header (icono llave) con modal
-- **Sistema de Logs de Acceso**: registro automático de cada login con IP, fecha, user-agent
-- **Vista "Logs de Acceso"** para admin con tabla, filtro por usuario y paginación
-- Endpoint `POST /api/auth/change-password` (autoservicio)
-- Endpoint `GET /api/users/access-logs` (admin only)
-- Colección MongoDB: `access_logs`
+### v10-v11 (Sesión actual - 29/07/2026)
+- **Cambiar Contraseña**: Botón llave en header + modal
+- **Logs de Acceso**: Registro automático de cada login (IP, fecha, user-agent) + vista admin con filtro y paginación
+- **Alertas Seguridad**: 3 fallos de login → email a luis.gonzalez@siempria.com
+- **Servicio Email**: SMTP configurable desde panel admin (Config Email)
+- **Reportes Automáticos**: CRUD de reportes configurables (nombre, frecuencia, email, filtros por isla/marca/centro) accesible por todos los usuarios
+- Endpoints: `/api/auth/change-password`, `/api/users/access-logs`, `/api/email-settings`, `/api/reports`
+- Colecciones nuevas: `access_logs`, `email_config`, `report_configs`, `failed_login_log`
 
 ## Backlog
 
-### P2 - Próximas
-- Reportes automáticos por email
-- Alertas inteligentes a Telegram
+### P1 - Próximo
+- Ajustar pantalla NOC (desbordamientos de widgets)
+- Implementar envío real de reportes automáticos (cron/scheduler)
 
-### P3 - Futuro
+### P2
+- Alertas inteligentes a Telegram
 - Refactorización App.js de `siempria-monitor` (>3900 líneas)
 
 ## Credenciales
-- Admin: `admin` / `Spw@1644` (producción)
-- Test: `admin` / `Conteo2024!` (seed por defecto)
-
-## Colecciones MongoDB (`siempria_conteo`)
-- `users`, `brand_cameras_config`, `daily_baselines`, `brand_daily_statistics`
-- `brand_hourly_statistics`, `brands`, `centers`, `camera_readings`
-- `hourly_snapshots`, `access_logs` (NUEVO v10)
+- Admin producción: `admin` / `Spw@1644`
+- Admin seed: `admin` / `Conteo2024!`
 
 ## Archivos Clave
-- `/opt/siempria-conteo/backend/routes/auth.py` - Login + change password + access log recording
-- `/opt/siempria-conteo/backend/routes/users.py` - CRUD usuarios + access-logs endpoint
-- `/opt/siempria-conteo/backend/config.py` - Collections y config DB
-- `/opt/siempria-conteo/frontend/src/App.jsx` - Todo el frontend (monolito)
-- `/app/deploy_conteo_v10.sh` - Script de despliegue v10
+- Backend: `routes/auth.py`, `routes/users.py`, `routes/email_settings.py`, `routes/reports.py`, `services/email_service.py`
+- Frontend: `src/App.jsx` (monolito)
+- Scripts: `/app/deploy_conteo_v11.sh`

@@ -20,6 +20,8 @@ from routes.users import router as users_router
 from routes.heatmap import router as heatmap_router
 from routes.goals import router as goals_router
 from routes.analytics import router as analytics_router
+from routes.email_settings import router as email_settings_router
+from routes.reports import router as reports_router
 
 collector_task = None
 
@@ -74,6 +76,8 @@ app.include_router(users_router, prefix="/api")
 app.include_router(heatmap_router, prefix="/api")
 app.include_router(goals_router, prefix="/api")
 app.include_router(analytics_router, prefix="/api")
+app.include_router(email_settings_router, prefix="/api")
+app.include_router(reports_router, prefix="/api")
 
 
 @app.get("/api/health")

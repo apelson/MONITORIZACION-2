@@ -5,20 +5,54 @@ from fastapi import APIRouter, HTTPException, Body, Depends, Request
 from datetime import datetime, timezone
 import uuid
 
-from config import users_collection, access_logs_collection, logger
+from config import users_collection, access_logs_collection, db, logger
 from services.auth_service import verify_password, get_password_hash, create_access_token, get_current_user
+from services.email_service import send_failed_login_alert
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+# In-memory failed login tracker {username: {"count": N, "last_attempt": datetime}}
+_failed_logins = {}
+FAILED_LOGIN_THRESHOLD = 3
 
 
 @router.post("/login")
 async def login(request: Request, username: str = Body(...), password: str = Body(...)):
     """Login with username and password"""
+    client_ip = request.headers.get("x-forwarded-for", request.headers.get("x-real-ip", request.client.host if request.client else "unknown"))
+    if client_ip and "," in client_ip:
+        client_ip = client_ip.split(",")[0].strip()
+
     user = await users_collection.find_one({"username": username}, {"_id": 0})
-    if not user:
+    if not user or not verify_password(password, user.get("password_hash", "")):
+        # Track failed login
+        key = username.lower()
+        if key not in _failed_logins:
+            _failed_logins[key] = {"count": 0, "last_attempt": None}
+        _failed_logins[key]["count"] += 1
+        _failed_logins[key]["last_attempt"] = datetime.now(timezone.utc).isoformat()
+        count = _failed_logins[key]["count"]
+
+        # Log failed attempt
+        await db["failed_login_log"].insert_one({
+            "username": username,
+            "ip_address": client_ip,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "attempt_number": count
+        })
+
+        # Send alert every FAILED_LOGIN_THRESHOLD attempts
+        if count >= FAILED_LOGIN_THRESHOLD and count % FAILED_LOGIN_THRESHOLD == 0:
+            logger.warning(f"[SECURITY] {count} failed logins for '{username}' from {client_ip}")
+            try:
+                await send_failed_login_alert(db, username, client_ip, count)
+            except Exception as e:
+                logger.error(f"Failed to send alert email: {e}")
+
         raise HTTPException(status_code=401, detail="Credenciales invalidas")
-    if not verify_password(password, user.get("password_hash", "")):
-        raise HTTPException(status_code=401, detail="Credenciales invalidas")
+
+    # Reset failed login counter on success
+    _failed_logins.pop(username.lower(), None)
 
     token = create_access_token({"sub": user["id"], "username": user["username"], "role": user.get("role", "viewer")})
 
@@ -28,9 +62,6 @@ async def login(request: Request, username: str = Body(...), password: str = Bod
     )
 
     # Record access log
-    client_ip = request.headers.get("x-forwarded-for", request.headers.get("x-real-ip", request.client.host if request.client else "unknown"))
-    if client_ip and "," in client_ip:
-        client_ip = client_ip.split(",")[0].strip()
     await access_logs_collection.insert_one({
         "id": str(uuid.uuid4()),
         "user_id": user["id"],
