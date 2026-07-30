@@ -1,12 +1,9 @@
-# Test Credentials — Siempria Conteo
+# Test Credentials
 
-## Admin
-- **URL**: https://conteo.siempriapp.com
-- **Username**: admin
-- **Password**: Spw@1644
-- **Role**: admin (acceso completo)
+## siempria-conteo
+- Admin: `admin` / `Spw@1644` (Port 8002)
+- Client: `Israel`
 
-## Viewer (ejemplo)
-- **Username**: Israel
-- **Password**: (gestionado por el usuario)
-- **Role**: viewer
+## siempria-monitor
+- Super Admin: (main Siempria admin account)
+- Tenant Admin: `boluda` / (password unknown - created by super admin) - tenant_id: `tenant_boluda`

@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://siempria-debug-rbac.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://viewport-fix-test.preview.emergentagent.com')
 
 class TestNOCCompetitivo:
     """Tests for NOC Competitivo ranking and realtime endpoints"""

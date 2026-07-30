@@ -1,61 +1,93 @@
-# Siempria Conteo — PRD
+# Siempria Monitor & Conteo - PRD
 
-## Problema Original
-Sistema de conteo de visitas en tiempo real para Domingo Alonso Group (concesionarios de vehículos en Canarias). La aplicación monitoriza cámaras Mobotix y muestra rankings, tendencias, heatmaps, y dashboards ejecutivos.
+## Original Problem Statement
+Platform with two main projects deployed on a live Ubuntu VM:
+- **siempria-conteo** (`/opt/siempria-conteo/`): Visit counting system with NOC Competitivo view
+- **siempria-monitor** (`/opt/siempria-monitor/`): WatchTower NOC - Network Operations Center for device monitoring
 
-## Arquitectura
-- **Backend**: FastAPI (Python), puerto 8002, MongoDB (Motor)
-- **Frontend**: React + Vite, modular (`src/conteo/Dashboard.jsx` + vistas en `src/conteo/views/`)
-- **Servidor**: Ubuntu VM en `/opt/siempria-conteo/`
-- **Dominio**: `conteo.siempriapp.com`
+User communicates in **Spanish**. All changes are applied via inline Python/Bash scripts on the user's production VM.
 
-## Usuarios
-- **Admin** (`admin` / `Spw@1644`): Acceso completo (cámaras, usuarios, logs, email, reportes)
-- **Viewer/Operator** (ej: `Israel`): Dashboard, rankings, tendencias, heatmaps, ejecutivo, presentación + cambiar contraseña
+## Architecture
+- **siempria-conteo**: React (Vite) frontend + FastAPI backend (port 8002) + MongoDB
+- **siempria-monitor**: React (CRA/CRACO) frontend + FastAPI backend + MongoDB (`siempria_monitor` DB)
+- Both run on the same Ubuntu VM at `/opt/`
 
-## Funcionalidades Implementadas
+## What's Been Implemented
 
-### Backend (Confirmado funcionando)
-- ✅ Login con JWT y tracking de intentos fallidos
-- ✅ Endpoint `/api/users/access-logs` — Logs de acceso con filtro y paginación
-- ✅ Endpoint `/api/email-settings` — CRUD configuración SMTP
-- ✅ Endpoint `/api/email-settings/test` — Envío de email de prueba
-- ✅ Endpoint `/api/reports` — CRUD reportes automáticos
-- ✅ Alertas por email tras 3 intentos fallidos de login
-- ✅ Endpoint `/api/auth/change-password` — Cambio de contraseña
+### 2026-07-30 - NOC Overflow Fix (COMPLETED)
+**siempria-conteo NOCView.jsx** - CSS overflow fix:
+- Added `grid-template-rows: 1fr` to `.noc-body-55` and `.noc-left-cols`
+- Added `min-height: 0` to `.noc-left-cols .noc-panel`
+- Added text-overflow: ellipsis to `.noc-rk-name`
+- Mobile reset: `grid-template-rows: auto` for responsive
 
-### Frontend (Desplegado 2026-07-29)
-- ✅ **Botón Cambiar Contraseña** en header (icono llave, visible para todos los usuarios)
-- ✅ **Modal Cambiar Contraseña** integrado en Dashboard.jsx
-- ✅ **AccessLogsView.jsx** — Vista de logs con filtro por usuario y paginación (solo admin)
-- ✅ **EmailSettingsView.jsx** — Configuración SMTP con prueba de envío (solo admin)
-- ✅ **ReportsConfigView.jsx** — CRUD de reportes automáticos con modal (solo admin)
-- ✅ **Navegación sidebar** con 3 nuevos items para admin
-- ✅ **App.jsx limpio** — Removido código muerto inyectado por agentes anteriores
+**siempria-monitor NOCDashboard.jsx** - Dashboard overflow fix:
+- Main grid: Changed `flex-1` to `flex-[3]` + added `grid-rows-1` + `overflow-hidden`
+- Bottom section: Changed from `shrink-0 + height:35%` to `flex-[2]` + `grid-rows-1` + `min-h-0` + `overflow-hidden`
+- Result: All panels properly contained within viewport on 55" TV at 1920x1080
+- User confirmed: "simplemente, perfecto"
 
-### Vistas existentes (pre-existentes)
-- Tiempo Real, NOC Competitivo, Tendencias, Mapa de Calor
-- Ejecutivo, Presentación, Por Marca, Por Centro
-- Cámaras (admin), Usuarios (admin)
+### Previous Work (from earlier sessions)
+- Production deployment of modular views (AccessLogsView, EmailSettingsView, ReportsConfigView)
+- Dashboard.jsx routing/menus patched
+- App.jsx cleanup
+- Change Password functionality
 
-## Backlog / Pendientes
+## Prioritized Backlog
 
-### P2
-- [ ] **Fix NOC View overflow** — Ajustar CSS para que no desborden elementos en `/opt/siempria-conteo/frontend/src/conteo/views/NOCView.jsx`
+### P0 - Multi-Tenant Data Isolation (CRITICAL - Next Priority)
+**Problem**: New tenant users (e.g., "boluda" with `tenant_id: 'tenant_boluda'`) can see data from other tenants:
+- CRA devices (55 devices visible that belong to Siempria)
+- Brand statistics (AUDI, VW, DUCATI, etc. from conteo)
+- Gallery photos (17 images from other tenant)
+- Historical data (155 records from other tenant)
+- NOC Conteo brands visible
 
-### P3
-- [ ] **Refactorizar siempria-monitor** — `App.js` tiene >3900 líneas, dividir en componentes modulares
+**User "boluda" DB record**:
+```json
+{
+  "role": "tenant_admin",
+  "tenant_id": "tenant_boluda",
+  "feature_flags": {"devices": true, "alerts": true, "cra": true, ...},
+  "organization_ids": [],
+  "group_ids": null
+}
+```
 
-## Archivos Clave
-- `/opt/siempria-conteo/frontend/src/App.jsx` — Entry point (limpio, ~25 líneas)
-- `/opt/siempria-conteo/frontend/src/conteo/Dashboard.jsx` — Layout principal con sidebar y header
-- `/opt/siempria-conteo/frontend/src/conteo/views/AccessLogsView.jsx` — Vista logs
-- `/opt/siempria-conteo/frontend/src/conteo/views/EmailSettingsView.jsx` — Vista email
-- `/opt/siempria-conteo/frontend/src/conteo/views/ReportsConfigView.jsx` — Vista reportes
-- `/opt/siempria-conteo/frontend/src/conteo/views/NOCView.jsx` — Vista NOC (pendiente fix overflow)
+**Required fixes**:
+1. Apply `tenant_id` filtering to ALL backend routes (CRA, statistics, photos, alerts, dahua, incidents, etc.)
+2. `tenant_admin` should be able to create users within their own tenant
+3. `tenant_admin` should be able to create incidents
+4. Super admin panel to enable/disable menu sections per tenant
+5. Settings/Configuration panel broken (for both super admin and tenant_admin)
 
-## DB Schema (`siempria_conteo`)
-- `users`: `{id, username, password_hash, email, role, full_name...}`
-- `access_logs`: `{user_id, username, ip_address, success, login_time, full_name, role...}`
-- `email_settings`: `{smtp_host, smtp_port, smtp_user, smtp_password, from_email, alert_email, enabled...}`
-- `reports`: `{name, report_type, frequency, email, islands, brands, centers, enabled, created_by...}`
+### P1 - Super Admin Permissions Control
+- Panel in super admin to activate/deactivate sections per tenant
+- Frontend: hide tabs based on tenant permissions
+- Feature flags should control menu visibility
+
+### P2 - Refactor siempria-monitor App.js (>3900 lines)
+- Break into modular components
+
+## Credentials
+- siempria-conteo Admin: `admin` / `Spw@1644` (Port 8002)
+- siempria-monitor: User "boluda" (`tenant_admin`, `tenant_id: tenant_boluda`)
+
+## Key Files
+- `/opt/siempria-conteo/frontend/src/App.css` (NOC styles)
+- `/opt/siempria-conteo/frontend/src/conteo/views/NOCView.jsx`
+- `/opt/siempria-monitor/frontend/src/components/panels/NOCDashboard.jsx`
+- `/opt/siempria-monitor/frontend/src/App.js` (3900+ lines monolith)
+- `/opt/siempria-monitor/backend/routes/` (all API routes)
+- `/opt/siempria-monitor/backend/services/auth_service.py`
+- `/opt/siempria-monitor/backend/routes/tenant_auth.py`
+- `/opt/siempria-monitor/backend/routes/devices.py` (has partial tenant filtering)
+
+## Critical Notes for Next Agent
+- **ENVIRONMENT**: User's live Ubuntu VM at `/opt/`. DO NOT edit files in local `/app/` container.
+- **WORKFLOW**: Ask user to `cat` files → analyze → provide Python/bash patch scripts → user executes → rebuild
+- **LANGUAGE**: Respond in Spanish
+- **Build commands**: 
+  - siempria-conteo: `cd /opt/siempria-conteo/frontend && npm run build`
+  - siempria-monitor: `cd /opt/siempria-monitor/frontend && npm run build`
+- **Multi-tenancy infrastructure**: Partially exists (`should_filter_by_tenant`, `tenant_devices.py`, `tenant_auth.py`) but NOT applied consistently

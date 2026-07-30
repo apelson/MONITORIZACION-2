@@ -13,7 +13,7 @@ cd /opt/siempria-monitor
 # ============================================
 echo "📥 Descargando archivos..."
 
-BASE_URL="https://siempria-debug-rbac.preview.emergentagent.com/api/download-file"
+BASE_URL="https://viewport-fix-test.preview.emergentagent.com/api/download-file"
 
 # === FRONTEND ===
 
