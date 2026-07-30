@@ -1,12 +1,8 @@
 # Test Credentials
 
-## siempria-conteo
-- Admin: `admin` / `Spw@1644` (Port 8002)
-- Client: `Israel`
+## Monitor (siempria-monitor)
+- **Tenant test**: boluda / Canarias@2020 (role: tenant_admin, tenant_id: tenant_boluda)
+- **Admin**: (credentials managed by user)
 
-## siempria-monitor
-- Super Admin: `admin` / (main Siempria admin)
-- Tenant Admin: `boluda` / `Canarias@2020` (tenant_id: `tenant_boluda`)
-- Tenant Admin: `dagroup` / (unknown) (tenant_id: `c793baf1`)
-- Technician: `tecnico`, `Vanessa`, `jmerelles`, `adolfo`, `joseramon`
-- Operator: `operador`
+## Conteo (siempria-conteo)  
+- Managed by user (LUIS GONZALEZ visible in UI)

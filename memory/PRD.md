@@ -1,105 +1,56 @@
-# Siempria Monitor & Conteo - PRD
+# Siempria Monitor - PRD & Estado
 
-## Original Problem Statement
-Platform with two main projects deployed on a live Ubuntu VM:
-- **siempria-conteo** (`/opt/siempria-conteo/`): Visit counting system with NOC Competitivo view
-- **siempria-monitor** (`/opt/siempria-monitor/`): WatchTower NOC - Network Operations Center for device monitoring
+## Problema Original
+Plataforma SaaS multi-tenant de monitorización de dispositivos (cámaras, servidores, infraestructura). Requiere aislamiento total entre tenants para que cada cliente vea solo sus propios datos.
 
-User communicates in **Spanish**. All changes are applied via inline Python/Bash scripts on the user's production VM.
+## Arquitectura
+- **Backend**: FastAPI (Python 3.12) en `/opt/siempria-monitor/backend/` — systemd: `siempria-backend`
+- **Frontend**: React en `/opt/siempria-monitor/frontend/` — build con `npm run build`
+- **DB**: MongoDB (`siempria_monitor`)
+- **Conteo**: App separada en `/opt/siempria-conteo/` — puerto 8002 (nohup/uvicorn)
+- **NGINX**: Proxy reverso en `/etc/nginx/sites-enabled/`
+- **Cloudflare Tunnel**: `siempria-tunnel` (ID: `7d0bc7d9-e2bc-4e00-b88f-d30799fe7d45`)
+- **Dominios**: `monitor.siempriapp.com`, `conteo.siempriapp.com`, `siempriapp.com`, `www.siempriapp.com`
 
-## Architecture
-- **siempria-conteo**: React (Vite) frontend + FastAPI backend (port 8002) + MongoDB
-- **siempria-monitor**: React (CRA/CRACO) frontend + FastAPI backend (port 8001, uvicorn) + MongoDB (`siempria_monitor` DB)
-- Both run on the same Ubuntu VM at `/opt/`
-- Backend restart: `pkill -f "uvicorn.*server:app.*8001" && cd /opt/siempria-monitor/backend && source venv/bin/activate && nohup uvicorn server:app --host 0.0.0.0 --port 8001 > /tmp/monitor_backend.log 2>&1 &`
+## Multi-tenancy
+- Servicio central: `services/multitenancy_service.py`
+- Funciones: `should_filter_by_tenant()`, `build_device_filter()`, `build_organization_filter()`, `build_group_filter()`, `build_alert_filter()`
+- Usuarios tenant: `role: "tenant_admin"`, `organization_ids: [...]`, `feature_flags: {...}`
 
-## What's Been Implemented
+## Credenciales Test
+- Tenant: `boluda` / `Canarias@2020` (tenant_admin, organization_ids: [])
 
-### 2026-07-30 - NOC Overflow Fix (COMPLETED ✅)
-- **siempria-conteo** (`App.css`): 5 CSS fixes — `grid-template-rows: 1fr`, text-overflow, mobile reset
-- **siempria-monitor** (`NOCDashboard.jsx`): Grid layout fix — `flex-[3]`/`flex-[2]` + `grid-rows-1`
-- User confirmed: "simplemente, perfecto"
+## Completado (30 Jul 2026)
+- ✅ Overflow NOC 55" resuelto (CSS Grid)
+- ✅ Feature flags en frontend (SECTION_TO_FLAG_MAP, canAccessSection)
+- ✅ Toggle feature flags en SuperAdminTab
+- ✅ CRA aislamiento total (devices.py _tenant_filter_cra)
+- ✅ Incidencias aisladas (incidents.py stats + list)
+- ✅ CRA floating button condicionado con canAccessSection('cra')
+- ✅ Cloudflare Tunnel configurado para todos los subdominios
+- ✅ conteo.siempriapp.com accesible externamente via tunnel
+- ✅ monitor.siempriapp.com accesible externamente via tunnel
+- ✅ ai_analysis.py parcheado (4 endpoints con filtrado tenant)
+- ✅ infrastructure.py bug await corregido
+- ✅ settings.py /system-status filtrado por tenant
+- ✅ /etc/hosts actualizado con conteo.siempriapp.com
+- ✅ Endpoint /users/access-logs añadido a conteo
 
-### 2026-07-30 - Multi-Tenant Data Isolation (IN PROGRESS)
+## Auditoría Multi-Tenant - Archivos Pendientes (P1)
+### 🔴 CRÍTICO (necesitan filtrado):
+- camera_stream.py (20 endpoints, acceso a cámaras sin verificar tenant)
+- export_routes.py (11 endpoints, exporta datos globales, auth rota)
+- cra_events.py (7 endpoints, eventos CRA sin filtrar)
+- device_images.py (6 endpoints, imágenes sin filtrar)
+- statistics.py (4 endpoints, stats de cámaras ajenas)
+- sla_reports.py (2 endpoints, SLA global)
+- logs.py (9 endpoints, actividad global)
+- websocket.py (broadcast sin filtrar por tenant)
 
-**Backend patches applied:**
-- `cra.py`: Tenant filtering via `build_device_filter` and `build_alert_filter` — CRA devices/status/alerts now filtered
-- `brand_statistics.py`: `should_filter_by_tenant` check — tenant users see only their own brands (empty for new tenants)
-- `device_photos.py`: Filter photos by accessible devices — tenant users only see their photos
-- `users.py`: 
-  - `tenant_admin` can create/update/delete/reset-password for users in their tenant
-  - New users inherit `tenant_id` from creator
-  - `get_users` filters by `tenant_id`
+### 🟢 NO necesitan filtrado:
+- auth.py, superadmin*.py, tenant_*.py, backup.py, fail2ban.py, system_stats.py, billing.py, payments.py, security.py, two_factor.py, roles.py, jira.py, push_notifications.py, reports.py, upload.py, download*.py
 
-**Frontend patches applied (App.js):**
-- `SECTION_TO_FLAG_MAP` expanded with all sections (statistics, counting-noc, historical, users, settings, infrastructure, organizations, map, noc, dahua)
-- `Users TabsContent`: Now allows `tenant_admin` (was admin-only)
-- `Incidents TabsContent`: Now allows `tenant_admin`
-- `CRA TabsContent`: Added `canAccessSection('cra')` guard
-- `NOC button`: Removed CRA dependency — NOC visible for all roles
-- `Grabadores TabsTrigger`: Changed from `canAccessSection('devices')` to `canAccessSection('dahua')`
-
-**Database updates:**
-- User "boluda" (`tenant_admin`, `tenant_id: tenant_boluda`): feature_flags set correctly (statistics OFF, CRA OFF, live_view OFF, NOC ON, etc.)
-
-**API verification (boluda token):**
-- `/cra/devices` → 0 devices ✅
-- `/brand-statistics/brands` → 0 brands ✅
-- `/device-photos/all` → 0 photos ✅
-
-## Prioritized Backlog
-
-### P0 - Super Admin Feature Flags Panel (NEXT PRIORITY)
-**Problem**: Currently feature_flags are managed via MongoDB manually. Need a UI in the Super Admin panel to:
-- View all tenants and their users
-- Toggle feature flags per tenant (ON/OFF for each menu/section)
-- Apply changes immediately
-- This replaces manual DB updates
-
-**Sections to control:**
-- devices, statistics, noc_conteo, historico, cra, dahua, live_view, alerts, gallery, users, incidents, map, noc, settings, reports, ai_insights, infrastructure
-
-### P1 - NOC Dashboard Tenant Isolation
-**Problem**: NOC Dashboard (`NOCDashboard.jsx`) still shows CRA data from Siempria when opened by tenant users. The NOC fetches CRA data via `/cra/devices` (now filtered) AND from the `devices` prop + internal filtering.
-- Need to verify NOC shows empty panels for boluda after backend restart
-- CriticalAlertsWidget fetches data independently - needs verification
-- VPN, Dahua widgets fetch independently - need verification
-
-### P1 - Settings/Configuration Page Fix
-**Problem**: Configuration page not working for both super admin and tenant_admin. Need to investigate.
-
-### P2 - Refactor siempria-monitor App.js (>3900 lines)
-- Break into modular components
-
-## Credentials
-- siempria-conteo Admin: `admin` / `Spw@1644` (Port 8002)
-- siempria-monitor Admin: `admin` / (password in DB)
-- siempria-monitor Tenant: `boluda` / `Canarias@2020` (tenant_id: `tenant_boluda`)
-
-## Key Files Modified
-- `/opt/siempria-monitor/backend/routes/cra.py` (+ .bak2 backup)
-- `/opt/siempria-monitor/backend/routes/brand_statistics.py` (+ .bak2)
-- `/opt/siempria-monitor/backend/routes/device_photos.py` (+ .bak2)
-- `/opt/siempria-monitor/backend/routes/users.py` (+ .bak2)
-- `/opt/siempria-monitor/frontend/src/App.js` (+ .mt_bak)
-- `/opt/siempria-monitor/frontend/src/components/panels/NOCDashboard.jsx` (+ .bak)
-- `/opt/siempria-conteo/frontend/src/App.css` (+ .bak)
-
-## Multi-Tenancy Service
-Located at `/opt/siempria-monitor/backend/services/multitenancy_service.py`:
-- `should_filter_by_tenant(user)` → True for non-admin users
-- `build_device_filter(user, extra_filter)` → MongoDB filter with group_id constraint
-- `build_alert_filter(user, extra_filter)` → Filter alerts by accessible devices
-- `build_organization_filter(user)` → Filter by organization_ids
-- `build_dahua_device_filter(user, extra_filter)` → Filter Dahua devices
-- `get_user_group_ids(user)` → List of group IDs user can access
-- `get_user_organization_ids(user)` → List of org IDs user can access
-
-## Critical Notes for Next Agent
-- **ENVIRONMENT**: User's live Ubuntu VM at `/opt/`. DO NOT edit local `/app/` container.
-- **WORKFLOW**: cat file → analyze → Python/bash patch script → user executes → rebuild
-- **LANGUAGE**: Respond in Spanish
-- **Build**: siempria-monitor: `cd /opt/siempria-monitor/frontend && npm run build`
-- **Backend restart**: Kill and restart uvicorn (HUP doesn't reload Python code!)
-- **Feature flags**: Stored in `users` collection, `feature_flags` field. `SECTION_TO_FLAG_MAP` in App.js maps section names to flag keys.
-- **canAccessSection()**: Checks role permissions first, then feature_flags for tenant_admin users
+## Backlog Futuro
+- (P2) Revisión predicción de fallos/salud/anomalías por tenant  
+- (P3) Refactorizar App.js monolito (+3900 líneas)
+- Puerto 443 en router (alternativa a Cloudflare si se necesita acceso directo)
