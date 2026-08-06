@@ -1,86 +1,36 @@
 # PRD - Siempria Monitor (WatchTower)
 
-## Problema Original
-Plataforma SaaS de monitorización de red que requería multi-tenancy, acceso HTTPS externo, refactorización frontend, emails automáticos, logos de tenants y dashboard personalizado.
+## Estado Actual (5 Ago 2026)
 
-## Arquitectura
-- **Frontend Monitor**: `/opt/siempria-monitor/frontend/` (React + CRA + craco)
-- **Backend Monitor**: `/opt/siempria-monitor/backend/` (FastAPI, Python 3.12, puerto 8001)
-- **Frontend/Backend Conteo**: `/opt/siempria-conteo/` (FastAPI, puerto 8002)
-- **Base de Datos**: MongoDB local (27017)
-- **Acceso externo**: Cloudflare Tunnel (monitor.siempriapp.com, conteo.siempriapp.com)
-- **Email SMTP**: siempria-com.correoseguro.dinaserver.com:465 (conteo@siempria.com)
+### Completado esta sesión:
+- Refactorización App.js Fases 4-7: 3944 → 2425 líneas (39%)
+- Email SMTP configurado (conteo@siempria.com) + 10 emails con PDF SLA enviados
+- Logos en PDFs SLA (cabecera con logo/color org)
+- Logos en interfaz (dropdowns con color dots, banner org)
+- Feature flags por tenant (noc_conteo, brand_statistics, historical_stats)
+- Logo Boluda Corporación Marítima subido y asignado a Terminal Tenerife/La Palma
+- Fix imports faltantes en componentes extraídos (Cctv, Shield, Lock, MOBOTIX_LOGO_URL, getIcon, ICON_MAP, HardDriveIcon, WHATSAPP_ALERT_NUMBER, BACKEND_URL)
 
-## Completado
+### BUGS CRÍTICOS PENDIENTES:
+1. **Fuga de alertas entre tenants en NOC**: boluda ve alertas de otros clientes (LZ-NAS, LZ-MKT, etc.). Necesita filtrar alertas por tenant
+2. **Botón amarillo flotante** visible para tenant_admin - ocultar
 
-### Multi-Tenancy Backend (DONE - Jul 2026)
-- Aislamiento en 17 archivos backend
-- `multitenancy_service.py` con `build_device_filter()` y `should_filter_by_tenant()`
+### Tareas Pendientes:
+- (P0) Fix aislamiento alertas en NOC/dashboard para tenants
+- (P0) Ocultar botón amarillo flotante para tenant_admin
+- (P1) Activar grabadores (dahua) para boluda con aislamiento de datos
+- (P1) Mostrar logo Boluda en listado dispositivos y NOC
+- (P2) Continuar refactorización AppContent (~2000 líneas)
+- (P2) Dashboard personalizado por tenant
+- (P3) Fix SVG logos en PDFs (TIMELAPSE)
 
-### Cloudflare Tunnel (DONE - Jul 2026)
-- Dominios: monitor.siempriapp.com, conteo.siempriapp.com
+### Feature Flags Implementados:
+- `noc_conteo` - Controla tab NOC Conteo
+- `brand_statistics` - Controla tab Estadísticas (marcas)
+- `historical_stats` - Controla tab Histórico
+- `devices`, `alerts`, `cra`, `dahua`, `live_view`, `incidents`, `reports`, `ai_insights`, `gallery`
 
-### Conteo Backend Service (DONE - Jul 2026)
-- systemd service, access logs con IP real
-
-### Email SMTP (DONE - Ago 2026)
-- Credenciales: conteo@siempria.com vía SMTPS 465
-- `send_email_generic` con soporte de adjuntos PDF
-- Test email enviado exitosamente
-
-### Emails Automáticos con PDF SLA (DONE - Ago 2026)
-- `generate_and_send_report()` mejorado con:
-  - Template HTML profesional con logo/color de organización
-  - PDF SLA adjunto automáticamente (via sla_report_generator)
-  - Tabla de dispositivos offline incluida
-  - Soporte por organización (genera 1 email por org)
-- 10 emails enviados exitosamente con PDFs adjuntos
-- Scheduler APScheduler configurado (8:00 AM diario)
-- Endpoint `/api/scheduled-reports/send-now` para envío manual
-
-### Logos de Tenant en PDFs (DONE - Ago 2026)
-- Cabecera PDF SLA con logo y color de organización
-- Resolución automática logo_url → archivo físico
-- Fallback a texto cuando no hay logo
-
-### Logos en Interfaz (DONE - Ago 2026)
-- Color dots + logos en dropdown de organizaciones
-- Color dots en dropdown de grupos (color de su org padre)
-- Banner con logo/nombre/ciudad de la org cuando se filtra
-
-### Refactorización Frontend App.js (IN PROGRESS - Ago 2026)
-**Progreso: 3944 → 2425 líneas (39% reducido)**
-
-| Fase | Componentes | Ubicación |
-|------|------------|-----------|
-| 1 | PWAInstallPrompt, LoadingScreen | common/ |
-| 2 | AuthContext | contexts/ |
-| 3 | SecurityPanel | panels/ |
-| 4 | DeviceFormDialog, OrganizationFormDialog | dialogs/ |
-| 5 | GroupFormDialog, UserFormDialog | dialogs/ |
-| 6 | DeviceTypeFormDialog, HistoryDialog, DeleteConfirmDialog, FailuresDialog | dialogs/ |
-| 7 | PublicDashboardConfig, LoadingSkeleton, SectionLoading | panels/, common/ |
-
-## Backlog
-
-### P1 - Dashboard Personalizado por Tenant
-- Tenant isolation ya funciona (backend)
-- Logos ya se muestran en filtros (frontend)
-- Falta: personalización visual más profunda del dashboard por tenant
-
-### P2 - Usuarios Tenant Admin Adicionales
-- Crear múltiples tenant_admin para nuevos clientes
-
-### P2 - Continuar Refactorización
-- Descomponer AppContent (~2000 líneas restantes)
-- Code splitting para reducir bundle (686KB gzip)
-
-### P3 - Fix SVG logos en PDFs
-- TIMELAPSE org tiene logo SVG que ReportLab no soporta
-- Convertir SVG a PNG al subir, o usar svglib
-
-## Notas Técnicas
-- Build: `cd /opt/siempria-monitor/frontend && npm run build`
-- Restart backend: `sudo systemctl restart siempria-backend`
-- Admin password reseteada a `Spw@1644` vía passlib/bcrypt
-- Cambios se aplican via scripts SSH (agente sin acceso directo a VM)
+### Credenciales:
+- Admin: admin / Spw@1644
+- Tenant: boluda / Canarias@2020
+- Email SMTP: conteo@siempria.com / NyXl9J&072=( (SMTPS 465)
